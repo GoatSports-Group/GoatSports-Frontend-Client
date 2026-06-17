@@ -1,0 +1,89 @@
+.client-container {
+  min-height: 100vh;
+  background-color: var(--bg-body, #f7fafc);
+}
+
+.client-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.client-main-outlet {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+// Mobile Sidenav Styling
+.mobile-drawer {
+  width: 280px;
+  background-color: #ffffff;
+  border-right: 1px solid var(--border-color, #e2e8f0);
+  
+  .drawer-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1.5rem;
+    background-color: var(--primary-light, #e8f5e9);
+    
+    .logo-img {
+      height: 38px;
+      width: auto;
+      object-fit: contain;
+    }
+    
+    .logo-text {
+      font-family: var(--font-heading, 'Outfit', sans-serif);
+      font-weight: 800;
+      font-size: 1.3rem;
+      color: var(--primary, #2e7d32);
+      
+      .logo-text-accent {
+        color: var(--accent, #ef6c00);
+      }
+    }
+  }
+  
+  .drawer-menu {
+    padding: 1rem 0;
+    display: flex;
+    flex-direction: column;
+    
+    .drawer-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.8rem 1.5rem;
+      color: var(--text-dark, #2d3748);
+      font-family: var(--font-body, 'Inter', sans-serif);
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-decoration: none;
+      cursor: pointer;
+      transition: var(--transition-smooth, all 0.3s ease);
+      
+      &:hover {
+        background-color: var(--primary-light, #e8f5e9);
+        color: var(--primary, #2e7d32);
+      }
+      
+      &.active {
+        background-color: var(--primary-light, #e8f5e9);
+        color: var(--primary, #2e7d32);
+        border-left: 4px solid var(--primary, #2e7d32);
+      }
+      
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+    }
+    
+    mat-divider {
+      margin: 1rem 0;
+    }
+  }
+}

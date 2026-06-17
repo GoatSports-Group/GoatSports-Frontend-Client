@@ -1,0 +1,209 @@
+<div class="home-page-container">
+
+  <!-- 1. Hero Section -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <span class="hero-badge"><mat-icon>insights</mat-icon> Đặt Sân Nhanh & Đề Xuất AI</span>
+      <h1 class="hero-title">Tìm Sân Thể Thao <br><span class="highlight-text">Phù Hợp</span></h1>
+      <p class="hero-desc">
+        Nền tảng trực tuyến giúp bạn tìm kiếm lịch trống, so sánh giá cả và đặt các cụm sân bóng đá, cầu lông, tennis,
+        pickleball gần bạn nhất chỉ với vài cú click.
+      </p>
+
+      <!-- Quick Search Form -->
+      <form (submit)="onSearch()" class="hero-search-form">
+        <div class="search-form-row">
+          <mat-form-field appearance="outline" class="search-field select-field">
+            <mat-icon matPrefix>sports</mat-icon>
+            <mat-select [(ngModel)]="sportType" name="sportType">
+              <mat-option value="all">Môn thể thao</mat-option>
+              @for (type of sportTypes; track type) {
+                <mat-option [value]="type">{{ type }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="search-field text-field">
+            <mat-icon matPrefix>location_on</mat-icon>
+            <input matInput placeholder="Tên sân, địa chỉ hoặc quận huyện..." [(ngModel)]="searchQuery"
+              name="searchQuery">
+          </mat-form-field>
+
+          <button mat-flat-button color="primary" type="submit" class="search-btn">Tìm Kiếm</button>
+        </div>
+      </form>
+
+      <div class="hero-features">
+        <div class="feature-item">
+          <mat-icon color="primary">schedule</mat-icon>
+          <span>Xem lịch trống Real-time</span>
+        </div>
+        <div class="feature-item">
+          <mat-icon color="primary">payments</mat-icon>
+          <span>Thanh toán online an toàn</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-image-wrapper">
+      <img src="https://images.unsplash.com/photo-1542652694-40abf526446e?w=800&q=80" alt="Sports Court Football Tennis"
+        class="hero-image">
+    </div>
+  </section>
+
+  <!-- 2. Highlight Sport Categories -->
+  <section class="section categories-section">
+    <div class="section-header">
+      <h2 class="section-title">Chọn Bộ Môn Thể Thao</h2>
+      <p class="section-subtitle">Đặt sân phù hợp cho đam mê của bạn</p>
+    </div>
+
+    <div class="categories-grid">
+      @for (type of sportTypes; track type) {
+      <div class="category-card hover-scale" (click)="selectSport(type)"
+        [style.background-color]="getSportColor(type)">
+        <div class="category-icon-box">
+          <mat-icon class="category-icon">{{ getSportIcon(type) }}</mat-icon>
+        </div>
+        <span class="category-name">{{ type }}</span>
+      </div>
+      }
+    </div>
+  </section>
+
+  <!-- 3. Marketing Banner Section -->
+  <section class="promos-banner-grid">
+    <!-- Banner 1 -->
+    <div class="promo-banner bg-green">
+      <div class="banner-text">
+        <span class="banner-tag">HOT TRENDING</span>
+        <h3 class="banner-title">Pickleball Sân Trong Nhà</h3>
+        <p class="banner-desc">Đặt sân Pickleball tại các cụm cao cấp với thảm thi đấu chuẩn Mỹ.</p>
+        <button mat-flat-button color="primary" routerLink="/venues" [queryParams]="{sportType: 'pickleball'}"
+          class="banner-btn">Khám Phá Ngay</button>
+      </div>
+      <img src="https://images.unsplash.com/photo-1517649763962-0c623066013b?w=300&q=80" alt="Pickleball Promo"
+        class="banner-img">
+    </div>
+
+    <!-- Banner 2 -->
+    <div class="promo-banner bg-orange">
+      <div class="banner-text">
+        <span class="banner-tag">AI RECOMMENDATION</span>
+        <h3 class="banner-title">Gợi Ý Sân Tối Ưu Bằng AI</h3>
+        <p class="banner-desc">Nhập ngân sách và vị trí, AI sẽ tính toán sân phù hợp nhất cho bạn.</p>
+        <button mat-flat-button color="accent" routerLink="/ai-recommendation" class="banner-btn">Trải Nghiệm
+          AI</button>
+      </div>
+      <img src="https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?w=300&q=80" alt="AI Sports Promo"
+        class="banner-img">
+    </div>
+  </section>
+
+  <!-- 4. Featured Venues Section -->
+  <section class="section products-section">
+    <div class="section-header-row">
+      <div class="section-header">
+        <h2 class="section-title">Cụm Sân Thể Thao Nổi Bật</h2>
+        <p class="section-subtitle">Các địa điểm có chất lượng dịch vụ cao nhất được cộng đồng đánh giá tốt</p>
+      </div>
+      <button mat-stroked-button color="primary" routerLink="/venues">Xem Tất Cả Sân <mat-icon
+          matSuffix>arrow_forward</mat-icon></button>
+    </div>
+
+    @if (loading) {
+    <app-loading-skeleton [type]="'card'" [count]="4"></app-loading-skeleton>
+    } @else {
+    <div class="products-grid">
+      @for (venue of featuredVenues; track venue.venueId) {
+      <div class="product-card mat-elevation-z1 hover-effect hover-scale" (click)="viewVenue(venue.venueId)">
+
+        <div class="product-image-container">
+          <img [src]="venue.imageUrl" [alt]="venue.name" class="product-image">
+          <span class="sport-type-badge">{{ getSportTypeLabel(venue.sportType) }}</span>
+        </div>
+
+        <div class="product-details">
+          <h3 class="product-name" [title]="venue.name">{{ venue.name }}</h3>
+
+          <div class="address-row">
+            <mat-icon>location_on</mat-icon>
+            <span class="address-text">{{ venue.address }}</span>
+          </div>
+
+          <app-star-rating [rating]="venue.rating" size="small"></app-star-rating>
+
+          <div class="product-price-row">
+            <div class="price-container">
+              <span class="price-label">Giá thuê chỉ từ:</span>
+              <span class="current-price">{{ venue.pricePerHour | number:'1.0-0' }}đ <span class="unit-text">/
+                  giờ</span></span>
+            </div>
+
+            <button mat-flat-button color="primary" class="book-now-btn">
+              Đặt Sân
+            </button>
+          </div>
+        </div>
+      </div>
+      }
+    </div>
+    }
+  </section>
+
+  <!-- 5. Benefit Grid Section -->
+  <section class="banner-horizontal">
+    <div class="horizontal-content">
+      <h2>Bạn Tìm Kiếm Sân Đấu Tối Ưu Cho Cuối Tuần?</h2>
+      <p>Sử dụng ngay hệ thống phân tích AI để quét toàn bộ lịch đặt và tìm ra khung giờ vàng có mức giá rẻ nhất tại các
+        sân quanh bạn.</p>
+      <button mat-flat-button color="accent" routerLink="/ai-recommendation" class="cta-btn">Phân Tích AI Ngay</button>
+    </div>
+  </section>
+
+  <!-- 6. Advantages section -->
+  <section class="section benefits-info-section">
+    <div class="section-header">
+      <h2 class="section-title">Tại Sao Nên Đặt Sân Trên GOAT Sports?</h2>
+      <p class="section-subtitle">Chúng tôi mang lại giải pháp tiện lợi, minh bạch và thông minh nhất</p>
+    </div>
+
+    <div class="benefits-grid">
+      <div class="benefit-item hover-scale">
+        <div class="benefit-icon-box">
+          <mat-icon>flash_on</mat-icon>
+        </div>
+        <h3>Đặt Sân Nhanh 30s</h3>
+        <p>Bỏ qua các cuộc gọi điện thoại xác nhận phức tạp. Chỉ cần chọn giờ, điền thông tin và hoàn tất trong 30 giây.
+        </p>
+      </div>
+
+      <div class="benefit-item hover-scale">
+        <div class="benefit-icon-box">
+          <mat-icon>event_available</mat-icon>
+        </div>
+        <h3>Lịch Trống Real-Time</h3>
+        <p>Hệ thống kết nối trực tiếp với lịch hoạt động của chủ sân, hiển thị chính xác giờ trống theo thời gian thực.
+        </p>
+      </div>
+
+      <div class="benefit-item hover-scale">
+        <div class="benefit-icon-box">
+          <mat-icon>psychology</mat-icon>
+        </div>
+        <h3>Gợi Ý Thông Minh AI</h3>
+        <p>Thuật toán độc quyền đối chiếu vị trí, giá cả và sở thích để đưa ra đề xuất sân đấu có độ tương thích cao
+          nhất.</p>
+      </div>
+
+      <div class="benefit-item hover-scale">
+        <div class="benefit-icon-box">
+          <mat-icon>security</mat-icon>
+        </div>
+        <h3>Bảo Mật & Tin Cậy</h3>
+        <p>Đảm bảo giữ sân 100% sau khi được xác nhận. Hỗ trợ chính sách hoàn hủy linh hoạt trước trận đấu.</p>
+      </div>
+    </div>
+  </section>
+
+</div>

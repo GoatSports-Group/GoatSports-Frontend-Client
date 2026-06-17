@@ -1,0 +1,12 @@
+<div class="star-rating-container" [ngClass]="size">
+  @for (star of stars; track $index) {
+    @if (star === 'full') {
+      <mat-icon class="star-icon full">star</mat-icon>
+    } @else if (star === 'half') {
+      <mat-icon class="star-icon half">star_half</mat-icon>
+    } @else {
+      <mat-icon class="star-icon empty">star_border</mat-icon>
+    }
+  }
+  <span class="rating-value" *ngIf="rating > 0">{{ rating | number:'1.1-1' }}</span>
+</div>

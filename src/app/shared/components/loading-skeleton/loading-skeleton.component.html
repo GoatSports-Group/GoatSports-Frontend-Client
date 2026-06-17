@@ -1,0 +1,43 @@
+<div class="skeleton-wrapper" [ngClass]="type">
+  @for (item of countArray; track $index) {
+    @if (type === 'card') {
+      <div class="skeleton-card">
+        <div class="skeleton-image skeleton-shimmer"></div>
+        <div class="skeleton-info">
+          <div class="skeleton-line title skeleton-shimmer"></div>
+          <div class="skeleton-line rating skeleton-shimmer"></div>
+          <div class="skeleton-row">
+            <div class="skeleton-line price skeleton-shimmer"></div>
+            <div class="skeleton-button skeleton-shimmer"></div>
+          </div>
+        </div>
+      </div>
+    } @else if (type === 'list') {
+      <div class="skeleton-list-item">
+        <div class="skeleton-thumbnail skeleton-shimmer"></div>
+        <div class="skeleton-list-details">
+          <div class="skeleton-line name skeleton-shimmer"></div>
+          <div class="skeleton-line category skeleton-shimmer"></div>
+        </div>
+        <div class="skeleton-line qty skeleton-shimmer"></div>
+        <div class="skeleton-line price skeleton-shimmer"></div>
+      </div>
+    } @else if (type === 'detail') {
+      <div class="skeleton-detail-grid">
+        <div class="skeleton-large-image skeleton-shimmer"></div>
+        <div class="skeleton-detail-info">
+          <div class="skeleton-line main-title skeleton-shimmer"></div>
+          <div class="skeleton-line rating skeleton-shimmer"></div>
+          <div class="skeleton-line large-price skeleton-shimmer"></div>
+          <div class="skeleton-line desc skeleton-shimmer"></div>
+          <div class="skeleton-line desc skeleton-shimmer"></div>
+          <div class="skeleton-line desc skeleton-shimmer"></div>
+          <div class="skeleton-row buttons">
+            <div class="skeleton-button large skeleton-shimmer"></div>
+            <div class="skeleton-button large skeleton-shimmer"></div>
+          </div>
+        </div>
+      </div>
+    }
+  }
+</div>

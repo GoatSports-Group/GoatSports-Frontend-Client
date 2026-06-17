@@ -1,0 +1,41 @@
+.star-rating-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: #ffb300; // Warm amber color
+
+  .star-icon {
+    font-size: inherit;
+    width: auto;
+    height: auto;
+    
+    &.empty {
+      color: #cbd5e0;
+    }
+  }
+
+  .rating-value {
+    margin-left: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted, #718096);
+  }
+
+  // Sizes
+  &.small {
+    font-size: 16px;
+    .star-icon { font-size: 16px; }
+    .rating-value { font-size: 0.75rem; }
+  }
+
+  &.medium {
+    font-size: 20px;
+    .star-icon { font-size: 20px; }
+  }
+
+  &.large {
+    font-size: 24px;
+    .star-icon { font-size: 24px; }
+    .rating-value { font-size: 0.95rem; }
+  }
+}

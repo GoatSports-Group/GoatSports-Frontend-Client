@@ -1,0 +1,435 @@
+.contact-page {
+  background-color: var(--bg-body);
+  min-height: 100vh;
+  padding-bottom: 4rem;
+
+  .policy-header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--bg-card);
+    padding: 1rem 2.5rem;
+    box-shadow: var(--shadow-sm);
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+    background-color: rgba(255, 255, 255, 0.9);
+
+    .logo-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      cursor: pointer;
+
+      .logo-img {
+        height: 38px;
+        width: auto;
+      }
+
+      .logo-text {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: var(--text-dark);
+
+        .logo-text-accent {
+          color: var(--primary);
+        }
+      }
+    }
+
+    .back-home-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      font-weight: 600;
+      transition: var(--transition-smooth);
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+
+      &:hover {
+        color: var(--primary);
+      }
+    }
+  }
+
+  .contact-hero {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+    color: var(--text-light);
+    padding: 5rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -20%;
+      width: 140%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
+      pointer-events: none;
+    }
+
+    .hero-content {
+      max-width: 800px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+
+      .icon-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 50%;
+        width: 80px;
+        height: 80px;
+        margin-bottom: 1.5rem;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        animation: float 4s ease-in-out infinite;
+
+        mat-icon {
+          font-size: 40px;
+          width: 40px;
+          height: 40px;
+          color: var(--text-light);
+        }
+      }
+
+      h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--text-light);
+        margin-bottom: 1rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+      }
+
+      .hero-subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        line-height: 1.6;
+        color: var(--text-light);
+      }
+    }
+  }
+
+  .contact-container {
+    max-width: 1000px;
+    margin: -3rem auto 0 auto;
+    padding: 0 1.5rem;
+    position: relative;
+    z-index: 2;
+
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 2rem;
+
+      @media (max-width: 900px) {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .contact-form-container {
+      background-color: var(--bg-card);
+      border-radius: var(--border-radius);
+      padding: 2.5rem;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--border-color);
+
+      h2 {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: var(--text-dark);
+        margin-bottom: 0.5rem;
+      }
+
+      .form-desc {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        margin-bottom: 2rem;
+      }
+
+      .support-form {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+
+        .form-row {
+          width: 100%;
+        }
+
+        .full-width {
+          width: 100%;
+        }
+
+        /* Ensure input values are high-contrast and fully visible */
+        input.mat-input-element,
+        textarea.mat-input-element {
+          color: var(--text-dark) !important;
+          caret-color: var(--primary);
+        }
+
+        ::ng-deep .mat-form-field-outline {
+          color: var(--border-color);
+        }
+
+        ::ng-deep .mat-form-field-outline-thick {
+          color: var(--primary);
+        }
+
+        ::ng-deep .mat-focused .mat-form-field-label {
+          color: var(--primary) !important;
+        }
+
+        .submit-btn {
+          align-self: flex-start;
+          padding: 0.75rem 2rem;
+          height: 48px;
+          font-weight: 700;
+          border-radius: var(--border-radius-sm);
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          transition: var(--transition-smooth);
+          box-shadow: 0 4px 12px rgba(46, 125, 50, 0.2);
+
+          &:hover:not([disabled]) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(46, 125, 50, 0.3);
+          }
+
+          &[disabled] {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
+        }
+      }
+    }
+
+    .contact-info-container {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+
+      .info-card {
+        background-color: var(--bg-card);
+        border-radius: var(--border-radius);
+        padding: 2.5rem;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border-color);
+
+        h2 {
+          font-size: 1.4rem;
+          font-weight: 800;
+          color: var(--text-dark);
+          margin-bottom: 1.5rem;
+          border-bottom: 2px solid var(--primary-light);
+          padding-bottom: 0.75rem;
+        }
+
+        .info-items {
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+
+          .info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+
+            .item-icon {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              background-color: var(--primary-light);
+              color: var(--primary);
+              width: 44px;
+              height: 44px;
+              border-radius: 50%;
+              flex-shrink: 0;
+
+              mat-icon {
+                font-size: 22px;
+                width: 22px;
+                height: 22px;
+              }
+            }
+
+            .item-text {
+              span {
+                font-size: 0.8rem;
+                color: var(--text-muted);
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                display: block;
+                margin-bottom: 0.25rem;
+              }
+
+              p {
+                font-size: 1rem;
+                font-weight: 700;
+                color: var(--text-dark);
+                margin: 0;
+              }
+            }
+          }
+        }
+      }
+
+      /* Stylized vector map mockup */
+      .map-mockup {
+        height: 260px;
+        background-color: #e2e8f0;
+        border-radius: var(--border-radius);
+        border: 1px solid var(--border-color);
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+
+        .map-overlay {
+          position: absolute;
+          top: 0.5rem;
+          right: 0.5rem;
+          left: auto;
+          max-width: 240px;
+          z-index: 10;
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(5px);
+          border: 1px solid var(--border-color);
+          border-radius: var(--border-radius-sm);
+          padding: 0.5rem;
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          box-shadow: var(--shadow-sm);
+          pointer-events: none;
+
+          mat-icon {
+            color: var(--accent);
+          }
+
+          .map-info {
+            h4 {
+              font-size: 0.9rem;
+              font-weight: 700;
+              margin: 0;
+            }
+
+            p {
+              font-size: 0.8rem;
+              color: var(--text-muted);
+              margin: 0;
+            }
+          }
+        }
+
+        .map-canvas {
+          width: 100%;
+          height: 100%;
+          background-color: #f1f5f9;
+          position: relative;
+
+          .river {
+            position: absolute;
+            background-color: #bae6fd;
+            height: 60px;
+            width: 120%;
+            top: 20%;
+            left: -10%;
+            transform: rotate(-15deg);
+          }
+
+          .road {
+            position: absolute;
+            background-color: #ffffff;
+            box-shadow: 0 0 2px rgba(0, 0, 0, 0.05);
+
+            &.road-main {
+              height: 24px;
+              width: 120%;
+              top: 50%;
+              left: -10%;
+              transform: rotate(10deg);
+            }
+
+            &.road-cross {
+              width: 20px;
+              height: 120%;
+              left: 40%;
+              top: -10%;
+              transform: rotate(-25deg);
+            }
+          }
+
+          .map-pin {
+            position: absolute;
+            top: 48%;
+            left: 45%;
+            transform: translate(-50%, -50%);
+            color: var(--danger);
+            z-index: 5;
+
+            mat-icon {
+              font-size: 36px;
+              width: 36px;
+              height: 36px;
+              filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+            }
+
+            .pin-pulse {
+              position: absolute;
+              width: 20px;
+              height: 20px;
+              background-color: rgba(211, 47, 47, 0.4);
+              border-radius: 50%;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              animation: pulse 2s infinite ease-out;
+              pointer-events: none;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    width: 10px;
+    height: 10px;
+    opacity: 1;
+  }
+
+  100% {
+    width: 50px;
+    height: 50px;
+    opacity: 0;
+  }
+}

@@ -1,0 +1,68 @@
+<footer class="app-footer">
+  <div class="footer-container">
+    <div class="footer-grid">
+
+      <!-- Column 1: Info -->
+      <div class="footer-col brand-col">
+        <div class="logo-wrapper">
+          <img src="assets/images/goat.png" alt="Goat Sports Logo" class="logo-img">
+          <span class="logo-text">GOAT <span class="logo-text-accent">Sports</span></span>
+        </div>
+        <p class="brand-desc">
+          Hệ thống đặt sân thể thao trực tuyến và đề xuất thông minh bằng AI. Hỗ trợ rèn luyện sức khỏe, gắn kết đam mê.
+        </p>
+        <div class="social-links">
+          <a href="#" class="social-icon" aria-label="Facebook"><mat-icon>facebook</mat-icon></a>
+          <a href="#" class="social-icon" aria-label="Instagram"><mat-icon>photo_camera</mat-icon></a>
+          <a href="#" class="social-icon" aria-label="YouTube"><mat-icon>smart_display</mat-icon></a>
+        </div>
+      </div>
+
+      <!-- Column 2: Fast Links -->
+      <div class="footer-col">
+        <h3 class="footer-heading">Khám Phá</h3>
+        <ul class="footer-links">
+          <li><a routerLink="/home">Trang Chủ</a></li>
+          <li><a routerLink="/venues">Tìm Sân Đấu</a></li>
+          <li><a routerLink="/ai-recommendation">Gợi Ý AI</a></li>
+          <li><a [href]="loginUrl">Đăng Nhập</a></li>
+        </ul>
+      </div>
+
+      <!-- Column 3: Policy -->
+      <div class="footer-col">
+        <h3 class="footer-heading">Dịch Vụ & Hỗ Trợ</h3>
+        <ul class="footer-links">
+          <li><a routerLink="/policy/booking-policy">Chính Sách Đặt Sân</a></li>
+          <li><a routerLink="/policy/cancellation-policy">Chính Sách Đổi & Hủy Sân</a></li>
+          <li><a routerLink="/policy/court-standards">Tiêu Chuẩn Sân Đấu</a></li>
+          <li><a routerLink="/policy/contact-support">Liên Hệ Hỗ Trợ</a></li>
+        </ul>
+      </div>
+
+      <!-- Column 4: Newsletter -->
+      <div class="footer-col newsletter-col">
+        <h3 class="footer-heading">Nhận Tin Khuyến Mãi</h3>
+        <p class="newsletter-desc">Đăng ký nhận thông tin khuyến mãi giờ vàng và sự kiện thể thao hấp dẫn hàng tuần.</p>
+
+        <form (submit)="subscribeNewsletter()" class="newsletter-form">
+          <mat-form-field appearance="outline" class="email-field">
+            <input matInput type="email" placeholder="Email của bạn..." [(ngModel)]="emailInput" name="emailInput"
+              required>
+          </mat-form-field>
+          <button mat-flat-button color="accent" type="submit" class="submit-btn">Đăng Ký</button>
+        </form>
+      </div>
+
+    </div>
+
+    <!-- Divider -->
+    <mat-divider class="footer-divider"></mat-divider>
+
+    <!-- Bottom Bar -->
+    <div class="footer-bottom">
+      <p>&copy; {{ currentYear }} GOAT Sports.</p>
+      <p class="footer-credit">Hệ thống quản lý đặt sân thể thao chuyên nghiệp & hiệu quả.</p>
+    </div>
+  </div>
+</footer>

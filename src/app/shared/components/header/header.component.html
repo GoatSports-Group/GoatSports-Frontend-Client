@@ -1,0 +1,92 @@
+<mat-toolbar color="default" class="main-header">
+  <div class="header-container">
+
+    <!-- Mobile Menu Button -->
+    <button mat-icon-button class="mobile-menu-btn" (click)="menuToggle.emit()" aria-label="Toggle menu">
+      <mat-icon>menu</mat-icon>
+    </button>
+
+    <!-- Logo -->
+    <div class="logo-wrapper" routerLink="/home">
+      <img src="assets/images/goat.png" alt="Goat Sports Logo" class="logo-img">
+      <span class="logo-text">GOAT <span class="logo-text-accent">SPORTS</span></span>
+    </div>
+
+    <!-- Nav Links (Desktop) -->
+    <nav class="desktop-nav">
+      <a routerLink="/home" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: true}"
+        class="nav-item">Trang Chủ</a>
+      <a routerLink="/venues" routerLinkActive="active-link" class="nav-item">Tìm Sân</a>
+      <a routerLink="/ai-recommendation" routerLinkActive="active-link" class="nav-item">Gợi Ý AI</a>
+    </nav>
+
+    <!-- Search Bar (Desktop) -->
+    <div class="search-container">
+      <form (submit)="onSearch()" class="search-form">
+        <mat-form-field class="search-field">
+          <mat-icon matPrefix class="search-icon">search</mat-icon>
+          <input matInput type="text" placeholder="Tìm tên sân hoặc địa chỉ..." [(ngModel)]="searchQuery"
+            name="searchQuery">
+          @if (searchQuery) {
+          <button mat-icon-button matSuffix (click)="searchQuery = ''" type="button" aria-label="Clear">
+            <mat-icon>close</mat-icon>
+          </button>
+          }
+        </mat-form-field>
+      </form>
+    </div>
+
+    <!-- Actions (Bookings & User Profile) -->
+    <div class="actions-container">
+
+      <!-- Bookings Icon Button -->
+      <button mat-icon-button routerLink="/my-bookings" class="cart-btn" aria-label="Lịch Đặt Sân">
+        <mat-icon [matBadge]="bookingCount" [matBadgeHidden]="bookingCount === 0" matBadgeColor="accent"
+          class="cart-icon">
+          calendar_today
+        </mat-icon>
+      </button>
+
+      <!-- User Menu -->
+      @if (authService.isAuthenticated$ | async) {
+      <button mat-icon-button [matMenuTriggerFor]="userMenu" class="user-avatar-btn" aria-label="User Profile">
+        <img [src]="fallbackAvatar" alt="User Avatar" class="user-avatar">
+      </button>
+      <mat-menu #userMenu="matMenu" xPosition="before" class="custom-menu">
+        <div class="menu-header">
+          <div class="menu-header-info">
+            <p class="menu-name">{{ authService.currentUser?.fullName }}</p>
+            <span class="menu-role-badge">{{ getRoleLabel(authService.currentUser?.role?.name) }}</span>
+          </div>
+          <p class="menu-email">{{ authService.currentUser?.email }}</p>
+        </div>
+        <mat-divider></mat-divider>
+        <button mat-menu-item routerLink="/profile">
+          <mat-icon>person</mat-icon>
+          <span>Hồ Sơ</span>
+        </button>
+        <button mat-menu-item routerLink="/my-bookings">
+          <mat-icon>history</mat-icon>
+          <span>Lịch Sử Đặt Sân</span>
+        </button>
+        @if (authService.currentUser?.role?.name === 'ADMIN' || authService.currentUser?.role?.name === 'Người quản
+        trị') {
+        <a mat-menu-item [href]="adminUrl + '/admin'">
+          <mat-icon color="primary">admin_panel_settings</mat-icon>
+          <span>Quản Trị</span>
+        </a>
+        }
+        <button mat-menu-item (click)="logout()" class="logout-btn-menu">
+          <mat-icon>logout</mat-icon>
+          <span>Đăng Xuất</span>
+        </button>
+      </mat-menu>
+      } @else {
+      <button mat-flat-button color="primary" (click)="redirectToLogin()" class="login-btn">
+        Đăng Nhập
+      </button>
+      }
+
+    </div>
+  </div>
+</mat-toolbar>

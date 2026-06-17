@@ -1,0 +1,170 @@
+<div class="contact-page">
+  <!-- Policy Header -->
+  <div class="policy-header-bar">
+    <div class="logo-wrapper" routerLink="/home">
+      <img src="assets/images/goat.png" alt="Goat Sports Logo" class="logo-img">
+      <span class="logo-text">GOAT <span class="logo-text-accent">Sports</span></span>
+    </div>
+    <a routerLink="/home" class="back-home-btn">
+      <mat-icon>arrow_back</mat-icon> Quay lại trang chủ
+    </a>
+  </div>
+
+  <!-- Hero Section -->
+  <div class="contact-hero">
+    <div class="hero-content">
+      <div class="icon-badge">
+        <mat-icon>contact_support</mat-icon>
+      </div>
+      <h1>Liên Hệ & Hỗ Trợ</h1>
+      <p class="hero-subtitle">Mọi thắc mắc, đóng góp ý kiến hoặc phản hồi về dịch vụ đặt sân, vui lòng liên hệ với
+        GOAT Sports. Chúng tôi luôn sẵn sàng lắng nghe bạn!</p>
+    </div>
+  </div>
+
+  <div class="contact-container">
+    <div class="contact-grid">
+
+      <!-- Left Column: Contact Form -->
+      <div class="contact-form-container">
+        <h2>Gửi Yêu Cầu Hỗ Trợ</h2>
+        <p class="form-desc">Điền đầy đủ thông tin bên dưới, đội ngũ chăm sóc khách hàng của chúng tôi sẽ liên hệ lại
+          trong vòng 24 giờ làm việc.</p>
+
+        <form [formGroup]="contactForm" (ngSubmit)="onSubmit()" class="support-form">
+          <!-- Full Name -->
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Họ và Tên</mat-label>
+              <input matInput formControlName="fullName" placeholder="Nguyễn Văn A" required>
+              <mat-error *ngIf="contactForm.get('fullName')?.hasError('required')">
+                Họ và tên không được để trống.
+              </mat-error>
+              <mat-error *ngIf="contactForm.get('fullName')?.hasError('minlength')">
+                Tên phải có tối thiểu 2 ký tự.
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <!-- Email -->
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Địa Chỉ Email</mat-label>
+              <input matInput type="email" formControlName="email" placeholder="example@gmail.com" required>
+              <mat-error *ngIf="contactForm.get('email')?.hasError('required')">
+                Email không được để trống.
+              </mat-error>
+              <mat-error *ngIf="contactForm.get('email')?.hasError('email')">
+                Email không đúng định dạng.
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <!-- Subject -->
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Tiêu Đề</mat-label>
+              <input matInput formControlName="subject" placeholder="Cần hỗ trợ về..." required>
+              <mat-error *ngIf="contactForm.get('subject')?.hasError('required')">
+                Tiêu đề không được để trống.
+              </mat-error>
+              <mat-error *ngIf="contactForm.get('subject')?.hasError('minlength')">
+                Tiêu đề phải có tối thiểu 5 ký tự.
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <!-- Message -->
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Nội Dung Chi Tiết</mat-label>
+              <textarea matInput formControlName="message" rows="6"
+                placeholder="Mô tả chi tiết câu hỏi hoặc vấn đề của bạn..." required></textarea>
+              <mat-error *ngIf="contactForm.get('message')?.hasError('required')">
+                Nội dung phản hồi không được để trống.
+              </mat-error>
+              <mat-error *ngIf="contactForm.get('message')?.hasError('minlength')">
+                Nội dung phải có tối thiểu 10 ký tự.
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <!-- Submit Button -->
+          <button mat-flat-button color="primary" type="submit" class="submit-btn"
+            [disabled]="contactForm.invalid || submitting">
+            <mat-icon *ngIf="!submitting">send</mat-icon>
+            <span *ngIf="!submitting">Gửi Yêu Cầu</span>
+            <span *ngIf="submitting">Đang Gửi...</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Right Column: Info Cards & Map Mockup -->
+      <div class="contact-info-container">
+
+        <!-- Quick contact cards -->
+        <div class="info-card">
+          <h2>Thông Tin Liên Hệ</h2>
+
+          <div class="info-items">
+            <div class="info-item">
+              <div class="item-icon">
+                <mat-icon>phone</mat-icon>
+              </div>
+              <div class="item-text">
+                <span>Hotline Hỗ Trợ</span>
+                <p>1900 6868</p>
+              </div>
+            </div>
+
+            <div class="info-item">
+              <div class="item-icon">
+                <mat-icon>email</mat-icon>
+              </div>
+              <div class="item-text">
+                <span>Email Chăm Sóc Khách Hàng</span>
+                <p>support&#64;goatsports.vn</p>
+              </div>
+            </div>
+
+            <div class="info-item">
+              <div class="item-icon">
+                <mat-icon>place</mat-icon>
+              </div>
+              <div class="item-text">
+                <span>Trụ Sở Chính GOAT Sports</span>
+                <p>123 Phước Long, Nha Trang</p>
+              </div>
+            </div>
+
+            <div class="info-item">
+              <div class="item-icon">
+                <mat-icon>query_builder</mat-icon>
+              </div>
+              <div class="item-text">
+                <span>Giờ Làm Việc</span>
+                <p>Mở cửa từ 07:00 - 22:00 (Thứ 2 - Chủ Nhật)</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Google Map -->
+        <div class="map-mockup">
+          <div class="map-overlay">
+            <div class="map-info">
+              <h4>GOAT Sports</h4>
+            </div>
+          </div>
+          <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3899.7208889988166!2d109.18663807584102!3d12.203023029964177!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3170675865239a51%3A0xe54d6decf25be7d4!2zMTIzIFBoxrDhu5tjIExvbmcsIFBoxrDhu5tjIExvbmcsIE5oYSBUcmFuZywgS2jDoW5oIEjDsmEgNjUwMDAwLCBWaWV0bmFt!5e0!3m2!1sen!2s!4v1717512292000!5m2!1sen!2s"
+            width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade">
+          </iframe>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>

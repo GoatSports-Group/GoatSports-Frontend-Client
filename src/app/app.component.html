@@ -1,0 +1,8 @@
+@if (sessionReady$ | async) {
+  <router-outlet></router-outlet>
+} @else {
+  <div class="session-loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Đang tải phiên đăng nhập...</p>
+  </div>
+}

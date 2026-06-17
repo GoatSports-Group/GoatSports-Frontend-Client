@@ -1,0 +1,277 @@
+<div class="profile-page-container animate-fade-in">
+  @if (linking) {
+  <div class="linking-overlay">
+    <mat-card class="overlay-card text-center animate-scale-up">
+      <mat-spinner color="primary" class="mx-auto"></mat-spinner>
+      <h2>Đang liên kết tài khoản...</h2>
+      <p>Hệ thống đang đồng bộ hóa với máy chủ Keycloak. Vui lòng không đóng trình duyệt hoặc quay lại trang trước.</p>
+    </mat-card>
+  </div>
+  }
+
+  <div class="profile-header-section">
+    <h1 class="page-title">Cài Đặt Tài Khoản</h1>
+    <p class="page-subtitle">Xem thông tin cá nhân, cập nhật cấu hình hệ thống và quản lý bảo mật liên kết tài khoản.
+    </p>
+  </div>
+
+  <mat-card class="main-profile-card">
+    <mat-tab-group color="primary" animationDuration="300ms">
+
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">person</mat-icon>
+          <span>Hồ Sơ</span>
+        </ng-template>
+
+        <div class="tab-content profile-tab">
+          <div class="profile-layout">
+            <div class="avatar-panel">
+              <div class="avatar-wrapper">
+                <img [src]="fallbackAvatar" alt="User Avatar" class="profile-avatar">
+                <button mat-icon-button class="edit-avatar-btn" matTooltip="Đổi ảnh đại diện">
+                  <mat-icon>photo_camera</mat-icon>
+                </button>
+              </div>
+              <h3 class="user-display-name">{{ authService.currentUser?.fullName }}</h3>
+              <span class="user-role-tag">{{ authService.currentUser?.role?.name }}</span>
+            </div>
+
+            <div class="details-panel">
+              <h2 class="section-title">Thông Tin Cá Nhân</h2>
+              <mat-divider class="section-divider"></mat-divider>
+
+              <div class="info-grid">
+                <div class="info-item">
+                  <div class="info-label">
+                    <mat-icon>account_circle</mat-icon>
+                    <span>Tên đăng nhập</span>
+                  </div>
+                  <div class="info-value">{{ authService.currentUser?.username }}</div>
+                </div>
+
+                <div class="info-item">
+                  <div class="info-label">
+                    <mat-icon>badge</mat-icon>
+                    <span>Họ và tên</span>
+                  </div>
+                  <div class="info-value">{{ authService.currentUser?.fullName }}</div>
+                </div>
+
+                <div class="info-item">
+                  <div class="info-label">
+                    <mat-icon>email</mat-icon>
+                    <span>Địa chỉ email</span>
+                  </div>
+                  <div class="info-value">{{ authService.currentUser?.email }}</div>
+                </div>
+
+                <div class="info-item">
+                  <div class="info-label">
+                    <mat-icon>calendar_today</mat-icon>
+                    <span>Ngày tham gia</span>
+                  </div>
+                  <div class="info-value">{{ formatDate(authService.currentUser?.createdAt) }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">settings</mat-icon>
+          <span>Cài Đặt</span>
+        </ng-template>
+
+        <div class="tab-content settings-tab">
+          <h2 class="section-title">Tùy Chọn Hệ Thống</h2>
+          <mat-divider class="section-divider"></mat-divider>
+
+          <div class="settings-grid">
+            <mat-card class="settings-card">
+              <mat-card-header>
+                <mat-icon mat-card-avatar color="primary">palette</mat-icon>
+                <mat-card-title>Giao Diện</mat-card-title>
+                <mat-card-subtitle>Thay đổi cách hiển thị của ứng dụng.</mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content class="settings-card-body">
+                <div class="setting-row">
+                  <div class="setting-info">
+                    <span class="setting-name">Chế độ tối (Dark Mode)</span>
+                    <span class="setting-desc">Kích hoạt giao diện nền tối giúp dịu mắt hơn.</span>
+                  </div>
+                  <mat-checkbox [checked]="darkMode" (change)="toggleTheme($event.checked)"></mat-checkbox>
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="settings-card">
+              <mat-card-header>
+                <mat-icon mat-card-avatar color="primary">translate</mat-icon>
+                <mat-card-title>Ngôn Ngữ</mat-card-title>
+                <mat-card-subtitle>Lựa chọn ngôn ngữ hiển thị chính.</mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content class="settings-card-body">
+                <mat-form-field appearance="outline" class="language-select">
+                  <mat-label>Ngôn ngữ</mat-label>
+                  <mat-select [(value)]="language">
+                    <mat-option value="vi">Tiếng Việt (Vietnamese)</mat-option>
+                    <mat-option value="en">English (Tiếng Anh)</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="settings-card full-row">
+              <mat-card-header>
+                <mat-icon mat-card-avatar color="primary">notifications</mat-icon>
+                <mat-card-title>Thông Báo Email</mat-card-title>
+                <mat-card-subtitle>Chọn loại email bạn muốn nhận từ hệ thống.</mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content class="settings-card-body">
+                <div class="notification-options">
+                  <div class="setting-row">
+                    <mat-checkbox [(ngModel)]="emailBooking">Thông báo xác nhận đặt sân & hóa đơn đặt chỗ</mat-checkbox>
+                  </div>
+                  <div class="setting-row">
+                    <mat-checkbox [(ngModel)]="emailPromo">Tin tức khuyến mãi, mã giảm giá & ưu đãi mới</mat-checkbox>
+                  </div>
+                  <div class="setting-row">
+                    <mat-checkbox [(ngModel)]="emailSecurity">Cảnh báo bảo mật, đăng nhập lạ & đổi mật
+                      khẩu</mat-checkbox>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+
+          <div class="settings-actions">
+            <button mat-flat-button color="primary" (click)="saveSettings()" class="hover-btn-pulse">Lưu Cài
+              Đặt</button>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- TAB 3: BẢO MẬT -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">security</mat-icon>
+          <span>Bảo Mật</span>
+        </ng-template>
+
+        <div class="tab-content security-tab">
+          <div class="security-layout">
+
+            <div class="password-section">
+              <h2 class="section-title">Thay Đổi Mật Khẩu</h2>
+              <mat-divider class="section-divider"></mat-divider>
+
+              <div class="password-form">
+                <mat-form-field appearance="outline">
+                  <mat-label>Mật khẩu hiện tại</mat-label>
+                  <input matInput type="password" [(ngModel)]="currentPassword" placeholder="Nhập mật khẩu hiện tại">
+                  <mat-icon matSuffix>lock</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Mật khẩu mới</mat-label>
+                  <input matInput type="password" [(ngModel)]="newPassword" placeholder="Nhập mật khẩu mới">
+                  <mat-icon matSuffix>lock_open</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Xác nhận mật khẩu mới</mat-label>
+                  <input matInput type="password" [(ngModel)]="confirmPassword" placeholder="Nhập lại mật khẩu mới">
+                  <mat-icon matSuffix>vpn_key</mat-icon>
+                </mat-form-field>
+
+                <div class="form-action">
+                  <button mat-flat-button color="primary" [disabled]="passwordLoading" (click)="updatePassword()"
+                    class="w-100 hover-btn-pulse">
+                    @if (passwordLoading) {
+                    <mat-progress-spinner diameter="20" mode="indeterminate" class="spinner-btn"></mat-progress-spinner>
+                    Đang xử lý...
+                    } @else {
+                    Cập Nhật Mật Khẩu
+                    }
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="integration-section">
+              <h2 class="section-title">Liên Kết Tài Khoản</h2>
+              <mat-divider class="section-divider"></mat-divider>
+
+              @if (authService.currentUser?.keycloakId) {
+              <mat-card class="integration-card linked-card hover-glow animate-scale-up">
+                <div class="card-status-header">
+                  <div class="status-icon-wrapper success">
+                    <mat-icon>shield</mat-icon>
+                    <mat-icon class="badge-icon">check</mat-icon>
+                  </div>
+                  <div class="status-details">
+                    <span class="status-badge connected">ĐÃ LIÊN KẾT KEYCLOAK</span>
+                    <h3 class="provider-title">Keycloak Identity Provider</h3>
+                  </div>
+                </div>
+                <mat-card-content class="integration-card-content">
+                  <p class="integration-desc">
+                    Tài khoản của bạn đã được kết nối an toàn với máy chủ Keycloak. Bạn có thể sử dụng phương thức đăng
+                    nhập một chạm hoặc liên kết bảo mật Keycloak của mình.
+                  </p>
+                </mat-card-content>
+              </mat-card>
+              } @else {
+              <mat-card class="integration-card unlinked-card hover-glow">
+                <div class="card-status-header">
+                  <div class="status-icon-wrapper inactive">
+                    <mat-icon>security</mat-icon>
+                  </div>
+                  <div class="status-details">
+                    <span class="status-badge disconnected">CHƯA LIÊN KẾT KEYCLOAK</span>
+                    <h3 class="provider-title">Keycloak Identity Provider</h3>
+                  </div>
+                </div>
+                <mat-card-content class="integration-card-content">
+                  <p class="integration-desc">
+                    Kết nối tài khoản GoatSports với hệ thống đăng nhập tập trung Keycloak. Sau khi liên kết, bạn có thể
+                    dễ dàng đăng nhập bằng các nhà cung cấp SSO và tài khoản Keycloak doanh nghiệp.
+                  </p>
+
+                  <div class="integration-benefits">
+                    <div class="benefit-item">
+                      <mat-icon color="primary">flash_on</mat-icon>
+                      <span>Đăng nhập một chạm tiện lợi</span>
+                    </div>
+                    <div class="benefit-item">
+                      <mat-icon color="primary">enhanced_encryption</mat-icon>
+                      <span>Bảo mật hai lớp chuẩn OAuth2/OIDC</span>
+                    </div>
+                    <div class="benefit-item">
+                      <mat-icon color="primary">sync</mat-icon>
+                      <span>Tự động đồng bộ thông tin đăng nhập</span>
+                    </div>
+                  </div>
+
+                  <div class="integration-actions">
+                    <button mat-raised-button color="accent" (click)="redirectToKeycloak()"
+                      class="btn-link-keycloak hover-btn-pulse">
+                      <mat-icon>link</mat-icon>
+                      Liên Kết Tài Khoản Keycloak
+                    </button>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+              }
+
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+    </mat-tab-group>
+  </mat-card>
+</div>
