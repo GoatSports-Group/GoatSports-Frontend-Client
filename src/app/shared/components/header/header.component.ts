@@ -1,8 +1,9 @@
 import { Component, EventEmitter, OnInit, Output, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthService, BookingService } from '../../../core/services/index';
-import { RoleEnum } from '../../../core/models/enums/role.enum';
-import { BookingStatus } from '../../../core/models/booking.model';
+import { AuthService } from '../../../presentation/services/auth.service';
+import { BookingService } from '../../../presentation/services/booking.service';
+import { RoleEnum } from '../../../domain/enums/role.enum';
+import { BookingStatus } from '../../../domain/enums/booking-status.enum';
 
 @Component({
   selector: 'app-header',
