@@ -1,12 +1,10 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { VenueService } from '../../../services/venue.service';
-import { ReviewService } from '../../../services/review.service';
-import { AuthService } from '../../../services/auth.service';
-import { Venue, TimeSlot } from '../../../../domain/entities/venue';
-import { SportType } from '../../../../domain/enums/sport-type.enum';
-import { VenueStatus } from '../../../../domain/enums/venue-status.enum';
-import { Review } from '../../../../domain/entities/review';
+import { VenueService } from '@presentation/services/venue.service';
+import { ReviewService } from '@presentation/services/review.service';
+import { AuthService } from '@presentation/services/auth.service';
+import { Venue, TimeSlot, SportType, VenueStatus } from '@application/dto/venue/venue.dto';
+import { Review } from '@application/dto/review/review.dto';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 interface BookingDay {

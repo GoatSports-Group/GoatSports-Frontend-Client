@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { delay } from 'rxjs/operators';
-import { VenueRepository } from '../../domain/repositories/venue.repository';
-import { Venue, TimeSlot, VenueFilter, VenueSort } from '../../domain/entities/venue';
-import { SportType } from '../../domain/enums/sport-type.enum';
-import { VenueStatus } from '../../domain/enums/venue-status.enum';
-import { BookingStatus } from '../../domain/enums/booking-status.enum';
+import { VenueRepository } from '@application/ports/venue.repository';
+import { Venue, TimeSlot } from '@domain/entity/venue';
+import { VenueFilter, VenueSort } from '@application/dto/venue/venue.dto';
+import { SportType } from '@domain/enums/sport-type.enum';
+import { VenueStatus } from '@domain/enums/venue-status.enum';
+import { BookingStatus } from '@domain/enums/booking-status.enum';
 
 @Injectable({
   providedIn: 'root'

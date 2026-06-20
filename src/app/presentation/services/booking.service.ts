@@ -1,13 +1,13 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Booking } from '../../domain/entities/booking';
-import { GetMyBookingsUseCase } from '../../application/booking/get-my-bookings.usecase';
-import { GetAllBookingsUseCase } from '../../application/booking/get-all-bookings.usecase';
-import { CreateBookingUseCase } from '../../application/booking/create-booking.usecase';
-import { CancelBookingUseCase } from '../../application/booking/cancel-booking.usecase';
-import { UpdateBookingStatusUseCase } from '../../application/booking/update-booking-status.usecase';
-import { GetStatsUseCase } from '../../application/booking/get-stats.usecase';
-import { BookingStatus } from '../../domain/enums/booking-status.enum';
+import { Booking, BookingStatus } from '@application/dto/booking/booking.dto';
+import { GetMyBookingsUseCase } from '@application/usecase/booking/get-my-bookings.usecase';
+import { GetAllBookingsUseCase } from '@application/usecase/booking/get-all-bookings.usecase';
+import { CreateBookingUseCase } from '@application/usecase/booking/create-booking.usecase';
+import { CancelBookingUseCase } from '@application/usecase/booking/cancel-booking.usecase';
+import { UpdateBookingStatusUseCase } from '@application/usecase/booking/update-booking-status.usecase';
+import { GetStatsUseCase } from '@application/usecase/booking/get-stats.usecase';
+import { AuthService } from '@presentation/services/auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -19,9 +19,11 @@ export class BookingService {
   private cancelBookingUseCase = inject(CancelBookingUseCase);
   private updateBookingStatusUseCase = inject(UpdateBookingStatusUseCase);
   private getStatsUseCase = inject(GetStatsUseCase);
+  private authService = inject(AuthService);
 
   getMyBookings(): Observable<Booking[]> {
-    return this.getMyBookingsUseCase.execute();
+    const email = this.authService.currentUser?.email || '';
+    return this.getMyBookingsUseCase.execute(email);
   }
 
   getAllBookings(): Observable<Booking[]> {

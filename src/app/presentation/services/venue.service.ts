@@ -1,12 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Venue, TimeSlot, VenueFilter, VenueSort } from '../../domain/entities/venue';
-import { GetVenuesUseCase } from '../../application/venue/get-venues.usecase';
-import { GetVenueByIdUseCase } from '../../application/venue/get-venue-by-id.usecase';
-import { GetSlotsForVenueUseCase } from '../../application/venue/get-slots-for-venue.usecase';
-import { AddVenueUseCase } from '../../application/venue/add-venue.usecase';
-import { UpdateVenueUseCase } from '../../application/venue/update-venue.usecase';
-import { DeleteVenueUseCase } from '../../application/venue/delete-venue.usecase';
+import { Venue, TimeSlot, VenueFilter, VenueSort } from '@application/dto/venue/venue.dto';
+import { GetVenuesUseCase } from '@application/usecase/venue/get-venues.usecase';
+import { GetVenueByIdUseCase } from '@application/usecase/venue/get-venue-by-id.usecase';
+import { GetSlotsForVenueUseCase } from '@application/usecase/venue/get-slots-for-venue.usecase';
+import { AddVenueUseCase } from '@application/usecase/venue/add-venue.usecase';
+import { UpdateVenueUseCase } from '@application/usecase/venue/update-venue.usecase';
+import { DeleteVenueUseCase } from '@application/usecase/venue/delete-venue.usecase';
 
 @Injectable({
   providedIn: 'root'

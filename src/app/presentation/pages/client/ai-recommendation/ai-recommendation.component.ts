@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
-import { RecommendationService } from '../../../services/recommendation.service';
-import { AIRecommendationRequest, AIRecommendationResult } from '../../../../domain/entities/recommendation';
+import { RecommendationService } from '@presentation/services/recommendation.service';
+import { AIRecommendationRequest, AIRecommendationResult } from '@application/dto/recommendation/recommendation.dto';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({

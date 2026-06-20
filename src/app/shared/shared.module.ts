@@ -25,12 +25,11 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
-// Shared Components
-import { HeaderComponent } from './components/header/header.component';
-import { FooterComponent } from './components/footer/footer.component';
-import { StarRatingComponent } from './components/star-rating/star-rating.component';
-import { LoadingSkeletonComponent } from './components/loading-skeleton/loading-skeleton.component';
-import { ConfirmDialogComponent } from './components/confirm-dialog/confirm-dialog.component';
+import { HeaderComponent } from '@shared/components/header/header.component';
+import { FooterComponent } from '@shared/components/footer/footer.component';
+import { StarRatingComponent } from '@shared/components/star-rating/star-rating.component';
+import { LoadingSkeletonComponent } from '@shared/components/loading-skeleton/loading-skeleton.component';
+import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 
 const MATERIAL_MODULES = [
   MatToolbarModule,

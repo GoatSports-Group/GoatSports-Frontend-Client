@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { filter, map, take } from 'rxjs/operators';
-import { AuthService } from '../services/auth.service';
+import { AuthService } from '@presentation/services/auth.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Injectable({
@@ -21,14 +21,14 @@ export class AdminGuard implements CanActivate {
         if (this.authService.isAuthenticated && this.authService.currentUser?.role?.name === 'ADMIN') {
           return true;
         }
-        
+
         this.snackBar.open('Bạn không có quyền truy cập vào trang quản trị!', 'Đóng', {
           duration: 4000,
           horizontalPosition: 'end',
           verticalPosition: 'top',
           panelClass: ['snackbar-error']
         });
-        
+
         this.router.navigate(['/home']);
         return false;
       })

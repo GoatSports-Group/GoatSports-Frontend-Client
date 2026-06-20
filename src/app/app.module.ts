@@ -8,17 +8,15 @@ import { AppComponent } from './app.component';
 import { ApiInterceptor } from './presentation/interceptors/api.interceptor';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
-import {
-  AUTH_REPOSITORY_TOKEN,
-  BOOKING_REPOSITORY_TOKEN,
-  REVIEW_REPOSITORY_TOKEN,
-  VENUE_REPOSITORY_TOKEN
-} from './domain/repositories/tokens';
+import { AUTH_REPOSITORY_TOKEN } from '@application/ports/auth.repository';
+import { BOOKING_REPOSITORY_TOKEN } from '@application/ports/booking.repository';
+import { REVIEW_REPOSITORY_TOKEN } from '@application/ports/review.repository';
+import { VENUE_REPOSITORY_TOKEN } from '@application/ports/venue.repository';
 
-import { AuthRepositoryImpl } from './infrastructure/repositories/auth.repository.impl';
-import { BookingRepositoryImpl } from './infrastructure/repositories/booking.repository.impl';
-import { ReviewRepositoryImpl } from './infrastructure/repositories/review.repository.impl';
-import { VenueRepositoryImpl } from './infrastructure/repositories/venue.repository.impl';
+import { AuthRepositoryImpl } from '@infrastructure/repositories/auth.repository.impl';
+import { BookingRepositoryImpl } from '@infrastructure/repositories/booking.repository.impl';
+import { ReviewRepositoryImpl } from '@infrastructure/repositories/review.repository.impl';
+import { VenueRepositoryImpl } from '@infrastructure/repositories/venue.repository.impl';
 
 @NgModule({
   declarations: [

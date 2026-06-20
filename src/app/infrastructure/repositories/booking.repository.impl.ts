@@ -1,18 +1,16 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { delay } from 'rxjs/operators';
-import { BookingRepository } from '../../domain/repositories/booking.repository';
-import { Booking } from '../../domain/entities/booking';
-import { SessionStateService } from '../../domain/models/session-state.service';
-import { SportType } from '../../domain/enums/sport-type.enum';
-import { BookingStatus } from '../../domain/enums/booking-status.enum';
+import { BookingRepository } from '@application/ports/booking.repository';
+import { Booking } from '@domain/entity/booking';
+import { SportType } from '@domain/enums/sport-type.enum';
+import { BookingStatus } from '@domain/enums/booking-status.enum';
 
 @Injectable({
   providedIn: 'root'
 })
 export class BookingRepositoryImpl implements BookingRepository {
   private bookingsKey = 'goatsports_bookings';
-  private sessionStateService = inject(SessionStateService);
 
   private defaultBookings: Booking[] = [
     {
@@ -103,12 +101,9 @@ export class BookingRepositoryImpl implements BookingRepository {
     localStorage.setItem(this.bookingsKey, JSON.stringify(bookings));
   }
 
-  getMyBookings(): Observable<Booking[]> {
+  getMyBookings(email: string): Observable<Booking[]> {
     const all = this.getStoredBookings();
-    const currentUser = this.sessionStateService.getCurrentUser();
-    if (!currentUser) return of([]);
-
-    const filtered = all.filter(b => b.email === currentUser.email);
+    const filtered = all.filter(b => b.email === email);
     filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     return of(filtered).pipe(delay(200));

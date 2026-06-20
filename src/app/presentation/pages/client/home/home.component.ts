@@ -1,9 +1,8 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { VenueService } from '../../../services/venue.service';
-import { AuthService } from '../../../services/auth.service';
-import { Venue } from '../../../../domain/entities/venue';
-import { SportType } from '../../../../domain/enums/sport-type.enum';
+import { VenueService } from '@presentation/services/venue.service';
+import { AuthService } from '@presentation/services/auth.service';
+import { Venue, SportType } from '@application/dto/venue/venue.dto';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({

@@ -8,7 +8,7 @@ import { Component } from '@angular/core';
 export class FooterComponent {
   currentYear = new Date().getFullYear();
   emailInput: string = '';
-  loginUrl = `${import.meta.env.NG_APP_AUTH_API_URL || 'http://localhost:4400'}/login?redirect=${import.meta.env.NG_APP_CLIENT_API_URL || 'http://localhost:4200'}`;
+  loginUrl = `${import.meta.env.NG_APP_AUTH_API_URL}/login?redirect=${import.meta.env.NG_APP_CLIENT_API_URL}`;
 
   subscribeNewsletter() {
     if (this.emailInput.trim()) {

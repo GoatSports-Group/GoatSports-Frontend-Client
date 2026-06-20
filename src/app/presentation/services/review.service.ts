@@ -1,10 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Review } from '../../domain/entities/review';
-import { GetReviewsByVenueUseCase } from '../../application/review/get-reviews-by-venue.usecase';
-import { AddReviewUseCase } from '../../application/review/add-review.usecase';
-import { DeleteReviewUseCase } from '../../application/review/delete-review.usecase';
-import { GetAllReviewsUseCase } from '../../application/review/get-all-reviews.usecase';
+import { Review } from '@application/dto/review/review.dto';
+import { GetReviewsByVenueUseCase } from '@application/usecase/review/get-reviews-by-venue.usecase';
+import { AddReviewUseCase } from '@application/usecase/review/add-review.usecase';
+import { DeleteReviewUseCase } from '@application/usecase/review/delete-review.usecase';
+import { GetAllReviewsUseCase } from '@application/usecase/review/get-all-reviews.usecase';
 
 @Injectable({
   providedIn: 'root'

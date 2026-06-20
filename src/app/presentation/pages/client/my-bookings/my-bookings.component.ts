@@ -1,11 +1,10 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { BookingService } from '../../../services/booking.service';
-import { Booking } from '../../../../domain/entities/booking';
-import { BookingStatus } from '../../../../domain/enums/booking-status.enum';
-import { SportType } from '../../../../domain/enums/sport-type.enum';
+import { BookingService } from '@presentation/services/booking.service';
+import { Booking, BookingStatus } from '@application/dto/booking/booking.dto';
+import { SportType } from '@application/dto/venue/venue.dto';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-my-bookings',

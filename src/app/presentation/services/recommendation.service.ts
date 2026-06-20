@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { AIRecommendationRequest, AIRecommendationResult } from '../../domain/entities/recommendation';
-import { GetRecommendationsUseCase } from '../../application/recommendation/get-recommendations.usecase';
+import { AIRecommendationRequest, AIRecommendationResult } from '@application/dto/recommendation/recommendation.dto';
+import { GetRecommendationsUseCase } from '@application/usecase/recommendation/get-recommendations.usecase';
 
 @Injectable({
   providedIn: 'root'

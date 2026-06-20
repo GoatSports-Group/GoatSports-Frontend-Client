@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { delay } from 'rxjs/operators';
-import { ReviewRepository } from '../../domain/repositories/review.repository';
-import { Review } from '../../domain/entities/review';
+import { ReviewRepository } from '@application/ports/review.repository';
+import { Review } from '@domain/entity/review';
 
 @Injectable({
   providedIn: 'root'

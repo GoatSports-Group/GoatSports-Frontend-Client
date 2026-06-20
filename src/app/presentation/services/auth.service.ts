@@ -1,13 +1,13 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
-import { BaseResponse } from '../../domain/entities/base';
-import { User } from '../../domain/entities/user';
-import { SessionStateService } from '../../domain/models/session-state.service';
-import { LogoutUseCase } from '../../application/auth/logout.usecase';
-import { RefreshTokenUseCase } from '../../application/auth/refresh-token.usecase';
-import { GetCurrentUserUseCase } from '../../application/auth/get-current-user.usecase';
-import { LinkKeycloakUseCase } from '../../application/auth/link-keycloak.usecase';
+import { BaseResponse } from '@application/dto/base/base-response';
+import { User } from '@application/dto/user/user.dto';
+import { SessionStateService } from '@presentation/services/session-state.service';
+import { LogoutUseCase } from '@application/usecase/auth/logout.usecase';
+import { RefreshTokenUseCase } from '@application/usecase/auth/refresh-token.usecase';
+import { GetCurrentUserUseCase } from '@application/usecase/auth/get-current-user.usecase';
+import { LinkKeycloakUseCase } from '@application/usecase/auth/link-keycloak.usecase';
 
 @Injectable({
   providedIn: 'root'
