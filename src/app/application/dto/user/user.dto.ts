@@ -15,4 +15,4 @@ export type User = {
   authProvider?: string;
 }
 
-export { RoleEnum } from '@domain/enums/role.enum';
+export { RoleEnum, ROLE_ENUM_OPTIONS } from '@domain/enums/role.enum';

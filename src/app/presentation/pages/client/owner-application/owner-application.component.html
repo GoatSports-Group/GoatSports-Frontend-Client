@@ -45,7 +45,7 @@
                   <mat-card-title class="app-title">{{ app.businessName }}</mat-card-title>
                   <mat-card-subtitle>{{ getBusinessTypeLabel(app.businessType) }} | MST: {{ app.taxCode }}</mat-card-subtitle>
                   <span class="status-badge" [ngClass]="getStatusClass(app.status)">
-                    {{ statusTranslations[app.status] }}
+                    {{ getStatusLabel(app.status) }}
                   </span>
                 </mat-card-header>
                 

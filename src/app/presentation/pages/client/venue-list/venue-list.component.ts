@@ -2,7 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { VenueService } from '@presentation/services/venue.service';
 import { AuthService } from '@presentation/services/auth.service';
-import { Venue, VenueFilter, VenueSort, SportType } from '@application/dto/venue/venue.dto';
+import { Venue, VenueFilter, VenueSort, SportType, SPORT_TYPE_OPTIONS } from '@application/dto/venue/venue.dto';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PageEvent } from '@angular/material/paginator';
 
@@ -125,14 +125,7 @@ export class VenueListComponent implements OnInit {
   }
 
   getSportTypeLabel(type: string): string {
-    switch (type) {
-      case 'soccer': return SportType.SOCCER;
-      case 'badminton': return SportType.BADMINTON;
-      case 'tennis': return SportType.TENNIS;
-      case 'pickleball': return SportType.PICKLEBALL;
-      case 'basketball': return SportType.BASKETBALL;
-      case 'volleyball': return SportType.VOLLEYBALL;
-      default: return type;
-    }
+    const key = type.toUpperCase();
+    return SPORT_TYPE_OPTIONS.find(o => o.value === key || o.value === type)?.label || type;
   }
 }

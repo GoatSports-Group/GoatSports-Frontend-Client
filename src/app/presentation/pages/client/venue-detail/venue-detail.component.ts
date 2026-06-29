@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { VenueService } from '@presentation/services/venue.service';
 import { ReviewService } from '@presentation/services/review.service';
 import { AuthService } from '@presentation/services/auth.service';
-import { Venue, TimeSlot, SportType, VenueStatus } from '@application/dto/venue/venue.dto';
+import { Venue, TimeSlot, SportType, VenueStatus, SPORT_TYPE_OPTIONS, VENUE_STATUS_OPTIONS } from '@application/dto/venue/venue.dto';
 import { Review } from '@application/dto/review/review.dto';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
@@ -213,22 +213,11 @@ export class VenueDetailComponent implements OnInit {
 
   getStatusLabel(status?: string): string {
     if (!status) return '';
-    switch (status) {
-      case 'AVAILABLE': return VenueStatus.AVAILABLE;
-      case 'FULL': return VenueStatus.FULL;
-      default: return status;
-    }
+    return VENUE_STATUS_OPTIONS.find(o => o.value === status)?.label || status;
   }
 
   getSportTypeLabel(type: string): string {
-    switch (type) {
-      case 'soccer': return SportType.SOCCER;
-      case 'badminton': return SportType.BADMINTON;
-      case 'tennis': return SportType.TENNIS;
-      case 'pickleball': return SportType.PICKLEBALL;
-      case 'basketball': return SportType.BASKETBALL;
-      case 'volleyball': return SportType.VOLLEYBALL;
-      default: return type;
-    }
+    const key = type.toUpperCase();
+    return SPORT_TYPE_OPTIONS.find(o => o.value === key || o.value === type)?.label || type;
   }
 }

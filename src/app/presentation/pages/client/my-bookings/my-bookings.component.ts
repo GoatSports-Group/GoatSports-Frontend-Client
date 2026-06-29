@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { BookingService } from '@presentation/services/booking.service';
-import { Booking, BookingStatus } from '@application/dto/booking/booking.dto';
-import { SportType } from '@application/dto/venue/venue.dto';
+import { Booking, BookingStatus, BOOKING_STATUS_OPTIONS } from '@application/dto/booking/booking.dto';
+import { SportType, SPORT_TYPE_OPTIONS } from '@application/dto/venue/venue.dto';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
@@ -121,7 +121,7 @@ export class MyBookingsComponent implements OnInit {
   }
 
   getStatusLabel(status: BookingStatus): string {
-    return status;
+    return BOOKING_STATUS_OPTIONS.find(o => o.value === status)?.label || status;
   }
 
   getStatusClass(status: BookingStatus): string {
@@ -135,14 +135,7 @@ export class MyBookingsComponent implements OnInit {
   }
 
   getSportTypeLabel(type: string): string {
-    switch (type) {
-      case 'soccer': return SportType.SOCCER;
-      case 'badminton': return SportType.BADMINTON;
-      case 'tennis': return SportType.TENNIS;
-      case 'pickleball': return SportType.PICKLEBALL;
-      case 'basketball': return SportType.BASKETBALL;
-      case 'volleyball': return SportType.VOLLEYBALL;
-      default: return type;
-    }
+    const key = type.toUpperCase();
+    return SPORT_TYPE_OPTIONS.find(o => o.value === key || o.value === type)?.label || type;
   }
 }

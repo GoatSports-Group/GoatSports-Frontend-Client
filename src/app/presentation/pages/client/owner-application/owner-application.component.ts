@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { SubmitOwnerApplicationUseCase } from '@application/usecase/owner-application/submit-owner-application.usecase';
 import { GetMyOwnerApplicationsUseCase } from '@application/usecase/owner-application/get-my-owner-applications.usecase';
-import { OwnerApplication, OwnerApplicationStatus, BusinessType, DocumentType } from '@application/dto/owner-application/owner-application.dto';
+import { OwnerApplication, OwnerApplicationStatus, OWNER_APPLICATION_STATUS_OPTIONS, BusinessType, BUSINESS_TYPE_OPTIONS, DocumentType } from '@application/dto/owner-application/owner-application.dto';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
@@ -53,12 +53,7 @@ export class OwnerApplicationComponent implements OnInit {
     venueImage: ''
   };
 
-  statusTranslations = {
-    [OwnerApplicationStatus.PENDING]: 'Chờ xác nhận',
-    [OwnerApplicationStatus.APPROVED]: 'Đã chấp nhận',
-    [OwnerApplicationStatus.REJECTED]: 'Đã từ chối',
-    [OwnerApplicationStatus.CANCELLED]: 'Đã hủy'
-  };
+
 
   ngOnInit() {
     this.loadApplications();
@@ -232,6 +227,10 @@ export class OwnerApplicationComponent implements OnInit {
   }
 
   getBusinessTypeLabel(type: BusinessType): string {
-    return BusinessType.COMPANY;
+    return BUSINESS_TYPE_OPTIONS.find(o => o.value === type)?.label || type;
+  }
+
+  getStatusLabel(status: OwnerApplicationStatus): string {
+    return OWNER_APPLICATION_STATUS_OPTIONS.find(o => o.value === status)?.label || status;
   }
 }
