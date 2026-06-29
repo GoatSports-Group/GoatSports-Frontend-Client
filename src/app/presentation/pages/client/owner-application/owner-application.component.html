@@ -1,0 +1,229 @@
+<div class="owner-app-container">
+  <!-- Premium Header Banner -->
+  <div class="header-banner">
+    <div class="banner-overlay"></div>
+    <div class="banner-content">
+      <h1 class="banner-title">Hợp Tác Đối Tác - Đăng Ký Chủ Sân</h1>
+      <p class="banner-subtitle">Gia tăng thu nhập của bạn bằng cách đăng ký quản lý sân thể thao và kinh doanh trên GOAT Sports</p>
+    </div>
+  </div>
+
+  <div class="container-content">
+    <!-- Navigation Tabs -->
+    <div class="tabs-header">
+      <button class="tab-btn" [class.active]="activeTab === 'list'" (click)="activeTab = 'list'">
+        <mat-icon>history</mat-icon> Lịch Sử Đăng Ký
+      </button>
+      <button class="tab-btn" [class.active]="activeTab === 'form'" (click)="activeTab = 'form'">
+        <mat-icon>assignment</mat-icon> Tạo Đơn Đăng Ký Mới
+      </button>
+    </div>
+
+    <!-- Active Tab: List of Applications -->
+    @if (activeTab === 'list') {
+      <div class="tab-pane">
+        @if (loading) {
+          <div class="loading-state">
+            <mat-spinner diameter="50"></mat-spinner>
+            <p>Đang tải danh sách đơn đăng ký...</p>
+          </div>
+        } @else if (applications.length === 0) {
+          <div class="empty-state">
+            <mat-icon class="empty-icon">feed</mat-icon>
+            <h3>Bạn chưa có đơn đăng ký nào</h3>
+            <p>Đăng ký trở thành chủ sân ngay hôm nay để đưa cơ sở thể thao của bạn tiếp cận hàng ngàn khách hàng tiềm năng.</p>
+            <button mat-raised-button color="primary" (click)="activeTab = 'form'">Tạo Đơn Ngay</button>
+          </div>
+        } @else {
+          <div class="app-list-grid">
+            @for (app of applications; track app.ownerApplicationId) {
+              <mat-card class="app-card">
+                <mat-card-header>
+                  <div mat-card-avatar class="app-avatar">
+                    <mat-icon>storefront</mat-icon>
+                  </div>
+                  <mat-card-title class="app-title">{{ app.businessName }}</mat-card-title>
+                  <mat-card-subtitle>{{ getBusinessTypeLabel(app.businessType) }} | MST: {{ app.taxCode }}</mat-card-subtitle>
+                  <span class="status-badge" [ngClass]="getStatusClass(app.status)">
+                    {{ statusTranslations[app.status] }}
+                  </span>
+                </mat-card-header>
+                
+                <mat-card-content class="app-card-body">
+                  <div class="info-row">
+                    <span class="info-label"><mat-icon>person</mat-icon> Người đăng ký:</span>
+                    <span class="info-val">{{ app.fullName }} (CCCD: {{ app.identityNumber }})</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label"><mat-icon>phone</mat-icon> Liên hệ:</span>
+                    <span class="info-val">{{ app.phone }} | {{ app.email }}</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label"><mat-icon>place</mat-icon> Địa chỉ kinh doanh:</span>
+                    <span class="info-val">{{ app.address.address }}, {{ app.address.ward }}, {{ app.address.district }}, {{ app.address.province }}</span>
+                  </div>
+
+                  @if (app.status === 'REJECTED') {
+                    <div class="reject-box">
+                      <mat-icon>warning</mat-icon>
+                      <div class="reject-text">
+                        <strong>Đơn đăng ký bị từ chối:</strong>
+                        <p>{{ app.rejectReason || 'Không có lý do chi tiết.' }}</p>
+                      </div>
+                    </div>
+                  }
+                </mat-card-content>
+
+                <mat-card-actions class="app-card-actions">
+                  <span class="date-submitted">Nộp ngày: {{ app.reviewedAt ? (app.reviewedAt | date:'dd/MM/yyyy HH:mm') : 'Đang xử lý' }}</span>
+                </mat-card-actions>
+              </mat-card>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Active Tab: New Registration Form -->
+    @if (activeTab === 'form') {
+      <div class="tab-pane">
+        <mat-card class="form-card">
+          <form (submit)="onSubmit()" class="registration-form">
+            <h2 class="section-title"><mat-icon color="primary">person</mat-icon> 1. Thông Tin Người Đại Diện</h2>
+            <div class="form-row-grid">
+              <mat-form-field appearance="outline">
+                <mat-label>Họ và tên người đăng ký</mat-label>
+                <input matInput [(ngModel)]="form.fullName" name="fullName" required placeholder="Nguyễn Văn A">
+                <mat-icon matSuffix>person</mat-icon>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Số điện thoại liên hệ</mat-label>
+                <input matInput [(ngModel)]="form.phone" name="phone" required placeholder="09xxxxxxxx">
+                <mat-icon matSuffix>phone</mat-icon>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Địa chỉ Email</mat-label>
+                <input matInput type="email" [(ngModel)]="form.email" name="email" required placeholder="example@gmail.com">
+                <mat-icon matSuffix>email</mat-icon>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Số CCCD / Hộ chiếu</mat-label>
+                <input matInput [(ngModel)]="form.identityNumber" name="identityNumber" required placeholder="03xxxxxxxxxx">
+                <mat-icon matSuffix>badge</mat-icon>
+              </mat-form-field>
+            </div>
+
+            <h2 class="section-title"><mat-icon color="primary">business</mat-icon> 2. Thông Tin Doanh Nghiệp / Cơ Sở</h2>
+            <div class="form-row-grid-3">
+              <mat-form-field appearance="outline">
+                <mat-label>Tên Doanh Nghiệp / Hộ Kinh Doanh</mat-label>
+                <input matInput [(ngModel)]="form.businessName" name="businessName" required placeholder="Công Ty TNHH Thể Thao GOAT">
+                <mat-icon matSuffix>storefront</mat-icon>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Loại hình kinh doanh</mat-label>
+                <mat-select [(ngModel)]="form.businessType" name="businessType" required>
+                  <mat-option value="INDIVIDUAL">Hộ kinh doanh cá thể (Cá nhân)</mat-option>
+                  <mat-option value="COMPANY">Doanh nghiệp (Công ty)</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Mã số thuế</mat-label>
+                <input matInput [(ngModel)]="form.taxCode" name="taxCode" required placeholder="01xxxxxxxx">
+                <mat-icon matSuffix>receipt</mat-icon>
+              </mat-form-field>
+            </div>
+
+            <h2 class="section-title"><mat-icon color="primary">place</mat-icon> 3. Địa Chỉ Kinh Doanh</h2>
+            <div class="form-row-grid">
+              <mat-form-field appearance="outline">
+                <mat-label>Địa chỉ chi tiết (Số nhà, tên đường)</mat-label>
+                <input matInput [(ngModel)]="form.address" name="address" required placeholder="12 Ba Tháng Hai">
+                <mat-icon matSuffix>home</mat-icon>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Phường / Xã</mat-label>
+                <input matInput [(ngModel)]="form.ward" name="ward" required placeholder="Phường 12">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Quận / Huyện</mat-label>
+                <input matInput [(ngModel)]="form.district" name="district" required placeholder="Quận 10">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Tỉnh / Thành phố trực thuộc</mat-label>
+                <input matInput [(ngModel)]="form.province" name="province" required placeholder="TP. Hồ Chí Minh">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width-cell">
+                <mat-label>Thành phố</mat-label>
+                <input matInput [(ngModel)]="form.city" name="city" required placeholder="Hồ Chí Minh">
+              </mat-form-field>
+            </div>
+
+            <h2 class="section-title"><mat-icon color="primary">cloud_upload</mat-icon> 4. Hồ Sơ Đính Kèm & Giấy Tờ Pháp Lý</h2>
+            <div class="files-upload-grid">
+              <!-- CCCD Front -->
+              <div class="file-uploader-box" [class.uploaded]="files.idCardFront">
+                <div class="box-label">CCCD Mặt Trước *</div>
+                <label class="upload-area">
+                  <input type="file" (change)="onFileSelected($event, 'idCardFront')" accept="image/*,application/pdf" class="hidden-input">
+                  <mat-icon class="upload-icon">{{ files.idCardFront ? 'check_circle' : 'image' }}</mat-icon>
+                  <span class="upload-text">{{ fileNames.idCardFront || 'Chọn ảnh mặt trước CCCD' }}</span>
+                </label>
+              </div>
+
+              <!-- CCCD Back -->
+              <div class="file-uploader-box" [class.uploaded]="files.idCardBack">
+                <div class="box-label">CCCD Mặt Sau *</div>
+                <label class="upload-area">
+                  <input type="file" (change)="onFileSelected($event, 'idCardBack')" accept="image/*,application/pdf" class="hidden-input">
+                  <mat-icon class="upload-icon">{{ files.idCardBack ? 'check_circle' : 'image' }}</mat-icon>
+                  <span class="upload-text">{{ fileNames.idCardBack || 'Chọn ảnh mặt sau CCCD' }}</span>
+                </label>
+              </div>
+
+              <!-- Business License -->
+              <div class="file-uploader-box" [class.uploaded]="files.businessLicense">
+                <div class="box-label">Giấy Phép Kinh Doanh / Hoạt Động</div>
+                <label class="upload-area">
+                  <input type="file" (change)="onFileSelected($event, 'businessLicense')" accept="image/*,application/pdf" class="hidden-input">
+                  <mat-icon class="upload-icon">{{ files.businessLicense ? 'check_circle' : 'description' }}</mat-icon>
+                  <span class="upload-text">{{ fileNames.businessLicense || 'Chọn file GPKD (Hình ảnh/PDF)' }}</span>
+                </label>
+              </div>
+
+              <!-- Venue Image -->
+              <div class="file-uploader-box" [class.uploaded]="files.venueImage">
+                <div class="box-label">Ảnh Thực Tế Sân Thể Thao</div>
+                <label class="upload-area">
+                  <input type="file" (change)="onFileSelected($event, 'venueImage')" accept="image/*" class="hidden-input">
+                  <mat-icon class="upload-icon">{{ files.venueImage ? 'check_circle' : 'photo_camera' }}</mat-icon>
+                  <span class="upload-text">{{ fileNames.venueImage || 'Chọn ảnh chụp cơ sở sân' }}</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button mat-button type="button" class="btn-cancel" (click)="resetForm(); activeTab = 'list'">Hủy Bỏ</button>
+              <button mat-flat-button color="primary" type="submit" class="btn-submit" [disabled]="submitting">
+                @if (submitting) {
+                  <mat-spinner diameter="20" class="btn-spinner"></mat-spinner> Đang gửi đơn...
+                } @else {
+                  <mat-icon>send</mat-icon> Gửi Đơn Đăng Ký
+                }
+              </button>
+            </div>
+          </form>
+        </mat-card>
+      </div>
+    }
+  </div>
+</div>

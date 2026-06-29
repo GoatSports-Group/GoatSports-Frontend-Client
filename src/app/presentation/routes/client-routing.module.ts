@@ -8,7 +8,9 @@ import { BookingCheckoutComponent } from '@presentation/pages/client/booking-che
 import { MyBookingsComponent } from '@presentation/pages/client/my-bookings/my-bookings.component';
 import { AiRecommendationComponent } from '@presentation/pages/client/ai-recommendation/ai-recommendation.component';
 import { ProfileComponent } from '@presentation/pages/client/profile/profile.component';
+import { OwnerApplicationComponent } from '@presentation/pages/client/owner-application/owner-application.component';
 import { AuthGuard } from '@presentation/guards/auth.guard';
+import { AdminGuard } from '@presentation/guards/admin.guard';
 
 const routes: Routes = [
   {
@@ -25,6 +27,7 @@ const routes: Routes = [
       { path: 'my-bookings', component: MyBookingsComponent, canActivate: [AuthGuard] },
       { path: 'ai-recommendation', component: AiRecommendationComponent },
       { path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] },
+      { path: 'owner-application', component: OwnerApplicationComponent, canActivate: [AuthGuard] },
       { path: '', redirectTo: 'home', pathMatch: 'full' }
     ]
   }

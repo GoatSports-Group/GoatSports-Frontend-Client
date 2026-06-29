@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { delay } from 'rxjs/operators';
-import { VenueRepository } from '@application/ports/venue.repository';
+import { VenueRepository } from '@application/ports/persistence/venue.repository';
 import { Venue, TimeSlot } from '@domain/entity/venue';
 import { VenueFilter, VenueSort } from '@application/dto/venue/venue.dto';
 import { SportType } from '@domain/enums/sport-type.enum';

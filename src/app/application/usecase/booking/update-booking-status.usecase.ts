@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { BookingRepository, BOOKING_REPOSITORY_TOKEN } from '@application/ports/booking.repository';
+import { BookingRepository, BOOKING_REPOSITORY_TOKEN } from '@application/ports/persistence/booking.repository';
 import { BookingStatus } from '@domain/enums/booking-status.enum';
 
 @Injectable({

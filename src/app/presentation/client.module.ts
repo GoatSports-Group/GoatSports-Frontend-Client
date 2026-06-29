@@ -11,6 +11,7 @@ import { BookingCheckoutComponent } from '@presentation/pages/client/booking-che
 import { MyBookingsComponent } from '@presentation/pages/client/my-bookings/my-bookings.component';
 import { AiRecommendationComponent } from '@presentation/pages/client/ai-recommendation/ai-recommendation.component';
 import { ProfileComponent } from '@presentation/pages/client/profile/profile.component';
+import { OwnerApplicationComponent } from '@presentation/pages/client/owner-application/owner-application.component';
 
 @NgModule({
   declarations: [
@@ -21,7 +22,8 @@ import { ProfileComponent } from '@presentation/pages/client/profile/profile.com
     BookingCheckoutComponent,
     MyBookingsComponent,
     AiRecommendationComponent,
-    ProfileComponent
+    ProfileComponent,
+    OwnerApplicationComponent
   ],
   imports: [
     CommonModule,

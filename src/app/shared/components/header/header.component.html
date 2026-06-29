@@ -47,6 +47,39 @@
         </mat-icon>
       </button>
 
+      <!-- Notification Bell (Admin Only) -->
+      @if ((authService.isAuthenticated$ | async) && (authService.currentUser?.role?.name === 'ADMIN' || authService.currentUser?.role?.name === 'Người quản trị')) {
+        <button mat-icon-button [matMenuTriggerFor]="notifMenu" class="notif-btn" aria-label="Thông báo">
+          <mat-icon [matBadge]="notificationService.unreadCount$ | async" 
+                    [matBadgeHidden]="(notificationService.unreadCount$ | async) === 0" 
+                    matBadgeColor="warn" 
+                    class="notif-icon">
+            notifications
+          </mat-icon>
+        </button>
+        <mat-menu #notifMenu="matMenu" xPosition="before" class="custom-notif-menu">
+          <div class="notif-menu-header">
+            <h3>Thông báo ({{ notificationService.unreadCount$ | async }})</h3>
+          </div>
+          <mat-divider></mat-divider>
+          <div class="notif-items-list">
+            @if ((notificationService.notifications$ | async)?.length === 0) {
+              <div class="notif-empty">Không có thông báo nào</div>
+            } @else {
+              @for (notif of notificationService.notifications$ | async; track notif.notificationId) {
+                <button mat-menu-item (click)="onNotificationClick(notif)" [class.unread]="notif.status === 'UNREAD'" class="notif-item">
+                  <div class="notif-item-content">
+                    <span class="notif-title">{{ notif.title }}</span>
+                    <p class="notif-desc">{{ notif.content }}</p>
+                    <span class="notif-time">{{ notif.createdAt | date:'dd/MM HH:mm' }}</span>
+                  </div>
+                </button>
+              }
+            }
+          </div>
+        </mat-menu>
+      }
+
       <!-- User Menu -->
       @if (authService.isAuthenticated$ | async) {
       <button mat-icon-button [matMenuTriggerFor]="userMenu" class="user-avatar-btn" aria-label="User Profile">
@@ -69,8 +102,12 @@
           <mat-icon>history</mat-icon>
           <span>Lịch Sử Đặt Sân</span>
         </button>
-        @if (authService.currentUser?.role?.name === 'ADMIN' || authService.currentUser?.role?.name === 'Người quản
-        trị') {
+        @if (authService.currentUser?.role?.name !== 'ADMIN' && authService.currentUser?.role?.name !== 'Người quản trị' && authService.currentUser?.role?.name !== 'VENUE_OWNER' && authService.currentUser?.role?.name !== 'Chủ sân') {
+          <button mat-menu-item routerLink="/owner-application">
+            <mat-icon>storefront</mat-icon>
+            <span>Đăng Ký Chủ Sân</span>
+          </button>
+        @if (authService.currentUser?.role?.name === 'ADMIN' || authService.currentUser?.role?.name === 'Người quản trị') {
         <a mat-menu-item [href]="adminUrl + '/admin'">
           <mat-icon color="primary">admin_panel_settings</mat-icon>
           <span>Quản Trị</span>

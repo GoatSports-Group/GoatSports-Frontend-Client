@@ -2,8 +2,9 @@ import { Component, EventEmitter, OnInit, Output, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '@presentation/services/auth.service';
 import { BookingService } from '@presentation/services/booking.service';
-import { RoleEnum } from '@domain/enums/role.enum';
-import { BookingStatus } from '@domain/enums/booking-status.enum';
+import { NotificationService } from '@presentation/services/notification.service';
+import { RoleEnum } from '@application/dto/user/user.dto';
+import { BookingStatus } from '@application/dto/booking/booking.dto';
 
 @Component({
   selector: 'app-header',
@@ -13,6 +14,7 @@ import { BookingStatus } from '@domain/enums/booking-status.enum';
 export class HeaderComponent implements OnInit {
   public authService = inject(AuthService);
   private bookingService = inject(BookingService);
+  public notificationService = inject(NotificationService);
   private router = inject(Router);
 
   @Output() menuToggle = new EventEmitter<void>();
@@ -70,5 +72,15 @@ export class HeaderComponent implements OnInit {
       default:
         return roleName;
     }
+  }
+
+  onNotificationClick(notification: any) {
+    this.notificationService.markAsRead(notification.notificationId).subscribe({
+      next: () => {
+        if (notification.type === 'OWNER_APPLICATION') {
+          this.router.navigate(['/admin/owner-applications']);
+        }
+      }
+    });
   }
 }

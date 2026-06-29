@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { AuthRepository } from '@application/ports/auth.repository';
+import { AuthRepository } from '@application/ports/persistence/auth.repository';
 import { AuthApi } from '@infrastructure/api/auth.api';
 import { BaseResponse } from '@application/dto/base/base-response';
 import { User } from '@domain/entity/user';

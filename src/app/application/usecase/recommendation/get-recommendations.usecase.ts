@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { delay, map } from 'rxjs/operators';
-import { VenueRepository, VENUE_REPOSITORY_TOKEN } from '@application/ports/venue.repository';
+import { VenueRepository, VENUE_REPOSITORY_TOKEN } from '@application/ports/persistence/venue.repository';
 import { AIRecommendationRequest, AIRecommendationResult } from '@application/dto/recommendation/recommendation.dto';
 
 @Injectable({
@@ -10,14 +10,14 @@ import { AIRecommendationRequest, AIRecommendationResult } from '@application/dt
 export class GetRecommendationsUseCase {
   constructor(
     @Inject(VENUE_REPOSITORY_TOKEN) private venueRepository: VenueRepository
-  ) {}
+  ) { }
 
   execute(request: AIRecommendationRequest): Observable<AIRecommendationResult[]> {
     return this.venueRepository.getVenues().pipe(
       delay(1200),
       map(venues => {
         let matchedVenues = venues;
-        
+
         if (request.sportType && request.sportType !== 'all') {
           matchedVenues = venues.filter(v => v.sportType === request.sportType);
         }
@@ -51,7 +51,7 @@ export class GetRecommendationsUseCase {
 
           const requestLoc = request.location.toLowerCase().trim();
           const venueAddr = venue.address.toLowerCase();
-          
+
           let dist = 1.5;
           if (requestLoc) {
             if (venueAddr.includes(requestLoc)) {

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { delay } from 'rxjs/operators';
-import { BookingRepository } from '@application/ports/booking.repository';
+import { BookingRepository } from '@application/ports/persistence/booking.repository';
 import { Booking } from '@domain/entity/booking';
 import { SportType } from '@domain/enums/sport-type.enum';
 import { BookingStatus } from '@domain/enums/booking-status.enum';

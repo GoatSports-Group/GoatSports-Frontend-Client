@@ -14,3 +14,5 @@ export type User = {
   keycloakId?: string;
   authProvider?: string;
 }
+
+export { RoleEnum } from '@domain/enums/role.enum';

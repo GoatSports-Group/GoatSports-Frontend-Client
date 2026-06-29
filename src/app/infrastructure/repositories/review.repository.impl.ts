@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { delay } from 'rxjs/operators';
-import { ReviewRepository } from '@application/ports/review.repository';
+import { ReviewRepository } from '@application/ports/persistence/review.repository';
 import { Review } from '@domain/entity/review';
 
 @Injectable({
@@ -134,7 +134,7 @@ export class ReviewRepositoryImpl implements ReviewRepository {
 
   private updateVenueRating(venueId: string) {
     const reviews = this.getStoredReviews().filter(r => r.venueId === venueId);
-    const avgRating = reviews.length > 0 
+    const avgRating = reviews.length > 0
       ? parseFloat((reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1))
       : 5.0;
 
