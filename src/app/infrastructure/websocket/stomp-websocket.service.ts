@@ -55,7 +55,7 @@ export class StompWebSocketService implements WebSocketService {
   private isConnected = false;
   private reconnectTimeout: any = null;
   private apiBase = import.meta.env.NG_APP_API_URL;
-  private subscriptionId = 'sub-admin-notifications';
+  private subscriptionId = 'sub-user-notifications';
 
   private notificationSubject = new Subject<Notification>();
   public notifications$: Observable<Notification> = this.notificationSubject.asObservable();
@@ -133,11 +133,11 @@ export class StompWebSocketService implements WebSocketService {
 
     const subscribeFrame = new StompFrame('SUBSCRIBE', {
       id: this.subscriptionId,
-      destination: '/topic/admin/notifications'
+      destination: '/topic/user/notifications'
     }, '');
 
     this.socket.send(subscribeFrame.toString());
-    console.log('STOMP SUBSCRIBE sent for /topic/admin/notifications');
+    console.log('STOMP SUBSCRIBE sent for /topic/user/notifications');
   }
 
   private sendUnsubscribeFrame(): void {
@@ -172,7 +172,7 @@ export class StompWebSocketService implements WebSocketService {
           this.sendSubscribeFrame();
           break;
         case 'MESSAGE':
-          if (frame.headers['destination'] === '/topic/admin/notifications') {
+          if (frame.headers['destination'] === '/topic/user/notifications') {
             console.log('STOMP MESSAGE received:', frame.body);
             try {
               const notification: Notification = JSON.parse(frame.body);

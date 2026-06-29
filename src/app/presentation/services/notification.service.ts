@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, NgZone } from '@angular/core';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { Notification, NotificationStatus } from '@application/dto/notification/notification.dto';
 import { GetNotificationsUseCase } from '@application/usecase/notification/get-notifications.usecase';
@@ -18,6 +18,7 @@ export class NotificationService {
   private wsService = inject(WEBSOCKET_SERVICE_TOKEN);
   private authService = inject(AuthService);
   private snackBar = inject(MatSnackBar);
+  private ngZone = inject(NgZone);
 
   private notificationsSubject = new BehaviorSubject<Notification[]>([]);
   public notifications$: Observable<Notification[]> = this.notificationsSubject.asObservable();
@@ -59,7 +60,9 @@ export class NotificationService {
 
     this.wsSubscription = this.wsService.notifications$.subscribe({
       next: (notification) => {
-        this.handleRealTimeNotification(notification);
+        this.ngZone.run(() => {
+          this.handleRealTimeNotification(notification);
+        });
       },
       error: (err) => {
         console.error('Error in WebSocket notification channel:', err);
