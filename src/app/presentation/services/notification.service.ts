@@ -34,8 +34,8 @@ export class NotificationService {
 
   private monitorUserSession(): void {
     this.userSubscription = this.authService.currentUser$.subscribe(user => {
-      if (user && (user.role?.name === 'ADMIN' || user.role?.name === 'Người quản trị')) {
-        console.log('User is Admin. Initializing Notification Service...');
+      if (user) {
+        console.log('User is authenticated. Initializing Notification Service...');
         this.loadInitialData();
         this.connectWebSocket();
       } else {

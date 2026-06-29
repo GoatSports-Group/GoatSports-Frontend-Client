@@ -260,6 +260,10 @@ a {
   --mdc-filled-text-field-input-text-color: var(--text-dark);
   --mdc-outlined-text-field-label-text-color: #4a5568;
   --mdc-filled-text-field-label-text-color: #4a5568;
+
+  .mat-mdc-select-value {
+    color: var(--text-dark) !important;
+  }
   --mdc-outlined-text-field-input-text-placeholder-color: var(--text-muted);
   --mdc-filled-text-field-input-text-placeholder-color: var(--text-muted);
 

@@ -31,6 +31,7 @@ export interface OwnerApplication {
   rejectReason?: string;
   reviewerId?: string;
   reviewedAt?: string;
+  createdAt?: string;
   address: OwnerApplicationAddress;
   documents: OwnerApplicationDocument[];
 }

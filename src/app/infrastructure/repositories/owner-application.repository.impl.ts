@@ -12,12 +12,14 @@ export class OwnerApplicationRepositoryImpl implements OwnerApplicationRepositor
   private ownerApplicationApi = inject(OwnerApplicationApi);
 
   submit(formData: FormData): Observable<OwnerApplication> {
-    return this.ownerApplicationApi.submit(formData);
+    return this.ownerApplicationApi.submit(formData).pipe(
+      map(response => response.data)
+    );
   }
 
   getMyApplications(): Observable<OwnerApplication[]> {
     return this.ownerApplicationApi.getMyApplications().pipe(
-      map(response => response.result || [])
+      map(response => response.data?.result || [])
     );
   }
 }

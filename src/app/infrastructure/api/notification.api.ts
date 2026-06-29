@@ -21,8 +21,8 @@ export class NotificationApi {
   private http = inject(HttpClient);
   private apiBase = import.meta.env.NG_APP_API_URL;
 
-  getNotifications(): Observable<NotificationListResponse> {
-    return this.http.get<NotificationListResponse>(
+  getNotifications(): Observable<BaseResponse<NotificationListResponse>> {
+    return this.http.get<BaseResponse<NotificationListResponse>>(
       `${this.apiBase}/notification-service/api/v1/notifications`
     );
   }
@@ -33,8 +33,8 @@ export class NotificationApi {
     );
   }
 
-  markAsRead(id: string): Observable<Notification> {
-    return this.http.put<Notification>(
+  markAsRead(id: string): Observable<BaseResponse<Notification>> {
+    return this.http.put<BaseResponse<Notification>>(
       `${this.apiBase}/notification-service/api/v1/notifications/${id}/read`,
       {}
     );

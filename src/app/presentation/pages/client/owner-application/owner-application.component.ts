@@ -18,6 +18,7 @@ export class OwnerApplicationComponent implements OnInit {
   applications: OwnerApplication[] = [];
   loading = false;
   submitting = false;
+  readonly BUSINESS_TYPE_OPTIONS = BUSINESS_TYPE_OPTIONS;
 
   form = {
     fullName: '',

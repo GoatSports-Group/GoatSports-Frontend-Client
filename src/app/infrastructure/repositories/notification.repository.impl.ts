@@ -13,7 +13,7 @@ export class NotificationRepositoryImpl implements NotificationRepository {
 
   getNotifications(): Observable<Notification[]> {
     return this.notificationApi.getNotifications().pipe(
-      map(response => response.result || [])
+      map(response => response.data?.result || [])
     );
   }
 
@@ -24,6 +24,8 @@ export class NotificationRepositoryImpl implements NotificationRepository {
   }
 
   markAsRead(id: string): Observable<Notification> {
-    return this.notificationApi.markAsRead(id);
+    return this.notificationApi.markAsRead(id).pipe(
+      map(response => response.data)
+    );
   }
 }

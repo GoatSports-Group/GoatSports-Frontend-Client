@@ -47,9 +47,8 @@
         </mat-icon>
       </button>
 
-      <!-- Notification Bell (Admin Only) -->
-      @if ((authService.isAuthenticated$ | async) && (authService.currentUser?.role?.name === 'ADMIN' ||
-      authService.currentUser?.role?.name === 'Người quản trị')) {
+      <!-- Notification Bell -->
+      @if (authService.isAuthenticated$ | async) {
       <button mat-icon-button [matMenuTriggerFor]="notifMenu" class="notif-btn" aria-label="Thông báo">
         <mat-icon [matBadge]="notificationService.unreadCount$ | async"
           [matBadgeHidden]="(notificationService.unreadCount$ | async) === 0" matBadgeColor="warn" class="notif-icon">
