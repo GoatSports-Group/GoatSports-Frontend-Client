@@ -1,10 +1,10 @@
 .app-footer {
-  background-color: #2d3748; // Sleek dark slate background
-  color: #edf2f7;
+  background-color: #0f172a; // Slate-900 (High contrast dark canvas)
+  color: #cbd5e1; // Slate-300 text
   padding: 4rem 0 2rem 0;
   width: 100%;
   margin-top: auto;
-  border-top: 1px solid #4a5568;
+  border-top: 1px solid #1e293b;
 }
 
 .footer-container {
@@ -46,26 +46,26 @@
     height: 38px;
     width: auto;
     object-fit: contain;
-    filter: drop-shadow(0 2px 8px rgba(76, 175, 80, 0.2));
+    filter: drop-shadow(0 2px 8px rgba(5, 150, 105, 0.2));
   }
 
   .logo-text {
-    font-family: var(--font-heading, 'Outfit', sans-serif);
+    font-family: var(--font-heading);
     font-weight: 800;
     font-size: 1.4rem;
-    color: #4caf50; // green color for dark background
+    color: var(--primary);
     letter-spacing: -0.5px;
 
     .logo-text-accent {
-      color: #ff9800; // bright orange accent
+      color: var(--accent);
     }
   }
 }
 
 .brand-desc {
-  font-family: var(--font-body, 'Inter', sans-serif);
+  font-family: var(--font-body);
   font-size: 0.85rem;
-  color: #cbd5e0;
+  color: #94a3b8;
   line-height: 1.6;
   max-width: 320px;
 }
@@ -82,14 +82,15 @@
     height: 36px;
     background-color: rgba(255, 255, 255, 0.05);
     border-radius: 50%;
-    color: #edf2f7;
+    color: #cbd5e1;
     text-decoration: none;
-    transition: var(--transition-smooth, all 0.3s ease);
+    transition: var(--transition-spring);
 
     &:hover {
-      background-color: var(--primary, #2e7d32);
+      background-color: var(--primary);
       color: #ffffff;
-      transform: translateY(-2px);
+      transform: translateY(-4px) scale(1.05);
+      box-shadow: var(--shadow-glow-primary);
     }
 
     mat-icon {
@@ -101,7 +102,7 @@
 }
 
 .footer-heading {
-  font-family: var(--font-heading, 'Outfit', sans-serif);
+  font-family: var(--font-heading);
   font-size: 1.1rem;
   font-weight: 700;
   color: #ffffff;
@@ -118,23 +119,23 @@
   gap: 0.6rem;
 
   li a {
-    color: #cbd5e0;
+    color: #94a3b8;
     text-decoration: none;
-    font-family: var(--font-body, 'Inter', sans-serif);
+    font-family: var(--font-body);
     font-size: 0.9rem;
-    transition: var(--transition-smooth, all 0.3s ease);
+    transition: var(--transition-smooth);
 
     &:hover {
-      color: #4caf50;
-      padding-left: 4px;
+      color: var(--primary);
+      padding-left: 6px;
     }
   }
 }
 
 .newsletter-desc {
-  font-family: var(--font-body, 'Inter', sans-serif);
+  font-family: var(--font-body);
   font-size: 0.85rem;
-  color: #cbd5e0;
+  color: #94a3b8;
   line-height: 1.5;
 }
 
@@ -149,10 +150,11 @@
     width: 100%;
 
     ::ng-deep .mat-mdc-text-field-wrapper {
-      background-color: rgba(255, 255, 255, 0.05) !important;
-      border-radius: 8px !important;
+      background-color: rgba(255, 255, 255, 0.03) !important;
+      border-radius: var(--border-radius-sm) !important;
       height: 42px !important;
       padding: 0 1rem !important;
+      transition: var(--transition-smooth);
     }
 
     ::ng-deep .mat-mdc-form-field-flex {
@@ -174,39 +176,47 @@
     }
 
     ::ng-deep .mdc-notched-outline {
-      border: 1px solid #4a5568 !important;
+      border: 1px solid #334155 !important;
+    }
+
+    ::ng-deep .mat-focused .mdc-notched-outline {
+      border-color: var(--primary) !important;
+      border-width: 2px !important;
     }
 
     input.mat-mdc-input-element {
-      font-family: var(--font-body, 'Inter', sans-serif) !important;
+      font-family: var(--font-body) !important;
       font-size: 0.85rem !important;
       color: #ffffff !important;
-      caret-color: #ffffff !important;
+      caret-color: var(--primary) !important;
 
       &::placeholder {
-        color: #a0aec0 !important;
+        color: #64748b !important;
         opacity: 0.8 !important;
       }
     }
   }
 
   .submit-btn {
-    border-radius: 8px;
-    font-family: var(--font-body, 'Inter', sans-serif);
+    border-radius: var(--border-radius-sm);
+    font-family: var(--font-body);
     font-weight: 700;
     height: 40px;
-    background-color: var(--primary, #2e7d32);
-    color: #ffffff;
-    box-shadow: 0 4px 10px rgba(5, 150, 105, 0.2);
+    background-color: var(--primary) !important;
+    color: #ffffff !important;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition-spring);
 
     &:hover {
-      background-color: #047857;
+      background-color: var(--primary-hover) !important;
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
     }
   }
 }
 
 .footer-divider {
-  border-color: #4a5568 !important;
+  border-color: #1e293b !important;
   margin-bottom: 1.5rem !important;
 }
 
@@ -214,9 +224,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-family: var(--font-body, 'Inter', sans-serif);
+  font-family: var(--font-body);
   font-size: 0.75rem;
-  color: #a0aec0;
+  color: #64748b;
 
   @media (max-width: 768px) {
     flex-direction: column;

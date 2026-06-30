@@ -593,45 +593,40 @@
 // ==========================================
 // DARK MODE STYLES & INTERACTION OVERLAYS
 // ==========================================
+body.dark,
 body.dark-theme {
-  --text-dark: #f8fafc;
-  --text-muted: #94a3b8;
-  --bg-body: #0f172a;
-  --bg-card: #1e293b;
-  --border-color: #334155;
-
   .profile-page-container {
     .main-profile-card {
-      background-color: #1e293b;
-      border-color: #334155;
+      background-color: var(--bg-card);
+      border-color: var(--border-color);
     }
 
     ::ng-deep .mat-mdc-tab-group {
       .mat-mdc-tab-header {
         background-color: rgba(15, 23, 42, 0.4);
-        border-color: #334155;
+        border-color: var(--border-color);
       }
       .mat-mdc-tab-label-container {
-        border-color: #334155;
+        border-color: var(--border-color);
       }
     }
 
     .profile-tab {
       .avatar-panel {
         background: linear-gradient(180deg, rgba(15, 23, 42, 0.5) 0%, rgba(30, 41, 59, 0) 100%);
-        border-color: #334155;
+        border-color: var(--border-color);
         
         .profile-avatar {
-          border-color: #1e293b;
+          border-color: var(--bg-card);
         }
       }
 
       .details-panel .info-grid .info-item {
-        background-color: #0f172a;
-        border-color: #334155;
+        background-color: var(--bg-body);
+        border-color: var(--border-color);
 
         &:hover {
-          background-color: #1e293b;
+          background-color: var(--bg-card);
           border-color: rgba(5, 150, 105, 0.5);
         }
       }
@@ -639,8 +634,8 @@ body.dark-theme {
 
     .settings-tab {
       .settings-card {
-        background-color: #1e293b;
-        border-color: #334155;
+        background-color: var(--bg-card);
+        border-color: var(--border-color);
         
         ::ng-deep .mat-mdc-card-header {
           .mat-mdc-card-avatar {
@@ -649,26 +644,26 @@ body.dark-theme {
         }
       }
       .settings-actions {
-        border-color: #334155;
+        border-color: var(--border-color);
       }
     }
 
     .security-tab {
       .integration-card {
-        background-color: #1e293b;
-        border-color: #334155;
+        background-color: var(--bg-card);
+        border-color: var(--border-color);
 
         .card-status-header {
           .status-icon-wrapper {
             &.success {
               background-color: rgba(5, 150, 105, 0.15);
               .badge-icon {
-                border-color: #1e293b;
+                border-color: var(--bg-card);
               }
             }
             &.inactive {
-              background-color: #0f172a;
-              color: #475569;
+              background-color: var(--bg-body);
+              color: var(--text-muted);
             }
           }
           
@@ -686,12 +681,12 @@ body.dark-theme {
 
         .integration-card-content {
           .meta-field {
-            border-color: #334155;
+            border-color: var(--border-color);
             
             code.meta-value {
-              background-color: #0f172a;
-              border-color: #334155;
-              color: #f43f5e;
+              background-color: var(--bg-body);
+              border-color: var(--border-color);
+              color: var(--danger);
             }
           }
         }
@@ -703,8 +698,8 @@ body.dark-theme {
       background-color: rgba(15, 23, 42, 0.8);
       
       .overlay-card {
-        background-color: #1e293b;
-        border-color: #334155;
+        background-color: var(--bg-card);
+        border-color: var(--border-color);
       }
     }
   }
@@ -712,7 +707,7 @@ body.dark-theme {
   // Override MDC outline form fields for dark background
   ::ng-deep .mat-mdc-form-field {
     .mdc-text-field {
-      background-color: #0f172a !important;
+      background-color: var(--bg-body) !important;
     }
   }
 }

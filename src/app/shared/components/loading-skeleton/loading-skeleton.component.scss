@@ -17,13 +17,13 @@
 
 // Shimmer Effect
 .skeleton-shimmer {
-  background: #f6f7f8;
+  background: var(--primary-light);
   background-image: linear-gradient(
     to right,
-    #f6f7f8 0%,
-    #edeef1 20%,
-    #f6f7f8 40%,
-    #f6f7f8 100%
+    var(--primary-light) 0%,
+    rgba(5, 150, 105, 0.08) 20%,
+    var(--primary-light) 40%,
+    var(--primary-light) 100%
   );
   background-repeat: no-repeat;
   background-size: 800px 100%;
@@ -44,24 +44,24 @@
 // Base lines
 .skeleton-line {
   height: 16px;
-  background-color: #f0f0f0;
-  border-radius: 4px;
+  background-color: var(--primary-light);
+  border-radius: var(--border-radius-sm);
   margin-bottom: 8px;
   width: 100%;
 }
 
 .skeleton-button {
   height: 36px;
-  background-color: #f0f0f0;
-  border-radius: 8px;
+  background-color: var(--primary-light);
+  border-radius: var(--border-radius-sm);
   width: 100px;
 }
 
 // Card skeleton styles
 .skeleton-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -97,15 +97,15 @@
   align-items: center;
   gap: 1.5rem;
   padding: 1rem;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
   width: 100%;
 
   .skeleton-thumbnail {
     width: 70px;
     height: 70px;
-    border-radius: 8px;
+    border-radius: var(--border-radius-sm);
     flex-shrink: 0;
   }
 
@@ -137,7 +137,7 @@
 
   .skeleton-large-image {
     height: 350px;
-    border-radius: 12px;
+    border-radius: var(--border-radius);
     width: 100%;
   }
 

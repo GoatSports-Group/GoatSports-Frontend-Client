@@ -329,16 +329,24 @@
     border-radius: var(--border-radius);
     cursor: pointer;
     border: 1px solid transparent;
-    transition: var(--transition-smooth);
+    transition: var(--transition-spring);
+
+    &.sport-soccer { background-color: var(--primary-light); }
+    &.sport-badminton { background-color: var(--accent-light); }
+    &.sport-tennis { background-color: #fef3c7; }
+    &.sport-pickleball { background-color: var(--primary-light); }
+    &.sport-basketball { background-color: #fff1f2; }
+    &.sport-volleyball { background-color: #faf5ff; }
 
     &:hover {
-      transform: translateY(-5px);
-      border-color: rgba(5, 150, 105, 0.2);
+      transform: translateY(-6px) scale(1.02);
+      border-color: rgba(5, 150, 105, 0.25);
       box-shadow: var(--shadow-md);
 
       .category-icon-box {
         background-color: var(--primary);
         color: #ffffff;
+        box-shadow: var(--shadow-glow-primary);
       }
     }
 
@@ -346,12 +354,12 @@
       width: 60px;
       height: 60px;
       border-radius: 50%;
-      background-color: #ffffff;
+      background-color: var(--bg-card);
       color: var(--primary);
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+      box-shadow: var(--shadow-sm);
       transition: var(--transition-smooth);
 
       .category-icon {
@@ -727,53 +735,91 @@
 }
 
 .home-coming-soon {
-  background: #ffffff;
-  border-radius: 16px;
+  background: var(--bg-card);
+  border-radius: var(--border-radius);
   padding: 3rem 2rem;
   text-align: center;
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-  border: 1px solid #f1f5f9;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
   box-sizing: border-box;
+
+  .coming-soon-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background-color: var(--primary-light);
+    color: var(--primary);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.35rem 1rem;
+    border-radius: 99px;
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1px solid var(--primary);
+
+    mat-icon {
+      font-size: 14px;
+      width: 14px;
+      height: 14px;
+    }
+  }
 
   .coming-soon-icon {
     font-size: 48px;
     width: 48px;
     height: 48px;
-    color: #3b82f6;
+    color: var(--primary);
     margin-bottom: 1rem;
+    animation: pulseGlow 2s infinite;
   }
 
   h3 {
     font-size: 1.4rem;
-    font-weight: 800;
-    color: #0f172a;
+    font-weight: 850;
+    color: var(--text-dark);
     margin-bottom: 0.5rem;
   }
 
   p {
     font-size: 0.95rem;
-    color: #64748b;
+    color: var(--text-muted);
     max-width: 500px;
     line-height: 1.6;
-    margin: 0;
+    margin-bottom: 2.5rem;
+  }
+
+  .coming-soon-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 900px;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+
+    .placeholder-card {
+      height: 180px;
+      background: var(--bg-body);
+      border-radius: var(--border-radius);
+      border: 1px dashed var(--border-color);
+    }
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  .home-coming-soon {
-    background: #1e1e1e;
-    border-color: rgba(255, 255, 255, 0.1);
-
-    h3 {
-      color: #ffffff;
-    }
-
-    p {
-      color: #94a3b8;
-    }
+body.dark {
+  .category-card {
+    &.sport-soccer { background-color: rgba(16, 185, 129, 0.12) !important; }
+    &.sport-badminton { background-color: rgba(14, 165, 233, 0.12) !important; }
+    &.sport-tennis { background-color: rgba(245, 158, 11, 0.12) !important; }
+    &.sport-pickleball { background-color: rgba(16, 185, 129, 0.12) !important; }
+    &.sport-basketball { background-color: rgba(239, 68, 68, 0.12) !important; }
+    &.sport-volleyball { background-color: rgba(139, 92, 246, 0.12) !important; }
   }
 }

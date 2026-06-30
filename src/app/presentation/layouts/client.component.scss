@@ -18,61 +18,79 @@
 // Mobile Sidenav Styling
 .mobile-drawer {
   width: 280px;
-  background-color: #ffffff;
-  border-right: 1px solid var(--border-color, #e2e8f0);
+  background-color: var(--bg-card);
+  border-right: 1px solid var(--border-color);
   
   .drawer-header {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     padding: 1.5rem;
-    background-color: var(--primary-light, #e8f5e9);
+    background-color: var(--primary-light);
+    border-bottom: 1px solid var(--border-color);
     
     .logo-img {
       height: 38px;
       width: auto;
       object-fit: contain;
+      filter: drop-shadow(0 2px 5px rgba(5, 150, 105, 0.15));
     }
     
     .logo-text {
-      font-family: var(--font-heading, 'Outfit', sans-serif);
+      font-family: var(--font-heading);
       font-weight: 800;
       font-size: 1.3rem;
-      color: var(--primary, #2e7d32);
+      color: var(--primary);
       
       .logo-text-accent {
-        color: var(--accent, #ef6c00);
+        color: var(--accent);
       }
     }
   }
   
   .drawer-menu {
-    padding: 1rem 0;
+    padding: 1.25rem 0.75rem;
     display: flex;
     flex-direction: column;
+    gap: 0.35rem;
     
     .drawer-item {
       display: flex;
       align-items: center;
       gap: 1rem;
-      padding: 0.8rem 1.5rem;
-      color: var(--text-dark, #2d3748);
-      font-family: var(--font-body, 'Inter', sans-serif);
+      padding: 0.8rem 1.25rem;
+      color: var(--text-dark);
+      font-family: var(--font-body);
       font-weight: 600;
       font-size: 0.95rem;
       text-decoration: none;
       cursor: pointer;
-      transition: var(--transition-smooth, all 0.3s ease);
+      border-radius: var(--border-radius-sm);
+      transition: var(--transition-spring);
       
       &:hover {
-        background-color: var(--primary-light, #e8f5e9);
-        color: var(--primary, #2e7d32);
+        background-color: var(--primary-light);
+        color: var(--primary);
+        transform: translateX(4px);
       }
       
       &.active {
-        background-color: var(--primary-light, #e8f5e9);
-        color: var(--primary, #2e7d32);
-        border-left: 4px solid var(--primary, #2e7d32);
+        background-color: var(--primary-light);
+        color: var(--primary);
+        font-weight: 700;
+        box-shadow: var(--shadow-sm);
+        position: relative;
+
+        &::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 25%;
+          height: 50%;
+          width: 4px;
+          background-color: var(--primary);
+          border-radius: 99px;
+        }
       }
       
       mat-icon {
@@ -83,7 +101,8 @@
     }
     
     mat-divider {
-      margin: 1rem 0;
+      margin: 0.75rem 0;
+      border-top-color: var(--border-color);
     }
   }
 }

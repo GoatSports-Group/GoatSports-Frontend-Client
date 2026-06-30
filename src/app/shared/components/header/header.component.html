@@ -16,8 +16,6 @@
     <nav class="desktop-nav">
       <a routerLink="/home" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: true}"
         class="nav-item">Trang Chủ</a>
-      <a routerLink="/venues" routerLinkActive="active-link" class="nav-item">Tìm Sân</a>
-      <a routerLink="/ai-recommendation" routerLinkActive="active-link" class="nav-item">Gợi Ý AI</a>
     </nav>
 
     <!-- Search Bar (Desktop) -->
@@ -38,9 +36,6 @@
 
     <!-- Actions (Bookings & User Profile) -->
     <div class="actions-container">
-
-
-
       <!-- Notification Bell -->
       @if (authService.isAuthenticated$ | async) {
       <button mat-icon-button [matMenuTriggerFor]="notifMenu" class="notif-btn" aria-label="Thông báo">

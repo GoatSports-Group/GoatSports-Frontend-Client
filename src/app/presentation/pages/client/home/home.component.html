@@ -61,7 +61,7 @@
     <div class="categories-grid">
       @for (type of sportTypes; track type) {
       <div class="category-card hover-scale" (click)="selectSport(type)"
-        [style.background-color]="getSportColor(type)">
+        [ngClass]="'sport-' + type.toLowerCase()">
         <div class="category-icon-box">
           <mat-icon class="category-icon">{{ getSportIcon(type) }}</mat-icon>
         </div>
@@ -111,10 +111,17 @@
           matSuffix>arrow_forward</mat-icon></button>
     </div>
 
-    <div class="home-coming-soon mat-elevation-z1">
-      <mat-icon class="coming-soon-icon animate-pulse">update</mat-icon>
+    <div class="home-coming-soon">
+      <div class="coming-soon-badge"><mat-icon>hourglass_empty</mat-icon> Sắp Ra Mắt</div>
+      <mat-icon class="coming-soon-icon">update</mat-icon>
       <h3>Danh Sách Sân Đang Được Cập Nhật</h3>
       <p>Hệ thống đặt sân thực tế đang được đồng bộ hóa dữ liệu. GOAT Sports sẽ ra mắt danh sách các cụm sân thực tế trong thời gian ngắn nhất.</p>
+      
+      <div class="coming-soon-grid">
+        <div class="placeholder-card skeleton-shimmer"></div>
+        <div class="placeholder-card skeleton-shimmer"></div>
+        <div class="placeholder-card skeleton-shimmer"></div>
+      </div>
     </div>
   </section>
 

@@ -29,7 +29,7 @@ export class ProfileComponent implements OnInit {
   passwordLoading = false;
 
   ngOnInit() {
-    this.darkMode = document.body.classList.contains('dark-theme');
+    this.darkMode = document.body.classList.contains('dark') || document.body.classList.contains('dark-theme');
 
     const code = this.route.snapshot.queryParams['code'];
     if (code) {
@@ -94,8 +94,10 @@ export class ProfileComponent implements OnInit {
   toggleTheme(checked: boolean) {
     this.darkMode = checked;
     if (checked) {
+      document.body.classList.add('dark');
       document.body.classList.add('dark-theme');
     } else {
+      document.body.classList.remove('dark');
       document.body.classList.remove('dark-theme');
     }
     this.snackBar.open(checked ? 'Đã kích hoạt Chế độ tối' : 'Đã kích hoạt Chế độ sáng', 'Đóng', {
