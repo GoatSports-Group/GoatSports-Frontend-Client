@@ -1,10 +1,9 @@
 import { Component, EventEmitter, OnInit, Output, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '@presentation/services/auth.service';
-import { BookingService } from '@presentation/services/booking.service';
 import { NotificationService } from '@presentation/services/notification.service';
 import { RoleEnum } from '@application/dto/user/user.dto';
-import { BookingStatus } from '@application/dto/booking/booking.dto';
+import { Notification } from '@domain/entity/notification';
 
 @Component({
   selector: 'app-header',
@@ -13,30 +12,20 @@ import { BookingStatus } from '@application/dto/booking/booking.dto';
 })
 export class HeaderComponent implements OnInit {
   public authService = inject(AuthService);
-  private bookingService = inject(BookingService);
   public notificationService = inject(NotificationService);
   private router = inject(Router);
 
   @Output() menuToggle = new EventEmitter<void>();
 
   searchQuery: string = '';
-  bookingCount: number = 0;
   adminUrl = import.meta.env.NG_APP_ADMIN_API_URL;
 
   ngOnInit() {
-    this.authService.isAuthenticated$.subscribe(authenticated => {
-      if (authenticated) {
-        this.bookingService.getMyBookings().subscribe(bookings => {
-          this.bookingCount = bookings.filter(b => b.status === BookingStatus.PENDING || b.status === BookingStatus.CONFIRMED).length;
-        });
-      } else {
-        this.bookingCount = 0;
-      }
-    });
+    this.authService.isAuthenticated$;
   }
 
   onSearch() {
-    this.router.navigate(['/venues'], {
+    this.router.navigate(['/home'], {
       queryParams: { search: this.searchQuery.trim() }
     });
   }
@@ -74,13 +63,7 @@ export class HeaderComponent implements OnInit {
     }
   }
 
-  onNotificationClick(notification: any) {
-    this.notificationService.markAsRead(notification.notificationId).subscribe({
-      next: () => {
-        if (notification.type === 'OWNER_APPLICATION') {
-          this.router.navigate(['/admin/owner-applications']);
-        }
-      }
-    });
+  onNotificationClick(notification: Notification) {
+    this.notificationService.markAsRead(notification.notificationId);
   }
 }

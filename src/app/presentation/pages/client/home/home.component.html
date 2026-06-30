@@ -107,48 +107,15 @@
         <h2 class="section-title">Cụm Sân Thể Thao Nổi Bật</h2>
         <p class="section-subtitle">Các địa điểm có chất lượng dịch vụ cao nhất được cộng đồng đánh giá tốt</p>
       </div>
-      <button mat-stroked-button color="primary" routerLink="/venues">Xem Tất Cả Sân <mat-icon
+      <button mat-stroked-button color="primary" routerLink="/home">Xem Tất Cả Sân <mat-icon
           matSuffix>arrow_forward</mat-icon></button>
     </div>
 
-    @if (loading) {
-    <app-loading-skeleton [type]="'card'" [count]="4"></app-loading-skeleton>
-    } @else {
-    <div class="products-grid">
-      @for (venue of featuredVenues; track venue.venueId) {
-      <div class="product-card mat-elevation-z1 hover-effect hover-scale" (click)="viewVenue(venue.venueId)">
-
-        <div class="product-image-container">
-          <img [src]="venue.imageUrl" [alt]="venue.name" class="product-image">
-          <span class="sport-type-badge">{{ getSportTypeLabel(venue.sportType) }}</span>
-        </div>
-
-        <div class="product-details">
-          <h3 class="product-name" [title]="venue.name">{{ venue.name }}</h3>
-
-          <div class="address-row">
-            <mat-icon>location_on</mat-icon>
-            <span class="address-text">{{ venue.address }}</span>
-          </div>
-
-          <app-star-rating [rating]="venue.rating" size="small"></app-star-rating>
-
-          <div class="product-price-row">
-            <div class="price-container">
-              <span class="price-label">Giá thuê chỉ từ:</span>
-              <span class="current-price">{{ venue.pricePerHour | number:'1.0-0' }}đ <span class="unit-text">/
-                  giờ</span></span>
-            </div>
-
-            <button mat-flat-button color="primary" class="book-now-btn">
-              Đặt Sân
-            </button>
-          </div>
-        </div>
-      </div>
-      }
+    <div class="home-coming-soon mat-elevation-z1">
+      <mat-icon class="coming-soon-icon animate-pulse">update</mat-icon>
+      <h3>Danh Sách Sân Đang Được Cập Nhật</h3>
+      <p>Hệ thống đặt sân thực tế đang được đồng bộ hóa dữ liệu. GOAT Sports sẽ ra mắt danh sách các cụm sân thực tế trong thời gian ngắn nhất.</p>
     </div>
-    }
   </section>
 
   <!-- 5. Benefit Grid Section -->
@@ -157,7 +124,7 @@
       <h2>Bạn Tìm Kiếm Sân Đấu Tối Ưu Cho Cuối Tuần?</h2>
       <p>Sử dụng ngay hệ thống phân tích AI để quét toàn bộ lịch đặt và tìm ra khung giờ vàng có mức giá rẻ nhất tại các
         sân quanh bạn.</p>
-      <button mat-flat-button color="accent" routerLink="/ai-recommendation" class="cta-btn">Phân Tích AI Ngay</button>
+      <button mat-flat-button color="accent" routerLink="/home" class="cta-btn">Phân Tích AI Ngay</button>
     </div>
   </section>
 

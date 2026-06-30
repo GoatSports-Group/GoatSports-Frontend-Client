@@ -1,7 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
-import { BaseResponse } from '@application/dto/base/base-response';
 import { User } from '@application/dto/user/user.dto';
 import { SessionStateService } from '@presentation/services/session-state.service';
 import { LogoutUseCase } from '@application/usecase/auth/logout.usecase';
@@ -31,11 +30,11 @@ export class AuthService {
     this.loadSession();
   }
 
-  linkKeycloak(payload: { code: string; redirectUri: string }): Observable<BaseResponse<void>> {
+  linkKeycloak(payload: { code: string; redirectUri: string }): Observable<void> {
     return this.linkKeycloakUseCase.execute(payload);
   }
 
-  logout(): Observable<BaseResponse<void>> {
+  logout(): Observable<void> {
     return this.logoutUseCase.execute().pipe(
       tap({
         next: () => this.performLogout(),
@@ -44,11 +43,10 @@ export class AuthService {
     );
   }
 
-  refresh(): Observable<BaseResponse<User>> {
+  refresh(): Observable<User> {
     return this.refreshTokenUseCase.execute().pipe(
       tap({
-        next: response => {
-          const userProfile = response?.data;
+        next: userProfile => {
           this.sessionStateService.setCurrentUser(userProfile || null);
         },
         error: () => { }
@@ -56,11 +54,10 @@ export class AuthService {
     );
   }
 
-  getCurrentUser(): Observable<BaseResponse<User>> {
+  getCurrentUser(): Observable<User> {
     return this.getCurrentUserUseCase.execute().pipe(
       tap({
-        next: response => {
-          const userProfile = response?.data;
+        next: userProfile => {
           this.sessionStateService.setCurrentUser(userProfile || null);
         },
         error: () => {

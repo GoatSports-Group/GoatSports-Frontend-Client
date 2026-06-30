@@ -39,13 +39,7 @@
     <!-- Actions (Bookings & User Profile) -->
     <div class="actions-container">
 
-      <!-- Bookings Icon Button -->
-      <button mat-icon-button routerLink="/my-bookings" class="cart-btn" aria-label="Lịch Đặt Sân">
-        <mat-icon [matBadge]="bookingCount" [matBadgeHidden]="bookingCount === 0" matBadgeColor="accent"
-          class="cart-icon">
-          calendar_today
-        </mat-icon>
-      </button>
+
 
       <!-- Notification Bell -->
       @if (authService.isAuthenticated$ | async) {

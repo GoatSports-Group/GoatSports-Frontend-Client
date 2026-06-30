@@ -79,7 +79,7 @@ export class ApiInterceptor implements HttpInterceptor {
       return authService.refresh().pipe(
         switchMap((response) => {
           this.isRefreshing = false;
-          this.refreshTokenSubject.next(response.data);
+          this.refreshTokenSubject.next(response);
 
           const retryRequest = request.clone({
             headers: request.headers.set('X-Retry', 'true')

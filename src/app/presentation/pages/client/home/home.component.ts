@@ -1,9 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { VenueService } from '@presentation/services/venue.service';
-import { AuthService } from '@presentation/services/auth.service';
-import { Venue, SportType } from '@application/dto/venue/venue.dto';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { SportType } from '@application/dto/venue/venue.dto';
 
 @Component({
   selector: 'app-home',
@@ -11,10 +8,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   styleUrls: ['./home.component.scss']
 })
 export class HomeComponent implements OnInit {
-  private venueService = inject(VenueService);
-  private authService = inject(AuthService);
   private router = inject(Router);
-  private snackBar = inject(MatSnackBar);
 
   readonly SportType = SportType;
   sportTypes = Object.values(SportType);
@@ -43,8 +37,7 @@ export class HomeComponent implements OnInit {
     }
   }
 
-
-  featuredVenues: Venue[] = [];
+  featuredVenues: any[] = [];
   searchQuery: string = '';
   sportType: string = 'all';
   loading = true;
@@ -54,38 +47,20 @@ export class HomeComponent implements OnInit {
   }
 
   loadHomeData() {
-    this.loading = true;
-    // Load top rated or featured venues
-    this.venueService.getVenues({}, 'rating-desc').subscribe({
-      next: (venues) => {
-        this.featuredVenues = venues.slice(0, 4);
-        this.loading = false;
-      },
-      error: () => {
-        this.loading = false;
-      }
-    });
+    this.loading = false;
+    this.featuredVenues = [];
   }
 
   onSearch() {
-    const queryParams: any = {};
-    if (this.searchQuery.trim()) {
-      queryParams.search = this.searchQuery.trim();
-    }
-    if (this.sportType && this.sportType !== 'all') {
-      queryParams.sportType = this.sportType;
-    }
-    this.router.navigate(['/venues'], { queryParams });
+    // No-op
   }
 
   viewVenue(venueId: string) {
-    this.router.navigate(['/venue', venueId]);
+    // No-op
   }
 
   selectSport(sportId: string) {
-    this.router.navigate(['/venues'], {
-      queryParams: { sportType: sportId }
-    });
+    // No-op
   }
 
   getSportTypeLabel(type: string): string {

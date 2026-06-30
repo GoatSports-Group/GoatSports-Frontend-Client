@@ -229,9 +229,15 @@
               Bỏ</button>
             <button mat-flat-button color="primary" type="submit" class="btn-submit" [disabled]="submitting">
               @if (submitting) {
-              <mat-spinner diameter="20" class="btn-spinner"></mat-spinner> Đang gửi đơn...
+                <ng-container>
+                  <mat-spinner diameter="20" class="btn-spinner"></mat-spinner>
+                  <span>Đang gửi đơn...</span>
+                </ng-container>
               } @else {
-              <mat-icon>send</mat-icon> Gửi Đơn Đăng Ký
+                <ng-container>
+                  <mat-icon>send</mat-icon>
+                  <span>Gửi Đơn Đăng Ký</span>
+                </ng-container>
               }
             </button>
           </div>

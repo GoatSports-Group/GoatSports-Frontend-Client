@@ -5,6 +5,16 @@ export type BaseResponse<T> = {
   error: string | null;
 }
 
+export type BaseListResponse<T> = {
+  meta: {
+    page: number;
+    pageSize: number;
+    pages: number;
+    total: number;
+  };
+  result: T[];
+}
+
 export type BaseErrorResponse = {
   data: null;
   error: string;
