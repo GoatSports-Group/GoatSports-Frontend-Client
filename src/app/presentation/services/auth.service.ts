@@ -6,7 +6,6 @@ import { SessionStateService } from '@presentation/services/session-state.servic
 import { LogoutUseCase } from '@application/usecase/auth/logout.usecase';
 import { RefreshTokenUseCase } from '@application/usecase/auth/refresh-token.usecase';
 import { GetCurrentUserUseCase } from '@application/usecase/auth/get-current-user.usecase';
-import { LinkKeycloakUseCase } from '@application/usecase/auth/link-keycloak.usecase';
 
 @Injectable({
   providedIn: 'root'
@@ -18,7 +17,6 @@ export class AuthService {
   private logoutUseCase = inject(LogoutUseCase);
   private refreshTokenUseCase = inject(RefreshTokenUseCase);
   private getCurrentUserUseCase = inject(GetCurrentUserUseCase);
-  private linkKeycloakUseCase = inject(LinkKeycloakUseCase);
 
   private isLoggingOut = false;
 
@@ -28,10 +26,6 @@ export class AuthService {
 
   constructor() {
     this.loadSession();
-  }
-
-  linkKeycloak(payload: { code: string; redirectUri: string }): Observable<void> {
-    return this.linkKeycloakUseCase.execute(payload);
   }
 
   logout(): Observable<void> {
@@ -93,13 +87,20 @@ export class AuthService {
   }
 
   private loadSession() {
-    this.refresh().subscribe({
+    this.getCurrentUser().subscribe({
       next: () => {
         this.sessionStateService.setSessionReady(true);
       },
       error: () => {
-        this.clearSession();
-        this.sessionStateService.setSessionReady(true);
+        this.refresh().subscribe({
+          next: () => {
+            this.sessionStateService.setSessionReady(true);
+          },
+          error: () => {
+            this.clearSession();
+            this.sessionStateService.setSessionReady(true);
+          }
+        });
       }
     });
   }

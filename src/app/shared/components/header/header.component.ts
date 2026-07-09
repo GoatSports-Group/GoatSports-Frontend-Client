@@ -30,15 +30,14 @@ export class HeaderComponent implements OnInit {
     });
   }
 
+  private authApiBase = import.meta.env.NG_APP_AUTH_API_URL;
+
   logout() {
     this.authService.logout().subscribe();
   }
 
   redirectToLogin() {
-    const clientUrl = import.meta.env.NG_APP_CLIENT_API_URL;
-    const authUrl = import.meta.env.NG_APP_AUTH_API_URL;
-    const currentUrl = encodeURIComponent(`${clientUrl}${this.router.url}`);
-    window.location.href = `${authUrl}/login?redirect=${currentUrl}`;
+    window.location.href = `${this.authApiBase}/login?redirect=${encodeURIComponent(window.location.origin + this.router.url)}`;
   }
 
   get fallbackAvatar(): string {

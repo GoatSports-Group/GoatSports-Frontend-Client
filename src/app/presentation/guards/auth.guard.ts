@@ -32,8 +32,7 @@ export class AuthGuard implements CanActivate {
           panelClass: ['snackbar-warning']
         });
 
-        const redirectUrl = encodeURIComponent(`${this.clientApiBase}${state.url}`);
-        window.location.href = `${this.authApiBase}/auth/login?redirect=${redirectUrl}`;
+        window.location.href = `${this.authApiBase}/login?redirect=${encodeURIComponent(window.location.origin + state.url)}`;
         return false;
       })
     );

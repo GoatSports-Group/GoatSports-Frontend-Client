@@ -11,12 +11,6 @@ import { User } from '@domain/entity/user';
 export class AuthRepositoryImpl implements AuthRepository {
   private authApi = inject(AuthApi);
 
-  linkKeycloak(payload: { code: string; redirectUri: string }): Observable<void> {
-    return this.authApi.linkKeycloak(payload).pipe(
-      map(response => response.data)
-    );
-  }
-
   logout(): Observable<void> {
     return this.authApi.logout().pipe(
       map(response => response.data)

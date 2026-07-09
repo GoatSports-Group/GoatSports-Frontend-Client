@@ -15,8 +15,6 @@ export class ProfileComponent implements OnInit {
   private router = inject(Router);
   private snackBar = inject(MatSnackBar);
 
-  linking = false;
-
   darkMode = false;
   emailBooking = true;
   emailPromo = false;
@@ -30,65 +28,6 @@ export class ProfileComponent implements OnInit {
 
   ngOnInit() {
     this.darkMode = document.body.classList.contains('dark') || document.body.classList.contains('dark-theme');
-
-    const code = this.route.snapshot.queryParams['code'];
-    if (code) {
-      this.linkAccount(code);
-    }
-  }
-
-  redirectToKeycloak() {
-    const keycloakUrl = import.meta.env.NG_APP_KEYCLOAK_URL;
-    const realm = import.meta.env.NG_APP_KEYCLOAK_REALM;
-    const clientId = import.meta.env.NG_APP_KEYCLOAK_CLIENT_ID;
-
-    const redirectUri = `${window.location.origin}/profile`;
-
-    const authUrl = `${keycloakUrl}/realms/${realm}/protocol/openid-connect/auth`
-      + `?client_id=${encodeURIComponent(clientId)}`
-      + `&response_type=code`
-      + `&redirect_uri=${encodeURIComponent(redirectUri)}`
-      + `&scope=openid`;
-
-    window.location.href = authUrl;
-  }
-
-  linkAccount(code: string) {
-    const payload = { code, redirectUri: `${window.location.origin}/profile` };
-    this.linking = true;
-    this.authService.linkKeycloak(payload).subscribe({
-      next: () => {
-        this.linking = false;
-        this.snackBar.open('Liên kết tài khoản Keycloak thành công!', 'Đóng', {
-          duration: 3000,
-          horizontalPosition: 'end',
-          verticalPosition: 'top',
-          panelClass: ['snackbar-success']
-        });
-
-        this.router.navigate([], {
-          queryParams: { code: null, session_state: null, iss: null },
-          queryParamsHandling: 'merge'
-        });
-
-        this.authService.getCurrentUser().subscribe();
-      },
-      error: (err: HttpErrorResponse) => {
-        this.linking = false;
-        this.router.navigate([], {
-          queryParams: { code: null, session_state: null, iss: null },
-          queryParamsHandling: 'merge'
-        });
-
-        const errMsg = err.error?.message || 'Liên kết tài khoản Keycloak thất bại!';
-        this.snackBar.open(errMsg, 'Đóng', {
-          duration: 4000,
-          horizontalPosition: 'end',
-          verticalPosition: 'top',
-          panelClass: ['snackbar-error']
-        });
-      }
-    });
   }
 
   toggleTheme(checked: boolean) {

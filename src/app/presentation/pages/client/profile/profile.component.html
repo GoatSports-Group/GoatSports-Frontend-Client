@@ -1,13 +1,4 @@
 <div class="profile-page-container animate-fade-in">
-  @if (linking) {
-  <div class="linking-overlay">
-    <mat-card class="overlay-card text-center animate-scale-up">
-      <mat-spinner color="primary" class="mx-auto"></mat-spinner>
-      <h2>Đang liên kết tài khoản...</h2>
-      <p>Hệ thống đang đồng bộ hóa với máy chủ Keycloak. Vui lòng không đóng trình duyệt hoặc quay lại trang trước.</p>
-    </mat-card>
-  </div>
-  }
 
   <div class="profile-header-section">
     <h1 class="page-title">Cài Đặt Tài Khoản</h1>
@@ -199,74 +190,6 @@
                   </button>
                 </div>
               </div>
-            </div>
-
-            <div class="integration-section">
-              <h2 class="section-title">Liên Kết Tài Khoản</h2>
-              <mat-divider class="section-divider"></mat-divider>
-
-              @if (authService.currentUser?.keycloakId) {
-              <mat-card class="integration-card linked-card hover-glow animate-scale-up">
-                <div class="card-status-header">
-                  <div class="status-icon-wrapper success">
-                    <mat-icon>shield</mat-icon>
-                    <mat-icon class="badge-icon">check</mat-icon>
-                  </div>
-                  <div class="status-details">
-                    <span class="status-badge connected">ĐÃ LIÊN KẾT KEYCLOAK</span>
-                    <h3 class="provider-title">Keycloak Identity Provider</h3>
-                  </div>
-                </div>
-                <mat-card-content class="integration-card-content">
-                  <p class="integration-desc">
-                    Tài khoản của bạn đã được kết nối an toàn với máy chủ Keycloak. Bạn có thể sử dụng phương thức đăng
-                    nhập một chạm hoặc liên kết bảo mật Keycloak của mình.
-                  </p>
-                </mat-card-content>
-              </mat-card>
-              } @else {
-              <mat-card class="integration-card unlinked-card hover-glow">
-                <div class="card-status-header">
-                  <div class="status-icon-wrapper inactive">
-                    <mat-icon>security</mat-icon>
-                  </div>
-                  <div class="status-details">
-                    <span class="status-badge disconnected">CHƯA LIÊN KẾT KEYCLOAK</span>
-                    <h3 class="provider-title">Keycloak Identity Provider</h3>
-                  </div>
-                </div>
-                <mat-card-content class="integration-card-content">
-                  <p class="integration-desc">
-                    Kết nối tài khoản GoatSports với hệ thống đăng nhập tập trung Keycloak. Sau khi liên kết, bạn có thể
-                    dễ dàng đăng nhập bằng các nhà cung cấp SSO và tài khoản Keycloak doanh nghiệp.
-                  </p>
-
-                  <div class="integration-benefits">
-                    <div class="benefit-item">
-                      <mat-icon color="primary">flash_on</mat-icon>
-                      <span>Đăng nhập một chạm tiện lợi</span>
-                    </div>
-                    <div class="benefit-item">
-                      <mat-icon color="primary">enhanced_encryption</mat-icon>
-                      <span>Bảo mật hai lớp chuẩn OAuth2/OIDC</span>
-                    </div>
-                    <div class="benefit-item">
-                      <mat-icon color="primary">sync</mat-icon>
-                      <span>Tự động đồng bộ thông tin đăng nhập</span>
-                    </div>
-                  </div>
-
-                  <div class="integration-actions">
-                    <button mat-raised-button color="accent" (click)="redirectToKeycloak()"
-                      class="btn-link-keycloak hover-btn-pulse">
-                      <mat-icon>link</mat-icon>
-                      Liên Kết Tài Khoản Keycloak
-                    </button>
-                  </div>
-                </mat-card-content>
-              </mat-card>
-              }
-
             </div>
           </div>
         </div>
