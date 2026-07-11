@@ -1,6 +1,6 @@
 import { Component, ViewChild, inject, OnInit } from '@angular/core';
 import { MatSidenav } from '@angular/material/sidenav';
-import { AuthService } from '../services/auth.service';
+import { AuthService } from '@presentation/services/auth.service';
 import { Observable } from 'rxjs';
 import { User } from '@application/dto/user/user.dto';
 import { Router } from '@angular/router';

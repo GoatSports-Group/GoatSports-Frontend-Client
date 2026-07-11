@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, forkJoin } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { OwnerApplicationRepository } from '@application/ports/persistence/owner-application.repository';
-import { OwnerApplication } from '@domain/entity/owner-application';
+import { OwnerApplication } from '@domain/entities/owner-application';
 import { OwnerApplicationApi } from '@infrastructure/api/owner-application.api';
 
 @Injectable({

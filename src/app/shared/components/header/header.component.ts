@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '@presentation/services/auth.service';
 import { NotificationService } from '@presentation/services/notification.service';
 import { RoleEnum } from '@application/dto/user/user.dto';
-import { Notification } from '@domain/entity/notification';
+import { Notification } from '@domain/entities/notification';
 
 @Component({
   selector: 'app-header',

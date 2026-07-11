@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { NotificationRepository } from '@application/ports/persistence/notification.repository';
-import { Notification } from '@domain/entity/notification';
+import { Notification } from '@domain/entities/notification';
 import { NotificationApi } from '@infrastructure/api/notification.api';
 
 @Injectable({

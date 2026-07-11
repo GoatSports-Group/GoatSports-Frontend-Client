@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { AuthRepository } from '@application/ports/persistence/auth.repository';
 import { AuthApi } from '@infrastructure/api/auth.api';
-import { User } from '@domain/entity/user';
+import { User } from '@domain/entities/user';
 
 @Injectable({
   providedIn: 'root'

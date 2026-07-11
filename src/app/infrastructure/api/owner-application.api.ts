@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpBackend } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { OwnerApplication } from '@domain/entity/owner-application';
+import { OwnerApplication } from '@domain/entities/owner-application';
 import { BaseResponse } from '@application/dto/base/base-response';
 
 export interface OwnerApplicationListResponse {

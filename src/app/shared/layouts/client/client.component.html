@@ -1,0 +1,47 @@
+<mat-sidenav-container class="client-container" autosize>
+
+  <!-- Mobile Drawer Sidenav -->
+  <mat-sidenav #sidenav mode="over" class="mobile-drawer">
+    <div class="drawer-header">
+      <img src="assets/images/goat.png" alt="Goat Sports Logo" class="logo-img">
+      <span class="logo-text">GOAT<span class="logo-text-accent">Sports</span></span>
+    </div>
+    <mat-divider></mat-divider>
+
+    <div class="drawer-menu">
+      <a routerLink="/home" (click)="closeSidenav()" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}"
+        class="drawer-item">
+        <mat-icon>home</mat-icon> Trang Chủ
+      </a>
+
+      <mat-divider></mat-divider>
+
+      @if (isAuthenticated$ | async) {
+      @if (currentUser?.role?.name === 'ADMIN' || currentUser?.role?.name === 'Người quản trị') {
+      <a [href]="adminUrl + '/admin'" (click)="closeSidenav()" class="drawer-item admin-link">
+        <mat-icon color="primary">admin_panel_settings</mat-icon> Quản Trị Admin
+      </a>
+      }
+      <a (click)="logout(); closeSidenav()" class="drawer-item logout-link">
+        <mat-icon color="warn">logout</mat-icon> Đăng Xuất
+      </a>
+      } @else {
+      <a (click)="redirectToLogin(); closeSidenav()" class="drawer-item login-link">
+        <mat-icon color="primary">login</mat-icon> Đăng Nhập
+      </a>
+      }
+    </div>
+  </mat-sidenav>
+
+  <!-- Main Client Page Content -->
+  <mat-sidenav-content class="client-content-wrapper">
+    <app-header (menuToggle)="toggleSidenav()"></app-header>
+
+    <main class="client-main-outlet">
+      <router-outlet></router-outlet>
+    </main>
+
+    <app-footer></app-footer>
+  </mat-sidenav-content>
+
+</mat-sidenav-container>

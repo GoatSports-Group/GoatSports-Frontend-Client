@@ -1,6 +1,6 @@
 import { InjectionToken } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Notification } from '@domain/entity/notification';
+import { Notification } from '@domain/entities/notification';
 
 export interface WebSocketService {
   notifications$: Observable<Notification>;

@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Subject, Observable } from 'rxjs';
-import { Notification } from '@domain/entity/notification';
+import { Notification } from '@domain/entities/notification';
 import { WebSocketService } from '@application/ports/websocket.service';
 import { SessionStateService } from '@presentation/services/session-state.service';
 

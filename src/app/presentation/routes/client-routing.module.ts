@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { ClientComponent } from '@presentation/layouts/client.component';
+import { ClientComponent } from '@shared/layouts/client/client.component';
 import { HomeComponent } from '@presentation/pages/client/home/home.component';
 import { ProfileComponent } from '@presentation/pages/client/profile/profile.component';
 import { OwnerApplicationComponent } from '@presentation/pages/client/owner-application/owner-application.component';
