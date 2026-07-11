@@ -1,18 +1,23 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { SubmitOwnerApplicationUseCase } from '@application/usecase/owner-application/submit-owner-application.usecase';
 import { GetMyOwnerApplicationsUseCase } from '@application/usecase/owner-application/get-my-owner-applications.usecase';
-import { OwnerApplication, OwnerApplicationStatus, OWNER_APPLICATION_STATUS_OPTIONS, BusinessType, BUSINESS_TYPE_OPTIONS, DocumentType } from '@application/dto/owner-application/owner-application.dto';
+import { OwnerApplication, OwnerApplicationStatus, OWNER_APPLICATION_STATUS_OPTIONS, BusinessType, BUSINESS_TYPE_OPTIONS } from '@application/dto/owner-application/owner-application.dto';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { NotificationService } from '@presentation/services/notification.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-owner-application',
   templateUrl: './owner-application.component.html',
   styleUrls: ['./owner-application.component.scss']
 })
-export class OwnerApplicationComponent implements OnInit {
+export class OwnerApplicationComponent implements OnInit, OnDestroy {
   private submitUseCase = inject(SubmitOwnerApplicationUseCase);
   private getMyApplicationsUseCase = inject(GetMyOwnerApplicationsUseCase);
   private snackBar = inject(MatSnackBar);
+  private notificationService = inject(NotificationService);
+
+  private notificationSub?: Subscription;
 
   activeTab: 'list' | 'form' = 'list';
   applications: OwnerApplication[] = [];
@@ -58,6 +63,24 @@ export class OwnerApplicationComponent implements OnInit {
 
   ngOnInit() {
     this.loadApplications();
+    this.listenToNotifications();
+  }
+
+  listenToNotifications() {
+    this.notificationSub = this.notificationService.notifications$.subscribe({
+      next: () => {
+        // Sau 1s kể từ khi nhận được thông báo, cập nhật lại trạng thái đơn đăng ký
+        setTimeout(() => {
+          this.loadApplications();
+        }, 1000);
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.notificationSub) {
+      this.notificationSub.unsubscribe();
+    }
   }
 
   loadApplications() {
@@ -121,46 +144,30 @@ export class OwnerApplicationComponent implements OnInit {
     }
 
     this.submitting = true;
-    const formData = new FormData();
 
-    // Append text fields
-    formData.append('fullName', this.form.fullName);
-    formData.append('phone', this.form.phone);
-    formData.append('email', this.form.email);
-    formData.append('identityNumber', this.form.identityNumber);
-    formData.append('businessName', this.form.businessName);
-    formData.append('businessType', this.form.businessType);
-    formData.append('taxCode', this.form.taxCode);
-    formData.append('address', this.form.address);
-    formData.append('province', this.form.province);
-    formData.append('district', this.form.district);
-    formData.append('ward', this.form.ward);
-    formData.append('city', this.form.city);
+    const appRequest = {
+      fullName: this.form.fullName,
+      phone: this.form.phone,
+      email: this.form.email,
+      identityNumber: this.form.identityNumber,
+      businessName: this.form.businessName,
+      businessType: this.form.businessType,
+      taxCode: this.form.taxCode,
+      address: this.form.address,
+      province: this.form.province,
+      district: this.form.district,
+      ward: this.form.ward,
+      city: this.form.city
+    };
 
-    // Append documents sequentially
-    let docIndex = 0;
+    const files = {
+      idCardFront: this.files.idCardFront!,
+      idCardBack: this.files.idCardBack!,
+      businessLicense: this.files.businessLicense,
+      venueImage: this.files.venueImage
+    };
 
-    formData.append(`documents[${docIndex}].documentType`, DocumentType.ID_CARD_FRONT);
-    formData.append(`documents[${docIndex}].fileUrl`, this.files.idCardFront);
-    docIndex++;
-
-    formData.append(`documents[${docIndex}].documentType`, DocumentType.ID_CARD_BACK);
-    formData.append(`documents[${docIndex}].fileUrl`, this.files.idCardBack);
-    docIndex++;
-
-    if (this.files.businessLicense) {
-      formData.append(`documents[${docIndex}].documentType`, DocumentType.BUSINESS_LICENSE);
-      formData.append(`documents[${docIndex}].fileUrl`, this.files.businessLicense);
-      docIndex++;
-    }
-
-    if (this.files.venueImage) {
-      formData.append(`documents[${docIndex}].documentType`, DocumentType.VENUE_IMAGE);
-      formData.append(`documents[${docIndex}].fileUrl`, this.files.venueImage);
-      docIndex++;
-    }
-
-    this.submitUseCase.execute(formData).subscribe({
+    this.submitUseCase.execute(appRequest, files).subscribe({
       next: (response) => {
         this.snackBar.open('Đã nộp đơn đăng ký chủ sân thành công! Vui lòng chờ Admin xác nhận.', 'Đóng', {
           duration: 5000,

@@ -11,7 +11,15 @@ export class SubmitOwnerApplicationUseCase {
     @Inject(OWNER_APPLICATION_REPOSITORY_TOKEN) private repository: OwnerApplicationRepository
   ) { }
 
-  execute(formData: FormData): Observable<OwnerApplication> {
-    return this.repository.submit(formData);
+  execute(
+    form: any,
+    files: {
+      idCardFront: File;
+      idCardBack: File;
+      businessLicense?: File | null;
+      venueImage?: File | null;
+    }
+  ): Observable<OwnerApplication> {
+    return this.repository.submit(form, files);
   }
 }

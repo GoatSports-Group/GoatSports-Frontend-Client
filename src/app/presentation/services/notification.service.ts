@@ -7,6 +7,7 @@ import { MarkNotificationReadUseCase } from '@application/usecase/notification/m
 import { WEBSOCKET_SERVICE_TOKEN } from '@application/ports/websocket.service';
 import { AuthService } from './auth.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { SessionStateService } from './session-state.service';
 
 @Injectable({
   providedIn: 'root'
@@ -19,6 +20,7 @@ export class NotificationService {
   private authService = inject(AuthService);
   private snackBar = inject(MatSnackBar);
   private ngZone = inject(NgZone);
+  private sessionStateService = inject(SessionStateService);
 
   private notificationsSubject = new BehaviorSubject<Notification[]>([]);
   public notifications$: Observable<Notification[]> = this.notificationsSubject.asObservable();
@@ -84,6 +86,12 @@ export class NotificationService {
   }
 
   private handleRealTimeNotification(notification: Notification): void {
+    const currentUserId = this.sessionStateService.getCurrentUser()?.userId;
+    if (notification.receiverId && notification.receiverId !== currentUserId) {
+      console.log('Ignore websocket notification meant for another user.');
+      return;
+    }
+
     // Add to the top of notifications list
     const current = this.notificationsSubject.value;
     // Prevent duplicate entries in memory if the list is reloaded

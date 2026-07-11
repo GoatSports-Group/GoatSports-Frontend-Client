@@ -3,7 +3,15 @@ import { Observable } from 'rxjs';
 import { OwnerApplication } from '@domain/entity/owner-application';
 
 export interface OwnerApplicationRepository {
-  submit(formData: FormData): Observable<OwnerApplication>;
+  submit(
+    form: any,
+    files: {
+      idCardFront: File;
+      idCardBack: File;
+      businessLicense?: File | null;
+      venueImage?: File | null;
+    }
+  ): Observable<OwnerApplication>;
   getMyApplications(): Observable<OwnerApplication[]>;
 }
 
