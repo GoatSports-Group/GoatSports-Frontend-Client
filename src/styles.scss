@@ -567,3 +567,234 @@ body.dark {
     border-color: var(--border-color) !important;
   }
 }
+
+/* ==========================================
+   UI/UX PRO MAX - MODERN SPORTS SYSTEM
+   ========================================== */
+
+/* 1. Athletic Typography & Slanted Effects */
+.athletic-title {
+  font-family: var(--font-heading) !important;
+  text-transform: uppercase !important;
+  font-weight: 900 !important;
+  font-style: italic !important;
+  letter-spacing: -0.5px !important;
+}
+
+.athletic-skew {
+  display: inline-block;
+  transform: skewX(-8deg);
+  
+  & > * {
+    transform: skewX(8deg);
+    display: inline-block;
+  }
+}
+
+/* 2. Glassmorphism Design Elements */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.75) !important;
+  backdrop-filter: blur(16px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(120%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+body.dark .glass-panel {
+  background: rgba(30, 41, 59, 0.65) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(16px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(120%) !important;
+}
+
+/* 3. Stadium Light Auras & Glows */
+.neon-glow-primary {
+  box-shadow: var(--shadow-glow-primary) !important;
+  border-color: var(--primary) !important;
+}
+
+.neon-glow-accent {
+  box-shadow: 0 0 20px 0 rgba(14, 165, 233, 0.25) !important;
+  border-color: var(--accent) !important;
+}
+
+/* 4. Custom Sports Court Backgrounds */
+.court-soccer {
+  background: radial-gradient(circle at center, transparent 35%, rgba(15, 23, 42, 0.06) 36%, rgba(15, 23, 42, 0.06) 37%, transparent 38%),
+              linear-gradient(to right, transparent 49%, rgba(15, 23, 42, 0.06) 50%, transparent 51%),
+              linear-gradient(var(--primary-light), var(--primary-light)) !important;
+  background-size: 100% 100%, 100% 100% !important;
+}
+
+body.dark .court-soccer {
+  background: radial-gradient(circle at center, transparent 35%, rgba(255, 255, 255, 0.06) 36%, rgba(255, 255, 255, 0.06) 37%, transparent 38%),
+              linear-gradient(to right, transparent 49%, rgba(255, 255, 255, 0.06) 50%, transparent 51%),
+              linear-gradient(var(--primary-light), var(--primary-light)) !important;
+}
+
+.court-tennis {
+  background: linear-gradient(to right, transparent 10%, rgba(15, 23, 42, 0.06) 11%, transparent 12%, transparent 88%, rgba(15, 23, 42, 0.06) 89%, transparent 90%),
+              linear-gradient(to bottom, transparent 20%, rgba(15, 23, 42, 0.06) 21%, transparent 22%, transparent 78%, rgba(15, 23, 42, 0.06) 79%, transparent 80%),
+              linear-gradient(#fef3c7, #fef3c7) !important;
+}
+
+body.dark .court-tennis {
+  background: linear-gradient(to right, transparent 10%, rgba(255, 255, 255, 0.05) 11%, transparent 12%, transparent 88%, rgba(255, 255, 255, 0.05) 89%, transparent 90%),
+              linear-gradient(to bottom, transparent 20%, rgba(255, 255, 255, 0.05) 21%, transparent 22%, transparent 78%, rgba(255, 255, 255, 0.05) 79%, transparent 80%),
+              linear-gradient(rgba(245, 158, 11, 0.12), rgba(245, 158, 11, 0.12)) !important;
+}
+
+.court-badminton {
+  background: linear-gradient(to right, transparent 49%, rgba(15, 23, 42, 0.06) 50%, transparent 51%),
+              linear-gradient(to bottom, transparent 5%, rgba(15, 23, 42, 0.06) 6%, transparent 7%, transparent 93%, rgba(15, 23, 42, 0.06) 94%, transparent 95%),
+              linear-gradient(var(--accent-light), var(--accent-light)) !important;
+}
+
+body.dark .court-badminton {
+  background: linear-gradient(to right, transparent 49%, rgba(255, 255, 255, 0.05) 50%, transparent 51%),
+              linear-gradient(to bottom, transparent 5%, rgba(255, 255, 255, 0.05) 6%, transparent 7%, transparent 93%, rgba(255, 255, 255, 0.05) 94%, transparent 95%),
+              linear-gradient(var(--accent-light), var(--accent-light)) !important;
+}
+
+/* 5. Snappy Interaction States */
+.mat-mdc-button,
+.mat-mdc-raised-button,
+.mat-mdc-flat-button,
+.mat-mdc-outlined-button {
+  &:active {
+    transform: translateY(1px) scale(0.96) !important;
+  }
+}
+
+.interactive-card {
+  transition: var(--transition-spring) !important;
+  &:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: var(--shadow-lg), var(--shadow-glow-primary) !important;
+  }
+  &:active {
+    transform: translateY(-2px) scale(0.99);
+  }
+}
+
+/* 6. Accessibility & Layout Spacing */
+.touch-target-safe {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.custom-scrollbar {
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  &::-webkit-scrollbar-track {
+    background: var(--bg-body);
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 99px;
+    &:hover {
+      background: var(--primary);
+    }
+  }
+}
+
+/* Neubrutalism Sports System Utilities (UI/UX Pro Max) */
+.neo-card {
+  background-color: var(--bg-card) !important;
+  border: 3px solid var(--text-dark) !important;
+  box-shadow: 6px 6px 0px var(--text-dark) !important;
+  border-radius: 12px !important;
+  transition: var(--transition-spring) !important;
+
+  &:hover {
+    transform: translate(-3px, -3px) !important;
+    box-shadow: 9px 9px 0px var(--text-dark) !important;
+    border-color: var(--primary) !important;
+  }
+
+  &:active {
+    transform: translate(3px, 3px) !important;
+    box-shadow: 3px 3px 0px var(--text-dark) !important;
+  }
+}
+
+.neo-btn {
+  border: 3px solid var(--text-dark) !important;
+  box-shadow: 4px 4px 0px var(--text-dark) !important;
+  border-radius: 8px !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  font-style: italic !important;
+  transition: var(--transition-spring) !important;
+
+  &:hover:not([disabled]) {
+    transform: translate(-2px, -2px) !important;
+    box-shadow: 6px 6px 0px var(--text-dark) !important;
+    background-color: var(--primary) !important;
+    color: white !important;
+  }
+
+  &:active:not([disabled]) {
+    transform: translate(2px, 2px) !important;
+    box-shadow: 2px 2px 0px var(--text-dark) !important;
+  }
+  
+  &[disabled] {
+    opacity: 0.6 !important;
+    box-shadow: none !important;
+  }
+}
+
+.neo-badge {
+  border: 2px solid var(--text-dark) !important;
+  background-color: var(--accent-light) !important;
+  color: var(--accent) !important;
+  font-weight: 800 !important;
+  padding: 4px 12px !important;
+  border-radius: 99px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  font-style: italic !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+
+body.dark {
+  .neo-card {
+    border-color: var(--primary) !important;
+    box-shadow: 6px 6px 0px var(--primary) !important;
+    
+    &:hover {
+      box-shadow: 9px 9px 0px var(--primary) !important;
+      border-color: var(--accent) !important;
+    }
+    
+    &:active {
+      box-shadow: 3px 3px 0px var(--primary) !important;
+    }
+  }
+  
+  .neo-btn {
+    border-color: var(--primary) !important;
+    box-shadow: 4px 4px 0px var(--primary) !important;
+    color: var(--text-dark) !important;
+    
+    &:hover:not([disabled]) {
+      box-shadow: 6px 6px 0px var(--primary) !important;
+      background-color: var(--primary-hover) !important;
+      color: white !important;
+    }
+    
+    &:active:not([disabled]) {
+      box-shadow: 2px 2px 0px var(--primary) !important;
+    }
+  }
+  
+  .neo-badge {
+    border-color: var(--primary) !important;
+    background-color: var(--primary-light) !important;
+    color: var(--primary) !important;
+  }
+}

@@ -9,13 +9,15 @@
     <!-- Logo -->
     <div class="logo-wrapper" routerLink="/home">
       <img src="assets/images/goat.png" alt="Goat Sports Logo" class="logo-img">
-      <span class="logo-text">GOAT <span class="logo-text-accent">SPORTS</span></span>
+      <span class="logo-text athletic-title">GOAT <span class="logo-text-accent">Sports</span></span>
     </div>
 
     <!-- Nav Links (Desktop) -->
     <nav class="desktop-nav">
       <a routerLink="/home" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: true}"
         class="nav-item">Trang Chủ</a>
+      <a routerLink="/venues" routerLinkActive="active-link" class="nav-item">Tìm Sân Đấu</a>
+      <a routerLink="/ai-recommendation" routerLinkActive="active-link" class="nav-item">Gợi Ý AI</a>
     </nav>
 
     <!-- Search Bar (Desktop) -->

@@ -1,12 +1,12 @@
 <div class="profile-page-container animate-fade-in">
 
   <div class="profile-header-section">
-    <h1 class="page-title">Cài Đặt Tài Khoản</h1>
+    <h1 class="page-title athletic-title">Cài Đặt Tài Khoản</h1>
     <p class="page-subtitle">Xem thông tin cá nhân, cập nhật cấu hình hệ thống và quản lý bảo mật liên kết tài khoản.
     </p>
   </div>
 
-  <mat-card class="main-profile-card">
+  <mat-card class="main-profile-card neo-card">
     <mat-tab-group color="primary" animationDuration="300ms">
 
       <mat-tab>
@@ -29,7 +29,7 @@
             </div>
 
             <div class="details-panel">
-              <h2 class="section-title">Thông Tin Cá Nhân</h2>
+              <h2 class="section-title athletic-title">Thông Tin Cá Nhân</h2>
               <mat-divider class="section-divider"></mat-divider>
 
               <div class="info-grid">
@@ -77,7 +77,7 @@
         </ng-template>
 
         <div class="tab-content settings-tab">
-          <h2 class="section-title">Tùy Chọn Hệ Thống</h2>
+          <h2 class="section-title athletic-title">Tùy Chọn Hệ Thống</h2>
           <mat-divider class="section-divider"></mat-divider>
 
           <div class="settings-grid">
@@ -139,7 +139,7 @@
           </div>
 
           <div class="settings-actions">
-            <button mat-flat-button color="primary" (click)="saveSettings()" class="hover-btn-pulse">Lưu Cài
+            <button mat-flat-button color="primary" (click)="saveSettings()" class="hover-btn-pulse neo-btn">Lưu Cài
               Đặt</button>
           </div>
         </div>
@@ -156,7 +156,7 @@
           <div class="security-layout">
 
             <div class="password-section">
-              <h2 class="section-title">Thay Đổi Mật Khẩu</h2>
+              <h2 class="section-title athletic-title">Thay Đổi Mật Khẩu</h2>
               <mat-divider class="section-divider"></mat-divider>
 
               <div class="password-form">
@@ -180,7 +180,7 @@
 
                 <div class="form-action">
                   <button mat-flat-button color="primary" [disabled]="passwordLoading" (click)="updatePassword()"
-                    class="w-100 hover-btn-pulse">
+                    class="w-100 hover-btn-pulse neo-btn">
                     @if (passwordLoading) {
                     <mat-progress-spinner diameter="20" mode="indeterminate" class="spinner-btn"></mat-progress-spinner>
                     Đang xử lý...

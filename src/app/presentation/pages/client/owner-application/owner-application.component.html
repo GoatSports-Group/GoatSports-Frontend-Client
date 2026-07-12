@@ -3,7 +3,7 @@
   <div class="header-banner">
     <div class="banner-overlay"></div>
     <div class="banner-content">
-      <h1 class="banner-title">Hợp Tác Đối Tác - Đăng Ký Chủ Sân</h1>
+      <h1 class="banner-title athletic-title">Hợp Tác Đối Tác - Đăng Ký Chủ Sân</h1>
       <p class="banner-subtitle">Gia tăng thu nhập của bạn bằng cách đăng ký quản lý sân thể thao và kinh doanh trên
         GOAT Sports</p>
     </div>
@@ -11,7 +11,7 @@
 
   <div class="container-content">
     <!-- Navigation Tabs -->
-    <div class="tabs-header">
+    <div class="tabs-header neo-card">
       <button class="tab-btn" [class.active]="activeTab === 'list'" (click)="activeTab = 'list'">
         <mat-icon>history</mat-icon> Lịch Sử Đăng Ký
       </button>
@@ -39,7 +39,7 @@
       } @else {
       <div class="app-list-grid">
         @for (app of applications; track app.ownerApplicationId) {
-        <mat-card class="app-card">
+        <mat-card class="app-card neo-card">
           <mat-card-header>
             <div mat-card-avatar class="app-avatar">
               <mat-icon>storefront</mat-icon>
@@ -91,9 +91,9 @@
     <!-- Active Tab: New Registration Form -->
     @if (activeTab === 'form') {
     <div class="tab-pane">
-      <mat-card class="form-card">
+      <mat-card class="form-card neo-card">
         <form (submit)="onSubmit()" class="registration-form">
-          <h2 class="section-title"><mat-icon color="primary">person</mat-icon> 1. Thông Tin Người Đại Diện</h2>
+          <h2 class="section-title athletic-title"><mat-icon color="primary">person</mat-icon> 1. Thông Tin Người Đại Diện</h2>
           <div class="form-row-grid">
             <mat-form-field appearance="outline">
               <mat-label>Họ và tên người đăng ký</mat-label>
@@ -122,7 +122,7 @@
             </mat-form-field>
           </div>
 
-          <h2 class="section-title"><mat-icon color="primary">business</mat-icon> 2. Thông Tin Doanh Nghiệp / Cơ Sở</h2>
+          <h2 class="section-title athletic-title"><mat-icon color="primary">business</mat-icon> 2. Thông Tin Doanh Nghiệp / Cơ Sở</h2>
           <div class="form-row-grid-3">
             <mat-form-field appearance="outline">
               <mat-label>Tên Doanh Nghiệp / Hộ Kinh Doanh</mat-label>
@@ -147,7 +147,7 @@
             </mat-form-field>
           </div>
 
-          <h2 class="section-title"><mat-icon color="primary">place</mat-icon> 3. Địa Chỉ Kinh Doanh</h2>
+          <h2 class="section-title athletic-title"><mat-icon color="primary">place</mat-icon> 3. Địa Chỉ Kinh Doanh</h2>
           <div class="form-row-grid">
             <mat-form-field appearance="outline">
               <mat-label>Địa chỉ chi tiết (Số nhà, tên đường)</mat-label>
@@ -176,7 +176,7 @@
             </mat-form-field>
           </div>
 
-          <h2 class="section-title"><mat-icon color="primary">cloud_upload</mat-icon> 4. Hồ Sơ Đính Kèm & Giấy Tờ Pháp
+          <h2 class="section-title athletic-title"><mat-icon color="primary">cloud_upload</mat-icon> 4. Hồ Sơ Đính Kèm & Giấy Tờ Pháp
             Lý</h2>
           <div class="files-upload-grid">
             <!-- CCCD Front -->
@@ -225,21 +225,21 @@
           </div>
 
           <div class="form-actions">
-            <button mat-button type="button" class="btn-cancel" (click)="resetForm(); activeTab = 'list'">Hủy
-              Bỏ</button>
-            <button mat-flat-button color="primary" type="submit" class="btn-submit" [disabled]="submitting">
-              @if (submitting) {
-                <ng-container>
-                  <mat-spinner diameter="20" class="btn-spinner"></mat-spinner>
-                  <span>Đang gửi đơn...</span>
-                </ng-container>
-              } @else {
-                <ng-container>
-                  <mat-icon>send</mat-icon>
-                  <span>Gửi Đơn Đăng Ký</span>
-                </ng-container>
-              }
-            </button>
+            <button mat-button type="button" class="btn-cancel neo-btn" (click)="resetForm(); activeTab = 'list'">Hủy
+            Bỏ</button>
+          <button mat-flat-button color="primary" type="submit" class="btn-submit neo-btn" [disabled]="submitting">
+            @if (submitting) {
+              <ng-container>
+                <mat-spinner diameter="20" class="btn-spinner"></mat-spinner>
+                <span>Đang gửi đơn...</span>
+              </ng-container>
+            } @else {
+              <ng-container>
+                <mat-icon>send</mat-icon>
+                <span>Gửi Đơn Đăng Ký</span>
+              </ng-container>
+            }
+          </button>
           </div>
         </form>
       </mat-card>

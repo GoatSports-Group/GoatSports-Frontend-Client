@@ -331,12 +331,57 @@
     border: 1px solid transparent;
     transition: var(--transition-spring);
 
-    &.sport-soccer { background-color: var(--primary-light); }
-    &.sport-badminton { background-color: var(--accent-light); }
-    &.sport-tennis { background-color: #fef3c7; }
-    &.sport-pickleball { background-color: var(--primary-light); }
+    &.sport-soccer {
+      background-color: var(--primary-light);
+      &:hover {
+        background: radial-gradient(circle at center, transparent 35%, rgba(15, 23, 42, 0.04) 36%, rgba(15, 23, 42, 0.04) 37%, transparent 38%),
+                    linear-gradient(to right, transparent 49%, rgba(15, 23, 42, 0.04) 50%, transparent 51%),
+                    linear-gradient(var(--primary-light), var(--primary-light)) !important;
+      }
+    }
+    &.sport-badminton {
+      background-color: var(--accent-light);
+      &:hover {
+        background: linear-gradient(to right, transparent 49%, rgba(15, 23, 42, 0.04) 50%, transparent 51%),
+                    linear-gradient(to bottom, transparent 5%, rgba(15, 23, 42, 0.04) 6%, transparent 7%, transparent 93%, rgba(15, 23, 42, 0.04) 94%, transparent 95%),
+                    linear-gradient(var(--accent-light), var(--accent-light)) !important;
+      }
+    }
+    &.sport-tennis {
+      background-color: #fef3c7;
+      &:hover {
+        background: linear-gradient(to right, transparent 10%, rgba(15, 23, 42, 0.04) 11%, transparent 12%, transparent 88%, rgba(15, 23, 42, 0.04) 89%, transparent 90%),
+                    linear-gradient(to bottom, transparent 20%, rgba(15, 23, 42, 0.04) 21%, transparent 22%, transparent 78%, rgba(15, 23, 42, 0.04) 79%, transparent 80%),
+                    linear-gradient(#fef3c7, #fef3c7) !important;
+      }
+    }
+    &.sport-pickleball {
+      background-color: var(--primary-light);
+      &:hover {
+        background: radial-gradient(circle at center, transparent 30%, rgba(15, 23, 42, 0.04) 31%, rgba(15, 23, 42, 0.04) 32%, transparent 33%),
+                    linear-gradient(var(--primary-light), var(--primary-light)) !important;
+      }
+    }
     &.sport-basketball { background-color: #fff1f2; }
     &.sport-volleyball { background-color: #faf5ff; }
+
+    body.dark & {
+      &.sport-soccer:hover {
+        background: radial-gradient(circle at center, transparent 35%, rgba(255, 255, 255, 0.04) 36%, rgba(255, 255, 255, 0.04) 37%, transparent 38%),
+                    linear-gradient(to right, transparent 49%, rgba(255, 255, 255, 0.04) 50%, transparent 51%),
+                    linear-gradient(var(--primary-light), var(--primary-light)) !important;
+      }
+      &.sport-badminton:hover {
+        background: linear-gradient(to right, transparent 49%, rgba(255, 255, 255, 0.04) 50%, transparent 51%),
+                    linear-gradient(to bottom, transparent 5%, rgba(255, 255, 255, 0.04) 6%, transparent 7%, transparent 93%, rgba(255, 255, 255, 0.04) 94%, transparent 95%),
+                    linear-gradient(var(--accent-light), var(--accent-light)) !important;
+      }
+      &.sport-tennis:hover {
+        background: linear-gradient(to right, transparent 10%, rgba(255, 255, 255, 0.04) 11%, transparent 12%, transparent 88%, rgba(255, 255, 255, 0.04) 89%, transparent 90%),
+                    linear-gradient(to bottom, transparent 20%, rgba(255, 255, 255, 0.04) 21%, transparent 22%, transparent 78%, rgba(255, 255, 255, 0.04) 79%, transparent 80%),
+                    linear-gradient(rgba(245, 158, 11, 0.12), rgba(245, 158, 11, 0.12)) !important;
+      }
+    }
 
     &:hover {
       transform: translateY(-6px) scale(1.02);

@@ -4,7 +4,7 @@
   <section class="hero-section">
     <div class="hero-content">
       <span class="hero-badge"><mat-icon>insights</mat-icon> Đặt Sân Nhanh & Đề Xuất AI</span>
-      <h1 class="hero-title">Tìm Sân Thể Thao <br><span class="highlight-text">Phù Hợp</span></h1>
+      <h1 class="hero-title athletic-title">Tìm Sân Thể Thao <br><span class="highlight-text">Phù Hợp</span></h1>
       <p class="hero-desc">
         Nền tảng trực tuyến giúp bạn tìm kiếm lịch trống, so sánh giá cả và đặt các cụm sân bóng đá, cầu lông, tennis,
         pickleball gần bạn nhất chỉ với vài cú click.
@@ -12,7 +12,7 @@
 
       <!-- Quick Search Form -->
       <form (submit)="onSearch()" class="hero-search-form">
-        <div class="search-form-row">
+        <div class="search-form-row neo-card">
           <mat-form-field appearance="outline" class="search-field select-field">
             <mat-icon matPrefix>sports</mat-icon>
             <mat-select [(ngModel)]="sportType" name="sportType">
@@ -29,7 +29,7 @@
               name="searchQuery">
           </mat-form-field>
 
-          <button mat-flat-button color="primary" type="submit" class="search-btn">Tìm Kiếm</button>
+          <button mat-flat-button color="primary" type="submit" class="search-btn neo-btn">Tìm Kiếm</button>
         </div>
       </form>
 
@@ -54,13 +54,13 @@
   <!-- 2. Highlight Sport Categories -->
   <section class="section categories-section">
     <div class="section-header">
-      <h2 class="section-title">Chọn Bộ Môn Thể Thao</h2>
+      <h2 class="section-title athletic-title">Chọn Bộ Môn Thể Thao</h2>
       <p class="section-subtitle">Đặt sân phù hợp cho đam mê của bạn</p>
     </div>
 
     <div class="categories-grid">
       @for (type of sportTypes; track type) {
-      <div class="category-card hover-scale" (click)="selectSport(type)"
+      <div class="category-card hover-scale neo-card" (click)="selectSport(type)"
         [ngClass]="'sport-' + type.toLowerCase()">
         <div class="category-icon-box">
           <mat-icon class="category-icon">{{ getSportIcon(type) }}</mat-icon>
@@ -74,25 +74,25 @@
   <!-- 3. Marketing Banner Section -->
   <section class="promos-banner-grid">
     <!-- Banner 1 -->
-    <div class="promo-banner bg-green">
+    <div class="promo-banner bg-green neo-card">
       <div class="banner-text">
         <span class="banner-tag">HOT TRENDING</span>
-        <h3 class="banner-title">Pickleball Sân Trong Nhà</h3>
+        <h3 class="banner-title athletic-title">Pickleball Sân Trong Nhà</h3>
         <p class="banner-desc">Đặt sân Pickleball tại các cụm cao cấp với thảm thi đấu chuẩn Mỹ.</p>
         <button mat-flat-button color="primary" routerLink="/venues" [queryParams]="{sportType: 'pickleball'}"
-          class="banner-btn">Khám Phá Ngay</button>
+          class="banner-btn neo-btn">Khám Phá Ngay</button>
       </div>
       <img src="https://images.unsplash.com/photo-1517649763962-0c623066013b?w=300&q=80" alt="Pickleball Promo"
         class="banner-img">
     </div>
 
     <!-- Banner 2 -->
-    <div class="promo-banner bg-orange">
+    <div class="promo-banner bg-orange neo-card">
       <div class="banner-text">
         <span class="banner-tag">AI RECOMMENDATION</span>
-        <h3 class="banner-title">Gợi Ý Sân Tối Ưu Bằng AI</h3>
+        <h3 class="banner-title athletic-title">Gợi Ý Sân Tối Ưu Bằng AI</h3>
         <p class="banner-desc">Nhập ngân sách và vị trí, AI sẽ tính toán sân phù hợp nhất cho bạn.</p>
-        <button mat-flat-button color="accent" routerLink="/ai-recommendation" class="banner-btn">Trải Nghiệm
+        <button mat-flat-button color="accent" routerLink="/ai-recommendation" class="banner-btn neo-btn">Trải Nghiệm
           AI</button>
       </div>
       <img src="https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?w=300&q=80" alt="AI Sports Promo"
@@ -104,10 +104,10 @@
   <section class="section products-section">
     <div class="section-header-row">
       <div class="section-header">
-        <h2 class="section-title">Cụm Sân Thể Thao Nổi Bật</h2>
+        <h2 class="section-title athletic-title">Cụm Sân Thể Thao Nổi Bật</h2>
         <p class="section-subtitle">Các địa điểm có chất lượng dịch vụ cao nhất được cộng đồng đánh giá tốt</p>
       </div>
-      <button mat-stroked-button color="primary" routerLink="/home">Xem Tất Cả Sân <mat-icon
+      <button mat-stroked-button color="primary" routerLink="/home" class="neo-btn">Xem Tất Cả Sân <mat-icon
           matSuffix>arrow_forward</mat-icon></button>
     </div>
 
@@ -118,9 +118,9 @@
       <p>Hệ thống đặt sân thực tế đang được đồng bộ hóa dữ liệu. GOAT Sports sẽ ra mắt danh sách các cụm sân thực tế trong thời gian ngắn nhất.</p>
       
       <div class="coming-soon-grid">
-        <div class="placeholder-card skeleton-shimmer"></div>
-        <div class="placeholder-card skeleton-shimmer"></div>
-        <div class="placeholder-card skeleton-shimmer"></div>
+        <div class="placeholder-card skeleton-shimmer neo-card"></div>
+        <div class="placeholder-card skeleton-shimmer neo-card"></div>
+        <div class="placeholder-card skeleton-shimmer neo-card"></div>
       </div>
     </div>
   </section>
@@ -128,22 +128,22 @@
   <!-- 5. Benefit Grid Section -->
   <section class="banner-horizontal">
     <div class="horizontal-content">
-      <h2>Bạn Tìm Kiếm Sân Đấu Tối Ưu Cho Cuối Tuần?</h2>
+      <h2 class="athletic-title">Bạn Tìm Kiếm Sân Đấu Tối Ưu Cho Cuối Tuần?</h2>
       <p>Sử dụng ngay hệ thống phân tích AI để quét toàn bộ lịch đặt và tìm ra khung giờ vàng có mức giá rẻ nhất tại các
         sân quanh bạn.</p>
-      <button mat-flat-button color="accent" routerLink="/home" class="cta-btn">Phân Tích AI Ngay</button>
+      <button mat-flat-button color="accent" routerLink="/home" class="cta-btn neo-btn">Phân Tích AI Ngay</button>
     </div>
   </section>
 
   <!-- 6. Advantages section -->
   <section class="section benefits-info-section">
     <div class="section-header">
-      <h2 class="section-title">Tại Sao Nên Đặt Sân Trên GOAT Sports?</h2>
+      <h2 class="section-title athletic-title">Tại Sao Nên Đặt Sân Trên GOAT Sports?</h2>
       <p class="section-subtitle">Chúng tôi mang lại giải pháp tiện lợi, minh bạch và thông minh nhất</p>
     </div>
 
     <div class="benefits-grid">
-      <div class="benefit-item hover-scale">
+      <div class="benefit-item hover-scale neo-card">
         <div class="benefit-icon-box">
           <mat-icon>flash_on</mat-icon>
         </div>
@@ -152,7 +152,7 @@
         </p>
       </div>
 
-      <div class="benefit-item hover-scale">
+      <div class="benefit-item hover-scale neo-card">
         <div class="benefit-icon-box">
           <mat-icon>event_available</mat-icon>
         </div>
@@ -161,7 +161,7 @@
         </p>
       </div>
 
-      <div class="benefit-item hover-scale">
+      <div class="benefit-item hover-scale neo-card">
         <div class="benefit-icon-box">
           <mat-icon>psychology</mat-icon>
         </div>
@@ -170,7 +170,7 @@
           nhất.</p>
       </div>
 
-      <div class="benefit-item hover-scale">
+      <div class="benefit-item hover-scale neo-card">
         <div class="benefit-icon-box">
           <mat-icon>security</mat-icon>
         </div>
