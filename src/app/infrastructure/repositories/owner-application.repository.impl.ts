@@ -16,51 +16,49 @@ export class OwnerApplicationRepositoryImpl implements OwnerApplicationRepositor
     files: {
       idCardFront: File;
       idCardBack: File;
-      businessLicense?: File | null;
-      venueImage?: File | null;
+      businessLicense: File;
+      venueImage: File;
     }
   ): Observable<OwnerApplication> {
-    return this.ownerApplicationApi.submit(form).pipe(
-      switchMap(response => {
-        const application = response.data;
+
+    const uploadTasks: { file: File; folder: string }[] = [
+      { file: files.idCardFront, folder: 'identities' },
+      { file: files.idCardBack, folder: 'identities' },
+      { file: files.businessLicense, folder: 'licenses' },
+      { file: files.venueImage, folder: 'venues' }
+    ];
+
+    const presignedRequests = uploadTasks.map(task => ({
+      fileName: task.file.name,
+      contentType: task.file.type,
+      folder: task.folder
+    }));
+
+    return forkJoin({
+      submitResponse: this.ownerApplicationApi.submit(form),
+      presignedResponse: this.ownerApplicationApi.getPresignedUrls(presignedRequests)
+    }).pipe(
+      switchMap(({ submitResponse, presignedResponse }) => {
+
+        const application = submitResponse.data;
         const ownerApplicationId = application.ownerApplicationId;
+        const presignedUrls = presignedResponse.data;
 
-        const uploadTasks: { file: File; folder: string }[] = [
-          { file: files.idCardFront, folder: 'identities' },
-          { file: files.idCardBack, folder: 'identities' }
-        ];
+        const uploads = uploadTasks.map((task, index) => {
+          const presigned = presignedUrls[index];
 
-        if (files.businessLicense) {
-          uploadTasks.push({ file: files.businessLicense, folder: 'licenses' });
-        }
-        if (files.venueImage) {
-          uploadTasks.push({ file: files.venueImage, folder: 'venues' });
-        }
+          return this.ownerApplicationApi
+            .uploadToPresignedUrl(presigned.uploadUrl, task.file)
+            .pipe(map(() => presigned.objectKey));
 
-        const presignedRequests = uploadTasks.map(task => ({
-          fileName: task.file.name,
-          contentType: task.file.type,
-          folder: task.folder
-        }));
+        });
 
-        return this.ownerApplicationApi.getPresignedUrls(presignedRequests).pipe(
-          map(res => res.data),
-          switchMap(presignedUrls => {
-            const uploadObservables = uploadTasks.map((task, index) => {
-              const presigned = presignedUrls[index];
-              return this.ownerApplicationApi.uploadToPresignedUrl(presigned.uploadUrl, task.file).pipe(
-                map(() => presigned.objectKey)
-              );
-            });
-
-            return forkJoin(uploadObservables).pipe(
-              switchMap(objectKeys => {
-                return this.ownerApplicationApi.createDocuments(ownerApplicationId, objectKeys).pipe(
-                  map(() => application)
-                );
-              })
-            );
-          })
+        return forkJoin(uploads).pipe(
+          switchMap(objectKeys =>
+            this.ownerApplicationApi
+              .createDocuments(ownerApplicationId, objectKeys)
+              .pipe(map(() => application))
+          )
         );
       })
     );
