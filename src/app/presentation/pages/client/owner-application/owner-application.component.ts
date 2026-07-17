@@ -163,8 +163,8 @@ export class OwnerApplicationComponent implements OnInit, OnDestroy {
     const files = {
       idCardFront: this.files.idCardFront!,
       idCardBack: this.files.idCardBack!,
-      businessLicense: this.files.businessLicense,
-      venueImage: this.files.venueImage
+      businessLicense: this.files.businessLicense!,
+      venueImage: this.files.venueImage!
     };
 
     this.submitUseCase.execute(appRequest, files).subscribe({

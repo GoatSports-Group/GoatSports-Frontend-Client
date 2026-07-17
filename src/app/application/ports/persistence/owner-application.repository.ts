@@ -8,10 +8,10 @@ export interface OwnerApplicationRepository {
     files: {
       idCardFront: File;
       idCardBack: File;
-      businessLicense?: File | null;
-      venueImage?: File | null;
+      businessLicense: File;
+      venueImage: File;
     }
-  ): Observable<OwnerApplication>;
+  ): Observable<void>;
   getMyApplications(): Observable<OwnerApplication[]>;
 }
 
