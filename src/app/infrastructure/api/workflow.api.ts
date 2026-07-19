@@ -1,7 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
 import { BaseResponse } from '@application/dto/base/base-response';
 import { CompleteTaskRequest, ProcessInstanceResponse, ProcessInstanceVariablesResponse, StartProcessRequest, UserTaskResponse } from '@application/dto/workflow/workflow.dto';
 
@@ -35,16 +34,6 @@ export class WorkflowApi {
     return this.http.post<BaseResponse<void>>(
       `${this.apiBase}/workflow-service/api/v1/workflows/tasks/${completeTask.taskKey}/complete`,
       completeTask.completeTask
-    );
-  }
-
-  getUserTasks(assignee?: string): Observable<any[]> {
-    const url = assignee
-      ? `${this.apiBase}/workflow-service/api/v1/workflows/tasks?assignee=${assignee}`
-      : `${this.apiBase}/workflow-service/api/v1/workflows/tasks`;
-
-    return this.http.get<any>(url).pipe(
-      map(response => response.data || [])
     );
   }
 }
