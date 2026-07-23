@@ -8,5 +8,7 @@
       <mat-icon class="star-icon empty">star_border</mat-icon>
     }
   }
-  <span class="rating-value" *ngIf="rating > 0">{{ rating | number:'1.1-1' }}</span>
+  @if (rating > 0) {
+    <span class="rating-value">{{ rating | number:'1.1-1' }}</span>
+  }
 </div>

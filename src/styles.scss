@@ -253,17 +253,17 @@ a {
 
 // Override button colors
 .mat-primary {
-  --mdc-filled-button-container-color: var(--primary) !important;
-  --mdc-filled-button-label-text-color: #ffffff !important;
-  --mdc-outlined-button-outline-color: var(--primary) !important;
-  --mdc-outlined-button-label-text-color: var(--primary) !important;
+  --mat-button-filled-container-color: var(--primary) !important;
+  --mat-button-filled-label-text-color: #ffffff !important;
+  --mat-button-outlined-outline-color: var(--primary) !important;
+  --mat-button-outlined-label-text-color: var(--primary) !important;
 }
 
 .mat-accent {
-  --mdc-filled-button-container-color: var(--accent) !important;
-  --mdc-filled-button-label-text-color: #ffffff !important;
-  --mdc-outlined-button-outline-color: var(--accent) !important;
-  --mdc-outlined-button-label-text-color: var(--accent) !important;
+  --mat-button-filled-container-color: var(--accent) !important;
+  --mat-button-filled-label-text-color: #ffffff !important;
+  --mat-button-outlined-outline-color: var(--accent) !important;
+  --mat-button-outlined-label-text-color: var(--accent) !important;
 }
 
 // Form Fields Styling
@@ -271,24 +271,24 @@ a {
   width: 100%;
   font-family: var(--font-body) !important;
 
-  --mdc-outlined-text-field-input-text-color: var(--text-dark);
-  --mdc-filled-text-field-input-text-color: var(--text-dark);
-  --mdc-outlined-text-field-label-text-color: var(--text-muted);
-  --mdc-filled-text-field-label-text-color: var(--text-muted);
+  --mat-form-field-outlined-input-text-color: var(--text-dark);
+  --mat-form-field-filled-input-text-color: var(--text-dark);
+  --mat-form-field-outlined-label-text-color: var(--text-muted);
+  --mat-form-field-filled-label-text-color: var(--text-muted);
 
   .mat-mdc-select-value {
     color: var(--text-dark) !important;
   }
-  --mdc-outlined-text-field-input-text-placeholder-color: var(--text-muted);
-  --mdc-filled-text-field-input-text-placeholder-color: var(--text-muted);
+  --mat-form-field-outlined-input-text-placeholder-color: var(--text-muted);
+  --mat-form-field-filled-input-text-placeholder-color: var(--text-muted);
 
-  --mdc-outlined-text-field-focus-outline-color: var(--primary);
-  --mdc-outlined-text-field-focus-label-text-color: var(--primary);
-  --mdc-outlined-text-field-caret-color: var(--primary);
+  --mat-form-field-outlined-focus-outline-color: var(--primary);
+  --mat-form-field-outlined-focus-label-text-color: var(--primary);
+  --mat-form-field-outlined-caret-color: var(--primary);
 
-  --mdc-filled-text-field-focus-active-indicator-color: var(--primary);
-  --mdc-filled-text-field-focus-label-text-color: var(--primary);
-  --mdc-filled-text-field-caret-color: var(--primary);
+  --mat-form-field-filled-focus-active-indicator-color: var(--primary);
+  --mat-form-field-filled-focus-label-text-color: var(--primary);
+  --mat-form-field-filled-caret-color: var(--primary);
 
   .mdc-text-field {
     border-radius: var(--border-radius-sm) !important;

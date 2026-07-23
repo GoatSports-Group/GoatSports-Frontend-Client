@@ -18,7 +18,7 @@
       </div>
       <h1>Liên Hệ & Hỗ Trợ</h1>
       <p class="hero-subtitle">Mọi thắc mắc, đóng góp ý kiến hoặc phản hồi về dịch vụ đặt sân, vui lòng liên hệ với
-        GOAT Sports. Chúng tôi luôn sẵn sàng lắng nghe bạn!</p>
+      GOAT Sports. Chúng tôi luôn sẵn sàng lắng nghe bạn!</p>
     </div>
   </div>
 
@@ -29,7 +29,7 @@
       <div class="contact-form-container">
         <h2>Gửi Yêu Cầu Hỗ Trợ</h2>
         <p class="form-desc">Điền đầy đủ thông tin bên dưới, đội ngũ chăm sóc khách hàng của chúng tôi sẽ liên hệ lại
-          trong vòng 24 giờ làm việc.</p>
+        trong vòng 24 giờ làm việc.</p>
 
         <form [formGroup]="contactForm" (ngSubmit)="onSubmit()" class="support-form">
           <!-- Full Name -->
@@ -37,12 +37,16 @@
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Họ và Tên</mat-label>
               <input matInput formControlName="fullName" placeholder="Nguyễn Văn A" required>
-              <mat-error *ngIf="contactForm.get('fullName')?.hasError('required')">
-                Họ và tên không được để trống.
-              </mat-error>
-              <mat-error *ngIf="contactForm.get('fullName')?.hasError('minlength')">
-                Tên phải có tối thiểu 2 ký tự.
-              </mat-error>
+              @if (contactForm.get('fullName')?.hasError('required')) {
+                <mat-error>
+                  Họ và tên không được để trống.
+                </mat-error>
+              }
+              @if (contactForm.get('fullName')?.hasError('minlength')) {
+                <mat-error>
+                  Tên phải có tối thiểu 2 ký tự.
+                </mat-error>
+              }
             </mat-form-field>
           </div>
 
@@ -51,12 +55,16 @@
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Địa Chỉ Email</mat-label>
               <input matInput type="email" formControlName="email" placeholder="example@gmail.com" required>
-              <mat-error *ngIf="contactForm.get('email')?.hasError('required')">
-                Email không được để trống.
-              </mat-error>
-              <mat-error *ngIf="contactForm.get('email')?.hasError('email')">
-                Email không đúng định dạng.
-              </mat-error>
+              @if (contactForm.get('email')?.hasError('required')) {
+                <mat-error>
+                  Email không được để trống.
+                </mat-error>
+              }
+              @if (contactForm.get('email')?.hasError('email')) {
+                <mat-error>
+                  Email không đúng định dạng.
+                </mat-error>
+              }
             </mat-form-field>
           </div>
 
@@ -65,12 +73,16 @@
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Tiêu Đề</mat-label>
               <input matInput formControlName="subject" placeholder="Cần hỗ trợ về..." required>
-              <mat-error *ngIf="contactForm.get('subject')?.hasError('required')">
-                Tiêu đề không được để trống.
-              </mat-error>
-              <mat-error *ngIf="contactForm.get('subject')?.hasError('minlength')">
-                Tiêu đề phải có tối thiểu 5 ký tự.
-              </mat-error>
+              @if (contactForm.get('subject')?.hasError('required')) {
+                <mat-error>
+                  Tiêu đề không được để trống.
+                </mat-error>
+              }
+              @if (contactForm.get('subject')?.hasError('minlength')) {
+                <mat-error>
+                  Tiêu đề phải có tối thiểu 5 ký tự.
+                </mat-error>
+              }
             </mat-form-field>
           </div>
 
@@ -79,22 +91,32 @@
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Nội Dung Chi Tiết</mat-label>
               <textarea matInput formControlName="message" rows="6"
-                placeholder="Mô tả chi tiết câu hỏi hoặc vấn đề của bạn..." required></textarea>
-              <mat-error *ngIf="contactForm.get('message')?.hasError('required')">
-                Nội dung phản hồi không được để trống.
-              </mat-error>
-              <mat-error *ngIf="contactForm.get('message')?.hasError('minlength')">
-                Nội dung phải có tối thiểu 10 ký tự.
-              </mat-error>
+              placeholder="Mô tả chi tiết câu hỏi hoặc vấn đề của bạn..." required></textarea>
+              @if (contactForm.get('message')?.hasError('required')) {
+                <mat-error>
+                  Nội dung phản hồi không được để trống.
+                </mat-error>
+              }
+              @if (contactForm.get('message')?.hasError('minlength')) {
+                <mat-error>
+                  Nội dung phải có tối thiểu 10 ký tự.
+                </mat-error>
+              }
             </mat-form-field>
           </div>
 
           <!-- Submit Button -->
           <button mat-flat-button color="primary" type="submit" class="submit-btn"
             [disabled]="contactForm.invalid || submitting">
-            <mat-icon *ngIf="!submitting">send</mat-icon>
-            <span *ngIf="!submitting">Gửi Yêu Cầu</span>
-            <span *ngIf="submitting">Đang Gửi...</span>
+            @if (!submitting) {
+              <mat-icon>send</mat-icon>
+            }
+            @if (!submitting) {
+              <span>Gửi Yêu Cầu</span>
+            }
+            @if (submitting) {
+              <span>Đang Gửi...</span>
+            }
           </button>
         </form>
       </div>
