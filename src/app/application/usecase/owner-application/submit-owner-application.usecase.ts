@@ -19,7 +19,7 @@ export class SubmitOwnerApplicationUseCase {
       businessLicense: File;
       venueImage: File;
     }
-  ): Observable<void> {
+  ): Observable<OwnerApplication[]> {
     return this.repository.submit(form, files);
   }
 }

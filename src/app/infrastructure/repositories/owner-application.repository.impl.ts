@@ -21,7 +21,7 @@ export class OwnerApplicationRepositoryImpl implements OwnerApplicationRepositor
       businessLicense: File;
       venueImage: File;
     }
-  ): Observable<void> {
+  ): Observable<OwnerApplication[]> {
 
     const uploadTasks: { file: File; folder: string }[] = [
       { file: files.idCardFront, folder: 'identities' },
@@ -45,7 +45,7 @@ export class OwnerApplicationRepositoryImpl implements OwnerApplicationRepositor
       switchMap(startResponse => {
         const instanceKey = startResponse.data.processInstanceKey;
 
-        return interval(3000).pipe(
+        return interval(1500).pipe(
           switchMap(() => this.workflowApi.getProcessInstanceVariables(instanceKey)),
           filter(response => response && response.data && response.data.presignedUrls && response.data.ownerApplicationId !== ""),
           take(1),
@@ -99,7 +99,7 @@ export class OwnerApplicationRepositoryImpl implements OwnerApplicationRepositor
               }
             };
             return this.workflowApi.completeUserTask(completeTask).pipe(
-              map(response => response.data)
+              switchMap(() => this.getMyApplications())
             );
           })
         );

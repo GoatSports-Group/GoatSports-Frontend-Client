@@ -168,14 +168,14 @@ export class OwnerApplicationComponent implements OnInit, OnDestroy {
     };
 
     this.submitUseCase.execute(appRequest, files).subscribe({
-      next: (response) => {
+      next: (data) => {
         this.snackBar.open('Đã nộp đơn đăng ký chủ sân thành công! Vui lòng chờ Admin xác nhận.', 'Đóng', {
           duration: 5000,
           panelClass: ['snackbar-success']
         });
         this.submitting = false;
         this.resetForm();
-        this.loadApplications();
+        this.applications = data;
         this.activeTab = 'list';
       },
       error: (err) => {

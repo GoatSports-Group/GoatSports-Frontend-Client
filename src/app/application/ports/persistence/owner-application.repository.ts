@@ -11,7 +11,7 @@ export interface OwnerApplicationRepository {
       businessLicense: File;
       venueImage: File;
     }
-  ): Observable<void>;
+  ): Observable<OwnerApplication[]>;
   getMyApplications(): Observable<OwnerApplication[]>;
 }
 
