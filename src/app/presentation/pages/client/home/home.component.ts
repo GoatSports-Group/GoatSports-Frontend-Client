@@ -3,9 +3,10 @@ import { Router } from '@angular/router';
 import { SportType } from '@application/dto/venue/venue.dto';
 
 @Component({
-  selector: 'app-home',
-  templateUrl: './home.component.html',
-  styleUrls: ['./home.component.scss']
+    selector: 'app-home',
+    templateUrl: './home.component.html',
+    styleUrls: ['./home.component.scss'],
+    standalone: false
 })
 export class HomeComponent implements OnInit {
   private router = inject(Router);

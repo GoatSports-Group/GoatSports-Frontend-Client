@@ -6,9 +6,10 @@ import { RoleEnum } from '@application/dto/user/user.dto';
 import { Notification } from '@domain/entities/notification';
 
 @Component({
-  selector: 'app-header',
-  templateUrl: './header.component.html',
-  styleUrls: ['./header.component.scss']
+    selector: 'app-header',
+    templateUrl: './header.component.html',
+    styleUrls: ['./header.component.scss'],
+    standalone: false
 })
 export class HeaderComponent implements OnInit {
   public authService = inject(AuthService);

@@ -6,9 +6,10 @@ import { User } from '@application/dto/user/user.dto';
 import { Router } from '@angular/router';
 
 @Component({
-  selector: 'app-client',
-  templateUrl: './client.component.html',
-  styleUrls: ['./client.component.scss']
+    selector: 'app-client',
+    templateUrl: './client.component.html',
+    styleUrls: ['./client.component.scss'],
+    standalone: false
 })
 export class ClientComponent implements OnInit {
   private authService = inject(AuthService);

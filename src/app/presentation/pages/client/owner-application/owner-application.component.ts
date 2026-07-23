@@ -7,9 +7,10 @@ import { NotificationService } from '@presentation/services/notification.service
 import { Subscription } from 'rxjs';
 
 @Component({
-  selector: 'app-owner-application',
-  templateUrl: './owner-application.component.html',
-  styleUrls: ['./owner-application.component.scss']
+    selector: 'app-owner-application',
+    templateUrl: './owner-application.component.html',
+    styleUrls: ['./owner-application.component.scss'],
+    standalone: false
 })
 export class OwnerApplicationComponent implements OnInit, OnDestroy {
   private submitUseCase = inject(SubmitOwnerApplicationUseCase);

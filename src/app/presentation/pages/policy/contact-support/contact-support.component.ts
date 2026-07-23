@@ -3,9 +3,10 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
-  selector: 'app-contact-support',
-  templateUrl: './contact-support.component.html',
-  styleUrls: ['./contact-support.component.scss']
+    selector: 'app-contact-support',
+    templateUrl: './contact-support.component.html',
+    styleUrls: ['./contact-support.component.scss'],
+    standalone: false
 })
 export class ContactSupportComponent implements OnInit {
   private fb = inject(FormBuilder);
