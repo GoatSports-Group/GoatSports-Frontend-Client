@@ -4,13 +4,14 @@ import { Observable } from 'rxjs';
 import { map, filter, take } from 'rxjs/operators';
 import { AuthService } from '@presentation/services/auth.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { environment } from '@environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthGuard implements CanActivate {
-  private clientApiBase = import.meta.env.NG_APP_CLIENT_API_URL;
-  private authApiBase = import.meta.env.NG_APP_AUTH_API_URL;
+  private clientApiBase = environment.clientApiUrl;
+  private authApiBase = environment.authApiUrl;
 
   private authService = inject(AuthService);
   private router = inject(Router);

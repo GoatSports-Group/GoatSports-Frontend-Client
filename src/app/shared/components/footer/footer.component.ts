@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { environment } from '@environments/environment';
 
 @Component({
     selector: 'app-footer',
@@ -9,7 +10,7 @@ import { Component } from '@angular/core';
 export class FooterComponent {
   currentYear = new Date().getFullYear();
   emailInput: string = '';
-  loginUrl = `${import.meta.env.NG_APP_AUTH_API_URL}/login?redirect=${import.meta.env.NG_APP_CLIENT_API_URL}`;
+  loginUrl = `${environment.authApiUrl}/login?redirect=${environment.clientApiUrl}`;
 
   subscribeNewsletter() {
     if (this.emailInput.trim()) {

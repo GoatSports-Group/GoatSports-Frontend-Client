@@ -3,6 +3,7 @@ import { HttpClient, HttpBackend } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { OwnerApplication } from '@domain/entities/owner-application';
 import { BaseResponse } from '@application/dto/base/base-response';
+import { environment } from '@environments/environment';
 
 export interface OwnerApplicationListResponse {
   meta: {
@@ -32,7 +33,7 @@ export class OwnerApplicationApi {
   private http = inject(HttpClient);
   private httpBackend = inject(HttpBackend);
   private bypassHttp = new HttpClient(this.httpBackend);
-  private apiBase = import.meta.env.NG_APP_API_URL;
+  private apiBase = environment.apiUrl;
 
   submit(request: any): Observable<BaseResponse<OwnerApplication>> {
     return this.http.post<BaseResponse<OwnerApplication>>(

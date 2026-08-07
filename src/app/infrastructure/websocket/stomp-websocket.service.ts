@@ -3,6 +3,7 @@ import { Subject, Observable } from 'rxjs';
 import { Notification } from '@domain/entities/notification';
 import { WebSocketService } from '@application/ports/websocket.service';
 import { SessionStateService } from '@presentation/services/session-state.service';
+import { environment } from '@environments/environment';
 
 class StompFrame {
   constructor(
@@ -55,7 +56,7 @@ export class StompWebSocketService implements WebSocketService {
   private socket: WebSocket | null = null;
   private isConnected = false;
   private reconnectTimeout: any = null;
-  private apiBase = import.meta.env.NG_APP_API_URL;
+  private apiBase = environment.apiUrl;
   private subscriptionId = 'sub-user-notifications';
   private sessionStateService = inject(SessionStateService);
 

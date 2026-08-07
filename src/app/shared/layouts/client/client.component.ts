@@ -4,6 +4,7 @@ import { AuthService } from '@presentation/services/auth.service';
 import { Observable } from 'rxjs';
 import { User } from '@application/dto/user/user.dto';
 import { Router } from '@angular/router';
+import { environment } from '@environments/environment';
 
 @Component({
     selector: 'app-client',
@@ -19,7 +20,7 @@ export class ClientComponent implements OnInit {
 
   isAuthenticated$!: Observable<boolean>;
   currentUser: User | null = null;
-  adminUrl = import.meta.env.NG_APP_ADMIN_API_URL;
+  adminUrl = environment.adminApiUrl;
 
   ngOnInit() {
     this.isAuthenticated$ = this.authService.isAuthenticated$;
@@ -36,7 +37,7 @@ export class ClientComponent implements OnInit {
     this.sidenav.close();
   }
 
-  private authApiBase = import.meta.env.NG_APP_AUTH_API_URL;
+  private authApiBase = environment.authApiUrl;
 
   logout() {
     this.authService.logout().subscribe();

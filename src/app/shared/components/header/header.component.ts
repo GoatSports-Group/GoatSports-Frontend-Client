@@ -4,6 +4,7 @@ import { AuthService } from '@presentation/services/auth.service';
 import { NotificationService } from '@presentation/services/notification.service';
 import { RoleEnum } from '@application/dto/user/user.dto';
 import { Notification } from '@domain/entities/notification';
+import { environment } from '@environments/environment';
 
 @Component({
     selector: 'app-header',
@@ -19,7 +20,7 @@ export class HeaderComponent implements OnInit {
   @Output() menuToggle = new EventEmitter<void>();
 
   searchQuery: string = '';
-  adminUrl = import.meta.env.NG_APP_ADMIN_API_URL;
+  adminUrl = environment.adminApiUrl;
 
   ngOnInit() {
     this.authService.isAuthenticated$;
@@ -31,7 +32,7 @@ export class HeaderComponent implements OnInit {
     });
   }
 
-  private authApiBase = import.meta.env.NG_APP_AUTH_API_URL;
+  private authApiBase = environment.authApiUrl;
 
   logout() {
     this.authService.logout().subscribe();

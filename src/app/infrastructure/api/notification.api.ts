@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Notification } from '@domain/entities/notification';
 import { BaseResponse } from '@application/dto/base/base-response';
+import { environment } from '@environments/environment';
 
 export interface NotificationListResponse {
   meta: {
@@ -19,7 +20,7 @@ export interface NotificationListResponse {
 })
 export class NotificationApi {
   private http = inject(HttpClient);
-  private apiBase = import.meta.env.NG_APP_API_URL;
+  private apiBase = environment.apiUrl;
 
   getNotifications(): Observable<BaseResponse<NotificationListResponse>> {
     return this.http.get<BaseResponse<NotificationListResponse>>(
