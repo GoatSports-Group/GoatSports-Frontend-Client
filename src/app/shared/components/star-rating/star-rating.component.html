@@ -1,11 +1,11 @@
 <div class="star-rating-container" [ngClass]="size">
   @for (star of stars; track $index) {
     @if (star === 'full') {
-      <mat-icon class="star-icon full">star</mat-icon>
+      <lucide-icon name="star" class="star-icon full"></lucide-icon>
     } @else if (star === 'half') {
-      <mat-icon class="star-icon half">star_half</mat-icon>
+      <lucide-icon name="star-half" class="star-icon half"></lucide-icon>
     } @else {
-      <mat-icon class="star-icon empty">star_border</mat-icon>
+      <lucide-icon name="star" class="star-icon empty"></lucide-icon>
     }
   }
   @if (rating > 0) {

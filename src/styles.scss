@@ -118,6 +118,39 @@
   font-family: 'Be Vietnam Pro', sans-serif !important;
 }
 
+/* Fallback for Material Icons to prevent global font overrides */
+mat-icon, .mat-icon, .material-icons {
+  font-family: 'Material Icons' !important;
+}
+
+/* Lucide Icon Sizing & Spacing Utilities */
+lucide-icon, .lucide-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  
+  svg {
+    width: 24px;
+    height: 24px;
+    stroke-width: 2px;
+  }
+  
+  &.w-3, &.h-3, &[size="12"] { svg { width: 12px; height: 12px; } }
+  &.w-4, &.h-4, &[size="16"] { svg { width: 16px; height: 16px; } }
+  &.w-5, &.h-5, &[size="20"] { svg { width: 20px; height: 20px; } }
+  &.w-6, &.h-6, &[size="24"] { svg { width: 24px; height: 24px; } }
+  &.w-8, &.h-8, &[size="32"] { svg { width: 32px; height: 32px; } }
+  &.w-10, &.h-10, &[size="40"] { svg { width: 40px; height: 40px; } }
+  &.w-12, &.h-12, &[size="48"] { svg { width: 48px; height: 48px; } }
+  
+  &.mr-1 { margin-right: 0.25rem; }
+  &.mr-2 { margin-right: 0.5rem; }
+  &.mr-3 { margin-right: 0.75rem; }
+  &.ml-1 { margin-left: 0.25rem; }
+  &.ml-2 { margin-left: 0.5rem; }
+}
+
 /* Global Design System & Variables */
 :root {
   --primary: #059669;          /* Sporty grass green */

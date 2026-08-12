@@ -5,12 +5,19 @@
   color: #ffb300; // Warm amber color
 
   .star-icon {
-    font-size: inherit;
-    width: auto;
-    height: auto;
+    display: inline-flex;
+    
+    svg {
+      width: 1em;
+      height: 1em;
+      fill: currentColor;
+    }
     
     &.empty {
       color: #cbd5e0;
+      svg {
+        fill: none;
+      }
     }
   }
 

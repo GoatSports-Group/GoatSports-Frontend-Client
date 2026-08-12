@@ -16,13 +16,13 @@ export class HomeComponent implements OnInit {
 
   getSportIcon(type: SportType): string {
     switch (type) {
-      case SportType.SOCCER: return 'sports_soccer';
-      case SportType.BADMINTON: return 'sports_tennis';
-      case SportType.TENNIS: return 'sports_tennis';
-      case SportType.PICKLEBALL: return 'sports_handball';
-      case SportType.BASKETBALL: return 'sports_basketball';
-      case SportType.VOLLEYBALL: return 'sports_volleyball';
-      default: return 'sports';
+      case SportType.SOCCER: return 'trophy';
+      case SportType.BADMINTON: return 'target';
+      case SportType.TENNIS: return 'activity';
+      case SportType.PICKLEBALL: return 'swords';
+      case SportType.BASKETBALL: return 'dribbble';
+      case SportType.VOLLEYBALL: return 'award';
+      default: return 'activity';
     }
   }
 

@@ -3,7 +3,7 @@
   <!-- 1. Hero Section -->
   <section class="hero-section">
     <div class="hero-content">
-      <span class="hero-badge"><mat-icon>insights</mat-icon> Đặt Sân Nhanh & Đề Xuất AI</span>
+      <span class="hero-badge"><lucide-icon name="trending-up" class="w-4 h-4 mr-2"></lucide-icon> Đặt Sân Nhanh & Đề Xuất AI</span>
       <h1 class="hero-title athletic-title">Tìm Sân Thể Thao <br><span class="highlight-text">Phù Hợp</span></h1>
       <p class="hero-desc">
         Nền tảng trực tuyến giúp bạn tìm kiếm lịch trống, so sánh giá cả và đặt các cụm sân bóng đá, cầu lông, tennis,
@@ -14,7 +14,7 @@
       <form (submit)="onSearch()" class="hero-search-form">
         <div class="search-form-row neo-card">
           <mat-form-field appearance="outline" class="search-field select-field">
-            <mat-icon matPrefix>sports</mat-icon>
+            <lucide-icon matPrefix name="activity" class="w-4 h-4 mr-2"></lucide-icon>
             <mat-select [(ngModel)]="sportType" name="sportType">
               <mat-option value="all">Môn thể thao</mat-option>
               @for (type of sportTypes; track type) {
@@ -24,7 +24,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="search-field text-field">
-            <mat-icon matPrefix>location_on</mat-icon>
+            <lucide-icon matPrefix name="map-pin" class="w-4 h-4 mr-2"></lucide-icon>
             <input matInput placeholder="Tên sân, địa chỉ hoặc quận huyện..." [(ngModel)]="searchQuery"
               name="searchQuery">
           </mat-form-field>
@@ -35,11 +35,11 @@
 
       <div class="hero-features">
         <div class="feature-item">
-          <mat-icon color="primary">schedule</mat-icon>
+          <lucide-icon name="clock" class="w-4 h-4 mr-2 text-primary"></lucide-icon>
           <span>Xem lịch trống Real-time</span>
         </div>
         <div class="feature-item">
-          <mat-icon color="primary">payments</mat-icon>
+          <lucide-icon name="credit-card" class="w-4 h-4 mr-2 text-primary"></lucide-icon>
           <span>Thanh toán online an toàn</span>
         </div>
       </div>
@@ -63,7 +63,7 @@
       <div class="category-card hover-scale neo-card" (click)="selectSport(type)"
         [ngClass]="'sport-' + type.toLowerCase()">
         <div class="category-icon-box">
-          <mat-icon class="category-icon">{{ getSportIcon(type) }}</mat-icon>
+          <lucide-icon [name]="getSportIcon(type)" class="category-icon w-6 h-6"></lucide-icon>
         </div>
         <span class="category-name">{{ type }}</span>
       </div>
@@ -107,13 +107,13 @@
         <h2 class="section-title athletic-title">Cụm Sân Thể Thao Nổi Bật</h2>
         <p class="section-subtitle">Các địa điểm có chất lượng dịch vụ cao nhất được cộng đồng đánh giá tốt</p>
       </div>
-      <button mat-stroked-button color="primary" routerLink="/home" class="neo-btn">Xem Tất Cả Sân <mat-icon
-          matSuffix>arrow_forward</mat-icon></button>
+      <button mat-stroked-button color="primary" routerLink="/home" class="neo-btn">Xem Tất Cả Sân <lucide-icon
+          matSuffix name="arrow-right" class="w-4 h-4 ml-2"></lucide-icon></button>
     </div>
 
     <div class="home-coming-soon">
-      <div class="coming-soon-badge"><mat-icon>hourglass_empty</mat-icon> Sắp Ra Mắt</div>
-      <mat-icon class="coming-soon-icon">update</mat-icon>
+      <div class="coming-soon-badge"><lucide-icon name="hourglass" class="w-4 h-4 mr-2"></lucide-icon> Sắp Ra Mắt</div>
+      <lucide-icon name="rotate-cw" class="coming-soon-icon w-12 h-12 block mx-auto mb-2 text-emerald-500"></lucide-icon>
       <h3>Danh Sách Sân Đang Được Cập Nhật</h3>
       <p>Hệ thống đặt sân thực tế đang được đồng bộ hóa dữ liệu. GOAT Sports sẽ ra mắt danh sách các cụm sân thực tế trong thời gian ngắn nhất.</p>
       
@@ -145,7 +145,7 @@
     <div class="benefits-grid">
       <div class="benefit-item hover-scale neo-card">
         <div class="benefit-icon-box">
-          <mat-icon>flash_on</mat-icon>
+          <lucide-icon name="zap" class="w-6 h-6 text-primary"></lucide-icon>
         </div>
         <h3>Đặt Sân Nhanh 30s</h3>
         <p>Bỏ qua các cuộc gọi điện thoại xác nhận phức tạp. Chỉ cần chọn giờ, điền thông tin và hoàn tất trong 30 giây.
@@ -154,7 +154,7 @@
 
       <div class="benefit-item hover-scale neo-card">
         <div class="benefit-icon-box">
-          <mat-icon>event_available</mat-icon>
+          <lucide-icon name="calendar-check" class="w-6 h-6 text-primary"></lucide-icon>
         </div>
         <h3>Lịch Trống Real-Time</h3>
         <p>Hệ thống kết nối trực tiếp với lịch hoạt động của chủ sân, hiển thị chính xác giờ trống theo thời gian thực.
@@ -163,7 +163,7 @@
 
       <div class="benefit-item hover-scale neo-card">
         <div class="benefit-icon-box">
-          <mat-icon>psychology</mat-icon>
+          <lucide-icon name="brain" class="w-6 h-6 text-primary"></lucide-icon>
         </div>
         <h3>Gợi Ý Thông Minh AI</h3>
         <p>Thuật toán độc quyền đối chiếu vị trí, giá cả và sở thích để đưa ra đề xuất sân đấu có độ tương thích cao
@@ -172,7 +172,7 @@
 
       <div class="benefit-item hover-scale neo-card">
         <div class="benefit-icon-box">
-          <mat-icon>security</mat-icon>
+          <lucide-icon name="shield" class="w-6 h-6 text-primary"></lucide-icon>
         </div>
         <h3>Bảo Mật & Tin Cậy</h3>
         <p>Đảm bảo giữ sân 100% sau khi được xác nhận. Hỗ trợ chính sách hoàn hủy linh hoạt trước trận đấu.</p>

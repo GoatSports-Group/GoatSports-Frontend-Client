@@ -6,7 +6,7 @@
       <span class="logo-text">GOAT <span class="logo-text-accent">Sports</span></span>
     </div>
     <a routerLink="/home" class="back-home-btn">
-      <mat-icon>arrow_back</mat-icon> Quay lại trang chủ
+      <lucide-icon name="arrow-left" class="w-4 h-4 mr-2"></lucide-icon> Quay lại trang chủ
     </a>
   </div>
 
@@ -14,7 +14,7 @@
   <div class="contact-hero">
     <div class="hero-content">
       <div class="icon-badge">
-        <mat-icon>contact_support</mat-icon>
+        <lucide-icon name="help-circle" class="w-8 h-8"></lucide-icon>
       </div>
       <h1>Liên Hệ & Hỗ Trợ</h1>
       <p class="hero-subtitle">Mọi thắc mắc, đóng góp ý kiến hoặc phản hồi về dịch vụ đặt sân, vui lòng liên hệ với
@@ -109,7 +109,7 @@
           <button mat-flat-button color="primary" type="submit" class="submit-btn"
             [disabled]="contactForm.invalid || submitting">
             @if (!submitting) {
-              <mat-icon>send</mat-icon>
+              <lucide-icon name="send" class="w-4 h-4 mr-2"></lucide-icon>
             }
             @if (!submitting) {
               <span>Gửi Yêu Cầu</span>
@@ -131,7 +131,7 @@
           <div class="info-items">
             <div class="info-item">
               <div class="item-icon">
-                <mat-icon>phone</mat-icon>
+                <lucide-icon name="phone" class="w-5 h-5 text-emerald-500"></lucide-icon>
               </div>
               <div class="item-text">
                 <span>Hotline Hỗ Trợ</span>
@@ -141,7 +141,7 @@
 
             <div class="info-item">
               <div class="item-icon">
-                <mat-icon>email</mat-icon>
+                <lucide-icon name="mail" class="w-5 h-5 text-emerald-500"></lucide-icon>
               </div>
               <div class="item-text">
                 <span>Email Chăm Sóc Khách Hàng</span>
@@ -151,7 +151,7 @@
 
             <div class="info-item">
               <div class="item-icon">
-                <mat-icon>place</mat-icon>
+                <lucide-icon name="map-pin" class="w-5 h-5 text-emerald-500"></lucide-icon>
               </div>
               <div class="item-text">
                 <span>Trụ Sở Chính GOAT Sports</span>
@@ -161,7 +161,7 @@
 
             <div class="info-item">
               <div class="item-icon">
-                <mat-icon>query_builder</mat-icon>
+                <lucide-icon name="clock" class="w-5 h-5 text-emerald-500"></lucide-icon>
               </div>
               <div class="item-text">
                 <span>Giờ Làm Việc</span>
