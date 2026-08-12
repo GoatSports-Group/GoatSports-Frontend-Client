@@ -11,7 +11,7 @@
 
       <mat-tab>
         <ng-template mat-tab-label>
-          <mat-icon class="tab-icon">person</mat-icon>
+          <lucide-icon name="user" class="tab-icon w-4 h-4 mr-2"></lucide-icon>
           <span>Hồ Sơ</span>
         </ng-template>
 
@@ -21,7 +21,7 @@
               <div class="avatar-wrapper">
                 <img [src]="fallbackAvatar" alt="User Avatar" class="profile-avatar">
                 <button mat-icon-button class="edit-avatar-btn" matTooltip="Đổi ảnh đại diện">
-                  <mat-icon>photo_camera</mat-icon>
+                  <lucide-icon name="camera" class="w-4 h-4"></lucide-icon>
                 </button>
               </div>
               <h3 class="user-display-name">{{ authService.currentUser?.fullName }}</h3>
@@ -35,7 +35,7 @@
               <div class="info-grid">
                 <div class="info-item">
                   <div class="info-label">
-                    <mat-icon>account_circle</mat-icon>
+                    <lucide-icon name="user" class="w-4 h-4 mr-2"></lucide-icon>
                     <span>Tên đăng nhập</span>
                   </div>
                   <div class="info-value">{{ authService.currentUser?.username }}</div>
@@ -43,7 +43,7 @@
 
                 <div class="info-item">
                   <div class="info-label">
-                    <mat-icon>badge</mat-icon>
+                    <lucide-icon name="id-card" class="w-4 h-4 mr-2"></lucide-icon>
                     <span>Họ và tên</span>
                   </div>
                   <div class="info-value">{{ authService.currentUser?.fullName }}</div>
@@ -51,7 +51,7 @@
 
                 <div class="info-item">
                   <div class="info-label">
-                    <mat-icon>email</mat-icon>
+                    <lucide-icon name="mail" class="w-4 h-4 mr-2"></lucide-icon>
                     <span>Địa chỉ email</span>
                   </div>
                   <div class="info-value">{{ authService.currentUser?.email }}</div>
@@ -59,7 +59,7 @@
 
                 <div class="info-item">
                   <div class="info-label">
-                    <mat-icon>calendar_today</mat-icon>
+                    <lucide-icon name="calendar" class="w-4 h-4 mr-2"></lucide-icon>
                     <span>Ngày tham gia</span>
                   </div>
                   <div class="info-value">{{ formatDate(authService.currentUser?.createdAt) }}</div>
@@ -72,7 +72,7 @@
 
       <mat-tab>
         <ng-template mat-tab-label>
-          <mat-icon class="tab-icon">settings</mat-icon>
+          <lucide-icon name="settings" class="tab-icon w-4 h-4 mr-2"></lucide-icon>
           <span>Cài Đặt</span>
         </ng-template>
 
@@ -83,7 +83,7 @@
           <div class="settings-grid">
             <mat-card class="settings-card">
               <mat-card-header>
-                <mat-icon mat-card-avatar color="primary">palette</mat-icon>
+                <lucide-icon mat-card-avatar name="palette" class="w-8 h-8 text-primary"></lucide-icon>
                 <mat-card-title>Giao Diện</mat-card-title>
                 <mat-card-subtitle>Thay đổi cách hiển thị của ứng dụng.</mat-card-subtitle>
               </mat-card-header>
@@ -100,7 +100,7 @@
 
             <mat-card class="settings-card">
               <mat-card-header>
-                <mat-icon mat-card-avatar color="primary">translate</mat-icon>
+                <lucide-icon mat-card-avatar name="languages" class="w-8 h-8 text-primary"></lucide-icon>
                 <mat-card-title>Ngôn Ngữ</mat-card-title>
                 <mat-card-subtitle>Lựa chọn ngôn ngữ hiển thị chính.</mat-card-subtitle>
               </mat-card-header>
@@ -117,7 +117,7 @@
 
             <mat-card class="settings-card full-row">
               <mat-card-header>
-                <mat-icon mat-card-avatar color="primary">notifications</mat-icon>
+                <lucide-icon mat-card-avatar name="bell" class="w-8 h-8 text-primary"></lucide-icon>
                 <mat-card-title>Thông Báo Email</mat-card-title>
                 <mat-card-subtitle>Chọn loại email bạn muốn nhận từ hệ thống.</mat-card-subtitle>
               </mat-card-header>
@@ -148,7 +148,7 @@
       <!-- TAB 3: BẢO MẬT -->
       <mat-tab>
         <ng-template mat-tab-label>
-          <mat-icon class="tab-icon">security</mat-icon>
+          <lucide-icon name="shield" class="tab-icon w-4 h-4 mr-2"></lucide-icon>
           <span>Bảo Mật</span>
         </ng-template>
 
@@ -163,19 +163,19 @@
                 <mat-form-field appearance="outline">
                   <mat-label>Mật khẩu hiện tại</mat-label>
                   <input matInput type="password" [(ngModel)]="currentPassword" placeholder="Nhập mật khẩu hiện tại">
-                  <mat-icon matSuffix>lock</mat-icon>
+                  <lucide-icon matSuffix name="lock" class="w-4 h-4"></lucide-icon>
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
                   <mat-label>Mật khẩu mới</mat-label>
                   <input matInput type="password" [(ngModel)]="newPassword" placeholder="Nhập mật khẩu mới">
-                  <mat-icon matSuffix>lock_open</mat-icon>
+                  <lucide-icon matSuffix name="unlock" class="w-4 h-4"></lucide-icon>
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
                   <mat-label>Xác nhận mật khẩu mới</mat-label>
                   <input matInput type="password" [(ngModel)]="confirmPassword" placeholder="Nhập lại mật khẩu mới">
-                  <mat-icon matSuffix>vpn_key</mat-icon>
+                  <lucide-icon matSuffix name="key" class="w-4 h-4"></lucide-icon>
                 </mat-form-field>
 
                 <div class="form-action">

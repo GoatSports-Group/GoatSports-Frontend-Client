@@ -13,10 +13,10 @@
     <!-- Navigation Tabs -->
     <div class="tabs-header">
       <button class="tab-btn" [class.active]="activeTab === 'list'" (click)="activeTab = 'list'">
-        <mat-icon>history</mat-icon> Lịch Sử Đăng Ký
+        <lucide-icon name="history" class="w-4 h-4"></lucide-icon> Lịch Sử Đăng Ký
       </button>
       <button class="tab-btn" [class.active]="activeTab === 'form'" (click)="activeTab = 'form'">
-        <mat-icon>assignment</mat-icon> Tạo Đơn Đăng Ký Mới
+        <lucide-icon name="file-text" class="w-4 h-4"></lucide-icon> Tạo Đơn Đăng Ký Mới
       </button>
     </div>
 
@@ -30,7 +30,7 @@
       </div>
       } @else if (applications.length === 0) {
       <div class="empty-state">
-        <mat-icon class="empty-icon">feed</mat-icon>
+        <lucide-icon name="file-text" class="empty-icon w-12 h-12 block mx-auto mb-2 text-slate-300"></lucide-icon>
         <h3>Bạn chưa có đơn đăng ký nào</h3>
         <p>Đăng ký trở thành chủ sân ngay hôm nay để đưa cơ sở thể thao của bạn tiếp cận hàng ngàn khách hàng tiềm năng.
         </p>
@@ -42,7 +42,7 @@
         <mat-card class="app-card neo-card">
           <mat-card-header>
             <div mat-card-avatar class="app-avatar">
-              <mat-icon>storefront</mat-icon>
+              <lucide-icon name="store" class="w-5 h-5"></lucide-icon>
             </div>
             <mat-card-title class="app-title">{{ app.businessName }}</mat-card-title>
             <mat-card-subtitle>{{ getBusinessTypeLabel(app.businessType) }} | MST: {{ app.taxCode }}</mat-card-subtitle>
@@ -53,22 +53,22 @@
 
           <mat-card-content class="app-card-body">
             <div class="info-row">
-              <span class="info-label"><mat-icon>person</mat-icon> Người đăng ký:</span>
+              <span class="info-label"><lucide-icon name="user" class="w-4 h-4 mr-1"></lucide-icon> Người đăng ký:</span>
               <span class="info-val">{{ app.fullName }} (CCCD: {{ app.identityNumber }})</span>
             </div>
             <div class="info-row">
-              <span class="info-label"><mat-icon>phone</mat-icon> Liên hệ:</span>
+              <span class="info-label"><lucide-icon name="phone" class="w-4 h-4 mr-1"></lucide-icon> Liên hệ:</span>
               <span class="info-val">{{ app.phone }} | {{ app.email }}</span>
             </div>
             <div class="info-row">
-              <span class="info-label"><mat-icon>place</mat-icon> Địa chỉ kinh doanh:</span>
+              <span class="info-label"><lucide-icon name="map-pin" class="w-4 h-4 mr-1"></lucide-icon> Địa chỉ kinh doanh:</span>
               <span class="info-val">{{ app.address.address }}, {{ app.address.ward }}, {{ app.address.district }}, {{
                 app.address.province }}</span>
             </div>
 
             @if (app.status === 'REJECTED') {
             <div class="reject-box">
-              <mat-icon>warning</mat-icon>
+              <lucide-icon name="alert-triangle" class="w-5 h-5"></lucide-icon>
               <div class="reject-text">
                 <strong>Đơn đăng ký bị từ chối:</strong>
                 <p>{{ app.rejectReason || 'Không có lý do chi tiết.' }}</p>
@@ -93,42 +93,42 @@
     <div class="tab-pane">
       <mat-card class="form-card">
         <form (submit)="onSubmit()" class="registration-form">
-          <h2 class="section-title athletic-title"><mat-icon color="primary">person</mat-icon> 1. Thông Tin Người Đại Diện</h2>
+          <h2 class="section-title athletic-title"><lucide-icon name="user" class="w-5 h-5 mr-2 text-primary"></lucide-icon> 1. Thông Tin Người Đại Diện</h2>
           <div class="form-row-grid">
             <mat-form-field appearance="outline">
               <mat-label>Họ và tên người đăng ký</mat-label>
               <input matInput [(ngModel)]="form.fullName" name="fullName" required placeholder="Nguyễn Văn A">
-              <mat-icon matSuffix>person</mat-icon>
+              <lucide-icon matSuffix name="user" class="w-4 h-4"></lucide-icon>
             </mat-form-field>
 
             <mat-form-field appearance="outline">
               <mat-label>Số điện thoại liên hệ</mat-label>
               <input matInput [(ngModel)]="form.phone" name="phone" required placeholder="09xxxxxxxx">
-              <mat-icon matSuffix>phone</mat-icon>
+              <lucide-icon matSuffix name="phone" class="w-4 h-4"></lucide-icon>
             </mat-form-field>
 
             <mat-form-field appearance="outline">
               <mat-label>Địa chỉ Email</mat-label>
               <input matInput type="email" [(ngModel)]="form.email" name="email" required
                 placeholder="example@gmail.com">
-              <mat-icon matSuffix>email</mat-icon>
+              <lucide-icon matSuffix name="mail" class="w-4 h-4"></lucide-icon>
             </mat-form-field>
 
             <mat-form-field appearance="outline">
               <mat-label>Số CCCD / Hộ chiếu</mat-label>
               <input matInput [(ngModel)]="form.identityNumber" name="identityNumber" required
                 placeholder="03xxxxxxxxxx">
-              <mat-icon matSuffix>badge</mat-icon>
+              <lucide-icon matSuffix name="id-card" class="w-4 h-4"></lucide-icon>
             </mat-form-field>
           </div>
 
-          <h2 class="section-title athletic-title"><mat-icon color="primary">business</mat-icon> 2. Thông Tin Doanh Nghiệp / Cơ Sở</h2>
+          <h2 class="section-title athletic-title"><lucide-icon name="building-2" class="w-5 h-5 mr-2 text-primary"></lucide-icon> 2. Thông Tin Doanh Nghiệp / Cơ Sở</h2>
           <div class="form-row-grid-3">
             <mat-form-field appearance="outline">
               <mat-label>Tên Doanh Nghiệp / Hộ Kinh Doanh</mat-label>
               <input matInput [(ngModel)]="form.businessName" name="businessName" required
                 placeholder="Công Ty TNHH Thể Thao GOAT">
-              <mat-icon matSuffix>storefront</mat-icon>
+              <lucide-icon matSuffix name="store" class="w-4 h-4"></lucide-icon>
             </mat-form-field>
 
             <mat-form-field appearance="outline">
@@ -143,16 +143,16 @@
             <mat-form-field appearance="outline">
               <mat-label>Mã số thuế</mat-label>
               <input matInput [(ngModel)]="form.taxCode" name="taxCode" required placeholder="01xxxxxxxx">
-              <mat-icon matSuffix>receipt</mat-icon>
+              <lucide-icon matSuffix name="receipt" class="w-4 h-4"></lucide-icon>
             </mat-form-field>
           </div>
 
-          <h2 class="section-title athletic-title"><mat-icon color="primary">place</mat-icon> 3. Địa Chỉ Kinh Doanh</h2>
+          <h2 class="section-title athletic-title"><lucide-icon name="map-pin" class="w-5 h-5 mr-2 text-primary"></lucide-icon> 3. Địa Chỉ Kinh Doanh</h2>
           <div class="form-row-grid">
             <mat-form-field appearance="outline">
               <mat-label>Địa chỉ chi tiết (Số nhà, tên đường)</mat-label>
               <input matInput [(ngModel)]="form.address" name="address" required placeholder="12 Ba Tháng Hai">
-              <mat-icon matSuffix>home</mat-icon>
+              <lucide-icon matSuffix name="home" class="w-4 h-4"></lucide-icon>
             </mat-form-field>
 
             <mat-form-field appearance="outline">
@@ -176,8 +176,7 @@
             </mat-form-field>
           </div>
 
-          <h2 class="section-title athletic-title"><mat-icon color="primary">cloud_upload</mat-icon> 4. Hồ Sơ Đính Kèm & Giấy Tờ Pháp
-            Lý</h2>
+          <h2 class="section-title athletic-title"><lucide-icon name="upload-cloud" class="w-5 h-5 mr-2 text-primary"></lucide-icon> 4. Hồ Sơ Đính Kèm & Giấy Tờ Pháp Lý</h2>
           <div class="files-upload-grid">
             <!-- CCCD Front -->
             <div class="file-uploader-box" [class.uploaded]="files.idCardFront">
@@ -185,7 +184,7 @@
               <label class="upload-area">
                 <input type="file" (change)="onFileSelected($event, 'idCardFront')" accept="image/*,application/pdf"
                   class="hidden-input">
-                <mat-icon class="upload-icon">{{ files.idCardFront ? 'check_circle' : 'image' }}</mat-icon>
+                <lucide-icon [name]="files.idCardFront ? 'check-circle' : 'image'" class="upload-icon w-5 h-5"></lucide-icon>
                 <span class="upload-text">{{ fileNames.idCardFront || 'Chọn ảnh mặt trước CCCD' }}</span>
               </label>
             </div>
@@ -196,7 +195,7 @@
               <label class="upload-area">
                 <input type="file" (change)="onFileSelected($event, 'idCardBack')" accept="image/*,application/pdf"
                   class="hidden-input">
-                <mat-icon class="upload-icon">{{ files.idCardBack ? 'check_circle' : 'image' }}</mat-icon>
+                <lucide-icon [name]="files.idCardBack ? 'check-circle' : 'image'" class="upload-icon w-5 h-5"></lucide-icon>
                 <span class="upload-text">{{ fileNames.idCardBack || 'Chọn ảnh mặt sau CCCD' }}</span>
               </label>
             </div>
@@ -207,7 +206,7 @@
               <label class="upload-area">
                 <input type="file" (change)="onFileSelected($event, 'businessLicense')" accept="image/*,application/pdf"
                   class="hidden-input">
-                <mat-icon class="upload-icon">{{ files.businessLicense ? 'check_circle' : 'description' }}</mat-icon>
+                <lucide-icon [name]="files.businessLicense ? 'check-circle' : 'file-text'" class="upload-icon w-5 h-5"></lucide-icon>
                 <span class="upload-text">{{ fileNames.businessLicense || 'Chọn file GPKD (Hình ảnh/PDF)' }}</span>
               </label>
             </div>
@@ -218,28 +217,27 @@
               <label class="upload-area">
                 <input type="file" (change)="onFileSelected($event, 'venueImage')" accept="image/*"
                   class="hidden-input">
-                <mat-icon class="upload-icon">{{ files.venueImage ? 'check_circle' : 'photo_camera' }}</mat-icon>
+                <lucide-icon [name]="files.venueImage ? 'check-circle' : 'camera'" class="upload-icon w-5 h-5"></lucide-icon>
                 <span class="upload-text">{{ fileNames.venueImage || 'Chọn ảnh chụp cơ sở sân' }}</span>
               </label>
             </div>
           </div>
 
           <div class="form-actions">
-            <button mat-button type="button" class="btn-cancel neo-btn" (click)="resetForm(); activeTab = 'list'">Hủy
-            Bỏ</button>
-          <button mat-flat-button color="primary" type="submit" class="btn-submit neo-btn" [disabled]="submitting">
-            @if (submitting) {
-              <ng-container>
-                <mat-spinner diameter="20" class="btn-spinner"></mat-spinner>
-                <span>Đang gửi đơn...</span>
-              </ng-container>
-            } @else {
-              <ng-container>
-                <mat-icon>send</mat-icon>
-                <span>Gửi Đơn Đăng Ký</span>
-              </ng-container>
-            }
-          </button>
+            <button mat-button type="button" class="btn-cancel neo-btn" (click)="resetForm(); activeTab = 'list'">Hủy Bỏ</button>
+            <button mat-flat-button color="primary" type="submit" class="btn-submit neo-btn" [disabled]="submitting">
+              @if (submitting) {
+                <ng-container>
+                  <mat-spinner diameter="20" class="btn-spinner"></mat-spinner>
+                  <span>Đang gửi đơn...</span>
+                </ng-container>
+              } @else {
+                <ng-container>
+                  <lucide-icon name="send" class="w-4 h-4 mr-2"></lucide-icon>
+                  <span>Gửi Đơn Đăng Ký</span>
+                </ng-container>
+              }
+            </button>
           </div>
         </form>
       </mat-card>

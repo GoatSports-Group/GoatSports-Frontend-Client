@@ -3,7 +3,7 @@
 
     <!-- Mobile Menu Button -->
     <button mat-icon-button class="mobile-menu-btn" (click)="menuToggle.emit()" aria-label="Toggle menu">
-      <mat-icon>menu</mat-icon>
+      <lucide-icon name="menu" class="w-5 h-5"></lucide-icon>
     </button>
 
     <!-- Logo -->
@@ -24,12 +24,12 @@
     <div class="search-container">
       <form (submit)="onSearch()" class="search-form">
         <mat-form-field class="search-field">
-          <mat-icon matPrefix class="search-icon">search</mat-icon>
+          <lucide-icon matPrefix name="search" class="search-icon w-4 h-4 mr-2"></lucide-icon>
           <input matInput type="text" placeholder="Tìm tên sân hoặc địa chỉ..." [(ngModel)]="searchQuery"
             name="searchQuery">
           @if (searchQuery) {
           <button mat-icon-button matSuffix (click)="searchQuery = ''" type="button" aria-label="Clear">
-            <mat-icon>close</mat-icon>
+            <lucide-icon name="x" class="w-4 h-4"></lucide-icon>
           </button>
           }
         </mat-form-field>
@@ -41,10 +41,8 @@
       <!-- Notification Bell -->
       @if (authService.isAuthenticated$ | async) {
       <button mat-icon-button [matMenuTriggerFor]="notifMenu" class="notif-btn" aria-label="Thông báo">
-        <mat-icon [matBadge]="notificationService.unreadCount$ | async"
-          [matBadgeHidden]="(notificationService.unreadCount$ | async) === 0" matBadgeColor="warn" class="notif-icon">
-          notifications
-        </mat-icon>
+        <lucide-icon name="bell" [matBadge]="notificationService.unreadCount$ | async"
+          [matBadgeHidden]="(notificationService.unreadCount$ | async) === 0" matBadgeColor="warn" class="notif-icon w-5 h-5"></lucide-icon>
       </button>
       <mat-menu #notifMenu="matMenu" xPosition="before" class="custom-notif-menu">
         <div class="notif-menu-header">
@@ -85,27 +83,27 @@
         </div>
         <mat-divider></mat-divider>
         <button mat-menu-item routerLink="/profile">
-          <mat-icon>person</mat-icon>
+          <lucide-icon name="user" class="w-4 h-4 mr-2"></lucide-icon>
           <span>Hồ Sơ</span>
         </button>
         <button mat-menu-item routerLink="/my-bookings">
-          <mat-icon>history</mat-icon>
+          <lucide-icon name="history" class="w-4 h-4 mr-2"></lucide-icon>
           <span>Lịch Sử Đặt Sân</span>
         </button>
         @if (authService.currentUser?.role?.name !== 'ADMIN' && authService.currentUser?.role?.name !== 'VENUE_OWNER') {
         <button mat-menu-item routerLink="/owner-application">
-          <mat-icon>storefront</mat-icon>
+          <lucide-icon name="store" class="w-4 h-4 mr-2"></lucide-icon>
           <span>Đăng Ký Chủ Sân</span>
         </button>
         }
         @if (authService.currentUser?.role?.name === 'ADMIN') {
         <a mat-menu-item [href]="adminUrl + '/admin'">
-          <mat-icon color="primary">admin_panel_settings</mat-icon>
+          <lucide-icon name="shield-check" class="w-4 h-4 mr-2 text-primary"></lucide-icon>
           <span>Quản Trị</span>
         </a>
         }
         <button mat-menu-item (click)="logout()" class="logout-btn-menu">
-          <mat-icon>logout</mat-icon>
+          <lucide-icon name="log-out" class="w-4 h-4 mr-2"></lucide-icon>
           <span>Đăng Xuất</span>
         </button>
       </mat-menu>

@@ -30,6 +30,7 @@ import { FooterComponent } from '@shared/components/footer/footer.component';
 import { StarRatingComponent } from '@shared/components/star-rating/star-rating.component';
 import { LoadingSkeletonComponent } from '@shared/components/loading-skeleton/loading-skeleton.component';
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
+import { LucideIconComponent } from '@shared/components/ui/lucide-icon/lucide-icon.component';
 
 const MATERIAL_MODULES = [
   MatToolbarModule,
@@ -71,6 +72,7 @@ const COMPONENT_DECLARATIONS = [
     FormsModule,
     ReactiveFormsModule,
     RouterModule,
+    LucideIconComponent,
     ...MATERIAL_MODULES
   ],
   exports: [
@@ -78,6 +80,7 @@ const COMPONENT_DECLARATIONS = [
     FormsModule,
     ReactiveFormsModule,
     RouterModule,
+    LucideIconComponent,
     ...MATERIAL_MODULES,
     ...COMPONENT_DECLARATIONS
   ]

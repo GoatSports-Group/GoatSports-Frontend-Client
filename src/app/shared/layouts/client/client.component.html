@@ -11,7 +11,7 @@
     <div class="drawer-menu">
       <a routerLink="/home" (click)="closeSidenav()" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}"
         class="drawer-item">
-        <mat-icon>home</mat-icon> Trang Chủ
+        <lucide-icon name="home" class="w-4 h-4 mr-2"></lucide-icon> Trang Chủ
       </a>
 
       <mat-divider></mat-divider>
@@ -19,15 +19,15 @@
       @if (isAuthenticated$ | async) {
       @if (currentUser?.role?.name === 'ADMIN' || currentUser?.role?.name === 'Người quản trị') {
       <a [href]="adminUrl + '/admin'" (click)="closeSidenav()" class="drawer-item admin-link">
-        <mat-icon color="primary">admin_panel_settings</mat-icon> Quản Trị Admin
+        <lucide-icon name="shield-check" class="w-4 h-4 mr-2 text-primary"></lucide-icon> Quản Trị Admin
       </a>
       }
       <a (click)="logout(); closeSidenav()" class="drawer-item logout-link">
-        <mat-icon color="warn">logout</mat-icon> Đăng Xuất
+        <lucide-icon name="log-out" class="w-4 h-4 mr-2 text-red-500"></lucide-icon> Đăng Xuất
       </a>
       } @else {
       <a (click)="redirectToLogin(); closeSidenav()" class="drawer-item login-link">
-        <mat-icon color="primary">login</mat-icon> Đăng Nhập
+        <lucide-icon name="log-in" class="w-4 h-4 mr-2 text-primary"></lucide-icon> Đăng Nhập
       </a>
       }
     </div>

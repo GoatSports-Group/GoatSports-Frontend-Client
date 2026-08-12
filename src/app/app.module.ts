@@ -18,6 +18,42 @@ import { OwnerApplicationRepositoryImpl } from '@infrastructure/repositories/own
 import { NotificationRepositoryImpl } from '@infrastructure/repositories/notification.repository.impl';
 import { StompWebSocketService } from '@infrastructure/websocket/stomp-websocket.service';
 
+import {
+  provideLucideIcons,
+  LucideMenu,
+  LucideSearch,
+  LucideX,
+  LucideBell,
+  LucideUser,
+  LucideHistory,
+  LucideStore,
+  LucideShieldCheck,
+  LucideLogOut,
+  LucideFileText,
+  LucidePhone,
+  LucideMapPin,
+  LucideAlertTriangle,
+  LucideIdCard,
+  LucideBuilding2,
+  LucideReceipt,
+  LucideHome,
+  LucideUploadCloud,
+  LucideImage,
+  LucideCheckCircle,
+  LucideCamera,
+  LucideSend,
+  LucideMail,
+  LucideCalendar,
+  LucideSettings,
+  LucidePalette,
+  LucideLanguages,
+  LucideShield,
+  LucideLock,
+  LucideUnlock,
+  LucideKey,
+  LucideLogIn
+} from '@lucide/angular';
+
 @NgModule({
   declarations: [
     AppComponent
@@ -39,7 +75,41 @@ import { StompWebSocketService } from '@infrastructure/websocket/stomp-websocket
     { provide: AUTH_REPOSITORY_TOKEN, useClass: AuthRepositoryImpl },
     { provide: OWNER_APPLICATION_REPOSITORY_TOKEN, useClass: OwnerApplicationRepositoryImpl },
     { provide: NOTIFICATION_REPOSITORY_TOKEN, useClass: NotificationRepositoryImpl },
-    { provide: WEBSOCKET_SERVICE_TOKEN, useClass: StompWebSocketService }
+    { provide: WEBSOCKET_SERVICE_TOKEN, useClass: StompWebSocketService },
+    provideLucideIcons(
+      LucideMenu,
+      LucideSearch,
+      LucideX,
+      LucideBell,
+      LucideUser,
+      LucideHistory,
+      LucideStore,
+      LucideShieldCheck,
+      LucideLogOut,
+      LucideFileText,
+      LucidePhone,
+      LucideMapPin,
+      LucideAlertTriangle,
+      LucideIdCard,
+      LucideBuilding2,
+      LucideReceipt,
+      LucideHome,
+      LucideUploadCloud,
+      LucideImage,
+      LucideCheckCircle,
+      LucideCamera,
+      LucideSend,
+      LucideMail,
+      LucideCalendar,
+      LucideSettings,
+      LucidePalette,
+      LucideLanguages,
+      LucideShield,
+      LucideLock,
+      LucideUnlock,
+      LucideKey,
+      LucideLogIn
+    )
   ],
   bootstrap: [AppComponent]
 })
