@@ -321,6 +321,8 @@ a {
 
   .mat-mdc-select-value {
     color: var(--text-dark) !important;
+    font-weight: 500 !important;
+    font-size: 0.88rem !important;
   }
   --mat-form-field-outlined-input-text-placeholder-color: var(--text-muted);
   --mat-form-field-filled-input-text-placeholder-color: var(--text-muted);
@@ -334,15 +336,16 @@ a {
   --mat-form-field-filled-caret-color: var(--primary);
 
   .mdc-text-field {
-    border-radius: var(--border-radius-sm) !important;
+    border-radius: 12px !important; /* Soft premium rounded corners matching auth */
     background-color: var(--bg-card) !important;
+    border: 1px solid transparent !important;
     transition: var(--transition-smooth);
   }
 
   .mat-mdc-input-element {
     color: var(--text-dark) !important;
     font-weight: 500 !important;
-    font-size: 0.95rem !important;
+    font-size: 0.88rem !important;
 
     &::placeholder {
       font-size: 0.82rem !important;
@@ -354,20 +357,59 @@ a {
   .mdc-notched-outline__notch,
   .mdc-notched-outline__trailing {
     border-color: var(--border-color) !important;
+    transition: var(--transition-smooth);
   }
 
   &.mat-focused {
+    .mdc-text-field {
+      box-shadow: var(--shadow-glow-primary) !important; /* Unified glowing outline container shadow */
+      background-color: var(--bg-card) !important;
+    }
+
     .mdc-notched-outline__leading,
     .mdc-notched-outline__notch,
     .mdc-notched-outline__trailing {
       border-color: var(--primary) !important;
       border-width: 2px !important;
-      box-shadow: var(--shadow-glow-primary) !important;
     }
 
     .mdc-floating-label,
     .mat-mdc-floating-label {
       color: var(--primary) !important;
+    }
+  }
+}
+
+/* Premium Select Options Dropdown Overlay Styling (matching auth/admin) */
+.mat-mdc-select-panel {
+  background-color: var(--bg-card) !important;
+  border-radius: 14px !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: var(--shadow-lg) !important;
+  padding: 6px 0 !important;
+
+  .mat-mdc-option {
+    font-family: 'Be Vietnam Pro', sans-serif !important;
+    font-size: 0.88rem !important;
+    color: var(--text-dark) !important;
+    transition: var(--transition-smooth) !important;
+    border-radius: 8px !important;
+    margin: 3px 8px !important;
+    min-height: 42px !important;
+
+    &:hover:not(.mdc-list-item--disabled) {
+      background-color: rgba(5, 150, 105, 0.06) !important;
+      color: var(--primary) !important;
+    }
+
+    &.mdc-list-item--selected:not(.mdc-list-item--disabled) {
+      background-color: var(--primary-light) !important;
+      color: var(--primary) !important;
+      font-weight: 700 !important;
+    }
+
+    .mdc-list-item__primary-text {
+      color: inherit !important;
     }
   }
 }

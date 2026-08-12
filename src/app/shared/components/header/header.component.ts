@@ -65,6 +65,10 @@ export class HeaderComponent implements OnInit {
   }
 
   onNotificationClick(notification: Notification) {
-    this.notificationService.markAsRead(notification.notificationId);
+    this.notificationService.markAsRead(notification.notificationId).subscribe();
+  }
+
+  markAllRead() {
+    this.notificationService.markAllRead().subscribe();
   }
 }

@@ -4,6 +4,7 @@ import { Notification, NotificationStatus } from '@application/dto/notification/
 import { GetNotificationsUseCase } from '@application/usecase/notification/get-notifications.usecase';
 import { CountUnreadNotificationsUseCase } from '@application/usecase/notification/count-unread-notifications.usecase';
 import { MarkNotificationReadUseCase } from '@application/usecase/notification/mark-notification-read.usecase';
+import { MarkAllNotificationsReadUseCase } from '@application/usecase/notification/mark-all-notifications-read.usecase';
 import { WEBSOCKET_SERVICE_TOKEN } from '@application/ports/websocket.service';
 import { AuthService } from './auth.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -16,6 +17,7 @@ export class NotificationService {
   private getNotificationsUseCase = inject(GetNotificationsUseCase);
   private countUnreadUseCase = inject(CountUnreadNotificationsUseCase);
   private markReadUseCase = inject(MarkNotificationReadUseCase);
+  private markAllReadUseCase = inject(MarkAllNotificationsReadUseCase);
   private wsService = inject(WEBSOCKET_SERVICE_TOKEN);
   private authService = inject(AuthService);
   private snackBar = inject(MatSnackBar);
@@ -165,6 +167,28 @@ export class NotificationService {
         },
         error: (err) => {
           console.error('Failed to mark notification as read:', err);
+          subscriber.error(err);
+        }
+      });
+    });
+  }
+
+  public markAllRead(): Observable<void> {
+    return new Observable<void>(subscriber => {
+      this.markAllReadUseCase.execute().subscribe({
+        next: () => {
+          const current = this.notificationsSubject.value.map(n => ({
+            ...n,
+            status: NotificationStatus.READ,
+            readAt: new Date().toISOString()
+          }));
+          this.notificationsSubject.next(current);
+          this.unreadCountSubject.next(0);
+          subscriber.next();
+          subscriber.complete();
+        },
+        error: (err) => {
+          console.error('Failed to mark all notifications as read:', err);
           subscriber.error(err);
         }
       });

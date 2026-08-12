@@ -28,4 +28,10 @@ export class NotificationRepositoryImpl implements NotificationRepository {
       map(response => response.data)
     );
   }
+
+  markAllRead(): Observable<void> {
+    return this.notificationApi.markAllRead().pipe(
+      map(() => void 0)
+    );
+  }
 }

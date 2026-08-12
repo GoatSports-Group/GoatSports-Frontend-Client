@@ -40,4 +40,11 @@ export class NotificationApi {
       {}
     );
   }
+
+  markAllRead(): Observable<BaseResponse<void>> {
+    return this.http.put<BaseResponse<void>>(
+      `${this.apiBase}/notification-service/api/v1/notifications/read-all`,
+      {}
+    );
+  }
 }
