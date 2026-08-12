@@ -321,9 +321,10 @@ a {
 
   .mat-mdc-select-value {
     color: var(--text-dark) !important;
-    font-weight: 500 !important;
-    font-size: 0.88rem !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
   }
+  
   --mat-form-field-outlined-input-text-placeholder-color: var(--text-muted);
   --mat-form-field-filled-input-text-placeholder-color: var(--text-muted);
 
@@ -336,34 +337,63 @@ a {
   --mat-form-field-filled-caret-color: var(--primary);
 
   .mdc-text-field {
-    border-radius: 12px !important; /* Soft premium rounded corners matching auth */
-    background-color: var(--bg-card) !important;
+    border-radius: 16px !important; /* Premium rounded-2xl matching auth */
+    background-color: var(--bg-body) !important; /* Clean off-white container bg matching auth */
     border: 1px solid transparent !important;
     transition: var(--transition-smooth);
+    padding: 0 16px !important;
   }
 
   .mat-mdc-input-element {
     color: var(--text-dark) !important;
-    font-weight: 500 !important;
-    font-size: 0.88rem !important;
+    font-weight: 600 !important; /* Semi-bold text matching auth */
+    font-size: 0.9rem !important;
 
     &::placeholder {
-      font-size: 0.82rem !important;
-      font-weight: 400 !important;
+      font-size: 0.88rem !important;
+      font-weight: 500 !important;
+      color: var(--text-muted) !important;
     }
   }
 
-  .mdc-notched-outline__leading,
-  .mdc-notched-outline__notch,
-  .mdc-notched-outline__trailing {
+  .mdc-floating-label,
+  .mat-mdc-floating-label {
+    font-size: 0.9rem !important;
+    font-weight: 500 !important;
+    color: var(--text-muted) !important;
+    left: 4px !important;
+  }
+
+  .mdc-notched-outline__leading {
+    border-radius: 16px 0 0 16px !important;
+    border-color: var(--border-color) !important;
+    transition: var(--transition-smooth);
+    width: 20px !important;
+  }
+
+  .mdc-notched-outline__notch {
     border-color: var(--border-color) !important;
     transition: var(--transition-smooth);
   }
 
+  .mdc-notched-outline__trailing {
+    border-radius: 0 16px 16px 0 !important;
+    border-color: var(--border-color) !important;
+    transition: var(--transition-smooth);
+  }
+
+  &:hover:not(.mat-focused) {
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__notch,
+    .mdc-notched-outline__trailing {
+      border-color: var(--text-dark) !important; /* Darken border slightly on hover matching auth */
+    }
+  }
+
   &.mat-focused {
     .mdc-text-field {
-      box-shadow: var(--shadow-glow-primary) !important; /* Unified glowing outline container shadow */
-      background-color: var(--bg-card) !important;
+      box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.08) !important; /* Soft emerald ring shadow matching auth focus */
+      background-color: #ffffff !important; /* Turn pure white on focus */
     }
 
     .mdc-notched-outline__leading,
@@ -376,6 +406,7 @@ a {
     .mdc-floating-label,
     .mat-mdc-floating-label {
       color: var(--primary) !important;
+      font-weight: 700 !important;
     }
   }
 }
