@@ -84,7 +84,9 @@ import {
   LucideBadgeCheck,
   LucideGlobe,
   LucideVideo,
-  LucideFlame
+  LucideFlame,
+  LucideBellOff,
+  LucideCheck
 } from '@lucide/angular';
 
 @NgModule({
@@ -174,7 +176,9 @@ import {
       LucideBadgeCheck,
       LucideGlobe,
       LucideVideo,
-      LucideFlame
+      LucideFlame,
+      LucideBellOff,
+      LucideCheck
     )
   ],
   bootstrap: [AppComponent]

@@ -185,8 +185,14 @@ body.dark .main-header {
 
     input {
       font-family: var(--font-body);
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       color: var(--text-dark);
+      background: transparent !important;
+      border: none !important;
+      outline: none !important;
+      box-shadow: none !important;
+      width: 100% !important;
+      padding: 0 !important;
     }
   }
 }
