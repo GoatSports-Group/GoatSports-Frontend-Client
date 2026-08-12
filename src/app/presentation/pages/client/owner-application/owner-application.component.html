@@ -11,7 +11,7 @@
 
   <div class="container-content">
     <!-- Navigation Tabs -->
-    <div class="tabs-header neo-card">
+    <div class="tabs-header">
       <button class="tab-btn" [class.active]="activeTab === 'list'" (click)="activeTab = 'list'">
         <mat-icon>history</mat-icon> Lịch Sử Đăng Ký
       </button>
@@ -91,7 +91,7 @@
     <!-- Active Tab: New Registration Form -->
     @if (activeTab === 'form') {
     <div class="tab-pane">
-      <mat-card class="form-card neo-card">
+      <mat-card class="form-card">
         <form (submit)="onSubmit()" class="registration-form">
           <h2 class="section-title athletic-title"><mat-icon color="primary">person</mat-icon> 1. Thông Tin Người Đại Diện</h2>
           <div class="form-row-grid">

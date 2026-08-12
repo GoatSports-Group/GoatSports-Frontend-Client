@@ -110,6 +110,14 @@
   font-style: italic;
 }
 
+/* Enforce local Be Vietnam Pro font globally */
+*, html, body, button, input, select, textarea, span, div, h1, h2, h3, h4, h5, h6,
+.mat-mdc-menu-item, .mat-mdc-menu-panel, .mat-mdc-dialog-container, .mat-mdc-button,
+.mat-mdc-raised-button, .mat-mdc-icon-button, .mat-mdc-card, .mat-mdc-form-field,
+.mat-mdc-select, .mat-mdc-option, .cdk-overlay-container {
+  font-family: 'Be Vietnam Pro', sans-serif !important;
+}
+
 /* Global Design System & Variables */
 :root {
   --primary: #059669;          /* Sporty grass green */
