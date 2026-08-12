@@ -20,7 +20,7 @@ export class HomeComponent implements OnInit {
       case SportType.BADMINTON: return 'target';
       case SportType.TENNIS: return 'activity';
       case SportType.PICKLEBALL: return 'swords';
-      case SportType.BASKETBALL: return 'dribbble';
+      case SportType.BASKETBALL: return 'flame';
       case SportType.VOLLEYBALL: return 'award';
       default: return 'activity';
     }
