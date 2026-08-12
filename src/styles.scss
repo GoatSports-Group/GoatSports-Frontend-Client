@@ -701,102 +701,88 @@ body.dark .court-badminton {
   }
 }
 
-/* Neubrutalism Sports System Utilities (UI/UX Pro Max) */
+/* Premium Modern Sports System Utilities (UI/UX Pro Max) */
 .neo-card {
   background-color: var(--bg-card) !important;
-  border: 3px solid var(--text-dark) !important;
-  box-shadow: 6px 6px 0px var(--text-dark) !important;
-  border-radius: 12px !important;
-  transition: var(--transition-spring) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: var(--shadow-md) !important;
+  border-radius: 20px !important;
+  transition: var(--transition-smooth) !important;
 
   &:hover {
-    transform: translate(-3px, -3px) !important;
-    box-shadow: 9px 9px 0px var(--text-dark) !important;
+    transform: translateY(-4px) !important;
+    box-shadow: var(--shadow-lg) !important;
     border-color: var(--primary) !important;
   }
 
   &:active {
-    transform: translate(3px, 3px) !important;
-    box-shadow: 3px 3px 0px var(--text-dark) !important;
+    transform: translateY(-1px) !important;
   }
 }
 
 .neo-btn {
-  border: 3px solid var(--text-dark) !important;
-  box-shadow: 4px 4px 0px var(--text-dark) !important;
-  border-radius: 8px !important;
-  font-weight: 800 !important;
-  text-transform: uppercase !important;
-  font-style: italic !important;
-  transition: var(--transition-spring) !important;
+  background-color: var(--primary) !important;
+  color: white !important;
+  border: 1px solid transparent !important;
+  box-shadow: var(--shadow-sm) !important;
+  border-radius: 12px !important;
+  font-weight: 700 !important;
+  text-transform: none !important;
+  font-style: normal !important;
+  transition: var(--transition-smooth) !important;
 
   &:hover:not([disabled]) {
-    transform: translate(-2px, -2px) !important;
-    box-shadow: 6px 6px 0px var(--text-dark) !important;
-    background-color: var(--primary) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25) !important;
+    background-color: var(--primary-hover) !important;
     color: white !important;
   }
 
   &:active:not([disabled]) {
-    transform: translate(2px, 2px) !important;
-    box-shadow: 2px 2px 0px var(--text-dark) !important;
+    transform: translateY(1px) !important;
   }
   
   &[disabled] {
-    opacity: 0.6 !important;
+    opacity: 0.5 !important;
     box-shadow: none !important;
+    background-color: var(--text-muted) !important;
+    cursor: not-allowed !important;
   }
 }
 
 .neo-badge {
-  border: 2px solid var(--text-dark) !important;
-  background-color: var(--accent-light) !important;
-  color: var(--accent) !important;
-  font-weight: 800 !important;
-  padding: 4px 12px !important;
+  border: 1px solid rgba(5, 150, 105, 0.2) !important;
+  background-color: var(--primary-light) !important;
+  color: var(--primary) !important;
+  font-weight: 700 !important;
+  padding: 6px 14px !important;
   border-radius: 99px !important;
-  text-transform: uppercase !important;
   letter-spacing: 0.5px !important;
-  font-style: italic !important;
+  font-style: normal !important;
   display: inline-flex !important;
   align-items: center !important;
-  gap: 4px !important;
+  gap: 6px !important;
 }
 
 body.dark {
   .neo-card {
-    border-color: var(--primary) !important;
-    box-shadow: 6px 6px 0px var(--primary) !important;
+    border-color: var(--border-color) !important;
+    box-shadow: var(--shadow-md) !important;
     
     &:hover {
-      box-shadow: 9px 9px 0px var(--primary) !important;
-      border-color: var(--accent) !important;
-    }
-    
-    &:active {
-      box-shadow: 3px 3px 0px var(--primary) !important;
+      box-shadow: var(--shadow-lg) !important;
+      border-color: var(--primary) !important;
     }
   }
   
   .neo-btn {
-    border-color: var(--primary) !important;
-    box-shadow: 4px 4px 0px var(--primary) !important;
-    color: var(--text-dark) !important;
+    border-color: transparent !important;
+    box-shadow: var(--shadow-sm) !important;
+    color: white !important;
     
     &:hover:not([disabled]) {
-      box-shadow: 6px 6px 0px var(--primary) !important;
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35) !important;
       background-color: var(--primary-hover) !important;
-      color: white !important;
     }
-    
-    &:active:not([disabled]) {
-      box-shadow: 2px 2px 0px var(--primary) !important;
-    }
-  }
-  
-  .neo-badge {
-    border-color: var(--primary) !important;
-    background-color: var(--primary-light) !important;
-    color: var(--primary) !important;
   }
 }
