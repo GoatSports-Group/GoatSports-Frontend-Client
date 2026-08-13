@@ -9,7 +9,7 @@
     <!-- Logo -->
     <div class="logo-wrapper" routerLink="/home">
       <img src="assets/images/goat.png" alt="Goat Sports Logo" class="logo-img">
-      <span class="logo-text athletic-title">GOAT <span class="logo-text-accent">Sports</span></span>
+      <span class="logo-text athletic-title text-slate-800">GOAT <span class="logo-text-accent">Sports</span></span>
     </div>
 
     <!-- Nav Links (Desktop) -->
@@ -42,7 +42,8 @@
       @if (authService.isAuthenticated$ | async) {
       <button mat-icon-button [matMenuTriggerFor]="notifMenu" class="notif-btn" aria-label="Thông báo">
         <lucide-icon name="bell" [matBadge]="notificationService.unreadCount$ | async"
-          [matBadgeHidden]="(notificationService.unreadCount$ | async) === 0" matBadgeColor="warn" class="notif-icon w-5 h-5"></lucide-icon>
+          [matBadgeHidden]="(notificationService.unreadCount$ | async) === 0" matBadgeColor="warn"
+          class="notif-icon w-5 h-5"></lucide-icon>
       </button>
       <mat-menu #notifMenu="matMenu" xPosition="before" class="custom-notif-menu">
         <div class="notif-menu-header" (click)="$event.stopPropagation()">
