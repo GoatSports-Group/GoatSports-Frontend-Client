@@ -1,11 +1,12 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { OwnerApplication } from '@application/dto/owner-application/owner-application.dto';
+import { OwnerApplicationHistoryItem } from './owner-application-progress.models';
 import {
-  BUSINESS_TYPE_OPTIONS,
-  BusinessType,
-  OwnerApplication,
-  OWNER_APPLICATION_STATUS_OPTIONS,
-  OwnerApplicationStatus
-} from '@application/dto/owner-application/owner-application.dto';
+  buildOwnerApplicationProgress,
+  formatOwnerApplicationAddress,
+  getBusinessTypeLabel,
+  getOwnerApplicationStatusLabel
+} from './owner-application-progress.utils';
 
 @Component({
   selector: 'app-owner-application-history',
@@ -14,15 +15,24 @@ import {
   standalone: false
 })
 export class OwnerApplicationHistoryComponent {
-  @Input() applications: OwnerApplication[] = [];
+  private applicationItems: OwnerApplicationHistoryItem[] = [];
+
+  @Input()
+  set applications(applications: OwnerApplication[]) {
+    this.applicationItems = applications.map(application => ({
+      application,
+      progress: buildOwnerApplicationProgress(application)
+    }));
+  }
+
+  get items(): OwnerApplicationHistoryItem[] {
+    return this.applicationItems;
+  }
+
   @Input() loading = false;
   @Output() createApplication = new EventEmitter<void>();
 
-  getStatusLabel(status: OwnerApplicationStatus): string {
-    return OWNER_APPLICATION_STATUS_OPTIONS.find(option => option.value === status)?.label ?? status;
-  }
-
-  getBusinessTypeLabel(type: BusinessType): string {
-    return BUSINESS_TYPE_OPTIONS.find(option => option.value === type)?.label ?? type;
-  }
+  readonly getAddress = formatOwnerApplicationAddress;
+  readonly getBusinessTypeLabel = getBusinessTypeLabel;
+  readonly getStatusLabel = getOwnerApplicationStatusLabel;
 }

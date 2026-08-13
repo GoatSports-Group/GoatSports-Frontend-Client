@@ -1,0 +1,168 @@
+.application-progress {
+  padding: 26px 28px;
+  border-left: 1px solid #e3ebe7;
+  background: #f7faf9;
+}
+
+.application-progress__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+
+  span {
+    color: var(--primary);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+  }
+
+  h3 {
+    margin: 5px 0 0;
+    color: var(--text-dark);
+    font-size: 16px;
+    line-height: 1.4;
+  }
+
+  > lucide-icon {
+    width: 21px;
+    height: 21px;
+    color: var(--primary);
+  }
+}
+
+.progress-steps {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.progress-step {
+  display: grid;
+  min-height: 70px;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 12px;
+}
+
+.progress-step__rail {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
+.progress-step__dot {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  place-items: center;
+  border: 2px solid #d7dfdc;
+  border-radius: 50%;
+  background: #fff;
+  color: #fff;
+
+  lucide-icon {
+    width: 12px;
+    height: 12px;
+    stroke-width: 3;
+  }
+}
+
+.progress-step__line {
+  width: 2px;
+  flex: 1;
+  background: #dfe6e3;
+}
+
+.progress-step__content {
+  min-width: 0;
+  padding: 1px 0 14px;
+
+  strong {
+    color: #56635f;
+    font-size: 13px;
+  }
+
+  p,
+  time {
+    display: block;
+    margin: 3px 0 0;
+    color: #8a9692;
+    font-size: 11px;
+    line-height: 1.45;
+  }
+}
+
+.progress-step--completed {
+  .progress-step__dot {
+    border-color: var(--primary);
+    background: var(--primary);
+  }
+
+  .progress-step__line {
+    background: var(--primary);
+  }
+
+  .progress-step__content strong {
+    color: var(--text-dark);
+  }
+}
+
+.progress-step--current {
+  .progress-step__dot {
+    border: 5px solid #b9ead9;
+    background: var(--primary);
+    box-shadow: 0 0 0 4px rgb(0 159 113 / 9%);
+  }
+
+  .progress-step__content strong {
+    color: var(--text-dark);
+  }
+}
+
+.progress-step--rejected,
+.progress-step--cancelled {
+  .progress-step__dot {
+    border-color: #df3153;
+    background: #df3153;
+  }
+
+  .progress-step__content strong {
+    color: #c22242;
+  }
+}
+
+.application-progress__note {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 4px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid #e2e9e6;
+  color: #84918d;
+  font-size: 10px;
+  line-height: 1.5;
+
+  lucide-icon {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 14px;
+  }
+}
+
+@media (max-width: 980px) {
+  .application-progress {
+    border-top: 1px solid #e3ebe7;
+    border-left: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .application-progress {
+    padding: 20px;
+  }
+}

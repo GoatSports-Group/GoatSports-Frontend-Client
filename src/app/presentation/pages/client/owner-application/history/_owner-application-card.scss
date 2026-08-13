@@ -1,0 +1,210 @@
+.application-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(360px, .8fr);
+  overflow: hidden;
+  border: 1px solid #dce5e1;
+  border-radius: 20px;
+  background: var(--bg-card);
+  box-shadow: 0 10px 30px rgb(15 23 42 / 5%);
+  transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+
+  &:hover {
+    border-color: rgb(0 159 113 / 30%);
+    box-shadow: 0 16px 38px rgb(15 23 42 / 8%);
+    transform: translateY(-2px);
+  }
+}
+
+.application-card__information {
+  min-width: 0;
+  padding: 26px 28px;
+}
+
+.application-card__header,
+.application-card__identity {
+  display: flex;
+  align-items: center;
+}
+
+.application-card__header {
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid #edf1ef;
+}
+
+.application-card__identity {
+  min-width: 0;
+  gap: 14px;
+}
+
+.application-card__logo {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+  place-items: center;
+  border: 1px solid #ccefe2;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #edfff8, #f8fffc);
+  color: var(--primary);
+
+  lucide-icon {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.application-card__eyebrow {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.application-card h2 {
+  overflow: hidden;
+  margin: 4px 0 0;
+  color: var(--text-dark);
+  font-size: 21px;
+  font-weight: 800;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status {
+  flex: 0 0 auto;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: #fff7e6;
+  color: #b76e00;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.status--approved {
+  background: #eafaf4;
+  color: #00875f;
+}
+
+.status--rejected,
+.status--cancelled {
+  background: #fff0f2;
+  color: #d92d4c;
+}
+
+.application-card__details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 28px;
+  padding-top: 24px;
+}
+
+.detail-row {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 10px;
+
+  lucide-icon {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    color: #82918c;
+  }
+
+  span,
+  strong {
+    display: block;
+  }
+
+  span {
+    margin-bottom: 4px;
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+
+  strong {
+    overflow: hidden;
+    color: #34423e;
+    font-size: 13px;
+    font-weight: 650;
+    line-height: 1.55;
+    text-overflow: ellipsis;
+  }
+}
+
+.detail-row--wide {
+  grid-column: 1 / -1;
+}
+
+.detail-row__code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  white-space: nowrap;
+}
+
+.application-card__notice {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 10px;
+  margin-top: 22px;
+  padding: 13px 14px;
+  border: 1px solid #ffd4dc;
+  border-radius: 12px;
+  background: #fff6f7;
+  color: #b42342;
+
+  lucide-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  strong,
+  p {
+    margin: 0;
+    font-size: 12px;
+  }
+
+  p {
+    margin-top: 3px;
+    color: #7c4250;
+    line-height: 1.5;
+  }
+}
+
+@media (max-width: 980px) {
+  .application-card {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .application-card__information {
+    padding: 20px;
+  }
+
+  .application-card__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .application-card__details {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-row--wide {
+    grid-column: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .application-card {
+    transition: none;
+
+    &:hover {
+      transform: none;
+    }
+  }
+}

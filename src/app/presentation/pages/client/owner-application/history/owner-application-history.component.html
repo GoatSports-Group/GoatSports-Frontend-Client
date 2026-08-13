@@ -1,33 +1,133 @@
 @if (loading) {
-  <div class="history-state">
+  <div class="history-state" role="status" aria-live="polite">
     <span class="history-spinner" aria-hidden="true"></span>
     <h2>Đang tải hồ sơ</h2>
     <p>Vui lòng chờ trong giây lát.</p>
   </div>
-} @else if (applications.length === 0) {
-  <div class="history-state">
-    <span class="history-clock" aria-hidden="true">◷</span>
+} @else if (items.length === 0) {
+  <div class="history-state history-state--empty">
+    <span class="history-state__icon" aria-hidden="true">
+      <lucide-icon name="history"></lucide-icon>
+    </span>
     <h2>Chưa có hồ sơ đăng ký</h2>
-    <p>Khi bạn gửi một hồ sơ, trạng thái và các lần cập nhật sẽ xuất hiện tại đây.</p>
+    <p>Khi bạn gửi hồ sơ, trạng thái xử lý sẽ xuất hiện tại đây.</p>
+    <button type="button" (click)="createApplication.emit()">Tạo hồ sơ đầu tiên</button>
   </div>
 } @else {
   <div class="history-list">
-    @for (application of applications; track application.ownerApplicationId) {
-      <article class="history-item">
-        <div class="history-item__main">
-          <span class="history-item__label">{{ getBusinessTypeLabel(application.businessType) }}</span>
-          <h2>{{ application.businessName }}</h2>
-          <p>{{ application.fullName }} · {{ application.phone }} · {{ application.email }}</p>
-          <p>{{ application.address.address }}, {{ application.address.ward }}, {{ application.address.district }}, {{ application.address.province }}</p>
-        </div>
-        <div class="history-item__meta">
-          <span class="status" [class]="'status status--' + application.status.toLowerCase()">
-            {{ getStatusLabel(application.status) }}
-          </span>
-          @if (application.createdAt) {
-            <time>{{ application.createdAt | date:'dd/MM/yyyy' }}</time>
+    @for (item of items; track item.application.ownerApplicationId) {
+      <article class="application-card" [attr.aria-label]="'Hồ sơ ' + item.application.businessName">
+        <section class="application-card__information">
+          <header class="application-card__header">
+            <div class="application-card__identity">
+              <span class="application-card__logo" aria-hidden="true">
+                <lucide-icon name="store"></lucide-icon>
+              </span>
+              <div>
+                <span class="application-card__eyebrow">
+                  {{ getBusinessTypeLabel(item.application.businessType) }}
+                </span>
+                <h2>{{ item.application.businessName }}</h2>
+              </div>
+            </div>
+            <span class="status" [class]="'status status--' + item.application.status.toLowerCase()">
+              {{ getStatusLabel(item.application.status) }}
+            </span>
+          </header>
+
+          <div class="application-card__details">
+            <div class="detail-row">
+              <lucide-icon name="user-round" aria-hidden="true"></lucide-icon>
+              <div>
+                <span>Người đại diện</span>
+                <strong>{{ item.application.fullName }}</strong>
+              </div>
+            </div>
+            <div class="detail-row">
+              <lucide-icon name="phone" aria-hidden="true"></lucide-icon>
+              <div>
+                <span>Thông tin liên hệ</span>
+                <strong>{{ item.application.phone }} · {{ item.application.email }}</strong>
+              </div>
+            </div>
+            <div class="detail-row detail-row--wide">
+              <lucide-icon name="map-pin" aria-hidden="true"></lucide-icon>
+              <div>
+                <span>Địa chỉ sân</span>
+                <strong>{{ getAddress(item.application) }}</strong>
+              </div>
+            </div>
+            <div class="detail-row">
+              <lucide-icon name="calendar" aria-hidden="true"></lucide-icon>
+              <div>
+                <span>Ngày nộp hồ sơ</span>
+                <strong>
+                  {{ item.application.createdAt ? (item.application.createdAt | date:'dd/MM/yyyy HH:mm') : 'Đang cập nhật' }}
+                </strong>
+              </div>
+            </div>
+            <div class="detail-row">
+              <lucide-icon name="file-text" aria-hidden="true"></lucide-icon>
+              <div>
+                <span>Mã hồ sơ</span>
+                <strong class="detail-row__code">{{ item.application.ownerApplicationId }}</strong>
+              </div>
+            </div>
+          </div>
+
+          @if (item.application.rejectReason) {
+            <div class="application-card__notice" role="note">
+              <lucide-icon name="alert-triangle" aria-hidden="true"></lucide-icon>
+              <div>
+                <strong>Lý do từ chối</strong>
+                <p>{{ item.application.rejectReason }}</p>
+              </div>
+            </div>
           }
-        </div>
+        </section>
+
+        <aside class="application-progress" [class]="'application-progress application-progress--' + item.progress.tone">
+          <header class="application-progress__header">
+            <div>
+              <span>Tiến trình hồ sơ</span>
+              <h3>{{ item.progress.summary }}</h3>
+            </div>
+            <lucide-icon name="activity" aria-hidden="true"></lucide-icon>
+          </header>
+
+          <ol class="progress-steps">
+            @for (step of item.progress.steps; track step.title; let last = $last) {
+              <li class="progress-step" [class]="'progress-step progress-step--' + step.state">
+                <div class="progress-step__rail" aria-hidden="true">
+                  <span class="progress-step__dot">
+                    @if (step.state === 'completed') {
+                      <lucide-icon name="check"></lucide-icon>
+                    } @else if (step.state === 'rejected' || step.state === 'cancelled') {
+                      <lucide-icon name="x"></lucide-icon>
+                    }
+                  </span>
+                  @if (!last) {
+                    <span class="progress-step__line"></span>
+                  }
+                </div>
+                <div class="progress-step__content">
+                  <strong>{{ step.title }}</strong>
+                  <p>{{ step.description }}</p>
+                  @if (step.timestamp) {
+                    <time [attr.datetime]="step.timestamp">
+                      {{ step.timestamp | date:'dd/MM/yyyy HH:mm' }}
+                    </time>
+                  }
+                </div>
+              </li>
+            }
+          </ol>
+
+          <p class="application-progress__note">
+            <lucide-icon name="info" aria-hidden="true"></lucide-icon>
+            Mốc thời gian chi tiết sẽ được cập nhật khi hệ thống xử lý hồ sơ.
+          </p>
+        </aside>
       </article>
     }
   </div>
