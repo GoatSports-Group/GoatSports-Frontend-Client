@@ -1,121 +1,89 @@
-<div class="standards-page">
-  <!-- Policy Header -->
-  <div class="policy-header-bar">
-    <div class="logo-wrapper" routerLink="/home">
-      <img src="assets/images/goat.png" alt="Goat Sports Logo" class="logo-img">
-      <span class="logo-text">GOAT <span class="logo-text-accent">Sports</span></span>
-    </div>
-    <a routerLink="/home" class="back-home-btn">
-      <lucide-icon name="arrow-left" class="w-4 h-4 mr-2"></lucide-icon> Quay lại trang chủ
-    </a>
-  </div>
-
-  <!-- Hero Section -->
-  <div class="standards-hero">
-    <div class="hero-content">
-      <div class="icon-badge">
-        <lucide-icon name="award" class="w-8 h-8"></lucide-icon>
-      </div>
-      <h1>Tiêu Chuẩn Sân Đấu Chuyên Nghiệp</h1>
-      <p class="hero-subtitle">Tại GOAT Sports, chúng tôi tin rằng trải nghiệm thể thao tốt nhất bắt đầu từ hạ tầng sân chơi đạt chuẩn chất lượng cao. Khám phá các tiêu chí kỹ thuật chúng tôi áp dụng.</p>
-    </div>
-  </div>
-
-  <div class="standards-container">
-    <!-- Intro Definition Card -->
-    <div class="intro-card">
-      <div class="intro-image-mock">
-        <lucide-icon name="activity" class="w-12 h-12 text-emerald-500"></lucide-icon>
-      </div>
-      <div class="intro-text">
-        <h2>Thế Nào Là Sân Đấu Đạt Chuẩn GOAT Sports?</h2>
-        <p>Sân đấu đạt chuẩn là cụm sân được hoàn thiện theo kích thước chuẩn quốc tế của từng bộ môn, sử dụng vật liệu thảm phủ bề mặt chất lượng, đảm bảo độ bám tốt, giảm chấn chấn thương và có hệ thống phân bổ ánh sáng hoàn hảo vào buổi tối.</p>
-      </div>
-    </div>
-
-    <!-- 3 Core Criteria Cards -->
-    <div class="content-section text-center">
-      <h2>3 Tiêu Chí Cốt Lõi Của Sân Đấu Đối Tác</h2>
-      <p class="section-subtitle">Tất cả các cụm sân được liên kết trên hệ thống của chúng tôi đều đáp ứng 3 cam kết khắt khe nhất.</p>
- 
-      <div class="criteria-grid">
-        <div class="criteria-card">
-          <div class="badge-icon">
-            <lucide-icon name="check-circle" class="w-6 h-6 text-emerald-500"></lucide-icon>
-          </div>
-          <h3>Thảm & Mặt Sân Chất Lượng</h3>
-          <p>Mặt cỏ nhân tạo FIFA cho sân bóng đá, thảm Yonex cho cầu lông, sơn Acrylic chống trơn trượt cho tennis và pickleball.</p>
+<app-policy-layout>
+  <article class="policy-page">
+    <div class="policy-container">
+      <header class="policy-hero">
+        <div class="policy-hero__icon"><lucide-icon name="award"></lucide-icon></div>
+        <div>
+          <p class="policy-hero__eyebrow">Chất lượng đối tác</p>
+          <h1>Tiêu chuẩn sân đấu</h1>
+          <p class="policy-hero__description">
+            Bộ tiêu chí hạ tầng, ánh sáng và tiện ích giúp GOAT Sports lựa chọn các cụm sân an toàn, ổn định và phù hợp cho cộng đồng.
+          </p>
         </div>
+      </header>
 
-        <div class="criteria-card">
-          <div class="badge-icon">
-            <lucide-icon name="sun" class="w-6 h-6 text-emerald-500"></lucide-icon>
-          </div>
-          <h3>Hệ Thống Ánh Sáng Led</h3>
-          <p>Đèn chiếu sáng chuyên dụng chống lóa mắt, phân bổ ánh sáng đồng đều khắp sân đấu, đảm bảo trải nghiệm chơi đêm tốt nhất.</p>
+      <section class="policy-feature">
+        <div class="policy-feature__icon"><lucide-icon name="activity"></lucide-icon></div>
+        <div>
+          <h2>Thế nào là sân đạt chuẩn GOAT Sports?</h2>
+          <p>Sân đạt chuẩn có kích thước phù hợp với từng bộ môn, bề mặt đảm bảo độ bám và giảm chấn, ánh sáng phân bổ đồng đều cùng hệ thống tiện ích được duy trì thường xuyên.</p>
         </div>
+      </section>
 
-        <div class="criteria-card">
-          <div class="badge-icon">
-            <lucide-icon name="concierge-bell" class="w-6 h-6 text-emerald-500"></lucide-icon>
-          </div>
-          <h3>Tiện Ích Đi Kèm Đầy Đủ</h3>
-          <p>Cung cấp đầy đủ cabin tắm nước nóng lạnh, phòng thay đồ sạch sẽ, bãi giữ xe máy/ô tô rộng rãi và tủ đồ cá nhân an toàn.</p>
+      <section class="policy-section">
+        <div class="policy-section__heading"><span>01</span><h2>Ba tiêu chí cốt lõi</h2></div>
+        <p class="policy-section__intro">Mỗi cụm sân đối tác cần đáp ứng đồng thời các tiêu chí về mặt sân, ánh sáng và trải nghiệm đi kèm.</p>
+        <div class="policy-grid policy-grid--three">
+          <article class="policy-highlight">
+            <div class="policy-highlight__icon"><lucide-icon name="check-circle"></lucide-icon></div>
+            <h3>Bề mặt sân chất lượng</h3>
+            <p>Vật liệu phù hợp từng bộ môn, đảm bảo độ bám, độ phẳng và khả năng giảm chấn khi vận động.</p>
+          </article>
+          <article class="policy-highlight">
+            <div class="policy-highlight__icon"><lucide-icon name="sun"></lucide-icon></div>
+            <h3>Ánh sáng đồng đều</h3>
+            <p>Đèn chuyên dụng hạn chế chói mắt và duy trì độ sáng ổn định trên toàn bộ khu vực thi đấu.</p>
+          </article>
+          <article class="policy-highlight">
+            <div class="policy-highlight__icon"><lucide-icon name="concierge-bell"></lucide-icon></div>
+            <h3>Tiện ích đầy đủ</h3>
+            <p>Phòng thay đồ, khu vệ sinh, bãi xe và khu vực nghỉ chờ được bố trí sạch sẽ, thuận tiện.</p>
+          </article>
         </div>
-      </div>
+      </section>
+
+      <section class="policy-section">
+        <div class="policy-section__heading"><span>02</span><h2>Quy trình kiểm định định kỳ</h2></div>
+        <div class="policy-stack">
+          <article class="policy-row">
+            <div class="policy-row__content">
+              <h3>Đánh giá hạ tầng hằng tháng</h3>
+              <p>Kiểm tra mặt sân, lưới, khung thành và lịch vệ sinh, bảo dưỡng của từng cụm sân.</p>
+            </div>
+            <span class="policy-pill">Hằng tháng</span>
+          </article>
+          <article class="policy-row">
+            <div class="policy-row__content">
+              <h3>Đo cường độ chiếu sáng</h3>
+              <p>Đo độ rọi tại nhiều vị trí để phát hiện điểm tối và hạn chế vùng ánh sáng gây chói.</p>
+            </div>
+            <span class="policy-pill">Buổi tối</span>
+          </article>
+          <article class="policy-row">
+            <div class="policy-row__content">
+              <h3>Đối chiếu phản hồi người chơi</h3>
+              <p>Phản hồi về vệ sinh, thái độ phục vụ và chất lượng sân được chuyển tới chủ sân để xử lý.</p>
+            </div>
+            <span class="policy-pill">Liên tục</span>
+          </article>
+        </div>
+      </section>
+
+      <section class="policy-section">
+        <div class="policy-section__heading"><span>03</span><h2>Chứng nhận tham chiếu</h2></div>
+        <p class="policy-section__intro">Các tiêu chuẩn kỹ thuật được tham chiếu theo từng môn thể thao và điều kiện vận hành thực tế.</p>
+        <div class="policy-badges">
+          <span>FIFA Quality Turf</span>
+          <span>BWF Standard Court</span>
+          <span>USAPA Certified</span>
+          <span>VBA Court Layout</span>
+        </div>
+      </section>
+
+      <aside class="policy-alert">
+        <lucide-icon name="badge-check"></lucide-icon>
+        <p>Các cụm sân không duy trì tiêu chuẩn có thể bị tạm ngừng hiển thị cho đến khi hoàn tất khắc phục.</p>
+      </aside>
     </div>
-
-    <!-- Verification / Inspection process -->
-    <div class="content-section">
-      <h2>Quy Trình Kiểm Định Chất Lượng Định Kỳ</h2>
-      <p class="section-intro">Chúng tôi xây dựng quy trình giám sát độc lập chất lượng dịch vụ của các cụm sân đối tác:</p>
- 
-      <div class="inspections">
-        <div class="inspection-step">
-          <div class="ins-num">
-            <lucide-icon name="gavel" class="w-5 h-5 text-emerald-500"></lucide-icon>
-          </div>
-          <div class="ins-content">
-            <h4>Đánh giá hạ tầng hàng tháng</h4>
-            <p>Hợp tác duy nhất với các cụm sân được vệ sinh và bảo dưỡng lưới, thảm cỏ định kỳ để duy trì độ đàn hồi tốt nhất.</p>
-          </div>
-        </div>
-
-        <div class="inspection-step">
-          <div class="ins-num">
-            <lucide-icon name="flask-conical" class="w-5 h-5 text-emerald-500"></lucide-icon>
-          </div>
-          <div class="ins-content">
-            <h4>Đo đạc cường độ chiếu sáng ban đêm</h4>
-            <p>Đo độ rọi sáng tại nhiều điểm trên sân đấu để loại bỏ hoàn toàn các góc khuất tối gây khó khăn cho người chơi.</p>
-          </div>
-        </div>
-
-        <div class="inspection-step">
-          <div class="ins-num">
-            <lucide-icon name="users" class="w-5 h-5 text-emerald-500"></lucide-icon>
-          </div>
-          <div class="ins-content">
-            <h4>Xử lý ý kiến phản hồi người chơi</h4>
-            <p>Mọi đánh giá 1-3 sao từ người chơi về vệ sinh, thái độ phục vụ hay chất lượng lưới sẽ được hệ thống gửi trực tiếp cho chủ sân để khắc phục lập tức.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Certifications Banner / Accolades -->
-    <div class="certifications-banner">
-      <div class="cert-title">
-        <lucide-icon name="badge-check" class="w-6 h-6 text-emerald-500 mr-2"></lucide-icon>
-        <h3>Chứng Nhận Tiêu Chuẩn Sân Đấu</h3>
-      </div>
-      <p>Hệ thống GOAT Sports hợp tác cùng các đơn vị quản lý sân đạt tiêu chuẩn kỹ thuật an toàn thể thao.</p>
-      <div class="badges-wrapper">
-        <span class="cert-badge">FIFA Quality Turf</span>
-        <span class="cert-badge">BWF Standard Court</span>
-        <span class="cert-badge">USAPA Certified</span>
-        <span class="cert-badge">VBA Court Layout</span>
-      </div>
-    </div>
-  </div>
-</div>
+  </article>
+</app-policy-layout>

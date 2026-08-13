@@ -9,13 +9,13 @@ import { NotifyService } from '@shared/components/notify/notify.service';
     standalone: false
 })
 export class ContactSupportComponent implements OnInit {
-  private fb = inject(FormBuilder);
-  private notify = inject(NotifyService);
+  private readonly fb = inject(FormBuilder);
+  private readonly notify = inject(NotifyService);
 
   contactForm!: FormGroup;
   submitting = false;
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.contactForm = this.fb.group({
       fullName: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
@@ -24,16 +24,17 @@ export class ContactSupportComponent implements OnInit {
     });
   }
 
-  onSubmit() {
+  onSubmit(): void {
     if (this.contactForm.invalid) {
+      this.contactForm.markAllAsTouched();
+      this.notify.warning('Vui lòng kiểm tra lại các thông tin bắt buộc.');
       return;
     }
 
     this.submitting = true;
 
-    // Simulate API call
     setTimeout(() => {
-      this.notify.success('Gửi yêu cầu liên hệ thành công! Chúng tôi sẽ phản hồi bạn sớm.');
+      this.notify.success('Đã gửi yêu cầu hỗ trợ. Chúng tôi sẽ phản hồi bạn sớm.');
 
       this.contactForm.reset();
       this.submitting = false;

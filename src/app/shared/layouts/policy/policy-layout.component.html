@@ -1,0 +1,23 @@
+<div class="policy-shell">
+  <header class="policy-header">
+    <div class="policy-header__container">
+      <a class="policy-logo" routerLink="/home" aria-label="Về trang chủ GOAT Sports">
+        <img src="assets/images/goat.png" alt="GOAT Sports">
+        <span>GOAT <strong>SPORTS</strong></span>
+      </a>
+
+      <a class="policy-home-link" routerLink="/home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m15 18-6-6 6-6" />
+        </svg>
+        Về trang chủ
+      </a>
+    </div>
+  </header>
+
+  <main class="policy-shell__content">
+    <ng-content />
+  </main>
+
+  <app-footer />
+</div>

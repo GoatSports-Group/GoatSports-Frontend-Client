@@ -1,170 +1,91 @@
-<div class="policy-page">
-  <!-- Policy Header -->
-  <div class="policy-header-bar">
-    <div class="logo-wrapper" routerLink="/home">
-      <img src="assets/images/goat.png" alt="Goat Sports Logo" class="logo-img">
-      <span class="logo-text">GOAT <span class="logo-text-accent">Sports</span></span>
-    </div>
-    <a routerLink="/home" class="back-home-btn">
-      <lucide-icon name="arrow-left" class="w-4 h-4 mr-2"></lucide-icon> Quay lại trang chủ
-    </a>
-  </div>
-
-  <!-- Hero Section -->
-  <div class="policy-hero">
-    <div class="hero-content">
-      <div class="icon-badge">
-        <lucide-icon name="calendar-check" class="w-8 h-8"></lucide-icon>
-      </div>
-      <h1>Chính Sách Đặt Sân & Nhận Lịch Chơi</h1>
-      <p class="hero-subtitle">GOAT Sports cam kết mang lại quy trình giữ sân tức thì, xác nhận nhanh chóng qua Email/SMS và check-in mượt mà tại các cụm sân đối tác.</p>
-    </div>
-  </div>
-
-  <div class="policy-container">
-    <!-- Quick Stats/Highlights -->
-    <div class="highlights-grid">
-      <div class="highlight-card">
-        <div class="card-icon">
-          <lucide-icon name="zap" class="w-6 h-6 text-emerald-500"></lucide-icon>
+<app-policy-layout>
+  <article class="policy-page">
+    <div class="policy-container">
+      <header class="policy-hero">
+        <div class="policy-hero__icon"><lucide-icon name="calendar-check"></lucide-icon></div>
+        <div>
+          <p class="policy-hero__eyebrow">Dịch vụ đặt sân</p>
+          <h1>Chính sách đặt sân</h1>
+          <p class="policy-hero__description">
+            Quy trình giữ sân minh bạch, xác nhận nhanh chóng và check-in thuận tiện tại các cụm sân đối tác của GOAT Sports.
+          </p>
         </div>
-        <h3>Xác Nhận Trong 5 Phút</h3>
-        <p>Lịch đặt sân được duyệt nhanh và gửi mã QR check-in qua SMS/Email sau khi hoàn tất thanh toán.</p>
-      </div>
-      
-      <div class="highlight-card">
-        <div class="card-icon">
-          <lucide-icon name="shield-check" class="w-6 h-6 text-emerald-500"></lucide-icon>
-        </div>
-        <h3>Check-in Không Chờ</h3>
-        <p>Quét mã QR booking ngay tại quầy lễ tân của cụm sân để nhận bóng, vợt và vào sân thi đấu.</p>
-      </div>
+      </header>
 
-      <div class="highlight-card">
-        <div class="card-icon">
-          <lucide-icon name="dollar-sign" class="w-6 h-6 text-emerald-500"></lucide-icon>
-        </div>
-        <h3>Giá Thuê Rõ Ràng</h3>
-        <p>Cam kết giá thuê bằng hoặc rẻ hơn giá đặt trực tiếp tại sân, không phát sinh phụ phí ẩn.</p>
-      </div>
-    </div>
+      <section class="policy-highlights" aria-label="Điểm nổi bật">
+        <article class="policy-highlight">
+          <div class="policy-highlight__icon"><lucide-icon name="zap"></lucide-icon></div>
+          <h3>Xác nhận trong 5 phút</h3>
+          <p>Lịch đặt được xác nhận nhanh và gửi thông tin check-in sau khi hoàn tất thanh toán.</p>
+        </article>
+        <article class="policy-highlight">
+          <div class="policy-highlight__icon"><lucide-icon name="shield-check"></lucide-icon></div>
+          <h3>Check-in không chờ</h3>
+          <p>Sử dụng mã booking tại quầy lễ tân để nhận sân và bắt đầu buổi chơi đúng giờ.</p>
+        </article>
+        <article class="policy-highlight">
+          <div class="policy-highlight__icon"><lucide-icon name="dollar-sign"></lucide-icon></div>
+          <h3>Chi phí rõ ràng</h3>
+          <p>Giá sân, phụ thu và phí dịch vụ được hiển thị đầy đủ trước khi bạn xác nhận.</p>
+        </article>
+      </section>
 
-    <!-- Main Content Sections -->
-    <div class="content-section">
-      <h2>1. Các Hình Thức Đặt & Nhận Sân</h2>
-      <div class="delivery-methods">
-        <div class="method-row">
-          <div class="method-info">
-            <div class="method-title">
-              <lucide-icon name="zap" class="text-primary w-4 h-4 mr-1"></lucide-icon>
-              <h4>Đặt Lịch Trực Tuyến (Thời gian thực)</h4>
+      <section class="policy-section">
+        <div class="policy-section__heading"><span>01</span><h2>Hình thức đặt và nhận sân</h2></div>
+        <div class="policy-stack">
+          <article class="policy-row">
+            <div class="policy-row__content">
+              <h3>Đặt lịch trực tuyến theo thời gian thực</h3>
+              <p>Hệ thống đồng bộ lịch trống của sân. Người chơi chọn khung giờ, phương thức thanh toán và nhận thông tin đặt sân ngay sau khi xác nhận.</p>
             </div>
-            <p>Hệ thống tự động đồng bộ thời gian thực với lịch trống tại sân. Người chơi chọn giờ vàng, thanh toán cọc hoặc thanh toán sau và nhận mã vé điện tử ngay lập tức.</p>
-          </div>
-          <div class="method-time">
-            <strong>Thời gian:</strong> 24/7 trực tuyến
-          </div>
-        </div>
-
-        <div class="method-row">
-          <div class="method-info">
-            <div class="method-title">
-              <lucide-icon name="brain" class="text-primary w-4 h-4 mr-1"></lucide-icon>
-              <h4>Đặt Sân Qua Đề Xuất AI</h4>
+            <span class="policy-pill">Hoạt động 24/7</span>
+          </article>
+          <article class="policy-row">
+            <div class="policy-row__content">
+              <h3>Đặt sân qua đề xuất AI</h3>
+              <p>GOAT Sports đề xuất sân phù hợp dựa trên môn chơi, vị trí, khoảng cách, ngân sách và tiện ích mong muốn.</p>
             </div>
-            <p>Dựa trên bộ lọc thông minh (môn chơi, vị trí, khoảng cách, tầm giá và tiện ích mong muốn), AI của GOAT Sports đề xuất và hỗ trợ đặt nhanh sân phù hợp nhất.</p>
-          </div>
-          <div class="method-time">
-            <strong>Thời gian:</strong> Xử lý trong 2 giây
-          </div>
-        </div>
-
-        <div class="method-row">
-          <div class="method-info">
-            <div class="method-title">
-              <lucide-icon name="help-circle" class="text-primary w-4 h-4 mr-1"></lucide-icon>
-              <h4>Đặt Sân Đoàn Thể / Tổ Chức Giải Đấu</h4>
+            <span class="policy-pill">Phản hồi tức thì</span>
+          </article>
+          <article class="policy-row">
+            <div class="policy-row__content">
+              <h3>Đặt sân đoàn thể hoặc tổ chức giải đấu</h3>
+              <p>Dành cho doanh nghiệp thuê sân dài hạn hoặc tổ chức sự kiện thể thao. Đội ngũ hỗ trợ sẽ tư vấn lịch và báo giá riêng.</p>
             </div>
-            <p>Dành riêng cho công ty, doanh nghiệp thuê sân dài hạn cố định theo tháng/năm hoặc tổ chức sự kiện thể thao lớn. Vui lòng liên hệ bộ phận hỗ trợ khách hàng VIP.</p>
-          </div>
-          <div class="method-time">
-            <strong>Thời gian:</strong> Phản hồi trong 2 giờ
-          </div>
+            <span class="policy-pill">Phản hồi trong 2 giờ</span>
+          </article>
         </div>
-      </div>
-    </div>
+      </section>
 
-    <!-- Shipping Fees Table (Mapped to Slots surcharge/fees) -->
-    <div class="content-section">
-      <h2>2. Khung Giờ Hoạt Động & Phụ Thu Khung Giờ Vàng</h2>
-      <div class="table-responsive">
-        <table class="fees-table">
-          <thead>
-            <tr>
-              <th>Loại Khung Giờ</th>
-              <th>Thời Gian Chi Tiết</th>
-              <th>Mức Giá Áp Dụng</th>
-              <th>Mức Phí Dịch Vụ Đặt</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><strong>Giờ Thường (Giờ Thấp Điểm)</strong></td>
-              <td>06:00 - 16:00 (Thứ 2 - Thứ 6)</td>
-              <td>Theo giá gốc của sân</td>
-              <td class="free-text">MIỄN PHÍ</td>
-            </tr>
-            <tr>
-              <td><strong>Giờ Vàng (Giờ Cao Điểm)</strong></td>
-              <td>17:00 - 22:00 (Thứ 2 - Thứ 6)</td>
-              <td>Phụ thu +20,000đ - 30,000đ/giờ</td>
-              <td>10,000đ / lượt đặt</td>
-            </tr>
-            <tr>
-              <td><strong>Cuối Tuần (Thứ 7 & Chủ Nhật)</strong></td>
-              <td>Cả ngày (05:00 - 23:00)</td>
-              <td>Phụ thu +30,000đ/giờ</td>
-              <td>10,000đ / lượt đặt</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+      <section class="policy-section">
+        <div class="policy-section__heading"><span>02</span><h2>Khung giờ hoạt động và phụ thu</h2></div>
+        <div class="policy-table-wrap">
+          <table class="policy-table">
+            <thead>
+              <tr><th>Khung giờ</th><th>Thời gian</th><th>Mức giá áp dụng</th><th>Phí dịch vụ</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Giờ thường</strong></td><td>06:00–16:00, thứ 2–thứ 6</td><td>Theo giá gốc của sân</td><td class="is-primary">Miễn phí</td></tr>
+              <tr><td><strong>Giờ cao điểm</strong></td><td>17:00–22:00, thứ 2–thứ 6</td><td>Phụ thu 20.000đ–30.000đ/giờ</td><td>10.000đ/lượt đặt</td></tr>
+              <tr><td><strong>Cuối tuần</strong></td><td>05:00–23:00, thứ 7 và chủ nhật</td><td>Phụ thu 30.000đ/giờ</td><td>10.000đ/lượt đặt</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
 
-    <!-- Step Process -->
-    <div class="content-section">
-      <h2>3. Quy Trình Đến Sân & Thi Đấu</h2>
-      <div class="process-timeline">
-        <div class="step">
-          <div class="step-num">1</div>
-          <div class="step-text">
-            <h5>Nhận mã QR vé đặt sân</h5>
-            <p>Kiểm tra email hoặc mục "Lịch sử đặt sân" trong tài khoản cá nhân để lấy mã QR vé chơi sau khi đặt.</p>
-          </div>
+      <section class="policy-section">
+        <div class="policy-section__heading"><span>03</span><h2>Quy trình đến sân</h2></div>
+        <div class="policy-steps">
+          <article class="policy-step"><span class="policy-step__number">1</span><div><h3>Nhận thông tin đặt sân</h3><p>Kiểm tra email hoặc lịch sử đặt sân để xem mã booking sau khi hoàn tất.</p></div></article>
+          <article class="policy-step"><span class="policy-step__number">2</span><div><h3>Đến sớm 10–15 phút</h3><p>Chuẩn bị trang phục, dụng cụ và hoàn tất các nhu cầu thuê thêm tại quầy.</p></div></article>
+          <article class="policy-step"><span class="policy-step__number">3</span><div><h3>Xác nhận và nhận sân</h3><p>Trình mã booking tại lễ tân để được hướng dẫn đến đúng sân thi đấu.</p></div></article>
         </div>
-        <div class="step">
-          <div class="step-num">2</div>
-          <div class="step-text">
-            <h5>Đến sân trước 10-15 phút</h5>
-            <p>Hãy đến sân sớm hơn giờ đặt một chút để chuẩn bị trang phục, thuê vợt/giày hoặc mua nước uống tại quầy.</p>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-num">3</div>
-          <div class="step-text">
-            <h5>Quét mã nhận sân</h5>
-            <p>Trình mã QR tại quầy lễ tân để nhân viên hướng dẫn số sân thi đấu. Ký nhận và bắt đầu trận đấu!</p>
-          </div>
-        </div>
-      </div>
-    </div>
+      </section>
 
-    <!-- Disclaimer / Info alert -->
-    <div class="info-alert">
-      <lucide-icon name="info" class="alert-icon w-5 h-5 mr-2"></lucide-icon>
-      <div class="alert-content">
-        <strong>Lưu ý về giờ chơi:</strong> Để đảm bảo tính công bằng, nếu người đặt đến muộn quá 15 phút so với giờ bắt đầu mà không thông báo trước, lịch đặt có thể bị tự động hủy mà không hoàn tiền cọc.
-      </div>
+      <aside class="policy-alert">
+        <lucide-icon name="info"></lucide-icon>
+        <p><strong>Lưu ý:</strong> Nếu đến muộn quá 15 phút mà không thông báo trước, lịch đặt có thể bị hủy theo quy định riêng của cụm sân.</p>
+      </aside>
     </div>
-  </div>
-</div>
+  </article>
+</app-policy-layout>

@@ -33,6 +33,7 @@ import { LucideIconComponent } from '@shared/components/ui/lucide-icon/lucide-ic
 import { FormFieldComponent } from '@shared/components/ui/form-field/form-field.component';
 import { SelectComponent } from '@shared/components/ui/select/select.component';
 import { FileUploadComponent } from '@shared/components/file-upload/file-upload.component';
+import { PolicyLayoutComponent } from '@shared/layouts/policy/policy-layout.component';
 
 const MATERIAL_MODULES = [
   MatToolbarModule,
@@ -63,7 +64,8 @@ const COMPONENT_DECLARATIONS = [
   LoadingSkeletonComponent,
   ConfirmDialogComponent,
   SelectComponent,
-  FileUploadComponent
+  FileUploadComponent,
+  PolicyLayoutComponent
 ];
 
 @NgModule({

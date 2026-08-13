@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { environment } from '@environments/environment';
+import { NotifyService } from '@shared/components/notify/notify.service';
 
 @Component({
     selector: 'app-footer',
@@ -8,14 +9,20 @@ import { environment } from '@environments/environment';
     standalone: false
 })
 export class FooterComponent {
-  currentYear = new Date().getFullYear();
-  emailInput: string = '';
-  loginUrl = `${environment.authApiUrl}/login?redirect=${environment.clientApiUrl}`;
+  private readonly notify = inject(NotifyService);
 
-  subscribeNewsletter() {
-    if (this.emailInput.trim()) {
-      alert(`Cảm ơn bạn đã đăng ký nhận tin với email: ${this.emailInput}`);
-      this.emailInput = '';
+  readonly currentYear = new Date().getFullYear();
+  readonly loginUrl = `${environment.authApiUrl}/login?redirect=${environment.clientApiUrl}`;
+  emailInput = '';
+
+  subscribeNewsletter(): void {
+    const email = this.emailInput.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      this.notify.warning('Vui lòng nhập địa chỉ email hợp lệ.');
+      return;
     }
+
+    this.notify.success(`Đã đăng ký nhận bản tin với email ${email}.`);
+    this.emailInput = '';
   }
 }
