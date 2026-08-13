@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { BUSINESS_TYPE_OPTIONS } from '@domain/enums/business-type.enum';
+import { BUSINESS_TYPE_OPTIONS } from '@application/dto/owner-application/owner-application.dto';
 import { OwnerApplicationFormValue } from '../../owner-application.models';
 
 @Component({

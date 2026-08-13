@@ -1,7 +1,11 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { OwnerApplication } from '@domain/entities/owner-application';
-import { BusinessType, BUSINESS_TYPE_OPTIONS } from '@domain/enums/business-type.enum';
-import { OwnerApplicationStatus, OWNER_APPLICATION_STATUS_OPTIONS } from '@domain/enums/owner-application-status.enum';
+import {
+  BUSINESS_TYPE_OPTIONS,
+  BusinessType,
+  OwnerApplication,
+  OWNER_APPLICATION_STATUS_OPTIONS,
+  OwnerApplicationStatus
+} from '@application/dto/owner-application/owner-application.dto';
 
 @Component({
   selector: 'app-owner-application-history',

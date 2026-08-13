@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { User } from '@application/dto/user/user.dto';
+import { CurrentUserProvider } from '@application/ports/current-user.provider';
 
 @Injectable({
   providedIn: 'root'
 })
-export class SessionStateService {
+export class SessionStateService implements CurrentUserProvider {
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
@@ -22,6 +23,10 @@ export class SessionStateService {
 
   getCurrentUser(): User | null {
     return this.currentUserSubject.value;
+  }
+
+  getCurrentUserId(): string | null {
+    return this.currentUserSubject.value?.userId ?? null;
   }
 
   setSessionReady(ready: boolean): void {

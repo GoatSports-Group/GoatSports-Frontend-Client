@@ -31,7 +31,7 @@
         "app/presentation/*"
       ],
       "@shared/*": [
-        "app/shared/*"
+        "app/presentation/shared/*"
       ],
       "@environments/*": [
         "environments/*"

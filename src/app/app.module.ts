@@ -13,6 +13,8 @@ import { AUTH_REPOSITORY_TOKEN } from '@application/ports/persistence/auth.repos
 import { OWNER_APPLICATION_REPOSITORY_TOKEN } from '@application/ports/persistence/owner-application.repository';
 import { NOTIFICATION_REPOSITORY_TOKEN } from '@application/ports/persistence/notification.repository';
 import { WEBSOCKET_SERVICE_TOKEN } from '@application/ports/websocket.service';
+import { CURRENT_USER_PROVIDER_TOKEN } from '@application/ports/current-user.provider';
+import { SessionStateService } from '@presentation/services/session-state.service';
 
 import { AuthRepositoryImpl } from '@infrastructure/repositories/auth.repository.impl';
 import { OwnerApplicationRepositoryImpl } from '@infrastructure/repositories/owner-application.repository.impl';
@@ -115,6 +117,7 @@ import {
     { provide: OWNER_APPLICATION_REPOSITORY_TOKEN, useClass: OwnerApplicationRepositoryImpl },
     { provide: NOTIFICATION_REPOSITORY_TOKEN, useClass: NotificationRepositoryImpl },
     { provide: WEBSOCKET_SERVICE_TOKEN, useClass: StompWebSocketService },
+    { provide: CURRENT_USER_PROVIDER_TOKEN, useExisting: SessionStateService },
     provideLucideIcons(
       LucideMenu,
       LucideSearch,

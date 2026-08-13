@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { OwnerApplication } from '@domain/entities/owner-application';
+import { OwnerApplication } from '@application/dto/owner-application/owner-application.dto';
 import { GetMyOwnerApplicationsUseCase } from '@application/usecase/owner-application/get-my-owner-applications.usecase';
 import { NotificationService } from '@presentation/services/notification.service';
 import { NotifyService } from '@shared/components/notify/notify.service';

@@ -2,7 +2,10 @@ import { Injectable, inject } from '@angular/core';
 import { Subject, Observable } from 'rxjs';
 import { Notification } from '@domain/entities/notification';
 import { WebSocketService } from '@application/ports/websocket.service';
-import { SessionStateService } from '@presentation/services/session-state.service';
+import {
+  CURRENT_USER_PROVIDER_TOKEN,
+  CurrentUserProvider
+} from '@application/ports/current-user.provider';
 import { environment } from '@environments/environment';
 
 class StompFrame {
@@ -58,7 +61,7 @@ export class StompWebSocketService implements WebSocketService {
   private reconnectTimeout: any = null;
   private apiBase = environment.apiUrl;
   private subscriptionId = 'sub-user-notifications';
-  private sessionStateService = inject(SessionStateService);
+  private currentUserProvider = inject<CurrentUserProvider>(CURRENT_USER_PROVIDER_TOKEN);
 
   private notificationSubject = new Subject<Notification>();
   public notifications$: Observable<Notification> = this.notificationSubject.asObservable();
@@ -134,13 +137,13 @@ export class StompWebSocketService implements WebSocketService {
   private sendSubscribeFrame(): void {
     if (!this.socket) return;
 
-    const currentUser = this.sessionStateService.getCurrentUser();
-    if (!currentUser) {
+    const currentUserId = this.currentUserProvider.getCurrentUserId();
+    if (!currentUserId) {
       console.warn('Cannot subscribe to STOMP notifications: No active user session.');
       return;
     }
 
-    const destination = `/topic/user/notifications/${currentUser.userId}`;
+    const destination = `/topic/user/notifications/${currentUserId}`;
     const subscribeFrame = new StompFrame('SUBSCRIBE', {
       id: this.subscriptionId,
       destination: destination
@@ -182,8 +185,8 @@ export class StompWebSocketService implements WebSocketService {
           this.sendSubscribeFrame();
           break;
         case 'MESSAGE':
-          const currentUser = this.sessionStateService.getCurrentUser();
-          const expectedDestination = `/topic/user/notifications/${currentUser?.userId}`;
+          const currentUserId = this.currentUserProvider.getCurrentUserId();
+          const expectedDestination = `/topic/user/notifications/${currentUserId}`;
           if (frame.headers['destination'] === expectedDestination) {
             console.log('STOMP MESSAGE received:', frame.body);
             try {

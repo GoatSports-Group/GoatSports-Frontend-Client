@@ -1,4 +1,4 @@
-import { BusinessType } from '@domain/enums/business-type.enum';
+import { BusinessType } from '@application/dto/owner-application/owner-application.dto';
 
 export interface OwnerApplicationFormValue {
   fullName: string;

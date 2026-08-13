@@ -1,5 +1,5 @@
 import { Component, EventEmitter, HostListener, Output, inject } from '@angular/core';
-import { OwnerApplication } from '@domain/entities/owner-application';
+import { OwnerApplication } from '@application/dto/owner-application/owner-application.dto';
 import { SubmitOwnerApplicationUseCase } from '@application/usecase/owner-application/submit-owner-application.usecase';
 import { NotifyService } from '@shared/components/notify/notify.service';
 import {
