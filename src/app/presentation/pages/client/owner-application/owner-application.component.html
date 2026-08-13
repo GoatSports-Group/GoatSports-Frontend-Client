@@ -95,105 +95,75 @@
         <form (submit)="onSubmit()" class="registration-form">
           <h2 class="section-title athletic-title"><lucide-icon name="user" class="w-5 h-5 mr-2 text-primary"></lucide-icon> 1. Thông Tin Người Đại Diện</h2>
           <div class="form-row-grid">
-            <div class="app-form-field">
-              <label class="field-label">Họ và tên người đăng ký *</label>
-              <div class="field-input-wrapper has-icon">
-                <lucide-icon name="user" class="field-icon"></lucide-icon>
-                <input type="text" [(ngModel)]="form.fullName" name="fullName" required placeholder="Nguyễn Văn A" class="field-input">
-              </div>
-            </div>
+            <app-form-field label="Họ và tên người đăng ký *" icon="user">
+              <input type="text" [(ngModel)]="form.fullName" name="fullName" required placeholder="Nguyễn Văn A"
+                class="w-full pl-11.5 pr-4 py-3.5 rounded-2xl border border-slate-300 bg-white/60 backdrop-blur-md focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 text-[15px] font-bold text-slate-900 placeholder-slate-500 transition-all duration-300 hover:border-slate-400">
+            </app-form-field>
 
-            <div class="app-form-field">
-              <label class="field-label">Số điện thoại liên hệ *</label>
-              <div class="field-input-wrapper has-icon">
-                <lucide-icon name="phone" class="field-icon"></lucide-icon>
-                <input type="text" [(ngModel)]="form.phone" name="phone" required placeholder="09xxxxxxxx" class="field-input">
-              </div>
-            </div>
+            <app-form-field label="Số điện thoại liên hệ *" icon="phone">
+              <input type="text" [(ngModel)]="form.phone" name="phone" required placeholder="09xxxxxxxx"
+                class="w-full pl-11.5 pr-4 py-3.5 rounded-2xl border border-slate-300 bg-white/60 backdrop-blur-md focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 text-[15px] font-bold text-slate-900 placeholder-slate-500 transition-all duration-300 hover:border-slate-400">
+            </app-form-field>
 
-            <div class="app-form-field">
-              <label class="field-label">Địa chỉ Email *</label>
-              <div class="field-input-wrapper has-icon">
-                <lucide-icon name="mail" class="field-icon"></lucide-icon>
-                <input type="email" [(ngModel)]="form.email" name="email" required placeholder="example@gmail.com" class="field-input">
-              </div>
-            </div>
+            <app-form-field label="Địa chỉ Email *" icon="mail">
+              <input type="email" [(ngModel)]="form.email" name="email" required placeholder="example@gmail.com"
+                class="w-full pl-11.5 pr-4 py-3.5 rounded-2xl border border-slate-300 bg-white/60 backdrop-blur-md focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 text-[15px] font-bold text-slate-900 placeholder-slate-500 transition-all duration-300 hover:border-slate-400">
+            </app-form-field>
 
-            <div class="app-form-field">
-              <label class="field-label">Số CCCD / Hộ chiếu *</label>
-              <div class="field-input-wrapper has-icon">
-                <lucide-icon name="id-card" class="field-icon"></lucide-icon>
-                <input type="text" [(ngModel)]="form.identityNumber" name="identityNumber" required placeholder="03xxxxxxxxxx" class="field-input">
-              </div>
-            </div>
+            <app-form-field label="Số CCCD / Hộ chiếu *" icon="id-card">
+              <input type="text" [(ngModel)]="form.identityNumber" name="identityNumber" required placeholder="03xxxxxxxxxx"
+                class="w-full pl-11.5 pr-4 py-3.5 rounded-2xl border border-slate-300 bg-white/60 backdrop-blur-md focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 text-[15px] font-bold text-slate-900 placeholder-slate-500 transition-all duration-300 hover:border-slate-400">
+            </app-form-field>
           </div>
 
           <h2 class="section-title athletic-title"><lucide-icon name="building-2" class="w-5 h-5 mr-2 text-primary"></lucide-icon> 2. Thông Tin Doanh Nghiệp / Cơ Sở</h2>
           <div class="form-row-grid-3">
-            <div class="app-form-field">
-              <label class="field-label">Tên Doanh Nghiệp / Hộ Kinh Doanh *</label>
-              <div class="field-input-wrapper has-icon">
-                <lucide-icon name="store" class="field-icon"></lucide-icon>
-                <input type="text" [(ngModel)]="form.businessName" name="businessName" required placeholder="Công Ty TNHH Thể Thao GOAT" class="field-input">
-              </div>
-            </div>
+            <app-form-field label="Tên Doanh Nghiệp / Hộ Kinh Doanh *" icon="store">
+              <input type="text" [(ngModel)]="form.businessName" name="businessName" required placeholder="Công Ty TNHH Thể Thao GOAT"
+                class="w-full pl-11.5 pr-4 py-3.5 rounded-2xl border border-slate-300 bg-white/60 backdrop-blur-md focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 text-[15px] font-bold text-slate-900 placeholder-slate-500 transition-all duration-300 hover:border-slate-400">
+            </app-form-field>
 
-            <div class="app-form-field">
-              <label class="field-label">Loại hình kinh doanh *</label>
-              <div class="field-input-wrapper">
-                <mat-select [(ngModel)]="form.businessType" name="businessType" required class="field-select">
-                  @for (opt of BUSINESS_TYPE_OPTIONS; track opt.value) {
-                  <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                  }
-                </mat-select>
-              </div>
-            </div>
+            <app-form-field label="Loại hình kinh doanh *">
+              <mat-select [(ngModel)]="form.businessType" name="businessType" required class="field-select">
+                @for (opt of BUSINESS_TYPE_OPTIONS; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                }
+              </mat-select>
+            </app-form-field>
 
-            <div class="app-form-field">
-              <label class="field-label">Mã số thuế *</label>
-              <div class="field-input-wrapper has-icon">
-                <lucide-icon name="receipt" class="field-icon"></lucide-icon>
-                <input type="text" [(ngModel)]="form.taxCode" name="taxCode" required placeholder="01xxxxxxxx" class="field-input">
-              </div>
-            </div>
+            <app-form-field label="Mã số thuế *" icon="receipt">
+              <input type="text" [(ngModel)]="form.taxCode" name="taxCode" required placeholder="01xxxxxxxx"
+                class="w-full pl-11.5 pr-4 py-3.5 rounded-2xl border border-slate-300 bg-white/60 backdrop-blur-md focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 text-[15px] font-bold text-slate-900 placeholder-slate-500 transition-all duration-300 hover:border-slate-400">
+            </app-form-field>
           </div>
 
           <h2 class="section-title athletic-title"><lucide-icon name="map-pin" class="w-5 h-5 mr-2 text-primary"></lucide-icon> 3. Địa Chỉ Kinh Doanh</h2>
           <div class="form-row-grid">
-            <div class="app-form-field">
-              <label class="field-label">Địa chỉ chi tiết (Số nhà, tên đường) *</label>
-              <div class="field-input-wrapper has-icon">
-                <lucide-icon name="home" class="field-icon"></lucide-icon>
-                <input type="text" [(ngModel)]="form.address" name="address" required placeholder="12 Ba Tháng Hai" class="field-input">
-              </div>
-            </div>
+            <app-form-field label="Địa chỉ chi tiết (Số nhà, tên đường) *" icon="home">
+              <input type="text" [(ngModel)]="form.address" name="address" required placeholder="12 Ba Tháng Hai"
+                class="w-full pl-11.5 pr-4 py-3.5 rounded-2xl border border-slate-300 bg-white/60 backdrop-blur-md focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 text-[15px] font-bold text-slate-900 placeholder-slate-500 transition-all duration-300 hover:border-slate-400">
+            </app-form-field>
 
-            <div class="app-form-field">
-              <label class="field-label">Phường / Xã *</label>
-              <div class="field-input-wrapper">
-                <input type="text" [(ngModel)]="form.ward" name="ward" required placeholder="Phường 12" class="field-input">
-              </div>
-            </div>
+            <app-form-field label="Phường / Xã *">
+              <input type="text" [(ngModel)]="form.ward" name="ward" required placeholder="Phường 12"
+                class="w-full px-4 py-3.5 rounded-2xl border border-slate-300 bg-white/60 backdrop-blur-md focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 text-[15px] font-bold text-slate-900 placeholder-slate-500 transition-all duration-300 hover:border-slate-400">
+            </app-form-field>
 
-            <div class="app-form-field">
-              <label class="field-label">Quận / Huyện *</label>
-              <div class="field-input-wrapper">
-                <input type="text" [(ngModel)]="form.district" name="district" required placeholder="Quận 10" class="field-input">
-              </div>
-            </div>
+            <app-form-field label="Quận / Huyện *">
+              <input type="text" [(ngModel)]="form.district" name="district" required placeholder="Quận 10"
+                class="w-full px-4 py-3.5 rounded-2xl border border-slate-300 bg-white/60 backdrop-blur-md focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 text-[15px] font-bold text-slate-900 placeholder-slate-500 transition-all duration-300 hover:border-slate-400">
+            </app-form-field>
 
-            <div class="app-form-field">
-              <label class="field-label">Tỉnh / Thành phố trực thuộc *</label>
-              <div class="field-input-wrapper">
-                <input type="text" [(ngModel)]="form.province" name="province" required placeholder="TP. Hồ Chí Minh" class="field-input">
-              </div>
-            </div>
+            <app-form-field label="Tỉnh / Thành phố trực thuộc *">
+              <input type="text" [(ngModel)]="form.province" name="province" required placeholder="TP. Hồ Chí Minh"
+                class="w-full px-4 py-3.5 rounded-2xl border border-slate-300 bg-white/60 backdrop-blur-md focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 text-[15px] font-bold text-slate-900 placeholder-slate-500 transition-all duration-300 hover:border-slate-400">
+            </app-form-field>
 
-            <div class="app-form-field full-width-cell">
-              <label class="field-label">Thành phố *</label>
-              <div class="field-input-wrapper">
-                <input type="text" [(ngModel)]="form.city" name="city" required placeholder="Hồ Chí Minh" class="field-input">
-              </div>
+            <div class="full-width-cell">
+              <app-form-field label="Thành phố *">
+                <input type="text" [(ngModel)]="form.city" name="city" required placeholder="Hồ Chí Minh"
+                  class="w-full px-4 py-3.5 rounded-2xl border border-slate-300 bg-white/60 backdrop-blur-md focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 text-[15px] font-bold text-slate-900 placeholder-slate-500 transition-all duration-300 hover:border-slate-400">
+              </app-form-field>
             </div>
           </div>
 

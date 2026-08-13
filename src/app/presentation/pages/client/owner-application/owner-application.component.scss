@@ -542,7 +542,7 @@ mat-form-field {
 }
 
 /* Premium Form Field Styles 1:1 with Auth */
-.app-form-field {
+.app-form-field, app-form-field {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -686,7 +686,7 @@ mat-form-field {
 }
 
 :host-context(body.dark) {
-  .app-form-field {
+  .app-form-field, app-form-field {
     .field-label {
       color: #94a3b8 !important; /* slate-400 */
     }
