@@ -97,27 +97,27 @@
         <mat-divider></mat-divider>
         <button mat-menu-item routerLink="/profile">
           <lucide-icon name="user" class="w-4 h-4 mr-2"></lucide-icon>
-          <span>Hồ Sơ</span>
+          <span>Hồ sơ</span>
         </button>
         <button mat-menu-item routerLink="/my-bookings">
           <lucide-icon name="history" class="w-4 h-4 mr-2"></lucide-icon>
-          <span>Lịch Sử Đặt Sân</span>
+          <span>Lịch sử đặt sân</span>
         </button>
         @if (authService.currentUser?.role?.name !== 'ADMIN' && authService.currentUser?.role?.name !== 'VENUE_OWNER') {
         <button mat-menu-item routerLink="/owner-application">
           <lucide-icon name="store" class="w-4 h-4 mr-2"></lucide-icon>
-          <span>Đăng Ký Chủ Sân</span>
+          <span>Đăng ký chủ sân</span>
         </button>
         }
         @if (authService.currentUser?.role?.name === 'ADMIN') {
         <a mat-menu-item [href]="adminUrl + '/admin'">
           <lucide-icon name="shield-check" class="w-4 h-4 mr-2 text-primary"></lucide-icon>
-          <span>Quản Trị</span>
+          <span>Quản trị</span>
         </a>
         }
         <button mat-menu-item (click)="logout()" class="logout-btn-menu">
           <lucide-icon name="log-out" class="w-4 h-4 mr-2"></lucide-icon>
-          <span>Đăng Xuất</span>
+          <span>Đăng xuất</span>
         </button>
       </mat-menu>
       } @else {

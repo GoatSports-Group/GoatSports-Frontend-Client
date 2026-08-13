@@ -1,0 +1,19 @@
+<div class="screen-loader" role="alertdialog" aria-modal="true" aria-live="assertive" [attr.aria-label]="title">
+  <div class="screen-loader__backdrop"></div>
+
+  <section class="screen-loader__card">
+    <div class="screen-loader__spinner" aria-hidden="true">
+      <span></span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M8 12.5 10.5 15 16 9" />
+      </svg>
+    </div>
+
+    <h2>{{ title }}</h2>
+    <p>{{ message }}</p>
+
+    <div class="screen-loader__progress" aria-hidden="true">
+      <span></span><span></span><span></span>
+    </div>
+  </section>
+</div>

@@ -96,6 +96,13 @@ export class OwnerApplicationFormComponent {
     this.handleFormSubmit();
   }
 
+  @HostListener('window:beforeunload', ['$event'])
+  preventLeavingWhileSubmitting(event: BeforeUnloadEvent): void {
+    if (!this.submitting) return;
+    event.preventDefault();
+    event.returnValue = '';
+  }
+
   submit(): void {
     if (this.submitting || !this.validateAllSteps()) return;
     this.submitting = true;
