@@ -4,6 +4,7 @@ import { AuthService } from '@presentation/services/auth.service';
 import { NotificationService } from '@presentation/services/notification.service';
 import { RoleEnum } from '@application/dto/user/user.dto';
 import { Notification } from '@domain/entities/notification';
+import { NotificationStatus } from '@domain/enums/notification-status.enum';
 import { environment } from '@environments/environment';
 
 @Component({
@@ -64,7 +65,11 @@ export class HeaderComponent implements OnInit {
     }
   }
 
-  onNotificationClick(notification: Notification) {
+  onNotificationClick(notification: Notification): void {
+    if (notification.status !== NotificationStatus.UNREAD) {
+      return;
+    }
+
     this.notificationService.markAsRead(notification.notificationId).subscribe();
   }
 

@@ -1,5 +1,5 @@
 import { Injectable, inject, NgZone } from '@angular/core';
-import { BehaviorSubject, Observable, Subscription } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, Subscription } from 'rxjs';
 import { Notification, NotificationStatus } from '@application/dto/notification/notification.dto';
 import { GetNotificationsUseCase } from '@application/usecase/notification/get-notifications.usecase';
 import { CountUnreadNotificationsUseCase } from '@application/usecase/notification/count-unread-notifications.usecase';
@@ -140,6 +140,14 @@ export class NotificationService {
   }
 
   public markAsRead(id: string): Observable<Notification> {
+    const notification = this.notificationsSubject.value.find(
+      item => item.notificationId === id
+    );
+
+    if (!notification || notification.status !== NotificationStatus.UNREAD) {
+      return EMPTY;
+    }
+
     return new Observable<Notification>(subscriber => {
       this.markReadUseCase.execute(id).subscribe({
         next: (updated) => {
