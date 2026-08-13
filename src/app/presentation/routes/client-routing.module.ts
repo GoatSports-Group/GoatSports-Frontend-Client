@@ -13,7 +13,7 @@ const routes: Routes = [
     children: [
       { path: 'home', component: HomeComponent },
       { path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] },
-      { path: 'owner-application', component: OwnerApplicationComponent },
+      { path: 'owner-application', component: OwnerApplicationComponent, canActivate: [AuthGuard] },
       { path: '', redirectTo: 'home', pathMatch: 'full' }
     ]
   }

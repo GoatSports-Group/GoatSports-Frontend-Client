@@ -1,0 +1,21 @@
+<div class="step-grid">
+  <app-form-field class="field--wide" label="Họ và tên" [required]="true">
+    <input class="field-input" type="text" name="fullName" [(ngModel)]="form.fullName"
+      placeholder="Nhập họ và tên" autocomplete="name" />
+  </app-form-field>
+
+  <app-form-field label="Số điện thoại" [required]="true">
+    <input class="field-input" type="tel" name="phone" [(ngModel)]="form.phone"
+      placeholder="Nhập số điện thoại" autocomplete="tel" />
+  </app-form-field>
+
+  <app-form-field label="Email" [required]="true">
+    <input class="field-input" type="email" name="email" [(ngModel)]="form.email"
+      placeholder="example@email.com" autocomplete="email" />
+  </app-form-field>
+
+  <app-form-field class="field--wide" label="Số CCCD / Hộ chiếu" [required]="true">
+    <input class="field-input" type="text" name="identityNumber" [(ngModel)]="form.identityNumber"
+      placeholder="Nhập số CCCD / Hộ chiếu" />
+  </app-form-field>
+</div>

@@ -1,0 +1,22 @@
+<div class="upload-card">
+  <div class="upload-card__header">
+    <div>
+      <strong>{{ label }} @if (required) { <span class="required-mark">*</span> }</strong>
+      <p>{{ hint }}</p>
+    </div>
+    <span class="upload-card__document" aria-hidden="true">▱</span>
+  </div>
+
+  @if (file) {
+    <div class="upload-card__file">
+      <span class="upload-card__name">{{ file.name }}</span>
+      <button type="button" (click)="fileRemoved.emit()">Xóa</button>
+    </div>
+  } @else {
+    <label class="upload-card__picker">
+      <span aria-hidden="true">＋</span>
+      <span>Chọn file</span>
+      <input type="file" [accept]="accept" (change)="handleSelection($event)" />
+    </label>
+  }
+</div>

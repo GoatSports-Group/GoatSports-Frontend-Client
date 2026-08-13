@@ -1,0 +1,21 @@
+<div class="step-grid">
+  <app-form-field class="field--wide" label="Địa chỉ chi tiết" [required]="true">
+    <input class="field-input" type="text" name="address" [(ngModel)]="form.address" placeholder="Số nhà, tên đường" />
+  </app-form-field>
+
+  <app-form-field label="Phường / Xã" [required]="true">
+    <input class="field-input" type="text" name="ward" [(ngModel)]="form.ward" placeholder="Nhập phường / xã" />
+  </app-form-field>
+
+  <app-form-field label="Quận / Huyện" [required]="true">
+    <input class="field-input" type="text" name="district" [(ngModel)]="form.district" placeholder="Nhập quận / huyện" />
+  </app-form-field>
+
+  <app-form-field label="Tỉnh / Thành phố" [required]="true">
+    <input class="field-input" type="text" name="province" [(ngModel)]="form.province" placeholder="Nhập tỉnh / thành phố" />
+  </app-form-field>
+
+  <app-form-field label="Thành phố" [required]="true">
+    <input class="field-input" type="text" name="city" [(ngModel)]="form.city" placeholder="Nhập thành phố" />
+  </app-form-field>
+</div>

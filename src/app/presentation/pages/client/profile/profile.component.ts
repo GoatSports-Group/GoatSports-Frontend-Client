@@ -1,8 +1,8 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '@presentation/services/auth.service';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpErrorResponse } from '@angular/common/http';
+import { NotifyService } from '@shared/components/notify/notify.service';
 
 @Component({
     selector: 'app-profile',
@@ -14,7 +14,7 @@ export class ProfileComponent implements OnInit {
   public authService = inject(AuthService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
-  private snackBar = inject(MatSnackBar);
+  private notify = inject(NotifyService);
 
   darkMode = false;
   emailBooking = true;
@@ -40,52 +40,28 @@ export class ProfileComponent implements OnInit {
       document.body.classList.remove('dark');
       document.body.classList.remove('dark-theme');
     }
-    this.snackBar.open(checked ? 'Đã kích hoạt Chế độ tối' : 'Đã kích hoạt Chế độ sáng', 'Đóng', {
-      duration: 2000,
-      horizontalPosition: 'end',
-      verticalPosition: 'top'
-    });
+    this.notify.info(checked ? 'Đã kích hoạt Chế độ tối.' : 'Đã kích hoạt Chế độ sáng.');
   }
 
   saveSettings() {
-    this.snackBar.open('Đã lưu cấu hình cài đặt của bạn!', 'Đóng', {
-      duration: 3000,
-      horizontalPosition: 'end',
-      verticalPosition: 'top',
-      panelClass: ['snackbar-success']
-    });
+    this.notify.success('Đã lưu cấu hình cài đặt của bạn.');
   }
 
   updatePassword() {
     if (!this.currentPassword || !this.newPassword || !this.confirmPassword) {
-      this.snackBar.open('Vui lòng nhập đầy đủ thông tin mật khẩu!', 'Đóng', {
-        duration: 3000,
-        horizontalPosition: 'end',
-        verticalPosition: 'top',
-        panelClass: ['snackbar-error']
-      });
+      this.notify.error('Vui lòng nhập đầy đủ thông tin mật khẩu.');
       return;
     }
 
     if (this.newPassword !== this.confirmPassword) {
-      this.snackBar.open('Mật khẩu mới và xác nhận mật khẩu không khớp!', 'Đóng', {
-        duration: 3000,
-        horizontalPosition: 'end',
-        verticalPosition: 'top',
-        panelClass: ['snackbar-error']
-      });
+      this.notify.error('Mật khẩu mới và xác nhận mật khẩu không khớp.');
       return;
     }
 
     this.passwordLoading = true;
     setTimeout(() => {
       this.passwordLoading = false;
-      this.snackBar.open('Cập nhật mật khẩu thành công!', 'Đóng', {
-        duration: 3000,
-        horizontalPosition: 'end',
-        verticalPosition: 'top',
-        panelClass: ['snackbar-success']
-      });
+      this.notify.success('Cập nhật mật khẩu thành công.');
       this.currentPassword = '';
       this.newPassword = '';
       this.confirmPassword = '';

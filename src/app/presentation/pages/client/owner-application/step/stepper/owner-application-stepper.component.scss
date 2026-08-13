@@ -1,0 +1,10 @@
+:host { display: block; }
+.stepper { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); }
+.stepper__track { position: absolute; top: 20px; left: 12.5%; width: 75%; height: 2px; background: var(--border-color); }
+.stepper__progress { display: block; height: 100%; background: var(--primary); transition: width .2s ease; }
+.stepper__step { position: relative; display: grid; justify-items: center; gap: 8px; cursor: pointer; border: 0; background: transparent; color: #94a3b8; font-size: 12px; font-weight: 800; }
+.stepper__number { display: grid; z-index: 1; width: 40px; height: 40px; place-items: center; border: 2px solid var(--border-color); border-radius: 50%; background: var(--bg-card); font-size: 14px; }
+.stepper__step.is-active, .stepper__step.is-complete { color: var(--primary); }
+.stepper__step.is-active .stepper__number { border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-light); }
+.stepper__step.is-complete .stepper__number { border-color: var(--primary); background: var(--primary); color: #fff; }
+@media (max-width: 520px) { .stepper__title { font-size: 10px; } }

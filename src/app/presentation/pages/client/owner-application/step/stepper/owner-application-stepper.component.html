@@ -1,0 +1,12 @@
+<div class="stepper">
+  <div class="stepper__track" aria-hidden="true">
+    <span class="stepper__progress" [style.width.%]="progress"></span>
+  </div>
+  @for (step of steps; track step.number) {
+    <button type="button" class="stepper__step" [class.is-active]="step.number === currentStep"
+      [class.is-complete]="step.number < currentStep" (click)="stepChange.emit(step.number)">
+      <span class="stepper__number">{{ step.number < currentStep ? '✓' : step.number }}</span>
+      <span class="stepper__title">{{ step.title }}</span>
+    </button>
+  }
+</div>

@@ -1,0 +1,80 @@
+<div class="owner-form-layout">
+  <div class="owner-form-card">
+    <header class="owner-form-card__header">
+      <div class="owner-form-card__intro">
+        <h2>{{ currentStepData.title }}</h2>
+        <p>Bước {{ currentStep }}/{{ steps.length }} • {{ currentStepData.description }}</p>
+      </div>
+
+      <app-owner-application-stepper
+        [steps]="steps"
+        [currentStep]="currentStep"
+        (stepChange)="goToStep($event)" />
+    </header>
+
+    <form (ngSubmit)="handleFormSubmit()" novalidate>
+      <div class="owner-form-card__body">
+        @switch (currentStep) {
+          @case (1) { <app-owner-representative-step [form]="form" /> }
+          @case (2) { <app-owner-business-step [form]="form" /> }
+          @case (3) { <app-owner-address-step [form]="form" /> }
+          @case (4) {
+            <app-owner-documents-step
+              [files]="files"
+              (fileSelected)="handleFileSelected($event)"
+              (fileRemoved)="removeFile($event)" />
+          }
+        }
+      </div>
+
+      <footer class="owner-form-card__footer">
+        @if (currentStep !== 1) {
+          <button type="button" class="owner-form-button owner-form-button--ghost" (click)="previousStep()">
+            Quay lại
+          </button>
+        } @else {
+          <div></div>
+        }
+
+        @if (currentStep < steps.length) {
+          <button type="button" class="owner-form-button owner-form-button--primary" (click)="nextStep()">
+            <span>Tiếp tục</span>
+            <kbd>Enter ↵</kbd>
+          </button>
+        } @else {
+          <button type="submit" class="owner-form-button owner-form-button--primary" [disabled]="submitting">
+            <span>{{ submitting ? 'Đang gửi...' : 'Gửi đơn đăng ký' }}</span>
+            @if (!submitting) { <kbd>Enter ↵</kbd> }
+          </button>
+        }
+      </footer>
+    </form>
+  </div>
+
+  <aside class="owner-form-aside" aria-label="Thông tin hồ sơ">
+    <section class="owner-info-card">
+      <div class="owner-info-card__eyebrow">
+        <span>Trạng thái hồ sơ</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <path stroke-linecap="round" d="M12 7v5l3 2" />
+        </svg>
+      </div>
+      <h2>Sẵn sàng để bắt đầu</h2>
+      <p>Sau khi gửi, đội ngũ GOAT SPORTS thường phản hồi trong vòng 1–2 ngày làm việc.</p>
+    </section>
+
+    <section class="owner-info-card">
+      <h2>Chuẩn bị trước khi gửi</h2>
+      <ul>
+        <li><span>✓</span> Giấy tờ tùy thân còn hiệu lực</li>
+        <li><span>✓</span> Thông tin pháp lý của cơ sở</li>
+      </ul>
+    </section>
+
+    <div class="owner-help">
+      <span aria-hidden="true">⌕</span>
+      <span>Cần trợ giúp? Đội ngũ hỗ trợ luôn sẵn sàng đồng hành cùng bạn.</span>
+    </div>
+  </aside>
+</div>

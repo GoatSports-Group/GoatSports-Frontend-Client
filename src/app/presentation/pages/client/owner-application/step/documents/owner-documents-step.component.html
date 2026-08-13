@@ -1,0 +1,19 @@
+<div class="document-grid">
+  <app-file-upload label="CCCD mặt trước" [required]="true" [file]="files.idCardFront"
+    (fileSelected)="select('idCardFront', $event)" (fileRemoved)="fileRemoved.emit('idCardFront')" />
+
+  <app-file-upload label="CCCD mặt sau" [required]="true" [file]="files.idCardBack"
+    (fileSelected)="select('idCardBack', $event)" (fileRemoved)="fileRemoved.emit('idCardBack')" />
+
+  <app-file-upload label="Giấy phép kinh doanh" [required]="true"
+    [file]="files.businessLicense" (fileSelected)="select('businessLicense', $event)"
+    (fileRemoved)="fileRemoved.emit('businessLicense')" />
+
+  <app-file-upload label="Hình ảnh cơ sở / sân" [required]="true"
+    [file]="files.venueImage" (fileSelected)="select('venueImage', $event)"
+    (fileRemoved)="fileRemoved.emit('venueImage')" />
+</div>
+
+<p class="document-note">
+  Cả 4 tài liệu đều bắt buộc và mỗi file không được vượt quá 2MB. Nếu có nhiều hơn 1 ảnh, hãy gộp các ảnh thành một file trước khi tải lên. Vui lòng bảo đảm hình ảnh rõ ràng và thông tin có thể đọc được.
+</p>

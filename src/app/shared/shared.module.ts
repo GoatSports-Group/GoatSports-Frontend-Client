@@ -14,7 +14,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatDialogModule } from '@angular/material/dialog';
-import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTableModule } from '@angular/material/table';
@@ -32,6 +31,8 @@ import { LoadingSkeletonComponent } from '@shared/components/loading-skeleton/lo
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { LucideIconComponent } from '@shared/components/ui/lucide-icon/lucide-icon.component';
 import { FormFieldComponent } from '@shared/components/ui/form-field/form-field.component';
+import { SelectComponent } from '@shared/components/ui/select/select.component';
+import { FileUploadComponent } from '@shared/components/file-upload/file-upload.component';
 
 const MATERIAL_MODULES = [
   MatToolbarModule,
@@ -44,7 +45,6 @@ const MATERIAL_MODULES = [
   MatMenuModule,
   MatBadgeModule,
   MatDialogModule,
-  MatSnackBarModule,
   MatPaginatorModule,
   MatTabsModule,
   MatTableModule,
@@ -61,7 +61,9 @@ const COMPONENT_DECLARATIONS = [
   FooterComponent,
   StarRatingComponent,
   LoadingSkeletonComponent,
-  ConfirmDialogComponent
+  ConfirmDialogComponent,
+  SelectComponent,
+  FileUploadComponent
 ];
 
 @NgModule({

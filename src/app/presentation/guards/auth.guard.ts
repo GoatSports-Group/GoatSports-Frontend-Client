@@ -3,8 +3,8 @@ import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router } from
 import { Observable } from 'rxjs';
 import { map, filter, take } from 'rxjs/operators';
 import { AuthService } from '@presentation/services/auth.service';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { environment } from '@environments/environment';
+import { NotifyService } from '@shared/components/notify/notify.service';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +15,7 @@ export class AuthGuard implements CanActivate {
 
   private authService = inject(AuthService);
   private router = inject(Router);
-  private snackBar = inject(MatSnackBar);
+  private notify = inject(NotifyService);
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
     return this.authService.sessionReady$.pipe(
@@ -26,12 +26,7 @@ export class AuthGuard implements CanActivate {
           return true;
         }
 
-        this.snackBar.open('Vui lòng đăng nhập để sử dụng chức năng này!', 'Đóng', {
-          duration: 3000,
-          horizontalPosition: 'end',
-          verticalPosition: 'top',
-          panelClass: ['snackbar-warning']
-        });
+        this.notify.warning('Vui lòng đăng nhập để sử dụng chức năng này.');
 
         window.location.href = `${this.authApiBase}/login?redirect=${encodeURIComponent(window.location.origin + state.url)}`;
         return false;

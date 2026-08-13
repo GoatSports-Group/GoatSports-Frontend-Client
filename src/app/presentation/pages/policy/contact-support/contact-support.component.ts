@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { NotifyService } from '@shared/components/notify/notify.service';
 
 @Component({
     selector: 'app-contact-support',
@@ -10,7 +10,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 })
 export class ContactSupportComponent implements OnInit {
   private fb = inject(FormBuilder);
-  private snackBar = inject(MatSnackBar);
+  private notify = inject(NotifyService);
 
   contactForm!: FormGroup;
   submitting = false;
@@ -33,12 +33,7 @@ export class ContactSupportComponent implements OnInit {
 
     // Simulate API call
     setTimeout(() => {
-      this.snackBar.open('Gửi yêu cầu liên hệ thành công! Chúng tôi sẽ phản hồi bạn sớm.', 'Đóng', {
-        duration: 5000,
-        horizontalPosition: 'end',
-        verticalPosition: 'top',
-        panelClass: ['snackbar-success']
-      });
+      this.notify.success('Gửi yêu cầu liên hệ thành công! Chúng tôi sẽ phản hồi bạn sớm.');
 
       this.contactForm.reset();
       this.submitting = false;

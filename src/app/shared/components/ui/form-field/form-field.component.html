@@ -1,21 +1,22 @@
-<div class="space-y-3 w-full">
-  <div class="flex justify-between items-center h-5">
-    <label
-      class="block text-[13px] font-extrabold uppercase tracking-wide text-slate-700 dark:text-slate-400 font-sports-display field-label">
+<div class="form-field" [class.has-error]="hasError()">
+  <div class="form-field__header">
+    <label class="field-label">
       {{ label() }}
+      @if (required()) {
+        <span class="required-mark" aria-hidden="true">*</span>
+      }
     </label>
+
     @if (showError() && errorMessage()) {
-    <span
-      class="text-[11px] font-extrabold text-rose-600 flex items-center gap-1 animate-fade-in uppercase font-sports-display tracking-wider">
-      {{ errorMessage() }}
-    </span>
+      <span class="form-field__error">{{ errorMessage() }}</span>
     }
   </div>
+
   <div class="field-input-wrapper" [class.has-icon]="!!icon()">
     @if (icon()) {
-    <span class="field-icon">
-      <lucide-icon [name]="icon()"></lucide-icon>
-    </span>
+      <span class="field-icon">
+        <lucide-icon [name]="icon()"></lucide-icon>
+      </span>
     }
     <ng-content></ng-content>
   </div>

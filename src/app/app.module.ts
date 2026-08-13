@@ -7,6 +7,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { ApiInterceptor } from './presentation/interceptors/api.interceptor';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { NotifyComponent } from '@shared/components/notify/notify.component';
 
 import { AUTH_REPOSITORY_TOKEN } from '@application/ports/persistence/auth.repository';
 import { OWNER_APPLICATION_REPOSITORY_TOKEN } from '@application/ports/persistence/owner-application.repository';
@@ -86,7 +87,9 @@ import {
   LucideVideo,
   LucideFlame,
   LucideBellOff,
-  LucideCheck
+  LucideCheck,
+  LucidePlus,
+  LucideUserRound
 } from '@lucide/angular';
 
 @NgModule({
@@ -99,7 +102,8 @@ import {
     FormsModule,
     AppRoutingModule,
     BrowserAnimationsModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    NotifyComponent
   ],
   providers: [
     {
@@ -178,7 +182,9 @@ import {
       LucideVideo,
       LucideFlame,
       LucideBellOff,
-      LucideCheck
+      LucideCheck,
+      LucidePlus,
+      LucideUserRound
     )
   ],
   bootstrap: [AppComponent]

@@ -11,6 +11,7 @@ import { LucideIconComponent } from '@shared/components/ui/lucide-icon/lucide-ic
 })
 export class FormFieldComponent {
   label = input.required<string>();
+  required = input(false);
   icon = input<string>('');
   errorMessage = input<string>('');
   showError = input(false);

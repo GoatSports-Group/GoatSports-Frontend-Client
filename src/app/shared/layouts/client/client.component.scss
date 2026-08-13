@@ -15,6 +15,12 @@
   flex-direction: column;
 }
 
+// Owner registration is a compact workflow page. Let its own content
+// determine the section height so the shared footer follows immediately.
+.client-main-outlet:has(app-owner-application) {
+  flex-grow: 0;
+}
+
 // Mobile Sidenav Styling
 .mobile-drawer {
   width: 280px;

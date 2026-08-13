@@ -1,0 +1,14 @@
+:host { display: block; }
+.upload-card { min-height: 158px; padding: 20px; border: 1px dashed var(--border-color); border-radius: 16px; background: var(--bg-body); }
+.upload-card__header { display: flex; justify-content: space-between; gap: 16px; }
+.upload-card strong { color: var(--text-dark); font-size: 14px; }
+.required-mark { color: #ef4444; }
+.upload-card p { margin: 5px 0 0; color: var(--text-muted); font-size: 12px; }
+.upload-card__document { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; background: var(--primary-light); color: var(--primary); font-size: 22px; }
+.upload-card__picker, .upload-card__file { display: flex; min-height: 52px; align-items: center; gap: 10px; margin-top: 18px; padding: 0 16px; border: 1px solid var(--border-color); border-radius: 12px; background: #fff; color: var(--text-muted); font-size: 14px; font-weight: 700; }
+.upload-card__picker { cursor: pointer; }
+.upload-card__picker > span:first-child { color: var(--primary); font-size: 24px; }
+.upload-card__picker input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.upload-card__file { justify-content: space-between; }
+.upload-card__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.upload-card__file button { cursor: pointer; border: 0; background: transparent; color: #ef4444; font-weight: 700; }

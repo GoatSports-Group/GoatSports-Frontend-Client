@@ -1,0 +1,15 @@
+<div class="step-grid">
+  <app-form-field class="field--wide" label="Tên doanh nghiệp / cơ sở" [required]="true">
+    <input class="field-input" type="text" name="businessName" [(ngModel)]="form.businessName"
+      placeholder="Nhập tên doanh nghiệp hoặc cơ sở" />
+  </app-form-field>
+
+  <app-form-field label="Loại hình kinh doanh" [required]="true">
+    <app-select name="businessType" [(ngModel)]="form.businessType" [options]="businessTypes" />
+  </app-form-field>
+
+  <app-form-field label="Mã số thuế" [required]="true">
+    <input class="field-input" type="text" name="taxCode" [(ngModel)]="form.taxCode"
+      placeholder="Nhập mã số thuế" />
+  </app-form-field>
+</div>

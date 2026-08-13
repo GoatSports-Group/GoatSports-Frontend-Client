@@ -1,0 +1,34 @@
+@if (loading) {
+  <div class="history-state">
+    <span class="history-spinner" aria-hidden="true"></span>
+    <h2>Đang tải hồ sơ</h2>
+    <p>Vui lòng chờ trong giây lát.</p>
+  </div>
+} @else if (applications.length === 0) {
+  <div class="history-state">
+    <span class="history-clock" aria-hidden="true">◷</span>
+    <h2>Chưa có hồ sơ đăng ký</h2>
+    <p>Khi bạn gửi một hồ sơ, trạng thái và các lần cập nhật sẽ xuất hiện tại đây.</p>
+  </div>
+} @else {
+  <div class="history-list">
+    @for (application of applications; track application.ownerApplicationId) {
+      <article class="history-item">
+        <div class="history-item__main">
+          <span class="history-item__label">{{ getBusinessTypeLabel(application.businessType) }}</span>
+          <h2>{{ application.businessName }}</h2>
+          <p>{{ application.fullName }} · {{ application.phone }} · {{ application.email }}</p>
+          <p>{{ application.address.address }}, {{ application.address.ward }}, {{ application.address.district }}, {{ application.address.province }}</p>
+        </div>
+        <div class="history-item__meta">
+          <span class="status" [class]="'status status--' + application.status.toLowerCase()">
+            {{ getStatusLabel(application.status) }}
+          </span>
+          @if (application.createdAt) {
+            <time>{{ application.createdAt | date:'dd/MM/yyyy' }}</time>
+          }
+        </div>
+      </article>
+    }
+  </div>
+}

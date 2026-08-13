@@ -1,0 +1,19 @@
+<div class="notify-stack" aria-live="polite" aria-atomic="false">
+  @for (item of notify.items(); track item.id) {
+    <article class="notify-toast" [class]="'notify-toast notify-toast--' + item.type" role="status">
+      <span class="notify-toast__icon" aria-hidden="true">
+        @switch (item.type) {
+          @case ('success') { ✓ }
+          @case ('error') { ! }
+          @case ('warning') { ! }
+          @default { i }
+        }
+      </span>
+      <div class="notify-toast__content">
+        <strong>{{ item.title }}</strong>
+        <p>{{ item.message }}</p>
+      </div>
+      <button type="button" class="notify-toast__close" (click)="notify.dismiss(item.id)" aria-label="Đóng thông báo">×</button>
+    </article>
+  }
+</div>

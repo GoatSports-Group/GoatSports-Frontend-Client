@@ -7,8 +7,8 @@ import { MarkNotificationReadUseCase } from '@application/usecase/notification/m
 import { MarkAllNotificationsReadUseCase } from '@application/usecase/notification/mark-all-notifications-read.usecase';
 import { WEBSOCKET_SERVICE_TOKEN } from '@application/ports/websocket.service';
 import { AuthService } from './auth.service';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { SessionStateService } from './session-state.service';
+import { NotifyService } from '@shared/components/notify/notify.service';
 
 @Injectable({
   providedIn: 'root'
@@ -20,7 +20,7 @@ export class NotificationService {
   private markAllReadUseCase = inject(MarkAllNotificationsReadUseCase);
   private wsService = inject(WEBSOCKET_SERVICE_TOKEN);
   private authService = inject(AuthService);
-  private snackBar = inject(MatSnackBar);
+  private notify = inject(NotifyService);
   private ngZone = inject(NgZone);
   private sessionStateService = inject(SessionStateService);
 
@@ -102,13 +102,7 @@ export class NotificationService {
       this.unreadCountSubject.next(this.unreadCountSubject.value + 1);
     }
 
-    // Display Snack Bar Toast
-    this.snackBar.open(`${notification.title}: ${notification.content}`, 'Đóng', {
-      duration: 6000,
-      horizontalPosition: 'end',
-      verticalPosition: 'top',
-      panelClass: ['snackbar-info']
-    });
+    this.notify.info(notification.content, notification.title);
   }
 
   public fetchNotifications(): Observable<Notification[]> {
