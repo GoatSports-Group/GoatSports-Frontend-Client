@@ -71,6 +71,7 @@ export class OwnerAddressStepComponent implements OnInit, OnDestroy {
 
   selectSuggestion(suggestion: any) {
     const address = suggestion.address || {};
+    const parts = (suggestion.display_name || '').split(',').map((p: string) => p.trim());
     
     let detailedAddress = '';
     if (address.house_number && address.road) {
@@ -78,16 +79,45 @@ export class OwnerAddressStepComponent implements OnInit, OnDestroy {
     } else if (address.road) {
       detailedAddress = address.road;
     } else {
-      detailedAddress = suggestion.display_name.split(',')[0];
+      detailedAddress = parts[0] || '';
     }
     
-    this.form.address = detailedAddress;
-    this.form.ward = address.suburb || address.village || address.quarter || address.neighbourhood || address.hamlet || '';
-    this.form.district = address.city_district || address.district || address.county || address.borough || address.town || '';
+    // Ward fallback
+    let ward = address.suburb || address.village || address.quarter || address.neighbourhood || address.hamlet || '';
+    if (!ward) {
+      const foundWard = parts.find((p: string) => p.toLowerCase().startsWith('phường') || p.toLowerCase().startsWith('xã') || p.toLowerCase().includes('ward'));
+      if (foundWard) ward = foundWard;
+    }
+
+    // District fallback
+    let district = address.city_district || address.district || address.county || address.borough || address.town || '';
+    if (!district) {
+      const foundDistrict = parts.find((p: string) => p.toLowerCase().startsWith('quận') || p.toLowerCase().startsWith('huyện') || p.toLowerCase().startsWith('thị xã') || p.toLowerCase().includes('district'));
+      if (foundDistrict) district = foundDistrict;
+    }
+
+    // City & Province mapping
+    let city = address.city || address.town || address.state || address.province || '';
+    if (!city) {
+      const foundCity = parts.find((p: string) => p.toLowerCase().startsWith('thành phố') || p.toLowerCase().includes('city'));
+      if (foundCity) city = foundCity;
+    }
+
+    let province = address.state || address.province || address.region || '';
+    if (!province) {
+      const foundProvince = parts.find((p: string) => p.toLowerCase().startsWith('tỉnh') || p.toLowerCase().includes('province'));
+      if (foundProvince) province = foundProvince;
+    }
     
-    const cityName = address.city || address.town || address.state || address.province || '';
-    this.form.city = cityName;
-    this.form.province = address.state || address.province || address.region || cityName; // Fallback to city if province is missing
+    // Fallback between city and province for VN addresses
+    if (!province && city) province = city;
+    if (!city && province) city = province;
+
+    this.form.address = detailedAddress;
+    this.form.ward = ward;
+    this.form.district = district;
+    this.form.province = province;
+    this.form.city = city;
     
     this.suggestions = [];
     this.isSuggestionsVisible = false;
