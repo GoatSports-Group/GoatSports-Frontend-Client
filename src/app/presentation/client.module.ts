@@ -5,10 +5,10 @@ import { ClientRoutingModule } from './routes/client-routing.module';
 
 import { ClientComponent } from '@shared/layouts/client/client.component';
 import { HomeComponent } from '@presentation/pages/client/home/home.component';
-import { ProfileComponent } from '@presentation/pages/client/profile/profile.component';
-import { ProfileInfoComponent } from '@presentation/pages/client/profile/info/profile-info.component';
-import { ProfileSettingsComponent } from '@presentation/pages/client/profile/settings/profile-settings.component';
-import { ProfileSecurityComponent } from '@presentation/pages/client/profile/security/profile-security.component';
+import { SettingsComponent } from '@presentation/pages/client/settings/settings.component';
+import { SettingsPlayerTabComponent } from '@presentation/pages/client/settings/tabs/settings-player-tab.component';
+import { SettingsPersonalTabComponent } from '@presentation/pages/client/settings/tabs/settings-personal-tab.component';
+import { SettingsSecurityTabComponent } from '@presentation/pages/client/settings/tabs/settings-security-tab.component';
 import { OwnerApplicationComponent } from '@presentation/pages/client/owner-application/owner-application.component';
 import { OwnerApplicationHistoryComponent } from '@presentation/pages/client/owner-application/history/owner-application-history.component';
 import { OwnerApplicationFormComponent } from '@presentation/pages/client/owner-application/form/owner-application-form.component';
@@ -22,10 +22,10 @@ import { OwnerDocumentsStepComponent } from '@presentation/pages/client/owner-ap
   declarations: [
     ClientComponent,
     HomeComponent,
-    ProfileComponent,
-    ProfileInfoComponent,
-    ProfileSettingsComponent,
-    ProfileSecurityComponent,
+    SettingsComponent,
+    SettingsPlayerTabComponent,
+    SettingsPersonalTabComponent,
+    SettingsSecurityTabComponent,
     OwnerApplicationComponent,
     OwnerApplicationHistoryComponent,
     OwnerApplicationFormComponent,

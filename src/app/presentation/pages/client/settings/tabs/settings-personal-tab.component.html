@@ -1,0 +1,79 @@
+<div class="settings-list">
+  <!-- Row 1: Full name -->
+  <div class="settings-row">
+    <div class="settings-row__info">
+      <h3 class="settings-row__label">Full name</h3>
+      <p class="settings-row__value">{{ user?.fullName || 'Chưa cập nhật' }}</p>
+    </div>
+    <button type="button" class="settings-row__action" (click)="onEdit('Full name')">
+      Edit
+    </button>
+  </div>
+
+  <!-- Row 2: Username -->
+  <div class="settings-row">
+    <div class="settings-row__info">
+      <h3 class="settings-row__label">Username</h3>
+      <p class="settings-row__value">{{ user?.username || '—' }}</p>
+    </div>
+    <button type="button" class="settings-row__action" (click)="onEdit('Username')">
+      Edit
+    </button>
+  </div>
+
+  <!-- Row 3: Email address -->
+  <div class="settings-row">
+    <div class="settings-row__info">
+      <h3 class="settings-row__label">Email address</h3>
+      <div class="email-row">
+        <span class="settings-row__value">{{ user?.email || '—' }}</span>
+        <span class="badge-verified">Verified</span>
+      </div>
+    </div>
+    <button type="button" class="settings-row__action" (click)="onEdit('Email address')">
+      Edit
+    </button>
+  </div>
+
+  <!-- Row 4: Phone number -->
+  <div class="settings-row">
+    <div class="settings-row__info">
+      <h3 class="settings-row__label">Phone number</h3>
+      <p class="settings-row__value">{{ form.phone }}</p>
+    </div>
+    <button type="button" class="settings-row__action" (click)="onEdit('Phone number')">
+      Edit
+    </button>
+  </div>
+
+  <!-- Row 5: Display Language -->
+  <div class="settings-row">
+    <div class="settings-row__info">
+      <h3 class="settings-row__label">Display Language</h3>
+      <p class="settings-row__value">{{ form.language }}</p>
+    </div>
+    <button type="button" class="settings-row__action" (click)="onEdit('Display Language')">
+      Edit
+    </button>
+  </div>
+
+  <!-- Row 6: Gender -->
+  <div class="settings-row">
+    <div class="settings-row__info">
+      <h3 class="settings-row__label">Gender</h3>
+      <p class="settings-row__value">{{ form.gender }}</p>
+    </div>
+    <button type="button" class="settings-row__action" (click)="onEdit('Gender')">
+      Edit
+    </button>
+  </div>
+
+  <!-- Row 7: Account Created Date -->
+  <div class="settings-row">
+    <div class="settings-row__info">
+      <h3 class="settings-row__label">Member since</h3>
+      <p class="settings-row__value">{{ formatDate(user?.createdAt) }}</p>
+    </div>
+    <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider py-1">Permanent</span>
+  </div>
+</div>

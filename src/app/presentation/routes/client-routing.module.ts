@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { ClientComponent } from '@shared/layouts/client/client.component';
 import { HomeComponent } from '@presentation/pages/client/home/home.component';
-import { ProfileComponent } from '@presentation/pages/client/profile/profile.component';
+import { SettingsComponent } from '@presentation/pages/client/settings/settings.component';
 import { OwnerApplicationComponent } from '@presentation/pages/client/owner-application/owner-application.component';
 import { AuthGuard } from '@presentation/guards/auth.guard';
 
@@ -12,7 +12,8 @@ const routes: Routes = [
     component: ClientComponent,
     children: [
       { path: 'home', component: HomeComponent },
-      { path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] },
+      { path: 'settings', component: SettingsComponent, canActivate: [AuthGuard] },
+      { path: 'profile', redirectTo: 'settings', pathMatch: 'full' },
       { path: 'owner-application', component: OwnerApplicationComponent, canActivate: [AuthGuard] },
       { path: '', redirectTo: 'home', pathMatch: 'full' }
     ]

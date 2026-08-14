@@ -1,0 +1,68 @@
+<div class="settings-list">
+  <!-- Row 1: Password -->
+  <div class="settings-row">
+    <div class="settings-row__info">
+      <h3 class="settings-row__label">Password</h3>
+      <p class="settings-row__value font-mono">••••••••••••</p>
+    </div>
+    <button type="button" class="settings-row__action" (click)="onUpdatePassword()">
+      Update
+    </button>
+  </div>
+
+  <!-- Row 2: Authentication Method -->
+  <div class="settings-row">
+    <div class="settings-row__info">
+      <h3 class="settings-row__label">Authentication Provider</h3>
+      <p class="settings-row__value">{{ user?.authProvider || 'GOAT SPORTS SSO' }}</p>
+    </div>
+    <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider py-1">Managed</span>
+  </div>
+
+  <!-- Row 3: Account Role -->
+  <div class="settings-row">
+    <div class="settings-row__info">
+      <h3 class="settings-row__label">Account Role</h3>
+      <p class="settings-row__value">{{ user?.role?.name || 'PLAYER' }}</p>
+    </div>
+    <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider py-1">System</span>
+  </div>
+
+  <!-- Row 4: Account Status -->
+  <div class="settings-row">
+    <div class="settings-row__info">
+      <h3 class="settings-row__label">Account Status</h3>
+      <div class="status-row">
+        <span class="status-dot"></span>
+        <span class="settings-row__value font-semibold text-emerald-700">Active</span>
+      </div>
+    </div>
+    <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider py-1">Normal</span>
+  </div>
+
+  <!-- Row 5: Active Sessions -->
+  <div class="settings-row">
+    <div class="settings-row__info">
+      <h3 class="settings-row__label">Active sessions</h3>
+      <p class="settings-row__subtext">
+        Logged in on this device via Chrome / Modern Browser.
+      </p>
+    </div>
+    <button type="button" class="settings-row__action" (click)="onAction('Log out other devices')">
+      Log out all devices
+    </button>
+  </div>
+
+  <!-- Row 6: Delete Account (Danger Zone) -->
+  <div class="settings-row settings-row--danger">
+    <div class="settings-row__info">
+      <h3 class="settings-row__label text-red-600">Delete account</h3>
+      <p class="settings-row__subtext">
+        Permanently remove your account and all associated booking history from the GOAT SPORTS platform.
+      </p>
+    </div>
+    <button type="button" class="settings-row__action-danger" (click)="onAction('Delete Account')">
+      Delete
+    </button>
+  </div>
+</div>

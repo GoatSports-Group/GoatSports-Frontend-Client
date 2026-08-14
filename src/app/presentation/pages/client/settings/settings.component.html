@@ -1,0 +1,53 @@
+<section class="settings-page">
+  <div class="settings-container">
+    <!-- Page Title -->
+    <header class="settings-header">
+      <h1 class="settings-title">Settings</h1>
+    </header>
+
+    <!-- Underline Tab Bar -->
+    <nav class="settings-tabs" aria-label="Settings Tabs">
+      <button
+        type="button"
+        class="tab-btn"
+        [class.tab-btn--active]="activeTab === 'player'"
+        (click)="setActiveTab('player')"
+      >
+        Mentee profile
+      </button>
+
+      <button
+        type="button"
+        class="tab-btn"
+        [class.tab-btn--active]="activeTab === 'personal'"
+        (click)="setActiveTab('personal')"
+      >
+        Personal Info
+      </button>
+
+      <button
+        type="button"
+        class="tab-btn"
+        [class.tab-btn--active]="activeTab === 'security'"
+        (click)="setActiveTab('security')"
+      >
+        Login & Security
+      </button>
+    </nav>
+
+    <!-- Tab Content -->
+    <main class="settings-content">
+      @switch (activeTab) {
+        @case ('player') {
+          <app-settings-player-tab [user]="(authService.currentUser$ | async) || authService.currentUser" />
+        }
+        @case ('personal') {
+          <app-settings-personal-tab [user]="(authService.currentUser$ | async) || authService.currentUser" />
+        }
+        @case ('security') {
+          <app-settings-security-tab [user]="(authService.currentUser$ | async) || authService.currentUser" />
+        }
+      }
+    </main>
+  </div>
+</section>
