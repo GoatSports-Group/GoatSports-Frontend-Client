@@ -96,25 +96,36 @@ export class OwnerAddressStepComponent implements OnInit, OnDestroy {
     city = address.city || address.province || address.state || address.region || '';
     province = address.state || address.province || address.region || address.city || '';
 
-    // 3. First pass: Keyword & Prefix recognition (when prefixes like 'Phường', 'Quận', 'Thành phố' exist)
+    // Helper checkers
+    const isWardToken = (s: string) => {
+      const l = s.toLowerCase();
+      return l.startsWith('phường') || l.startsWith('xã') || l.startsWith('thị trấn') ||
+             l.startsWith('p.') || l.startsWith('x.') || l.startsWith('tt.') ||
+             l.startsWith('khu phố') || l.startsWith('ấp') || l.startsWith('thôn') ||
+             l.includes('ward');
+    };
+
+    const isDistrictToken = (s: string) => {
+      const l = s.toLowerCase();
+      return l.startsWith('quận') || l.startsWith('huyện') || l.startsWith('thị xã') ||
+             l.startsWith('q.') || l.startsWith('h.') || l.startsWith('tx.') ||
+             l.includes('district') || l.includes('county');
+    };
+
+    const isCityToken = (s: string) => {
+      const l = s.toLowerCase();
+      return l.startsWith('thành phố') || l.startsWith('tỉnh') || l.startsWith('tp.') ||
+             l.includes('city') || l.includes('province');
+    };
+
+    // 3. First pass: Keyword & Prefix recognition
     for (let i = 0; i < cleanParts.length; i++) {
       const p = cleanParts[i];
-      const lower = p.toLowerCase();
-      
-      if (
-        lower.startsWith('phường') || lower.startsWith('xã') || lower.startsWith('thị trấn') ||
-        lower.startsWith('p.') || lower.startsWith('x.') || lower.startsWith('tt.') || lower.includes('ward')
-      ) {
+      if (isWardToken(p)) {
         if (!ward) ward = p;
-      } else if (
-        lower.startsWith('quận') || lower.startsWith('huyện') || lower.startsWith('thị xã') ||
-        lower.startsWith('q.') || lower.startsWith('h.') || lower.startsWith('tx.') || lower.includes('district')
-      ) {
+      } else if (isDistrictToken(p)) {
         if (!district) district = p;
-      } else if (
-        (lower.startsWith('thành phố') || lower.startsWith('tỉnh') || lower.startsWith('tp.') ||
-         lower.includes('city') || lower.includes('province')) && i >= cleanParts.length - 2
-      ) {
+      } else if (isCityToken(p) && i >= cleanParts.length - 2) {
         if (!city || city === cleanParts[cleanParts.length - 1]) city = p;
         if (!province) province = p;
       }
@@ -135,9 +146,9 @@ export class OwnerAddressStepComponent implements OnInit, OnDestroy {
     // Handle ambiguous 'suburb' tag
     if (address.suburb) {
       const subLower = address.suburb.toLowerCase();
-      if (subLower.includes('quận') || subLower.includes('huyện') || subLower.includes('district')) {
+      if (isDistrictToken(address.suburb)) {
         if (!district) district = address.suburb;
-      } else if (subLower.includes('phường') || subLower.includes('xã') || subLower.includes('ward')) {
+      } else if (isWardToken(address.suburb)) {
         if (!ward) ward = address.suburb;
       } else {
         if (!district && ward && ward !== address.suburb) {
@@ -159,8 +170,12 @@ export class OwnerAddressStepComponent implements OnInit, OnDestroy {
 
       if (!city) city = posCity;
       if (!province) province = posCity;
-      if (!district) district = posDistrict;
-      if (!ward) ward = posWard;
+      if (!district && !isWardToken(posDistrict) && posDistrict !== ward) {
+        district = posDistrict;
+      }
+      if (!ward && !isDistrictToken(posWard) && posWard !== district) {
+        ward = posWard;
+      }
     } else if (cleanParts.length === 3) {
       // [Street, MiddleLevel, City]
       const posCity = cleanParts[2];
@@ -169,15 +184,18 @@ export class OwnerAddressStepComponent implements OnInit, OnDestroy {
       if (!province) province = posCity;
 
       if (!ward && !district) {
-        district = posMiddle;
-      } else if (ward && !district && ward !== posMiddle) {
-        district = posMiddle;
-      } else if (!ward && district && district !== posMiddle) {
-        ward = posMiddle;
+        if (isWardToken(posMiddle)) ward = posMiddle;
+        else if (isDistrictToken(posMiddle)) district = posMiddle;
+        else district = posMiddle;
       }
     } else if (cleanParts.length === 2) {
       if (!city) city = cleanParts[1];
       if (!province) province = cleanParts[1];
+    }
+
+    // Sanity check: Avoid duplicate values between ward and district
+    if (district && ward && (district === ward || isWardToken(district))) {
+      district = '';
     }
 
     // 6. Build Detailed Address
