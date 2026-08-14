@@ -30,9 +30,21 @@
                 <h2>{{ item.application.businessName }}</h2>
               </div>
             </div>
-            <span class="status" [class]="'status status--' + item.application.status.toLowerCase()">
-              {{ getStatusLabel(item.application.status) }}
-            </span>
+            @if (item.application.status === 'REJECTED') {
+              <div class="application-card__rejection" role="note">
+                <lucide-icon name="alert-triangle" aria-hidden="true"></lucide-icon>
+                <div>
+                  <span>Lý do từ chối</span>
+                  <strong [attr.title]="item.application.rejectReason || null">
+                    {{ item.application.rejectReason || 'Chưa có lý do cụ thể' }}
+                  </strong>
+                </div>
+              </div>
+            } @else {
+              <span class="status" [class]="'status status--' + item.application.status.toLowerCase()">
+                {{ getStatusLabel(item.application.status) }}
+              </span>
+            }
           </header>
 
           <div class="application-card__details">
@@ -54,32 +66,23 @@
                 </div>
               </div>
             </div>
-            <div class="detail-row detail-row--wide">
+            <div class="detail-row">
               <lucide-icon name="map-pin" aria-hidden="true"></lucide-icon>
               <div>
                 <span>Địa chỉ sân</span>
                 <strong>{{ getAddress(item.application) }}</strong>
               </div>
             </div>
-          </div>
-
-          <footer class="application-card__submitted">
-            <lucide-icon name="calendar" aria-hidden="true"></lucide-icon>
-            <span>Nộp hồ sơ</span>
-            <time [attr.datetime]="item.application.createdAt || null">
-              {{ item.application.createdAt ? (item.application.createdAt | date:'dd/MM/yyyy HH:mm') : 'Đang cập nhật' }}
-            </time>
-          </footer>
-
-          @if (item.application.rejectReason) {
-            <div class="application-card__notice" role="note">
-              <lucide-icon name="alert-triangle" aria-hidden="true"></lucide-icon>
+            <div class="detail-row">
+              <lucide-icon name="calendar" aria-hidden="true"></lucide-icon>
               <div>
-                <strong>Lý do từ chối</strong>
-                <p>{{ item.application.rejectReason }}</p>
+                <span>Nộp hồ sơ</span>
+                <strong>
+                  {{ item.application.createdAt ? (item.application.createdAt | date:'dd/MM/yyyy HH:mm') : 'Đang cập nhật' }}
+                </strong>
               </div>
             </div>
-          }
+          </div>
         </section>
 
         <aside class="application-progress" [class]="'application-progress application-progress--' + item.progress.tone">
@@ -121,6 +124,21 @@
               </li>
             }
           </ol>
+
+          <div class="application-progress__update">
+            <span class="application-progress__update-icon" aria-hidden="true">
+              <lucide-icon name="info"></lucide-icon>
+            </span>
+            <div>
+              <span>Cập nhật gần nhất</span>
+              <strong>{{ item.progress.detail }}</strong>
+            </div>
+            @if (item.progress.updatedAt) {
+              <time [attr.datetime]="item.progress.updatedAt">
+                {{ item.progress.updatedAt | date:'dd/MM/yyyy HH:mm' }}
+              </time>
+            }
+          </div>
         </aside>
       </article>
     }

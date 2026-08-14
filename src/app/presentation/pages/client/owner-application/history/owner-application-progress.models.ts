@@ -18,6 +18,8 @@ export interface OwnerApplicationProgressStep {
 
 export interface OwnerApplicationProgress {
   summary: string;
+  detail: string;
+  updatedAt?: string;
   tone: OwnerApplicationProgressTone;
   steps: OwnerApplicationProgressStep[];
 }

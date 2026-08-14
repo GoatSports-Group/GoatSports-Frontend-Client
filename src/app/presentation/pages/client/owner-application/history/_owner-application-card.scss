@@ -89,10 +89,48 @@
   color: #00875f;
 }
 
-.status--rejected,
 .status--cancelled {
   background: #fff0f2;
   color: #d92d4c;
+}
+
+.application-card__rejection {
+  display: grid;
+  min-width: 0;
+  max-width: 300px;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid #ffd4dc;
+  border-radius: 10px;
+  background: #fff6f7;
+  color: #c22242;
+
+  lucide-icon {
+    width: 16px;
+    height: 16px;
+    margin-top: 1px;
+  }
+
+  span,
+  strong {
+    display: block;
+  }
+
+  span {
+    margin-bottom: 1px;
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+  strong {
+    overflow: hidden;
+    color: #7c4250;
+    font-size: 11px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 
 .application-card__details {
@@ -136,10 +174,6 @@
   }
 }
 
-.detail-row--wide {
-  grid-column: 1 / -1;
-}
-
 .detail-row__contact {
   display: flex;
   min-width: 0;
@@ -169,59 +203,6 @@
   }
 }
 
-.application-card__submitted {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding-top: 10px;
-  border-top: 1px solid #edf1ef;
-  color: var(--text-muted);
-  font-size: 12px;
-
-  lucide-icon {
-    width: 16px;
-    height: 16px;
-  }
-
-  span {
-    font-weight: 600;
-  }
-
-  time {
-    color: #34423e;
-    font-weight: 700;
-  }
-}
-
-.application-card__notice {
-  display: grid;
-  grid-template-columns: 20px 1fr;
-  gap: 10px;
-  margin-top: 10px;
-  padding: 10px 12px;
-  border: 1px solid #ffd4dc;
-  border-radius: 12px;
-  background: #fff6f7;
-  color: #b42342;
-
-  lucide-icon {
-    width: 18px;
-    height: 18px;
-  }
-
-  strong,
-  p {
-    margin: 0;
-    font-size: 12px;
-  }
-
-  p {
-    margin-top: 2px;
-    color: #7c4250;
-    line-height: 1.5;
-  }
-}
-
 @media (max-width: 1100px) {
   .application-card {
     grid-template-columns: 1fr;
@@ -242,10 +223,6 @@
     grid-template-columns: 1fr;
   }
 
-  .detail-row--wide {
-    grid-column: auto;
-  }
-
   .detail-row__contact {
     align-items: flex-start;
     flex-direction: column;
@@ -254,6 +231,11 @@
     > span {
       display: none;
     }
+  }
+
+  .application-card__rejection {
+    width: 100%;
+    max-width: none;
   }
 }
 

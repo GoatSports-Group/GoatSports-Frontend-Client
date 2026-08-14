@@ -34,6 +34,8 @@ export function buildOwnerApplicationProgress(
   if (application.status === OwnerApplicationStatus.CANCELLED) {
     return {
       summary: 'Hồ sơ đã được hủy',
+      detail: 'Quy trình xử lý hồ sơ đã dừng.',
+      updatedAt: application.reviewedAt ?? application.createdAt,
       tone: 'cancelled',
       steps: [
         createStep(0, 'completed', 'Hồ sơ đã được gửi thành công.', application.createdAt),
@@ -46,6 +48,10 @@ export function buildOwnerApplicationProgress(
 
   return {
     summary: hasReviewer ? 'Quản trị đang xử lý hồ sơ' : 'Quản trị đã nhận được hồ sơ',
+    detail: hasReviewer
+      ? 'Hồ sơ đang được xác minh để đưa ra kết quả.'
+      : 'Hồ sơ đang chờ quản trị kiểm tra chi tiết.',
+    updatedAt: application.createdAt,
     tone: 'pending',
     steps: [
       createStep(0, 'completed', 'Hồ sơ đã được gửi thành công.', application.createdAt),
@@ -89,6 +95,8 @@ function createFinalProgress(
 ): OwnerApplicationProgress {
   return {
     summary,
+    detail: finalDescription,
+    updatedAt: application.reviewedAt ?? application.createdAt,
     tone: finalState,
     steps: [
       createStep(0, 'completed', 'Hồ sơ đã được gửi thành công.', application.createdAt),
