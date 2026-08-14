@@ -2,8 +2,8 @@
   display: grid;
   min-width: 0;
   align-content: center;
-  gap: 18px;
-  padding: 20px 22px;
+  gap: 12px;
+  padding: 16px;
   border-left: 1px solid #e3ebe7;
   background: #f7faf9;
 }
@@ -48,7 +48,7 @@
 .progress-step {
   display: grid;
   min-width: 0;
-  grid-template-rows: 36px 20px 20px;
+  grid-template-rows: 24px 20px 20px;
   text-align: center;
 }
 
@@ -104,11 +104,12 @@
   strong {
     align-self: end;
     grid-row: 1;
-    padding: 0 4px 7px;
+    padding-bottom: 5px;
     color: #65716d;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 750;
     line-height: 1.2;
+    white-space: nowrap;
   }
 
   time {
@@ -166,7 +167,7 @@
   grid-template-columns: 28px minmax(0, 1fr) auto;
   align-items: center;
   gap: 9px;
-  padding: 9px 10px;
+  padding: 7px 8px;
   border: 1px solid #e1e9e6;
   border-radius: 10px;
   background: rgb(255 255 255 / 72%);
@@ -225,12 +226,12 @@
 
 @media (max-width: 640px) {
   .application-progress {
-    padding: 18px 20px;
+    padding: 14px;
   }
 
   .progress-steps {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 20px 0;
+    gap: 14px 0;
   }
 
   .progress-step:nth-child(2) .progress-step__line {
