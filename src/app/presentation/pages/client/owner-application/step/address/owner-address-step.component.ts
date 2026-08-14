@@ -14,6 +14,8 @@ export class OwnerAddressStepComponent implements OnInit, OnDestroy {
 
   suggestions: any[] = [];
   isSuggestionsVisible = false;
+  isLoading = false;
+  hasSearched = false;
   private searchSubject = new Subject<string>();
   private searchSubscription?: Subscription;
 
@@ -33,12 +35,23 @@ export class OwnerAddressStepComponent implements OnInit, OnDestroy {
   }
 
   onAddressChange(value: string) {
-    this.searchSubject.next(value);
+    if (value && value.length >= 3) {
+      this.isLoading = true;
+      this.isSuggestionsVisible = true;
+      this.searchSubject.next(value);
+    } else {
+      this.isLoading = false;
+      this.suggestions = [];
+      this.hasSearched = false;
+      this.isSuggestionsVisible = false;
+    }
   }
 
   async searchAddress(query: string) {
     if (!query || query.length < 3) {
       this.suggestions = [];
+      this.isLoading = false;
+      this.hasSearched = false;
       this.isSuggestionsVisible = false;
       return;
     }
@@ -46,16 +59,17 @@ export class OwnerAddressStepComponent implements OnInit, OnDestroy {
     try {
       const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&countrycodes=vn&limit=5`);
       const data = await response.json();
-      this.suggestions = data;
-      this.isSuggestionsVisible = true;
+      this.suggestions = data || [];
     } catch (error) {
       console.error('Error fetching address suggestions:', error);
+      this.suggestions = [];
+    } finally {
+      this.isLoading = false;
+      this.hasSearched = true;
     }
   }
 
   selectSuggestion(suggestion: any) {
-    // We only take the local address part if possible, but Nominatim returns full display_name
-    // Let's use the house_number and road for 'Địa chỉ chi tiết' if available, otherwise display_name
     const address = suggestion.address || {};
     
     let detailedAddress = '';
@@ -69,16 +83,18 @@ export class OwnerAddressStepComponent implements OnInit, OnDestroy {
     
     this.form.address = detailedAddress;
     this.form.ward = address.suburb || address.village || address.quarter || address.neighbourhood || address.hamlet || '';
-    this.form.district = address.city_district || address.district || address.county || address.borough || '';
-    this.form.province = address.state || address.province || address.region || '';
-    this.form.city = address.city || address.town || address.state || address.province || '';
+    this.form.district = address.city_district || address.district || address.county || address.borough || address.town || '';
+    
+    const cityName = address.city || address.town || address.state || address.province || '';
+    this.form.city = cityName;
+    this.form.province = address.state || address.province || address.region || cityName; // Fallback to city if province is missing
     
     this.suggestions = [];
     this.isSuggestionsVisible = false;
+    this.hasSearched = false;
   }
 
   hideSuggestions() {
-    // Need a small delay so the click event on suggestion can be fired
     setTimeout(() => {
       this.isSuggestionsVisible = false;
     }, 200);

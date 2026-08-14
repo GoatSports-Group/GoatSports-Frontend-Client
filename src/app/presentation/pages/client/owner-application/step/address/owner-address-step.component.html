@@ -12,10 +12,25 @@
         placeholder="Số nhà, tên đường" 
         autocomplete="off"
       />
-      <div class="suggestions-dropdown" *ngIf="isSuggestionsVisible && suggestions.length > 0">
-        <div class="suggestion-item" *ngFor="let suggestion of suggestions" (click)="selectSuggestion(suggestion)">
-          {{ suggestion.display_name }}
+      <div class="suggestions-dropdown" *ngIf="isSuggestionsVisible && (isLoading || hasSearched || suggestions.length > 0)">
+        
+        <!-- Loading State -->
+        <div class="suggestion-item info-item" *ngIf="isLoading">
+          Đang tìm kiếm...
         </div>
+
+        <!-- No Results State -->
+        <div class="suggestion-item info-item" *ngIf="!isLoading && hasSearched && suggestions.length === 0">
+          Không tìm thấy kết quả
+        </div>
+
+        <!-- Results -->
+        <ng-container *ngIf="!isLoading && suggestions.length > 0">
+          <div class="suggestion-item" *ngFor="let suggestion of suggestions" (click)="selectSuggestion(suggestion)">
+            {{ suggestion.display_name }}
+          </div>
+        </ng-container>
+
       </div>
     </div>
   </app-form-field>
