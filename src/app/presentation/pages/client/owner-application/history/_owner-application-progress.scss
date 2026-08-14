@@ -16,7 +16,7 @@
 
   span {
     color: var(--primary);
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 800;
     letter-spacing: .07em;
     text-transform: uppercase;
@@ -25,7 +25,7 @@
   h3 {
     margin: 3px 0 0;
     color: var(--text-dark);
-    font-size: 14px;
+    font-size: 15px;
     line-height: 1.35;
   }
 
@@ -39,24 +39,25 @@
 
 .progress-steps {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .progress-step {
+  display: grid;
   min-width: 0;
-}
-
-.progress-step:last-child {
-  width: 20px;
+  grid-template-rows: 36px 20px 20px;
+  text-align: center;
 }
 
 .progress-step__rail {
-  display: flex;
+  display: grid;
+  position: relative;
   width: 100%;
-  align-items: center;
+  grid-row: 2;
+  place-items: center;
 }
 
 .progress-step__dot {
@@ -69,6 +70,7 @@
   border-radius: 50%;
   background: #fff;
   color: #fff;
+  z-index: 1;
 
   lucide-icon {
     width: 11px;
@@ -78,9 +80,13 @@
 }
 
 .progress-step__line {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
   height: 2px;
-  flex: 1;
   background: #dfe6e3;
+  transform: translateY(-50%);
 }
 
 .progress-step:last-child .progress-step__line {
@@ -88,8 +94,7 @@
 }
 
 .progress-step__content {
-  min-width: 0;
-  padding: 7px 8px 0 0;
+  display: contents;
 
   strong,
   time {
@@ -97,25 +102,23 @@
   }
 
   strong {
+    align-self: end;
+    grid-row: 1;
+    padding: 0 4px 7px;
     color: #65716d;
-    font-size: 11px;
-    font-weight: 700;
-    line-height: 1.35;
+    font-size: 12px;
+    font-weight: 750;
+    line-height: 1.2;
   }
 
   time {
-    margin-top: 2px;
-    color: #97a19e;
-    font-size: 9px;
+    align-self: start;
+    grid-row: 3;
+    margin-top: 5px;
+    color: #687570;
+    font-size: 10.5px;
+    font-weight: 600;
   }
-}
-
-.progress-step:last-child .progress-step__content {
-  width: max-content;
-  max-width: 100px;
-  margin-left: -80px;
-  padding-right: 0;
-  text-align: right;
 }
 
 .progress-step--completed {
@@ -176,38 +179,40 @@
 
   span {
     color: #899590;
-    font-size: 9px;
+    font-size: 10px;
+    font-weight: 500;
   }
 
   strong {
     overflow: hidden;
     margin-top: 1px;
     color: #46534f;
-    font-size: 10px;
-    font-weight: 650;
+    font-size: 11.5px;
+    font-weight: 700;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   time {
     color: #77847f;
-    font-size: 9px;
+    font-size: 10px;
+    font-weight: 600;
     white-space: nowrap;
   }
 }
 
 .application-progress__update-icon {
   display: grid !important;
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   place-items: center;
   border-radius: 8px;
   background: #e9f8f2;
   color: var(--primary) !important;
 
   lucide-icon {
-    width: 14px;
-    height: 14px;
+    width: 15px;
+    height: 15px;
   }
 }
 
@@ -225,22 +230,11 @@
 
   .progress-steps {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px 0;
+    gap: 20px 0;
   }
 
   .progress-step:nth-child(2) .progress-step__line {
     display: none;
-  }
-
-  .progress-step:last-child .progress-step__content {
-    width: auto;
-    max-width: 120px;
-    margin-left: 0;
-    text-align: left;
-  }
-
-  .progress-step:last-child {
-    width: auto;
   }
 
   .application-progress__update {
