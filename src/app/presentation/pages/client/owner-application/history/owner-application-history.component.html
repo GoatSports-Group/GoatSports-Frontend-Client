@@ -95,7 +95,7 @@
           </header>
 
           <ol class="progress-steps" [attr.aria-label]="item.progress.summary">
-            @for (step of item.progress.steps; track step.title; let first = $first; let last = $last) {
+            @for (step of item.progress.steps; track step.title; let last = $last) {
               <li
                 class="progress-step"
                 [class]="'progress-step progress-step--' + step.state"
@@ -115,9 +115,9 @@
                 </div>
                 <div class="progress-step__content">
                   <strong>{{ step.title }}</strong>
-                  @if (step.timestamp && (first || last)) {
+                  @if (step.timestamp) {
                     <time [attr.datetime]="step.timestamp">
-                      {{ step.timestamp | date:'dd/MM/yyyy' }}
+                      {{ step.timestamp | date:'dd/MM/yyyy HH:mm' }}
                     </time>
                   }
                 </div>

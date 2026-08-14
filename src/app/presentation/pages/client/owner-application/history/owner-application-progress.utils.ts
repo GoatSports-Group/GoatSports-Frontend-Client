@@ -59,12 +59,12 @@ export function buildOwnerApplicationProgress(
 
   return {
     summary: hasBeenViewed
-      ? 'Quản trị đang xử lý hồ sơ'
+      ? 'Quản trị đã xem hồ sơ'
       : hasBeenReceived
         ? 'Quản trị đã nhận được hồ sơ'
         : 'Hồ sơ đang được chuyển đến quản trị',
     detail: hasBeenViewed
-      ? 'Hồ sơ đang được xác minh để đưa ra kết quả.'
+      ? 'Hồ sơ đang chờ quản trị đưa ra kết quả.'
       : hasBeenReceived
         ? 'Hồ sơ đang chờ quản trị kiểm tra chi tiết.'
         : 'Hệ thống đang chuyển hồ sơ vào hàng đợi xử lý.',
@@ -86,8 +86,8 @@ export function buildOwnerApplicationProgress(
       ),
       createStep(
         3,
-        hasBeenViewed ? 'current' : 'upcoming',
-        hasBeenViewed ? 'Đang xác minh và đưa ra kết quả.' : 'Chưa bắt đầu xử lý.'
+        'upcoming',
+        hasBeenViewed ? 'Đang chờ kết quả xử lý.' : 'Chưa bắt đầu xử lý.'
       )
     ]
   };
