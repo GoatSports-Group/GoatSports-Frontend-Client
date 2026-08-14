@@ -1,8 +1,24 @@
 <div class="step-grid">
   <app-form-field class="field--wide" label="Địa chỉ chi tiết" [required]="true">
-    <input class="field-input" type="text" name="address" [(ngModel)]="form.address" placeholder="Số nhà, tên đường" />
+    <div class="input-wrapper">
+      <input 
+        class="field-input" 
+        type="text" 
+        name="address" 
+        [(ngModel)]="form.address" 
+        (ngModelChange)="onAddressChange($event)"
+        (focus)="isSuggestionsVisible = suggestions.length > 0"
+        (blur)="hideSuggestions()"
+        placeholder="Số nhà, tên đường" 
+        autocomplete="off"
+      />
+      <div class="suggestions-dropdown" *ngIf="isSuggestionsVisible && suggestions.length > 0">
+        <div class="suggestion-item" *ngFor="let suggestion of suggestions" (click)="selectSuggestion(suggestion)">
+          {{ suggestion.display_name }}
+        </div>
+      </div>
+    </div>
   </app-form-field>
-
   <app-form-field label="Phường / Xã" [required]="true">
     <input class="field-input" type="text" name="ward" [(ngModel)]="form.ward" placeholder="Nhập phường / xã" />
   </app-form-field>

@@ -2,3 +2,37 @@
 .step-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
 .field--wide { grid-column: 1 / -1; }
 @media (max-width: 640px) { .step-grid { grid-template-columns: minmax(0, 1fr); } .field--wide { grid-column: auto; } }
+
+.input-wrapper {
+  position: relative;
+}
+
+.suggestions-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 100%;
+  max-height: 250px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  z-index: 50;
+}
+
+.suggestion-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #334155;
+  transition: background-color 0.2s;
+  
+  &:hover {
+    background-color: #f1f5f9;
+  }
+  
+  &:not(:last-child) {
+    border-bottom: 1px solid #f1f5f9;
+  }
+}
