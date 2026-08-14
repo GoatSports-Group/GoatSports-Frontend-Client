@@ -16,4 +16,11 @@ export class SettingsComponent {
   setActiveTab(key: SettingsTabKey): void {
     this.activeTab = key;
   }
+
+  get fallbackAvatar(): string {
+    const user = this.authService.currentUser;
+    return user?.fullName
+      ? `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.fullName)}`
+      : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&q=80';
+  }
 }
