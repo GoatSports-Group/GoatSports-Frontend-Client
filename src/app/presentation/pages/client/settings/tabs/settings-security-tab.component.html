@@ -1,68 +1,68 @@
 <div class="settings-list">
-  <!-- Row 1: Password -->
+  <!-- Row 1: Mật khẩu -->
   <div class="settings-row">
     <div class="settings-row__info">
-      <h3 class="settings-row__label">Password</h3>
+      <h3 class="settings-row__label">Mật khẩu</h3>
       <p class="settings-row__value font-mono">••••••••••••</p>
     </div>
     <button type="button" class="settings-row__action" (click)="onUpdatePassword()">
-      Update
+      Cập nhật
     </button>
   </div>
 
-  <!-- Row 2: Authentication Method -->
+  <!-- Row 2: Phương thức xác thực -->
   <div class="settings-row">
     <div class="settings-row__info">
-      <h3 class="settings-row__label">Authentication Provider</h3>
+      <h3 class="settings-row__label">Phương thức xác thực</h3>
       <p class="settings-row__value">{{ user?.authProvider || 'GOAT SPORTS SSO' }}</p>
     </div>
-    <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider py-1">Managed</span>
+    <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider py-1">Được quản lý</span>
   </div>
 
-  <!-- Row 3: Account Role -->
+  <!-- Row 3: Vai trò tài khoản -->
   <div class="settings-row">
     <div class="settings-row__info">
-      <h3 class="settings-row__label">Account Role</h3>
+      <h3 class="settings-row__label">Vai trò tài khoản</h3>
       <p class="settings-row__value">{{ user?.role?.name || 'PLAYER' }}</p>
     </div>
-    <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider py-1">System</span>
+    <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider py-1">Hệ thống</span>
   </div>
 
-  <!-- Row 4: Account Status -->
+  <!-- Row 4: Trạng thái tài khoản -->
   <div class="settings-row">
     <div class="settings-row__info">
-      <h3 class="settings-row__label">Account Status</h3>
+      <h3 class="settings-row__label">Trạng thái tài khoản</h3>
       <div class="status-row">
         <span class="status-dot"></span>
-        <span class="settings-row__value font-semibold text-emerald-700">Active</span>
+        <span class="settings-row__value font-semibold text-emerald-700">Đang hoạt động</span>
       </div>
     </div>
-    <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider py-1">Normal</span>
+    <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider py-1">Bình thường</span>
   </div>
 
-  <!-- Row 5: Active Sessions -->
+  <!-- Row 5: Phiên đăng nhập -->
   <div class="settings-row">
     <div class="settings-row__info">
-      <h3 class="settings-row__label">Active sessions</h3>
+      <h3 class="settings-row__label">Phiên đăng nhập</h3>
       <p class="settings-row__subtext">
-        Logged in on this device via Chrome / Modern Browser.
+        Đang đăng nhập trên thiết bị này qua trình duyệt Chrome / Trình duyệt hiện tại.
       </p>
     </div>
-    <button type="button" class="settings-row__action" (click)="onAction('Log out other devices')">
-      Log out all devices
+    <button type="button" class="settings-row__action" (click)="onAction('Đăng xuất tất cả thiết bị')">
+      Đăng xuất các thiết bị
     </button>
   </div>
 
-  <!-- Row 6: Delete Account (Danger Zone) -->
+  <!-- Row 6: Xóa tài khoản -->
   <div class="settings-row settings-row--danger">
     <div class="settings-row__info">
-      <h3 class="settings-row__label text-red-600">Delete account</h3>
+      <h3 class="settings-row__label text-red-600">Xóa tài khoản</h3>
       <p class="settings-row__subtext">
-        Permanently remove your account and all associated booking history from the GOAT SPORTS platform.
+        Xóa vĩnh viễn tài khoản và toàn bộ lịch sử đặt sân của bạn khỏi nền tảng GOAT SPORTS.
       </p>
     </div>
-    <button type="button" class="settings-row__action-danger" (click)="onAction('Delete Account')">
-      Delete
+    <button type="button" class="settings-row__action-danger" (click)="onAction('Xóa tài khoản')">
+      Xóa tài khoản
     </button>
   </div>
 </div>

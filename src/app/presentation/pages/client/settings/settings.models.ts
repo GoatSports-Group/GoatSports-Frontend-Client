@@ -6,9 +6,9 @@ export interface SettingsTabItem {
 }
 
 export const SETTINGS_TABS: SettingsTabItem[] = [
-  { key: 'player', label: 'Mentee / Player profile' },
-  { key: 'personal', label: 'Personal Info' },
-  { key: 'security', label: 'Login & Security' }
+  { key: 'player', label: 'Hồ sơ người chơi' },
+  { key: 'personal', label: 'Thông tin cá nhân' },
+  { key: 'security', label: 'Đăng nhập & Bảo mật' }
 ];
 
 export interface PlayerProfileForm {

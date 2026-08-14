@@ -1,79 +1,79 @@
 <div class="settings-list">
-  <!-- Row 1: Full name -->
+  <!-- Row 1: Họ và tên -->
   <div class="settings-row">
     <div class="settings-row__info">
-      <h3 class="settings-row__label">Full name</h3>
+      <h3 class="settings-row__label">Họ và tên</h3>
       <p class="settings-row__value">{{ user?.fullName || 'Chưa cập nhật' }}</p>
     </div>
-    <button type="button" class="settings-row__action" (click)="onEdit('Full name')">
-      Edit
+    <button type="button" class="settings-row__action" (click)="onEdit('Họ và tên')">
+      Chỉnh sửa
     </button>
   </div>
 
-  <!-- Row 2: Username -->
+  <!-- Row 2: Tên đăng nhập -->
   <div class="settings-row">
     <div class="settings-row__info">
-      <h3 class="settings-row__label">Username</h3>
+      <h3 class="settings-row__label">Tên đăng nhập</h3>
       <p class="settings-row__value">{{ user?.username || '—' }}</p>
     </div>
-    <button type="button" class="settings-row__action" (click)="onEdit('Username')">
-      Edit
+    <button type="button" class="settings-row__action" (click)="onEdit('Tên đăng nhập')">
+      Chỉnh sửa
     </button>
   </div>
 
-  <!-- Row 3: Email address -->
+  <!-- Row 3: Địa chỉ email -->
   <div class="settings-row">
     <div class="settings-row__info">
-      <h3 class="settings-row__label">Email address</h3>
+      <h3 class="settings-row__label">Địa chỉ email</h3>
       <div class="email-row">
         <span class="settings-row__value">{{ user?.email || '—' }}</span>
-        <span class="badge-verified">Verified</span>
+        <span class="badge-verified">Đã xác thực</span>
       </div>
     </div>
-    <button type="button" class="settings-row__action" (click)="onEdit('Email address')">
-      Edit
+    <button type="button" class="settings-row__action" (click)="onEdit('Địa chỉ email')">
+      Chỉnh sửa
     </button>
   </div>
 
-  <!-- Row 4: Phone number -->
+  <!-- Row 4: Số điện thoại -->
   <div class="settings-row">
     <div class="settings-row__info">
-      <h3 class="settings-row__label">Phone number</h3>
+      <h3 class="settings-row__label">Số điện thoại</h3>
       <p class="settings-row__value">{{ form.phone }}</p>
     </div>
-    <button type="button" class="settings-row__action" (click)="onEdit('Phone number')">
-      Edit
+    <button type="button" class="settings-row__action" (click)="onEdit('Số điện thoại')">
+      Chỉnh sửa
     </button>
   </div>
 
-  <!-- Row 5: Display Language -->
+  <!-- Row 5: Ngôn ngữ hiển thị -->
   <div class="settings-row">
     <div class="settings-row__info">
-      <h3 class="settings-row__label">Display Language</h3>
+      <h3 class="settings-row__label">Ngôn ngữ hiển thị</h3>
       <p class="settings-row__value">{{ form.language }}</p>
     </div>
-    <button type="button" class="settings-row__action" (click)="onEdit('Display Language')">
-      Edit
+    <button type="button" class="settings-row__action" (click)="onEdit('Ngôn ngữ hiển thị')">
+      Chỉnh sửa
     </button>
   </div>
 
-  <!-- Row 6: Gender -->
+  <!-- Row 6: Giới tính -->
   <div class="settings-row">
     <div class="settings-row__info">
-      <h3 class="settings-row__label">Gender</h3>
+      <h3 class="settings-row__label">Giới tính</h3>
       <p class="settings-row__value">{{ form.gender }}</p>
     </div>
-    <button type="button" class="settings-row__action" (click)="onEdit('Gender')">
-      Edit
+    <button type="button" class="settings-row__action" (click)="onEdit('Giới tính')">
+      Chỉnh sửa
     </button>
   </div>
 
-  <!-- Row 7: Account Created Date -->
+  <!-- Row 7: Ngày tham gia -->
   <div class="settings-row">
     <div class="settings-row__info">
-      <h3 class="settings-row__label">Member since</h3>
+      <h3 class="settings-row__label">Ngày tham gia</h3>
       <p class="settings-row__value">{{ formatDate(user?.createdAt) }}</p>
     </div>
-    <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider py-1">Permanent</span>
+    <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider py-1">Cố định</span>
   </div>
 </div>
