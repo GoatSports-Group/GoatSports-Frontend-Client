@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, forkJoin, interval } from 'rxjs';
+import { Observable, catchError, forkJoin, interval, of } from 'rxjs';
 import { map, switchMap, filter, take } from 'rxjs/operators';
 import { OwnerApplicationRepository } from '@application/ports/persistence/owner-application.repository';
 import { OwnerApplication } from '@domain/entities/owner-application';
@@ -47,7 +47,9 @@ export class OwnerApplicationRepositoryImpl implements OwnerApplicationRepositor
 
         return interval(1500).pipe(
           switchMap(() => this.workflowApi.getProcessInstanceVariables(instanceKey)),
-          filter(response => response && response.data && response.data.presignedUrls && response.data.ownerApplicationId !== ""),
+          filter(response => Boolean(
+            response?.data?.presignedUrls && response.data.ownerApplicationId
+          )),
           take(1),
           map(response => {
             const ownerApplicationId = response.data.ownerApplicationId;
@@ -109,7 +111,33 @@ export class OwnerApplicationRepositoryImpl implements OwnerApplicationRepositor
 
   getMyApplications(): Observable<OwnerApplication[]> {
     return this.ownerApplicationApi.getMyApplications().pipe(
-      map(response => response.data?.result || [])
+      map(response => response.data?.result || []),
+      switchMap(applications => {
+        if (applications.length === 0) return of(applications);
+
+        const ids = applications.map(application => application.ownerApplicationId);
+        return this.workflowApi.getMyOwnerApplicationProgress(ids).pipe(
+          map(response => this.mergeProgress(applications, response.data?.items ?? [])),
+          catchError(error => {
+            console.warn('Failed to load owner application progress:', error);
+            return of(applications);
+          })
+        );
+      })
     );
+  }
+
+  private mergeProgress(
+    applications: OwnerApplication[],
+    progressItems: { ownerApplicationId: string; receivedAt?: string; viewedAt?: string }[]
+  ): OwnerApplication[] {
+    const progressByApplicationId = new Map(
+      progressItems.map(progress => [progress.ownerApplicationId, progress])
+    );
+
+    return applications.map(application => ({
+      ...application,
+      ...progressByApplicationId.get(application.ownerApplicationId)
+    }));
   }
 }

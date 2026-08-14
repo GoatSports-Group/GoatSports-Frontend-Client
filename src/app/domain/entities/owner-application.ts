@@ -32,6 +32,8 @@ export interface OwnerApplication {
   reviewerId?: string;
   reviewedAt?: string;
   createdAt?: string;
+  receivedAt?: string;
+  viewedAt?: string;
   address: OwnerApplicationAddress;
   documents: OwnerApplicationDocument[];
 }

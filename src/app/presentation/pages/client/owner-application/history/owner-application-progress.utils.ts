@@ -21,7 +21,8 @@ const STEP_TITLES = [
 export function buildOwnerApplicationProgress(
   application: OwnerApplication
 ): OwnerApplicationProgress {
-  const hasReviewer = Boolean(application.reviewerId);
+  const hasBeenViewed = Boolean(application.viewedAt);
+  const hasBeenReceived = Boolean(application.receivedAt || hasBeenViewed);
 
   if (application.status === OwnerApplicationStatus.APPROVED) {
     return createFinalProgress(application, 'approved', 'Hồ sơ đã được phê duyệt', 'Đơn đăng ký đã được chấp nhận.');
@@ -39,32 +40,54 @@ export function buildOwnerApplicationProgress(
       tone: 'cancelled',
       steps: [
         createStep(0, 'completed', 'Hồ sơ đã được gửi thành công.', application.createdAt),
-        createStep(1, 'upcoming', 'Chưa tiếp nhận hồ sơ.'),
-        createStep(2, 'upcoming', 'Chưa xem hồ sơ.'),
+        createStep(
+          1,
+          hasBeenReceived ? 'completed' : 'upcoming',
+          hasBeenReceived ? 'Thông báo hồ sơ đã được gửi đến quản trị.' : 'Chưa tiếp nhận hồ sơ.',
+          application.receivedAt
+        ),
+        createStep(
+          2,
+          hasBeenViewed ? 'completed' : 'upcoming',
+          hasBeenViewed ? 'Quản trị đã mở hồ sơ.' : 'Chưa xem hồ sơ.',
+          application.viewedAt
+        ),
         createStep(3, 'cancelled', 'Quy trình xử lý đã dừng.')
       ]
     };
   }
 
   return {
-    summary: hasReviewer ? 'Quản trị đang xử lý hồ sơ' : 'Quản trị đã nhận được hồ sơ',
-    detail: hasReviewer
+    summary: hasBeenViewed
+      ? 'Quản trị đang xử lý hồ sơ'
+      : hasBeenReceived
+        ? 'Quản trị đã nhận được hồ sơ'
+        : 'Hồ sơ đang được chuyển đến quản trị',
+    detail: hasBeenViewed
       ? 'Hồ sơ đang được xác minh để đưa ra kết quả.'
-      : 'Hồ sơ đang chờ quản trị kiểm tra chi tiết.',
-    updatedAt: application.createdAt,
+      : hasBeenReceived
+        ? 'Hồ sơ đang chờ quản trị kiểm tra chi tiết.'
+        : 'Hệ thống đang chuyển hồ sơ vào hàng đợi xử lý.',
+    updatedAt: application.viewedAt ?? application.receivedAt ?? application.createdAt,
     tone: 'pending',
     steps: [
       createStep(0, 'completed', 'Hồ sơ đã được gửi thành công.', application.createdAt),
-      createStep(1, 'completed', 'Hồ sơ đã vào hàng đợi xử lý.', application.createdAt),
+      createStep(
+        1,
+        hasBeenReceived ? 'completed' : 'current',
+        hasBeenReceived ? 'Thông báo hồ sơ đã được gửi đến quản trị.' : 'Đang chuyển hồ sơ đến quản trị.',
+        application.receivedAt
+      ),
       createStep(
         2,
-        hasReviewer ? 'completed' : 'current',
-        hasReviewer ? 'Quản trị đã mở và kiểm tra hồ sơ.' : 'Đang chờ quản trị kiểm tra chi tiết.'
+        hasBeenViewed ? 'completed' : hasBeenReceived ? 'current' : 'upcoming',
+        hasBeenViewed ? 'Quản trị đã mở và kiểm tra hồ sơ.' : 'Đang chờ quản trị kiểm tra chi tiết.',
+        application.viewedAt
       ),
       createStep(
         3,
-        hasReviewer ? 'current' : 'upcoming',
-        hasReviewer ? 'Đang xác minh và đưa ra kết quả.' : 'Chưa bắt đầu xử lý.'
+        hasBeenViewed ? 'current' : 'upcoming',
+        hasBeenViewed ? 'Đang xác minh và đưa ra kết quả.' : 'Chưa bắt đầu xử lý.'
       )
     ]
   };
@@ -100,8 +123,8 @@ function createFinalProgress(
     tone: finalState,
     steps: [
       createStep(0, 'completed', 'Hồ sơ đã được gửi thành công.', application.createdAt),
-      createStep(1, 'completed', 'Hồ sơ đã được quản trị tiếp nhận.', application.createdAt),
-      createStep(2, 'completed', 'Quản trị đã kiểm tra hồ sơ.'),
+      createStep(1, 'completed', 'Thông báo hồ sơ đã được gửi đến quản trị.', application.receivedAt),
+      createStep(2, 'completed', 'Quản trị đã mở và kiểm tra hồ sơ.', application.viewedAt),
       createStep(
         3,
         finalState === 'approved' ? 'completed' : 'rejected',
