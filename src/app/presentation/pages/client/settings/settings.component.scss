@@ -109,16 +109,7 @@
       transition: var(--transition-smooth);
     }
 
-    &:hover {
-      background-color: #f1f5f9;
-      color: #0f172a;
-      font-weight: 700;
-
-      lucide-icon {
-        color: #0f172a;
-      }
-    }
-
+    &:hover,
     &--active {
       background-color: #f1f5f9;
       color: #059669;
