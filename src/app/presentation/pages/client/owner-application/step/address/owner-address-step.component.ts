@@ -57,7 +57,7 @@ export class OwnerAddressStepComponent implements OnInit, OnDestroy {
     }
     
     try {
-      const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&countrycodes=vn&limit=5`);
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&countrycodes=vn&limit=5&accept-language=vi,en`);
       const data = await response.json();
       this.suggestions = data || [];
     } catch (error) {
@@ -90,12 +90,16 @@ export class OwnerAddressStepComponent implements OnInit, OnDestroy {
     }
 
     // District fallback
-    let district = address.city_district || address.district || address.county || address.borough || address.town || '';
+    let district = address.city_district || address.district || address.county || address.state_district || address.borough || address.town || '';
     if (!district) {
       const foundDistrict = parts.find((p: string) => p.toLowerCase().startsWith('quận') || p.toLowerCase().startsWith('huyện') || p.toLowerCase().startsWith('thị xã') || p.toLowerCase().includes('district'));
       if (foundDistrict) district = foundDistrict;
     }
 
+    // If district is still missing, maybe it's misclassified as something else
+    // in VN, 'town' can be a district, 'suburb' could be a district if ward is missing.
+    // We'll leave it as we have covered all common OSM keys for VN.
+    
     // City & Province mapping
     let city = address.city || address.town || address.state || address.province || '';
     if (!city) {
