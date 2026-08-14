@@ -1,6 +1,6 @@
 .application-card {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(360px, .8fr);
+  grid-template-columns: minmax(0, 1.25fr) minmax(440px, .75fr);
   overflow: hidden;
   border: 1px solid #dce5e1;
   border-radius: 20px;
@@ -17,7 +17,7 @@
 
 .application-card__information {
   min-width: 0;
-  padding: 24px 28px;
+  padding: 20px 22px;
 }
 
 .application-card__header,
@@ -29,20 +29,20 @@
 .application-card__header {
   justify-content: space-between;
   gap: 20px;
-  padding-bottom: 18px;
+  padding-bottom: 14px;
   border-bottom: 1px solid #edf1ef;
 }
 
 .application-card__identity {
   min-width: 0;
-  gap: 14px;
+  gap: 12px;
 }
 
 .application-card__logo {
   display: grid;
-  width: 52px;
-  height: 52px;
-  flex: 0 0 52px;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
   place-items: center;
   border: 1px solid #ccefe2;
   border-radius: 14px;
@@ -50,8 +50,8 @@
   color: var(--primary);
 
   lucide-icon {
-    width: 24px;
-    height: 24px;
+    width: 21px;
+    height: 21px;
   }
 }
 
@@ -67,7 +67,7 @@
   overflow: hidden;
   margin: 4px 0 0;
   color: var(--text-dark);
-  font-size: 21px;
+  font-size: 19px;
   font-weight: 800;
   line-height: 1.3;
   text-overflow: ellipsis;
@@ -98,8 +98,8 @@
 .application-card__details {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px 28px;
-  padding: 20px 0 18px;
+  gap: 12px 24px;
+  padding: 14px 0 12px;
 }
 
 .detail-row {
@@ -121,7 +121,7 @@
   }
 
   span {
-    margin-bottom: 4px;
+    margin-bottom: 2px;
     color: var(--text-muted);
     font-size: 12px;
   }
@@ -173,7 +173,7 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  padding-top: 14px;
+  padding-top: 10px;
   border-top: 1px solid #edf1ef;
   color: var(--text-muted);
   font-size: 12px;
@@ -197,8 +197,8 @@
   display: grid;
   grid-template-columns: 20px 1fr;
   gap: 10px;
-  margin-top: 16px;
-  padding: 13px 14px;
+  margin-top: 10px;
+  padding: 10px 12px;
   border: 1px solid #ffd4dc;
   border-radius: 12px;
   background: #fff6f7;
@@ -216,13 +216,13 @@
   }
 
   p {
-    margin-top: 3px;
+    margin-top: 2px;
     color: #7c4250;
     line-height: 1.5;
   }
 }
 
-@media (max-width: 980px) {
+@media (max-width: 1100px) {
   .application-card {
     grid-template-columns: 1fr;
   }

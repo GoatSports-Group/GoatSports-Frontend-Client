@@ -91,9 +91,13 @@
             <lucide-icon name="activity" aria-hidden="true"></lucide-icon>
           </header>
 
-          <ol class="progress-steps">
-            @for (step of item.progress.steps; track step.title; let last = $last) {
-              <li class="progress-step" [class]="'progress-step progress-step--' + step.state">
+          <ol class="progress-steps" [attr.aria-label]="item.progress.summary">
+            @for (step of item.progress.steps; track step.title; let first = $first; let last = $last) {
+              <li
+                class="progress-step"
+                [class]="'progress-step progress-step--' + step.state"
+                [attr.aria-current]="step.state === 'current' ? 'step' : null"
+                [attr.title]="step.description">
                 <div class="progress-step__rail" aria-hidden="true">
                   <span class="progress-step__dot">
                     @if (step.state === 'completed') {
@@ -108,21 +112,15 @@
                 </div>
                 <div class="progress-step__content">
                   <strong>{{ step.title }}</strong>
-                  <p>{{ step.description }}</p>
-                  @if (step.timestamp) {
+                  @if (step.timestamp && (first || last)) {
                     <time [attr.datetime]="step.timestamp">
-                      {{ step.timestamp | date:'dd/MM/yyyy HH:mm' }}
+                      {{ step.timestamp | date:'dd/MM/yyyy' }}
                     </time>
                   }
                 </div>
               </li>
             }
           </ol>
-
-          <p class="application-progress__note">
-            <lucide-icon name="info" aria-hidden="true"></lucide-icon>
-            Mốc thời gian chi tiết sẽ được cập nhật khi hệ thống xử lý hồ sơ.
-          </p>
         </aside>
       </article>
     }
