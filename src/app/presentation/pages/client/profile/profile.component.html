@@ -1,46 +1,65 @@
 <section class="profile-page">
   <div class="profile-page__container">
-    <!-- Header Section -->
+    <!-- Page Header -->
     <header class="profile-page__header">
       <div class="profile-page__intro">
         <p class="profile-page__eyebrow">Tài khoản cá nhân</p>
         <h1 class="profile-page__title">Cài Đặt Tài Khoản</h1>
         <p class="profile-page__description">
-          Quản lý thông tin hồ sơ, tùy biến giao diện hệ thống và thiết lập bảo mật an toàn.
+          Xem thông tin cá nhân, cập nhật cấu hình hệ thống và quản lý bảo mật liên kết tài khoản.
         </p>
       </div>
     </header>
 
-    <!-- Athletic Segmented Navigation Tabs -->
-    <nav class="profile-tabs" aria-label="Profile navigation tabs">
-      <div class="profile-tabs__nav">
-        @for (tab of tabs; track tab.key) {
-          <button
-            type="button"
-            class="profile-tabs__btn"
-            [class.profile-tabs__btn--active]="activeTab === tab.key"
-            (click)="setActiveTab(tab.key)"
-          >
-            <lucide-icon [name]="tab.icon" class="w-4 h-4 mr-2"></lucide-icon>
-            <span>{{ tab.label }}</span>
-          </button>
+    <!-- Main Container Card with Segmented Top Bar -->
+    <div class="profile-card-wrapper">
+      <!-- Modern Top Tab Bar -->
+      <nav class="profile-tabs-header" aria-label="Profile navigation">
+        <button
+          type="button"
+          class="profile-tab-item"
+          [class.profile-tab-item--active]="activeTab === 'info'"
+          (click)="setActiveTab('info')"
+        >
+          <lucide-icon name="user" class="tab-icon w-4 h-4"></lucide-icon>
+          <span>Hồ Sơ</span>
+        </button>
+
+        <button
+          type="button"
+          class="profile-tab-item"
+          [class.profile-tab-item--active]="activeTab === 'settings'"
+          (click)="setActiveTab('settings')"
+        >
+          <lucide-icon name="sliders" class="tab-icon w-4 h-4"></lucide-icon>
+          <span>Cài Đặt</span>
+        </button>
+
+        <button
+          type="button"
+          class="profile-tab-item"
+          [class.profile-tab-item--active]="activeTab === 'security'"
+          (click)="setActiveTab('security')"
+        >
+          <lucide-icon name="shield-check" class="tab-icon w-4 h-4"></lucide-icon>
+          <span>Bảo Mật</span>
+        </button>
+      </nav>
+
+      <!-- Panel Body -->
+      <div class="profile-panel-body">
+        @switch (activeTab) {
+          @case ('info') {
+            <app-profile-info [user]="(authService.currentUser$ | async) || authService.currentUser" />
+          }
+          @case ('settings') {
+            <app-profile-settings />
+          }
+          @case ('security') {
+            <app-profile-security [user]="(authService.currentUser$ | async) || authService.currentUser" />
+          }
         }
       </div>
-    </nav>
-
-    <!-- Tab Content View Container -->
-    <main class="profile-page__content">
-      @switch (activeTab) {
-        @case ('info') {
-          <app-profile-info [user]="authService.currentUser" />
-        }
-        @case ('settings') {
-          <app-profile-settings />
-        }
-        @case ('security') {
-          <app-profile-security [user]="authService.currentUser" />
-        }
-      }
-    </main>
+    </div>
   </div>
 </section>

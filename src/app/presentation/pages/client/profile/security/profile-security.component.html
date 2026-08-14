@@ -1,35 +1,30 @@
-<div class="profile-security">
-  <div class="security-grid">
-    <!-- Left Column: Password Update Form -->
-    <div class="security-card">
-      <header class="security-card__header">
-        <div class="icon-bubble">
-          <lucide-icon name="key-round" class="w-5 h-5 text-emerald-600"></lucide-icon>
-        </div>
-        <div>
-          <h3 class="security-card__title">Đổi Mật Khẩu Đăng Nhập</h3>
-          <p class="security-card__subtitle">Bảo vệ tài khoản bằng cách sử dụng mật khẩu mạnh và duy nhất</p>
-        </div>
-      </header>
+<div class="security-section">
+  <div class="security-columns">
+    <!-- Left: Form Đổi Mật Khẩu -->
+    <div class="password-form-panel">
+      <div class="section-title-box">
+        <h2 class="section-heading">THAY ĐỔI MẬT KHẨU</h2>
+        <div class="heading-line"></div>
+      </div>
 
-      <form class="password-form" (ngSubmit)="updatePassword()">
-        <!-- Current Password -->
-        <div class="form-group">
-          <label class="form-label" for="currentPwd">Mật khẩu hiện tại</label>
-          <div class="input-wrapper">
-            <lucide-icon name="lock" class="input-icon w-4 h-4"></lucide-icon>
+      <form class="password-fields-form" (ngSubmit)="updatePassword()">
+        <!-- Mật khẩu hiện tại -->
+        <div class="form-field-group">
+          <label class="field-label" for="curPwd">MẬT KHẨU HIỆN TẠI</label>
+          <div class="field-input-box">
+            <lucide-icon name="lock" class="field-icon w-4 h-4"></lucide-icon>
             <input
-              id="currentPwd"
+              id="curPwd"
               [type]="showCurrentPassword ? 'text' : 'password'"
               [(ngModel)]="form.currentPassword"
               name="currentPassword"
-              class="form-control"
-              placeholder="Nhập mật khẩu hiện tại..."
+              class="field-input"
+              placeholder="Nhập mật khẩu hiện tại"
               required
             />
             <button
               type="button"
-              class="btn-toggle-pwd"
+              class="btn-eye-toggle"
               (click)="showCurrentPassword = !showCurrentPassword"
               tabindex="-1"
             >
@@ -38,23 +33,23 @@
           </div>
         </div>
 
-        <!-- New Password -->
-        <div class="form-group">
-          <label class="form-label" for="newPwd">Mật khẩu mới</label>
-          <div class="input-wrapper">
-            <lucide-icon name="unlock" class="input-icon w-4 h-4"></lucide-icon>
+        <!-- Mật khẩu mới -->
+        <div class="form-field-group">
+          <label class="field-label" for="newPwd">MẬT KHẨU MỚI</label>
+          <div class="field-input-box">
+            <lucide-icon name="unlock" class="field-icon w-4 h-4"></lucide-icon>
             <input
               id="newPwd"
               [type]="showNewPassword ? 'text' : 'password'"
               [(ngModel)]="form.newPassword"
               name="newPassword"
-              class="form-control"
-              placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)..."
+              class="field-input"
+              placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)"
               required
             />
             <button
               type="button"
-              class="btn-toggle-pwd"
+              class="btn-eye-toggle"
               (click)="showNewPassword = !showNewPassword"
               tabindex="-1"
             >
@@ -63,23 +58,23 @@
           </div>
         </div>
 
-        <!-- Confirm Password -->
-        <div class="form-group">
-          <label class="form-label" for="confirmPwd">Xác nhận mật khẩu mới</label>
-          <div class="input-wrapper">
-            <lucide-icon name="shield-check" class="input-icon w-4 h-4"></lucide-icon>
+        <!-- Xác nhận mật khẩu mới -->
+        <div class="form-field-group">
+          <label class="field-label" for="confPwd">XÁC NHẬN MẬT KHẨU MỚI</label>
+          <div class="field-input-box">
+            <lucide-icon name="key" class="field-icon w-4 h-4"></lucide-icon>
             <input
-              id="confirmPwd"
+              id="confPwd"
               [type]="showConfirmPassword ? 'text' : 'password'"
               [(ngModel)]="form.confirmPassword"
               name="confirmPassword"
-              class="form-control"
-              placeholder="Nhập lại mật khẩu mới..."
+              class="field-input"
+              placeholder="Nhập lại mật khẩu mới"
               required
             />
             <button
               type="button"
-              class="btn-toggle-pwd"
+              class="btn-eye-toggle"
               (click)="showConfirmPassword = !showConfirmPassword"
               tabindex="-1"
             >
@@ -88,13 +83,13 @@
           </div>
         </div>
 
-        <div class="form-actions">
-          <button type="submit" class="btn-submit-pwd" [disabled]="isLoading">
+        <div class="form-submit-row">
+          <button type="submit" class="btn-pwd-submit" [disabled]="isLoading">
             @if (isLoading) {
               <lucide-icon name="loader-2" class="w-4 h-4 mr-2 animate-spin"></lucide-icon>
               Đang xác thực...
             } @else {
-              <lucide-icon name="shield" class="w-4 h-4 mr-2"></lucide-icon>
+              <lucide-icon name="shield-check" class="w-4 h-4 mr-2"></lucide-icon>
               Cập Nhật Mật Khẩu
             }
           </button>
@@ -102,43 +97,36 @@
       </form>
     </div>
 
-    <!-- Right Column: Account Security Card & Tips -->
-    <div class="security-sidebar">
-      <div class="security-card">
-        <header class="security-card__header">
-          <div class="icon-bubble">
-            <lucide-icon name="shield-alert" class="w-5 h-5 text-emerald-600"></lucide-icon>
-          </div>
-          <div>
-            <h3 class="security-card__title">Trạng Thái An Toàn</h3>
-            <p class="security-card__subtitle">Tổng quan độ an toàn tài khoản</p>
-          </div>
-        </header>
+    <!-- Right: Thông Tin An Toàn -->
+    <div class="security-tips-panel">
+      <div class="section-title-box">
+        <h2 class="section-heading">TRẠNG THÁI BẢO MẬT</h2>
+        <div class="heading-line"></div>
+      </div>
 
-        <div class="security-status-box">
-          <div class="status-indicator-pill">
-            <span class="status-dot"></span>
-            <span class="status-text">Tài khoản được bảo vệ</span>
-          </div>
-          <p class="status-desc">
-            Tài khoản của bạn đã được liên kết với hệ thống định danh bảo mật GOAT SPORTS SSO.
-          </p>
+      <div class="security-status-card">
+        <div class="status-badge-row">
+          <span class="safe-dot"></span>
+          <span class="safe-text">Tài khoản an toàn</span>
         </div>
+        <p class="status-summary">
+          Tài khoản đã được bảo vệ bởi cơ chế bảo mật phiên đăng nhập và định danh mã hóa của GOAT SPORTS.
+        </p>
 
-        <div class="security-guidelines">
-          <h4 class="guidelines-title">Nguyên tắc bảo mật:</h4>
-          <ul class="guidelines-list">
+        <div class="tips-checklist">
+          <h4 class="checklist-title">Khuyến nghị an toàn:</h4>
+          <ul class="checklist-items">
             <li>
-              <lucide-icon name="check-circle-2" class="w-4 h-4 text-emerald-600 mr-2 flex-shrink-0"></lucide-icon>
-              <span>Mật khẩu nên chứa cả chữ in hoa, chữ thường và chữ số.</span>
+              <lucide-icon name="check-circle" class="w-3.5 h-3.5 mr-2 text-emerald-600 flex-shrink-0"></lucide-icon>
+              <span>Mật khẩu nên có từ 8 ký tự, gồm chữ hoa, chữ thường và số.</span>
             </li>
             <li>
-              <lucide-icon name="check-circle-2" class="w-4 h-4 text-emerald-600 mr-2 flex-shrink-0"></lucide-icon>
-              <span>Không chia sẻ tài khoản hoặc mật khẩu với bất kỳ ai.</span>
+              <lucide-icon name="check-circle" class="w-3.5 h-3.5 mr-2 text-emerald-600 flex-shrink-0"></lucide-icon>
+              <span>Không sử dụng chung mật khẩu với các dịch vụ khác.</span>
             </li>
             <li>
-              <lucide-icon name="check-circle-2" class="w-4 h-4 text-emerald-600 mr-2 flex-shrink-0"></lucide-icon>
-              <span>Đăng xuất khi sử dụng trên các thiết bị công cộng.</span>
+              <lucide-icon name="check-circle" class="w-3.5 h-3.5 mr-2 text-emerald-600 flex-shrink-0"></lucide-icon>
+              <span>Đăng xuất tài khoản sau khi dùng xong trên máy tính lạ.</span>
             </li>
           </ul>
         </div>

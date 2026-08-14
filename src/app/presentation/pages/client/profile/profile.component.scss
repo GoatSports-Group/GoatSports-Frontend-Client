@@ -1,30 +1,34 @@
 .profile-page {
   min-height: calc(100vh - 80px);
-  padding: 2.5rem 1.5rem 4rem 1.5rem;
+  padding: 2rem 1.5rem 4rem 1.5rem;
   background-color: var(--bg-body);
 
   @media (max-width: 640px) {
-    padding: 1.5rem 1rem 3rem 1rem;
+    padding: 1.25rem 1rem 3rem 1rem;
   }
 
   &__container {
-    max-width: 1100px;
+    max-width: 1040px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 1.75rem;
   }
 
-  // Header Style matching owner-application
   &__header {
+    text-align: center;
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 0.5rem;
+    margin-bottom: 0.5rem;
   }
 
   &__intro {
     display: flex;
     flex-direction: column;
+    align-items: center;
+    text-align: center;
     gap: 0.35rem;
   }
 
@@ -43,9 +47,6 @@
     color: var(--text-dark);
     letter-spacing: -0.03em;
     margin: 0;
-    background: linear-gradient(135deg, var(--text-dark) 0%, #059669 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
 
     @media (max-width: 640px) {
       font-size: 1.75rem;
@@ -55,58 +56,80 @@
   &__description {
     font-size: 0.95rem;
     color: var(--text-muted);
-    line-height: 1.6;
+    line-height: 1.5;
     margin: 0;
-    max-width: 650px;
-  }
-
-  &__content {
-    animation: fadeIn 0.35s ease-out;
+    max-width: 600px;
   }
 }
 
-// Athletic Segmented Navigation Tabs
-.profile-tabs {
+// Main Card Container with embedded top tabs
+.profile-card-wrapper {
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: 16px;
-  padding: 0.4rem;
-  box-shadow: var(--shadow-sm);
+  border-radius: var(--border-radius-lg);
+  box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+}
 
-  &__nav {
-    display: flex;
-    gap: 0.35rem;
+// Top Tabs Header
+.profile-tabs-header {
+  display: flex;
+  background-color: rgba(248, 250, 252, 0.7);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0 1rem;
 
-    @media (max-width: 540px) {
-      flex-direction: column;
-    }
+  @media (max-width: 600px) {
+    padding: 0;
   }
 
-  &__btn {
+  .profile-tab-item {
     flex: 1;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.75rem 1.25rem;
-    font-size: 0.925rem;
+    gap: 0.5rem;
+    padding: 1.1rem 1.5rem;
+    font-size: 0.95rem;
     font-weight: 700;
     color: var(--text-muted);
     background: transparent;
     border: none;
-    border-radius: 12px;
+    border-bottom: 3px solid transparent;
     cursor: pointer;
     transition: var(--transition-smooth);
 
+    .tab-icon {
+      color: var(--text-muted);
+      transition: var(--transition-smooth);
+    }
+
     &:hover:not(&--active) {
       color: var(--text-dark);
-      background-color: var(--bg-body);
+      background-color: rgba(0, 0, 0, 0.02);
+
+      .tab-icon {
+        color: var(--text-dark);
+      }
     }
 
     &--active {
-      color: #ffffff;
-      background: linear-gradient(135deg, #059669 0%, #047857 100%);
-      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+      color: #059669;
+      border-bottom-color: #059669;
+      background-color: #ffffff;
+
+      .tab-icon {
+        color: #059669;
+      }
     }
+  }
+}
+
+.profile-panel-body {
+  padding: 2.25rem 2.5rem;
+  animation: fadeIn 0.3s ease-out;
+
+  @media (max-width: 768px) {
+    padding: 1.5rem;
   }
 }
 

@@ -1,22 +1,27 @@
-<div class="profile-settings">
-  <div class="settings-grid">
+<div class="settings-section">
+  <div class="section-title-box">
+    <h2 class="section-heading">TÙY CHỌN HỆ THỐNG</h2>
+    <div class="heading-line"></div>
+  </div>
+
+  <div class="settings-cards-grid">
     <!-- Giao diện Card -->
     <div class="setting-card">
-      <header class="setting-card__header">
-        <div class="icon-bubble">
-          <lucide-icon name="palette" class="w-5 h-5 text-emerald-600"></lucide-icon>
+      <div class="card-top-row">
+        <div class="card-icon-wrap">
+          <lucide-icon name="palette" class="w-4 h-4 text-emerald-600"></lucide-icon>
         </div>
         <div>
-          <h3 class="setting-card__title">Giao Diện Ứng Dụng</h3>
-          <p class="setting-card__subtitle">Tùy biến hiển thị màu sắc phù hợp với môi trường</p>
+          <h3 class="card-title">Giao Diện Ứng Dụng</h3>
+          <p class="card-desc">Tùy biến hiển thị màu sắc phù hợp với môi trường</p>
         </div>
-      </header>
+      </div>
 
-      <div class="setting-card__body">
-        <div class="setting-row">
-          <div class="setting-row__info">
-            <span class="setting-row__label">Chế độ tối (Dark Mode)</span>
-            <span class="setting-row__hint">Bảo vệ mắt khi đặt sân và theo dõi trận đấu ban đêm</span>
+      <div class="card-content-box">
+        <div class="setting-switch-row">
+          <div class="switch-labels">
+            <span class="switch-title">Chế độ tối (Dark Mode)</span>
+            <span class="switch-hint">Bảo vệ mắt khi đặt sân và theo dõi trận đấu ban đêm</span>
           </div>
 
           <label class="switch-toggle" for="themeToggle">
@@ -34,31 +39,31 @@
 
     <!-- Ngôn ngữ Card -->
     <div class="setting-card">
-      <header class="setting-card__header">
-        <div class="icon-bubble">
-          <lucide-icon name="globe" class="w-5 h-5 text-emerald-600"></lucide-icon>
+      <div class="card-top-row">
+        <div class="card-icon-wrap">
+          <lucide-icon name="globe" class="w-4 h-4 text-emerald-600"></lucide-icon>
         </div>
         <div>
-          <h3 class="setting-card__title">Ngôn Ngữ Hiển Thị</h3>
-          <p class="setting-card__subtitle">Lựa chọn ngôn ngữ sử dụng trên toàn hệ thống</p>
+          <h3 class="card-title">Ngôn Ngữ Hiển Thị</h3>
+          <p class="card-desc">Lựa chọn ngôn ngữ sử dụng trên toàn hệ thống</p>
         </div>
-      </header>
+      </div>
 
-      <div class="setting-card__body">
-        <div class="language-options">
-          <label class="language-pill" [class.language-pill--active]="form.language === 'vi'">
+      <div class="card-content-box">
+        <div class="lang-pills-list">
+          <label class="lang-pill" [class.lang-pill--active]="form.language === 'vi'">
             <input type="radio" name="lang" value="vi" [(ngModel)]="form.language" />
-            <span class="flag-icon">🇻🇳</span>
-            <span class="lang-text">Tiếng Việt (Mặc định)</span>
+            <span class="flag">🇻🇳</span>
+            <span class="label">Tiếng Việt (Mặc định)</span>
             @if (form.language === 'vi') {
               <lucide-icon name="check" class="w-4 h-4 text-emerald-600 ml-auto"></lucide-icon>
             }
           </label>
 
-          <label class="language-pill" [class.language-pill--active]="form.language === 'en'">
+          <label class="lang-pill" [class.lang-pill--active]="form.language === 'en'">
             <input type="radio" name="lang" value="en" [(ngModel)]="form.language" />
-            <span class="flag-icon">🇬🇧</span>
-            <span class="lang-text">English (International)</span>
+            <span class="flag">🇬🇧</span>
+            <span class="label">English (International)</span>
             @if (form.language === 'en') {
               <lucide-icon name="check" class="w-4 h-4 text-emerald-600 ml-auto"></lucide-icon>
             }
@@ -68,40 +73,40 @@
     </div>
 
     <!-- Thông báo Email Card -->
-    <div class="setting-card setting-card--full">
-      <header class="setting-card__header">
-        <div class="icon-bubble">
-          <lucide-icon name="bell" class="w-5 h-5 text-emerald-600"></lucide-icon>
+    <div class="setting-card setting-card--wide">
+      <div class="card-top-row">
+        <div class="card-icon-wrap">
+          <lucide-icon name="bell" class="w-4 h-4 text-emerald-600"></lucide-icon>
         </div>
         <div>
-          <h3 class="setting-card__title">Tùy Chọn Thông Báo Email</h3>
-          <p class="setting-card__subtitle">Kiểm soát các loại email nhận từ GOAT SPORTS</p>
+          <h3 class="card-title">Tùy Chọn Thông Báo Email</h3>
+          <p class="card-desc">Kiểm soát các loại email nhận từ GOAT SPORTS</p>
         </div>
-      </header>
+      </div>
 
-      <div class="setting-card__body">
-        <div class="notification-list">
-          <label class="notification-item">
-            <input type="checkbox" [(ngModel)]="form.emailBooking" class="custom-checkbox" />
-            <div class="notification-item__content">
+      <div class="card-content-box">
+        <div class="notif-checkboxes">
+          <label class="notif-box">
+            <input type="checkbox" [(ngModel)]="form.emailBooking" class="notif-check" />
+            <div class="notif-text">
               <span class="notif-title">Thông báo đặt sân & Hóa đơn thanh toán</span>
-              <span class="notif-desc">Nhận vé điện tử, xác nhận giờ đấu và nhắc nhở trước trận đấu</span>
+              <span class="notif-hint">Nhận vé điện tử, xác nhận giờ đấu và nhắc nhở trước trận đấu</span>
             </div>
           </label>
 
-          <label class="notification-item">
-            <input type="checkbox" [(ngModel)]="form.emailPromo" class="custom-checkbox" />
-            <div class="notification-item__content">
+          <label class="notif-box">
+            <input type="checkbox" [(ngModel)]="form.emailPromo" class="notif-check" />
+            <div class="notif-text">
               <span class="notif-title">Ưu đãi, Voucher & Sự kiện giải đấu</span>
-              <span class="notif-desc">Nhận thông tin giờ vàng giảm giá và các giải đấu thể thao phong trào</span>
+              <span class="notif-hint">Nhận thông tin giờ vàng giảm giá và các giải đấu thể thao phong trào</span>
             </div>
           </label>
 
-          <label class="notification-item">
-            <input type="checkbox" [(ngModel)]="form.emailSecurity" class="custom-checkbox" />
-            <div class="notification-item__content">
+          <label class="notif-box">
+            <input type="checkbox" [(ngModel)]="form.emailSecurity" class="notif-check" />
+            <div class="notif-text">
               <span class="notif-title">Cảnh báo bảo mật & Đăng nhập thiết bị mới</span>
-              <span class="notif-desc">Bảo vệ tài khoản tức thời khi phát hiện hoạt động bất thường</span>
+              <span class="notif-hint">Bảo vệ tài khoản tức thời khi phát hiện hoạt động bất thường</span>
             </div>
           </label>
         </div>
@@ -109,15 +114,15 @@
     </div>
   </div>
 
-  <footer class="settings-footer">
-    <button type="button" class="btn-save-settings" [disabled]="isSaving" (click)="saveSettings()">
+  <div class="settings-actions-row">
+    <button type="button" class="btn-save-action" [disabled]="isSaving" (click)="saveSettings()">
       @if (isSaving) {
-        <lucide-icon name="loader-2" class="w-4 h-4 mr-2 animate-spin"></lucide-icon>
+        <lucide-icon name="loader-2" class="w-4 h-4 mr-1.5 animate-spin"></lucide-icon>
         Đang lưu...
       } @else {
-        <lucide-icon name="save" class="w-4 h-4 mr-2"></lucide-icon>
-        Lưu Thay Đổi
+        <lucide-icon name="save" class="w-4 h-4 mr-1.5"></lucide-icon>
+        Lưu Cài Đặt
       }
     </button>
-  </footer>
+  </div>
 </div>

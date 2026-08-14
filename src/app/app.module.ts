@@ -91,7 +91,16 @@ import {
   LucideBellOff,
   LucideCheck,
   LucidePlus,
-  LucideUserRound
+  LucideUserRound,
+  LucideSliders,
+  LucideSlidersHorizontal,
+  LucideEye,
+  LucideEyeOff,
+  LucideSave,
+  LucideKeyRound,
+  LucideShieldAlert,
+  LucideLoader2,
+  LucideCheckCircle2
 } from '@lucide/angular';
 
 @NgModule({
@@ -187,7 +196,16 @@ import {
       LucideBellOff,
       LucideCheck,
       LucidePlus,
-      LucideUserRound
+      LucideUserRound,
+      LucideSliders,
+      LucideSlidersHorizontal,
+      LucideEye,
+      LucideEyeOff,
+      LucideSave,
+      LucideKeyRound,
+      LucideShieldAlert,
+      LucideLoader2,
+      LucideCheckCircle2
     )
   ],
   bootstrap: [AppComponent]

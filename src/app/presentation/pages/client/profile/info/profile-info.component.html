@@ -1,108 +1,70 @@
-<div class="profile-info">
-  <!-- Left Column: Athlete Identity Card -->
-  <aside class="identity-card">
-    <div class="identity-card__cover">
-      <div class="cover-pattern"></div>
-    </div>
-
-    <div class="identity-card__body">
-      <div class="avatar-container">
-        <div class="avatar-ring">
-          @if (user?.avatarUrl) {
-            <img [src]="fallbackAvatar" [alt]="user?.fullName || 'User'" class="avatar-img" />
-          } @else {
-            <div class="avatar-initials">{{ initials }}</div>
-          }
-        </div>
-        <span class="status-indicator" title="Tài khoản hoạt động"></span>
+<div class="profile-info-layout">
+  <!-- Left: Avatar & Identity Card -->
+  <div class="avatar-side-panel">
+    <div class="avatar-box">
+      <div class="avatar-circle">
+        @if (user?.avatarUrl) {
+          <img [src]="user?.avatarUrl" [alt]="user?.fullName || 'User Avatar'" class="avatar-image" />
+        } @else {
+          <img [src]="fallbackAvatar" [alt]="user?.fullName || 'User Avatar'" class="avatar-image" />
+        }
+        <button type="button" class="avatar-edit-badge" title="Đổi ảnh đại diện">
+          <lucide-icon name="camera" class="w-3.5 h-3.5"></lucide-icon>
+        </button>
       </div>
 
-      <div class="identity-details">
-        <h2 class="user-fullname">{{ user?.fullName || 'Vận động viên' }}</h2>
-        <p class="user-handle">&#64;{{ user?.username || 'user' }}</p>
-
-        <div class="role-badge-wrapper">
-          <span class="role-badge" [ngClass]="roleBadgeClass">
-            <lucide-icon name="trophy" class="w-3.5 h-3.5 mr-1"></lucide-icon>
-            {{ user?.role?.name || 'PLAYER' }}
-          </span>
-        </div>
-      </div>
-
-      <div class="identity-meta">
-        <div class="meta-item">
-          <span class="meta-item__label">Trạng thái</span>
-          <span class="meta-item__value text-emerald-600">Đã kích hoạt</span>
-        </div>
-        <div class="meta-divider"></div>
-        <div class="meta-item">
-          <span class="meta-item__label">Thành viên từ</span>
-          <span class="meta-item__value">{{ formatDate(user?.createdAt) }}</span>
-        </div>
+      <h3 class="user-name">{{ user?.fullName || 'Người dùng' }}</h3>
+      <div class="role-tag-box">
+        <span class="role-tag" [ngClass]="roleBadgeClass">{{ user?.role?.name || 'PLAYER' }}</span>
       </div>
     </div>
-  </aside>
+  </div>
 
-  <!-- Right Column: Personal Data Grid -->
-  <section class="details-section">
-    <div class="section-card">
-      <header class="section-card__header">
-        <div class="header-icon-box">
-          <lucide-icon name="user" class="w-5 h-5 text-emerald-600"></lucide-icon>
-        </div>
-        <div>
-          <h3 class="section-card__title">Thông Tin Cá Nhân</h3>
-          <p class="section-card__subtitle">Dữ liệu tài khoản của bạn trên nền tảng GOAT SPORTS</p>
-        </div>
-      </header>
+  <!-- Right: Personal Details Section -->
+  <div class="details-side-panel">
+    <div class="section-title-box">
+      <h2 class="section-heading">THÔNG TIN CÁ NHÂN</h2>
+      <div class="heading-line"></div>
+    </div>
 
-      <div class="info-grid">
-        <div class="info-tile">
-          <div class="info-tile__header">
-            <lucide-icon name="user" class="w-4 h-4 text-emerald-600 mr-2"></lucide-icon>
-            <span>Tên đăng nhập</span>
-          </div>
-          <p class="info-tile__value">{{ user?.username || '—' }}</p>
+    <div class="info-tiles-grid">
+      <!-- Tên đăng nhập -->
+      <div class="info-tile-card">
+        <div class="tile-header">
+          <lucide-icon name="user" class="w-3.5 h-3.5 mr-1.5 text-slate-500"></lucide-icon>
+          <span class="tile-label">TÊN ĐĂNG NHẬP</span>
         </div>
+        <p class="tile-value">{{ user?.username || '—' }}</p>
+      </div>
 
-        <div class="info-tile">
-          <div class="info-tile__header">
-            <lucide-icon name="id-card" class="w-4 h-4 text-emerald-600 mr-2"></lucide-icon>
-            <span>Họ và tên</span>
-          </div>
-          <p class="info-tile__value">{{ user?.fullName || '—' }}</p>
+      <!-- Họ và tên -->
+      <div class="info-tile-card">
+        <div class="tile-header">
+          <lucide-icon name="id-card" class="w-3.5 h-3.5 mr-1.5 text-slate-500"></lucide-icon>
+          <span class="tile-label">HỌ VÀ TÊN</span>
         </div>
+        <p class="tile-value">{{ user?.fullName || '—' }}</p>
+      </div>
 
-        <div class="info-tile info-tile--wide">
-          <div class="info-tile__header">
-            <lucide-icon name="mail" class="w-4 h-4 text-emerald-600 mr-2"></lucide-icon>
-            <span>Địa chỉ Email</span>
-          </div>
-          <div class="info-tile__email-row">
-            <p class="info-tile__value">{{ user?.email || '—' }}</p>
-            <span class="email-verified-tag">
-              <lucide-icon name="check-circle-2" class="w-3.5 h-3.5 mr-1"></lucide-icon>
-              Đã xác thực
-            </span>
-          </div>
+      <!-- Địa chỉ email -->
+      <div class="info-tile-card">
+        <div class="tile-header">
+          <lucide-icon name="mail" class="w-3.5 h-3.5 mr-1.5 text-slate-500"></lucide-icon>
+          <span class="tile-label">ĐỊA CHỈ EMAIL</span>
         </div>
-
-        <div class="info-tile">
-          <div class="info-tile__header">
-            <lucide-icon name="shield" class="w-4 h-4 text-emerald-600 mr-2"></lucide-icon>
-            <span>Phương thức xác thực</span>
-          </div>
-          <p class="info-tile__value uppercase">{{ user?.authProvider || 'Hệ thống GOAT' }}</p>
-        </div>
-
-        <div class="info-tile">
-          <div class="info-tile__header">
-            <lucide-icon name="calendar" class="w-4 h-4 text-emerald-600 mr-2"></lucide-icon>
-            <span>Ngày đăng ký</span>
-          </div>
-          <p class="info-tile__value">{{ formatDate(user?.createdAt) }}</p>
+        <div class="email-value-row">
+          <p class="tile-value">{{ user?.email || '—' }}</p>
         </div>
       </div>
+
+      <!-- Ngày tham gia -->
+      <div class="info-tile-card">
+        <div class="tile-header">
+          <lucide-icon name="calendar" class="w-3.5 h-3.5 mr-1.5 text-slate-500"></lucide-icon>
+          <span class="tile-label">NGÀY THAM GIA</span>
+        </div>
+        <p class="tile-value">{{ formatDate(user?.createdAt) }}</p>
+      </div>
     </div>
-  </section>
+  </div>
 </div>

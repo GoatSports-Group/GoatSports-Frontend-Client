@@ -1,298 +1,185 @@
-.profile-info {
+.profile-info-layout {
   display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: 1.75rem;
-  align-items: start;
+  grid-template-columns: 240px 1fr;
+  gap: 2.5rem;
+  align-items: center;
 
-  @media (max-width: 960px) {
+  @media (max-width: 768px) {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 2rem;
   }
 }
 
-// Left Column: Athlete Identity Card
-.identity-card {
-  background-color: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-lg);
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-  transition: var(--transition-smooth);
+// Left Avatar Panel
+.avatar-side-panel {
+  display: flex;
+  justify-content: center;
 
-  &:hover {
-    box-shadow: var(--shadow-md);
-  }
-
-  &__cover {
-    height: 100px;
-    background: linear-gradient(135deg, #059669 0%, #047857 50%, #065f46 100%);
-    position: relative;
-
-    .cover-pattern {
-      position: absolute;
-      inset: 0;
-      opacity: 0.15;
-      background-image: radial-gradient(#ffffff 1px, transparent 1px);
-      background-size: 12px 12px;
-    }
-  }
-
-  &__body {
-    padding: 0 1.5rem 1.75rem 1.5rem;
+  .avatar-box {
+    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    margin-top: -50px;
+    padding: 2rem 1.5rem;
+    background-color: var(--bg-body);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    transition: var(--transition-smooth);
+
+    &:hover {
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+    }
   }
-}
 
-.avatar-container {
-  position: relative;
-  margin-bottom: 1rem;
+  .avatar-circle {
+    position: relative;
+    width: 110px;
+    height: 110px;
+    margin-bottom: 1rem;
 
-  .avatar-ring {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    padding: 3px;
-    background: linear-gradient(135deg, #10b981, #059669);
-    box-shadow: 0 8px 20px -4px rgba(5, 150, 105, 0.4);
-
-    .avatar-img {
+    .avatar-image {
       width: 100%;
       height: 100%;
       border-radius: 50%;
       object-fit: cover;
-      border: 3px solid var(--bg-card);
-      background-color: var(--bg-card);
+      border: 4px solid #ffffff;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+      background-color: #ffffff;
     }
 
-    .avatar-initials {
-      width: 100%;
-      height: 100%;
+    .avatar-edit-badge {
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      background-color: #059669;
       color: #ffffff;
+      border: 2px solid #ffffff;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 2rem;
-      font-weight: 900;
-      letter-spacing: -0.5px;
-      border: 3px solid var(--bg-card);
-    }
-  }
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+      transition: var(--transition-smooth);
 
-  .status-indicator {
-    position: absolute;
-    bottom: 4px;
-    right: 4px;
-    width: 16px;
-    height: 16px;
-    background-color: #10b981;
-    border: 3px solid var(--bg-card);
-    border-radius: 50%;
-    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
-  }
-}
-
-.identity-details {
-  margin-bottom: 1.5rem;
-
-  .user-fullname {
-    font-size: 1.35rem;
-    font-weight: 800;
-    color: var(--text-dark);
-    letter-spacing: -0.3px;
-    margin-bottom: 0.2rem;
-  }
-
-  .user-handle {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    margin-bottom: 0.75rem;
-  }
-
-  .role-badge-wrapper {
-    display: flex;
-    justify-content: center;
-  }
-
-  .role-badge {
-    display: inline-flex;
-    align-items: center;
-    font-size: 0.75rem;
-    font-weight: 800;
-    padding: 0.3rem 0.85rem;
-    border-radius: 9999px;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-
-    &.badge--admin {
-      background-color: #fef2f2;
-      color: #dc2626;
-      border: 1px solid rgba(220, 38, 38, 0.2);
-    }
-
-    &.badge--owner {
-      background-color: #fef3c7;
-      color: #d97706;
-      border: 1px solid rgba(217, 119, 6, 0.2);
-    }
-
-    &.badge--player {
-      background-color: #ecfdf5;
-      color: #059669;
-      border: 1px solid rgba(5, 150, 105, 0.2);
-    }
-  }
-}
-
-.identity-meta {
-  width: 100%;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  padding-top: 1.25rem;
-  border-top: 1px dashed var(--border-color);
-
-  .meta-item {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-
-    &__label {
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
-
-    &__value {
-      font-size: 0.9rem;
-      font-weight: 700;
-      color: var(--text-dark);
-    }
-  }
-
-  .meta-divider {
-    width: 1px;
-    height: 32px;
-    background-color: var(--border-color);
-  }
-}
-
-// Right Column: Details Section Card
-.details-section {
-  .section-card {
-    background-color: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-lg);
-    padding: 1.75rem;
-    box-shadow: var(--shadow-sm);
-
-    &__header {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid var(--border-color);
-
-      .header-icon-box {
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
-        background-color: rgba(5, 150, 105, 0.1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
+      &:hover {
+        background-color: #047857;
+        transform: scale(1.08);
       }
     }
+  }
 
-    &__title {
-      font-size: 1.15rem;
+  .user-name {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--text-dark);
+    margin-bottom: 0.4rem;
+    letter-spacing: -0.2px;
+  }
+
+  .role-tag-box {
+    display: flex;
+    justify-content: center;
+
+    .role-tag {
+      font-size: 0.725rem;
       font-weight: 800;
-      color: var(--text-dark);
-      letter-spacing: -0.2px;
-      margin-bottom: 0.2rem;
-    }
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
 
-    &__subtitle {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin: 0;
+      &.badge--player {
+        background-color: #ecfdf5;
+        color: #059669;
+        border: 1px solid rgba(5, 150, 105, 0.2);
+      }
+
+      &.badge--owner {
+        background-color: #fef3c7;
+        color: #d97706;
+        border: 1px solid rgba(217, 119, 6, 0.2);
+      }
+
+      &.badge--admin {
+        background-color: #fef2f2;
+        color: #dc2626;
+        border: 1px solid rgba(220, 38, 38, 0.2);
+      }
     }
   }
 }
 
-.info-grid {
+// Right Details Section
+.details-side-panel {
+  display: flex;
+  flex-direction: column;
+
+  .section-title-box {
+    margin-bottom: 1.5rem;
+
+    .section-heading {
+      font-size: 1.2rem;
+      font-weight: 900;
+      color: var(--text-dark);
+      letter-spacing: -0.3px;
+      margin-bottom: 0.75rem;
+    }
+
+    .heading-line {
+      height: 1px;
+      width: 100%;
+      background-color: var(--border-color);
+    }
+  }
+}
+
+.info-tiles-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1.25rem;
+  gap: 1rem;
 
-  @media (max-width: 640px) {
+  @media (max-width: 540px) {
     grid-template-columns: 1fr;
   }
 }
 
-.info-tile {
+.info-tile-card {
   background-color: var(--bg-body);
   border: 1px solid var(--border-color);
   border-radius: 14px;
-  padding: 1rem 1.25rem;
+  padding: 1.1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
   transition: var(--transition-smooth);
 
   &:hover {
-    border-color: rgba(5, 150, 105, 0.4);
-    background-color: var(--bg-card);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px -4px rgba(15, 23, 42, 0.06);
+    background-color: #ffffff;
+    border-color: rgba(5, 150, 105, 0.35);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
   }
 
-  &--wide {
-    grid-column: 1 / -1;
-  }
-
-  &__header {
+  .tile-header {
     display: flex;
     align-items: center;
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 0.4rem;
+
+    .tile-label {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      letter-spacing: 0.4px;
+    }
   }
 
-  &__value {
-    font-size: 1rem;
+  .tile-value {
+    font-size: 0.95rem;
     font-weight: 700;
     color: var(--text-dark);
     margin: 0;
-    word-break: break-word;
-  }
-
-  &__email-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    flex-wrap: wrap;
-
-    .email-verified-tag {
-      display: inline-flex;
-      align-items: center;
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: #059669;
-      background-color: rgba(5, 150, 105, 0.1);
-      padding: 0.2rem 0.6rem;
-      border-radius: 6px;
-    }
+    word-break: break-all;
   }
 }
