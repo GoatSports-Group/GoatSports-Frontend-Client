@@ -71,49 +71,131 @@ export class OwnerAddressStepComponent implements OnInit, OnDestroy {
 
   selectSuggestion(suggestion: any) {
     const address = suggestion.address || {};
-    const parts = (suggestion.display_name || '').split(',').map((p: string) => p.trim());
-    
+    const rawParts: string[] = (suggestion.display_name || '')
+      .split(',')
+      .map((p: string) => p.trim())
+      .filter(Boolean);
+
+    // 1. Filter out Country and Postal Code to get clean administrative tokens
+    const cleanParts: string[] = rawParts.filter((p: string) => {
+      const lower = p.toLowerCase();
+      if (lower === 'việt nam' || lower === 'vietnam' || lower === 'vn') return false;
+      if (address.country && lower === address.country.toLowerCase()) return false;
+      if (/^\d{4,6}$/.test(p)) return false;
+      if (address.postcode && p === address.postcode) return false;
+      return true;
+    });
+
     let detailedAddress = '';
+    let ward = '';
+    let district = '';
+    let city = '';
+    let province = '';
+
+    // 2. Initial extraction from Nominatim address object
+    city = address.city || address.province || address.state || address.region || '';
+    province = address.state || address.province || address.region || address.city || '';
+
+    // 3. First pass: Keyword & Prefix recognition (when prefixes like 'Phường', 'Quận', 'Thành phố' exist)
+    for (let i = 0; i < cleanParts.length; i++) {
+      const p = cleanParts[i];
+      const lower = p.toLowerCase();
+      
+      if (
+        lower.startsWith('phường') || lower.startsWith('xã') || lower.startsWith('thị trấn') ||
+        lower.startsWith('p.') || lower.startsWith('x.') || lower.startsWith('tt.') || lower.includes('ward')
+      ) {
+        if (!ward) ward = p;
+      } else if (
+        lower.startsWith('quận') || lower.startsWith('huyện') || lower.startsWith('thị xã') ||
+        lower.startsWith('q.') || lower.startsWith('h.') || lower.startsWith('tx.') || lower.includes('district')
+      ) {
+        if (!district) district = p;
+      } else if (
+        (lower.startsWith('thành phố') || lower.startsWith('tỉnh') || lower.startsWith('tp.') ||
+         lower.includes('city') || lower.includes('province')) && i >= cleanParts.length - 2
+      ) {
+        if (!city || city === cleanParts[cleanParts.length - 1]) city = p;
+        if (!province) province = p;
+      }
+    }
+
+    // 4. Second pass: Fallback from specific address tags
+    if (!district) {
+      district = address.city_district || address.district || address.county || address.state_district || address.borough || '';
+      if (!district && address.town && address.town !== city) {
+        district = address.town;
+      }
+    }
+
+    if (!ward) {
+      ward = address.quarter || address.neighbourhood || address.village || address.hamlet || '';
+    }
+
+    // Handle ambiguous 'suburb' tag
+    if (address.suburb) {
+      const subLower = address.suburb.toLowerCase();
+      if (subLower.includes('quận') || subLower.includes('huyện') || subLower.includes('district')) {
+        if (!district) district = address.suburb;
+      } else if (subLower.includes('phường') || subLower.includes('xã') || subLower.includes('ward')) {
+        if (!ward) ward = address.suburb;
+      } else {
+        if (!district && ward && ward !== address.suburb) {
+          district = address.suburb;
+        } else if (!ward && !district) {
+          ward = address.suburb;
+        } else if (!district) {
+          district = address.suburb;
+        }
+      }
+    }
+
+    // 5. Third pass: Positional Fallback (Crucial when names DO NOT have prefixes like 'Quận' / 'Phường')
+    // OpenStreetMap structures tokens from left-to-right: [Detail/Street, ..., Ward, District, City/Province]
+    if (cleanParts.length >= 4) {
+      const posCity = cleanParts[cleanParts.length - 1];
+      const posDistrict = cleanParts[cleanParts.length - 2];
+      const posWard = cleanParts[cleanParts.length - 3];
+
+      if (!city) city = posCity;
+      if (!province) province = posCity;
+      if (!district) district = posDistrict;
+      if (!ward) ward = posWard;
+    } else if (cleanParts.length === 3) {
+      // [Street, MiddleLevel, City]
+      const posCity = cleanParts[2];
+      const posMiddle = cleanParts[1];
+      if (!city) city = posCity;
+      if (!province) province = posCity;
+
+      if (!ward && !district) {
+        district = posMiddle;
+      } else if (ward && !district && ward !== posMiddle) {
+        district = posMiddle;
+      } else if (!ward && district && district !== posMiddle) {
+        ward = posMiddle;
+      }
+    } else if (cleanParts.length === 2) {
+      if (!city) city = cleanParts[1];
+      if (!province) province = cleanParts[1];
+    }
+
+    // 6. Build Detailed Address
     if (address.house_number && address.road) {
       detailedAddress = `${address.house_number} ${address.road}`;
     } else if (address.road) {
-      detailedAddress = address.road;
-    } else {
-      detailedAddress = parts[0] || '';
-    }
-    
-    // Ward fallback
-    let ward = address.suburb || address.village || address.quarter || address.neighbourhood || address.hamlet || '';
-    if (!ward) {
-      const foundWard = parts.find((p: string) => p.toLowerCase().startsWith('phường') || p.toLowerCase().startsWith('xã') || p.toLowerCase().includes('ward'));
-      if (foundWard) ward = foundWard;
-    }
-
-    // District fallback
-    let district = address.city_district || address.district || address.county || address.state_district || address.borough || address.town || '';
-    if (!district) {
-      const foundDistrict = parts.find((p: string) => p.toLowerCase().startsWith('quận') || p.toLowerCase().startsWith('huyện') || p.toLowerCase().startsWith('thị xã') || p.toLowerCase().includes('district'));
-      if (foundDistrict) district = foundDistrict;
+      if (cleanParts.length > 0 && cleanParts[0] !== address.road && /^\d+/.test(cleanParts[0])) {
+        detailedAddress = `${cleanParts[0]} ${address.road}`;
+      } else {
+        detailedAddress = address.road;
+      }
+    } else if (cleanParts.length > 0) {
+      const nonDetailParts = [ward, district, city, province];
+      const detailTokens = cleanParts.filter((p: string) => !nonDetailParts.includes(p));
+      detailedAddress = detailTokens.length > 0 ? detailTokens.join(', ') : cleanParts[0];
     }
 
-    // If district is still missing, maybe it's misclassified as something else
-    // in VN, 'town' can be a district, 'suburb' could be a district if ward is missing.
-    // We'll leave it as we have covered all common OSM keys for VN.
-    
-    // City & Province mapping
-    let city = address.city || address.town || address.state || address.province || '';
-    if (!city) {
-      const foundCity = parts.find((p: string) => p.toLowerCase().startsWith('thành phố') || p.toLowerCase().includes('city'));
-      if (foundCity) city = foundCity;
-    }
-
-    let province = address.state || address.province || address.region || '';
-    if (!province) {
-      const foundProvince = parts.find((p: string) => p.toLowerCase().startsWith('tỉnh') || p.toLowerCase().includes('province'));
-      if (foundProvince) province = foundProvince;
-    }
-    
-    // Fallback between city and province for VN addresses
+    // Final fallback between city and province
     if (!province && city) province = city;
     if (!city && province) city = province;
 
@@ -122,7 +204,7 @@ export class OwnerAddressStepComponent implements OnInit, OnDestroy {
     this.form.district = district;
     this.form.province = province;
     this.form.city = city;
-    
+
     this.suggestions = [];
     this.isSuggestionsVisible = false;
     this.hasSearched = false;
