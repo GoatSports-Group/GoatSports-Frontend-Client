@@ -46,8 +46,12 @@
             <div class="detail-row">
               <lucide-icon name="phone" aria-hidden="true"></lucide-icon>
               <div>
-                <span>Thông tin liên hệ</span>
-                <strong>{{ item.application.phone }} · {{ item.application.email }}</strong>
+                <span>Liên hệ</span>
+                <div class="detail-row__contact">
+                  <a [href]="'tel:' + item.application.phone">{{ item.application.phone }}</a>
+                  <span aria-hidden="true">·</span>
+                  <a [href]="'mailto:' + item.application.email">{{ item.application.email }}</a>
+                </div>
               </div>
             </div>
             <div class="detail-row detail-row--wide">
@@ -57,23 +61,15 @@
                 <strong>{{ getAddress(item.application) }}</strong>
               </div>
             </div>
-            <div class="detail-row">
-              <lucide-icon name="calendar" aria-hidden="true"></lucide-icon>
-              <div>
-                <span>Ngày nộp hồ sơ</span>
-                <strong>
-                  {{ item.application.createdAt ? (item.application.createdAt | date:'dd/MM/yyyy HH:mm') : 'Đang cập nhật' }}
-                </strong>
-              </div>
-            </div>
-            <div class="detail-row">
-              <lucide-icon name="file-text" aria-hidden="true"></lucide-icon>
-              <div>
-                <span>Mã hồ sơ</span>
-                <strong class="detail-row__code">{{ item.application.ownerApplicationId }}</strong>
-              </div>
-            </div>
           </div>
+
+          <footer class="application-card__submitted">
+            <lucide-icon name="calendar" aria-hidden="true"></lucide-icon>
+            <span>Nộp hồ sơ</span>
+            <time [attr.datetime]="item.application.createdAt || null">
+              {{ item.application.createdAt ? (item.application.createdAt | date:'dd/MM/yyyy HH:mm') : 'Đang cập nhật' }}
+            </time>
+          </footer>
 
           @if (item.application.rejectReason) {
             <div class="application-card__notice" role="note">

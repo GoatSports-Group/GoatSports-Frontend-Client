@@ -17,7 +17,7 @@
 
 .application-card__information {
   min-width: 0;
-  padding: 26px 28px;
+  padding: 24px 28px;
 }
 
 .application-card__header,
@@ -29,7 +29,7 @@
 .application-card__header {
   justify-content: space-between;
   gap: 20px;
-  padding-bottom: 22px;
+  padding-bottom: 18px;
   border-bottom: 1px solid #edf1ef;
 }
 
@@ -98,8 +98,8 @@
 .application-card__details {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px 28px;
-  padding-top: 24px;
+  gap: 16px 28px;
+  padding: 20px 0 18px;
 }
 
 .detail-row {
@@ -140,16 +140,64 @@
   grid-column: 1 / -1;
 }
 
-.detail-row__code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  white-space: nowrap;
+.detail-row__contact {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 5px;
+  color: #34423e;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.55;
+
+  a {
+    overflow: hidden;
+    color: inherit;
+    text-decoration: none;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &:hover {
+      color: var(--primary);
+      text-decoration: underline;
+    }
+  }
+
+  span {
+    flex: 0 0 auto;
+    margin: 0;
+  }
+}
+
+.application-card__submitted {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding-top: 14px;
+  border-top: 1px solid #edf1ef;
+  color: var(--text-muted);
+  font-size: 12px;
+
+  lucide-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  span {
+    font-weight: 600;
+  }
+
+  time {
+    color: #34423e;
+    font-weight: 700;
+  }
 }
 
 .application-card__notice {
   display: grid;
   grid-template-columns: 20px 1fr;
   gap: 10px;
-  margin-top: 22px;
+  margin-top: 16px;
   padding: 13px 14px;
   border: 1px solid #ffd4dc;
   border-radius: 12px;
@@ -196,6 +244,16 @@
 
   .detail-row--wide {
     grid-column: auto;
+  }
+
+  .detail-row__contact {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 1px;
+
+    > span {
+      display: none;
+    }
   }
 }
 
