@@ -1,0 +1,108 @@
+<div class="profile-info">
+  <!-- Left Column: Athlete Identity Card -->
+  <aside class="identity-card">
+    <div class="identity-card__cover">
+      <div class="cover-pattern"></div>
+    </div>
+
+    <div class="identity-card__body">
+      <div class="avatar-container">
+        <div class="avatar-ring">
+          @if (user?.avatarUrl) {
+            <img [src]="fallbackAvatar" [alt]="user?.fullName || 'User'" class="avatar-img" />
+          } @else {
+            <div class="avatar-initials">{{ initials }}</div>
+          }
+        </div>
+        <span class="status-indicator" title="Tài khoản hoạt động"></span>
+      </div>
+
+      <div class="identity-details">
+        <h2 class="user-fullname">{{ user?.fullName || 'Vận động viên' }}</h2>
+        <p class="user-handle">&#64;{{ user?.username || 'user' }}</p>
+
+        <div class="role-badge-wrapper">
+          <span class="role-badge" [ngClass]="roleBadgeClass">
+            <lucide-icon name="trophy" class="w-3.5 h-3.5 mr-1"></lucide-icon>
+            {{ user?.role?.name || 'PLAYER' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="identity-meta">
+        <div class="meta-item">
+          <span class="meta-item__label">Trạng thái</span>
+          <span class="meta-item__value text-emerald-600">Đã kích hoạt</span>
+        </div>
+        <div class="meta-divider"></div>
+        <div class="meta-item">
+          <span class="meta-item__label">Thành viên từ</span>
+          <span class="meta-item__value">{{ formatDate(user?.createdAt) }}</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Right Column: Personal Data Grid -->
+  <section class="details-section">
+    <div class="section-card">
+      <header class="section-card__header">
+        <div class="header-icon-box">
+          <lucide-icon name="user" class="w-5 h-5 text-emerald-600"></lucide-icon>
+        </div>
+        <div>
+          <h3 class="section-card__title">Thông Tin Cá Nhân</h3>
+          <p class="section-card__subtitle">Dữ liệu tài khoản của bạn trên nền tảng GOAT SPORTS</p>
+        </div>
+      </header>
+
+      <div class="info-grid">
+        <div class="info-tile">
+          <div class="info-tile__header">
+            <lucide-icon name="user" class="w-4 h-4 text-emerald-600 mr-2"></lucide-icon>
+            <span>Tên đăng nhập</span>
+          </div>
+          <p class="info-tile__value">{{ user?.username || '—' }}</p>
+        </div>
+
+        <div class="info-tile">
+          <div class="info-tile__header">
+            <lucide-icon name="id-card" class="w-4 h-4 text-emerald-600 mr-2"></lucide-icon>
+            <span>Họ và tên</span>
+          </div>
+          <p class="info-tile__value">{{ user?.fullName || '—' }}</p>
+        </div>
+
+        <div class="info-tile info-tile--wide">
+          <div class="info-tile__header">
+            <lucide-icon name="mail" class="w-4 h-4 text-emerald-600 mr-2"></lucide-icon>
+            <span>Địa chỉ Email</span>
+          </div>
+          <div class="info-tile__email-row">
+            <p class="info-tile__value">{{ user?.email || '—' }}</p>
+            <span class="email-verified-tag">
+              <lucide-icon name="check-circle-2" class="w-3.5 h-3.5 mr-1"></lucide-icon>
+              Đã xác thực
+            </span>
+          </div>
+        </div>
+
+        <div class="info-tile">
+          <div class="info-tile__header">
+            <lucide-icon name="shield" class="w-4 h-4 text-emerald-600 mr-2"></lucide-icon>
+            <span>Phương thức xác thực</span>
+          </div>
+          <p class="info-tile__value uppercase">{{ user?.authProvider || 'Hệ thống GOAT' }}</p>
+        </div>
+
+        <div class="info-tile">
+          <div class="info-tile__header">
+            <lucide-icon name="calendar" class="w-4 h-4 text-emerald-600 mr-2"></lucide-icon>
+            <span>Ngày đăng ký</span>
+          </div>
+          <p class="info-tile__value">{{ formatDate(user?.createdAt) }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

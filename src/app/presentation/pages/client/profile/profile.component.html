@@ -1,200 +1,46 @@
-<div class="profile-page-container animate-fade-in">
+<section class="profile-page">
+  <div class="profile-page__container">
+    <!-- Header Section -->
+    <header class="profile-page__header">
+      <div class="profile-page__intro">
+        <p class="profile-page__eyebrow">Tài khoản cá nhân</p>
+        <h1 class="profile-page__title">Cài Đặt Tài Khoản</h1>
+        <p class="profile-page__description">
+          Quản lý thông tin hồ sơ, tùy biến giao diện hệ thống và thiết lập bảo mật an toàn.
+        </p>
+      </div>
+    </header>
 
-  <div class="profile-header-section">
-    <h1 class="page-title athletic-title">Cài Đặt Tài Khoản</h1>
-    <p class="page-subtitle">Xem thông tin cá nhân, cập nhật cấu hình hệ thống và quản lý bảo mật liên kết tài khoản.
-    </p>
+    <!-- Athletic Segmented Navigation Tabs -->
+    <nav class="profile-tabs" aria-label="Profile navigation tabs">
+      <div class="profile-tabs__nav">
+        @for (tab of tabs; track tab.key) {
+          <button
+            type="button"
+            class="profile-tabs__btn"
+            [class.profile-tabs__btn--active]="activeTab === tab.key"
+            (click)="setActiveTab(tab.key)"
+          >
+            <lucide-icon [name]="tab.icon" class="w-4 h-4 mr-2"></lucide-icon>
+            <span>{{ tab.label }}</span>
+          </button>
+        }
+      </div>
+    </nav>
+
+    <!-- Tab Content View Container -->
+    <main class="profile-page__content">
+      @switch (activeTab) {
+        @case ('info') {
+          <app-profile-info [user]="authService.currentUser" />
+        }
+        @case ('settings') {
+          <app-profile-settings />
+        }
+        @case ('security') {
+          <app-profile-security [user]="authService.currentUser" />
+        }
+      }
+    </main>
   </div>
-
-  <mat-card class="main-profile-card">
-    <mat-tab-group color="primary" animationDuration="300ms">
-
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <lucide-icon name="user" class="tab-icon w-4 h-4 mr-2"></lucide-icon>
-          <span>Hồ Sơ</span>
-        </ng-template>
-
-        <div class="tab-content profile-tab">
-          <div class="profile-layout">
-            <div class="avatar-panel">
-              <div class="avatar-wrapper">
-                <img [src]="fallbackAvatar" alt="User Avatar" class="profile-avatar">
-                <button mat-icon-button class="edit-avatar-btn" matTooltip="Đổi ảnh đại diện">
-                  <lucide-icon name="camera" class="w-4 h-4"></lucide-icon>
-                </button>
-              </div>
-              <h3 class="user-display-name">{{ authService.currentUser?.fullName }}</h3>
-              <span class="user-role-tag">{{ authService.currentUser?.role?.name }}</span>
-            </div>
-
-            <div class="details-panel">
-              <h2 class="section-title athletic-title">Thông Tin Cá Nhân</h2>
-              <mat-divider class="section-divider"></mat-divider>
-
-              <div class="info-grid">
-                <div class="info-item">
-                  <div class="info-label">
-                    <lucide-icon name="user" class="w-4 h-4 mr-2"></lucide-icon>
-                    <span>Tên đăng nhập</span>
-                  </div>
-                  <div class="info-value">{{ authService.currentUser?.username }}</div>
-                </div>
-
-                <div class="info-item">
-                  <div class="info-label">
-                    <lucide-icon name="id-card" class="w-4 h-4 mr-2"></lucide-icon>
-                    <span>Họ và tên</span>
-                  </div>
-                  <div class="info-value">{{ authService.currentUser?.fullName }}</div>
-                </div>
-
-                <div class="info-item">
-                  <div class="info-label">
-                    <lucide-icon name="mail" class="w-4 h-4 mr-2"></lucide-icon>
-                    <span>Địa chỉ email</span>
-                  </div>
-                  <div class="info-value">{{ authService.currentUser?.email }}</div>
-                </div>
-
-                <div class="info-item">
-                  <div class="info-label">
-                    <lucide-icon name="calendar" class="w-4 h-4 mr-2"></lucide-icon>
-                    <span>Ngày tham gia</span>
-                  </div>
-                  <div class="info-value">{{ formatDate(authService.currentUser?.createdAt) }}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </mat-tab>
-
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <lucide-icon name="settings" class="tab-icon w-4 h-4 mr-2"></lucide-icon>
-          <span>Cài Đặt</span>
-        </ng-template>
-
-        <div class="tab-content settings-tab">
-          <h2 class="section-title athletic-title">Tùy Chọn Hệ Thống</h2>
-          <mat-divider class="section-divider"></mat-divider>
-
-          <div class="settings-grid">
-            <mat-card class="settings-card">
-              <mat-card-header>
-                <lucide-icon mat-card-avatar name="palette" class="w-8 h-8 text-primary"></lucide-icon>
-                <mat-card-title>Giao Diện</mat-card-title>
-                <mat-card-subtitle>Thay đổi cách hiển thị của ứng dụng.</mat-card-subtitle>
-              </mat-card-header>
-              <mat-card-content class="settings-card-body">
-                <div class="setting-row">
-                  <div class="setting-info">
-                    <span class="setting-name">Chế độ tối (Dark Mode)</span>
-                    <span class="setting-desc">Kích hoạt giao diện nền tối giúp dịu mắt hơn.</span>
-                  </div>
-                  <mat-checkbox [checked]="darkMode" (change)="toggleTheme($event.checked)"></mat-checkbox>
-                </div>
-              </mat-card-content>
-            </mat-card>
-
-            <mat-card class="settings-card">
-              <mat-card-header>
-                <lucide-icon mat-card-avatar name="languages" class="w-8 h-8 text-primary"></lucide-icon>
-                <mat-card-title>Ngôn Ngữ</mat-card-title>
-                <mat-card-subtitle>Lựa chọn ngôn ngữ hiển thị chính.</mat-card-subtitle>
-              </mat-card-header>
-              <mat-card-content class="settings-card-body">
-                <mat-form-field appearance="outline" class="language-select">
-                  <mat-label>Ngôn ngữ</mat-label>
-                  <mat-select [(value)]="language">
-                    <mat-option value="vi">Tiếng Việt (Vietnamese)</mat-option>
-                    <mat-option value="en">English (Tiếng Anh)</mat-option>
-                  </mat-select>
-                </mat-form-field>
-              </mat-card-content>
-            </mat-card>
-
-            <mat-card class="settings-card full-row">
-              <mat-card-header>
-                <lucide-icon mat-card-avatar name="bell" class="w-8 h-8 text-primary"></lucide-icon>
-                <mat-card-title>Thông Báo Email</mat-card-title>
-                <mat-card-subtitle>Chọn loại email bạn muốn nhận từ hệ thống.</mat-card-subtitle>
-              </mat-card-header>
-              <mat-card-content class="settings-card-body">
-                <div class="notification-options">
-                  <div class="setting-row">
-                    <mat-checkbox [(ngModel)]="emailBooking">Thông báo xác nhận đặt sân & hóa đơn đặt chỗ</mat-checkbox>
-                  </div>
-                  <div class="setting-row">
-                    <mat-checkbox [(ngModel)]="emailPromo">Tin tức khuyến mãi, mã giảm giá & ưu đãi mới</mat-checkbox>
-                  </div>
-                  <div class="setting-row">
-                    <mat-checkbox [(ngModel)]="emailSecurity">Cảnh báo bảo mật, đăng nhập lạ & đổi mật
-                      khẩu</mat-checkbox>
-                  </div>
-                </div>
-              </mat-card-content>
-            </mat-card>
-          </div>
-
-          <div class="settings-actions">
-            <button mat-flat-button color="primary" (click)="saveSettings()" class="hover-btn-pulse neo-btn">Lưu Cài
-              Đặt</button>
-          </div>
-        </div>
-      </mat-tab>
-
-      <!-- TAB 3: BẢO MẬT -->
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <lucide-icon name="shield" class="tab-icon w-4 h-4 mr-2"></lucide-icon>
-          <span>Bảo Mật</span>
-        </ng-template>
-
-        <div class="tab-content security-tab">
-          <div class="security-layout">
-
-            <div class="password-section">
-              <h2 class="section-title athletic-title">Thay Đổi Mật Khẩu</h2>
-              <mat-divider class="section-divider"></mat-divider>
-
-              <div class="password-form">
-                <mat-form-field appearance="outline">
-                  <mat-label>Mật khẩu hiện tại</mat-label>
-                  <input matInput type="password" [(ngModel)]="currentPassword" placeholder="Nhập mật khẩu hiện tại">
-                  <lucide-icon matSuffix name="lock" class="w-4 h-4"></lucide-icon>
-                </mat-form-field>
-
-                <mat-form-field appearance="outline">
-                  <mat-label>Mật khẩu mới</mat-label>
-                  <input matInput type="password" [(ngModel)]="newPassword" placeholder="Nhập mật khẩu mới">
-                  <lucide-icon matSuffix name="unlock" class="w-4 h-4"></lucide-icon>
-                </mat-form-field>
-
-                <mat-form-field appearance="outline">
-                  <mat-label>Xác nhận mật khẩu mới</mat-label>
-                  <input matInput type="password" [(ngModel)]="confirmPassword" placeholder="Nhập lại mật khẩu mới">
-                  <lucide-icon matSuffix name="key" class="w-4 h-4"></lucide-icon>
-                </mat-form-field>
-
-                <div class="form-action">
-                  <button mat-flat-button color="primary" [disabled]="passwordLoading" (click)="updatePassword()"
-                    class="w-100 hover-btn-pulse neo-btn">
-                    @if (passwordLoading) {
-                    <mat-progress-spinner diameter="20" mode="indeterminate" class="spinner-btn"></mat-progress-spinner>
-                    Đang xử lý...
-                    } @else {
-                    Cập Nhật Mật Khẩu
-                    }
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </mat-tab>
-
-    </mat-tab-group>
-  </mat-card>
-</div>
+</section>
