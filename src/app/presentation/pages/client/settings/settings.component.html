@@ -1,117 +1,119 @@
-<div class="settings-layout">
-  <!-- Left Navigation Sidebar -->
-  <aside class="settings-sidebar">
-    <!-- User Profile Header -->
-    <div class="sidebar-user">
-      <div class="user-avatar-wrap">
-        <img
-          [src]="fallbackAvatar"
-          [alt]="authService.currentUser?.fullName || 'User Avatar'"
-          class="user-avatar-img"
-        />
+<div class="settings-page">
+  <div class="settings-layout">
+    <!-- Left Navigation Sidebar -->
+    <aside class="settings-sidebar">
+      <!-- User Profile Header -->
+      <div class="sidebar-user">
+        <div class="user-avatar-wrap">
+          <img
+            [src]="fallbackAvatar"
+            [alt]="authService.currentUser?.fullName || 'User Avatar'"
+            class="user-avatar-img"
+          />
+        </div>
+        <div class="user-meta">
+          <span class="user-display-name">{{ authService.currentUser?.fullName || 'Bohdan Vivc...' }}</span>
+          <a routerLink="/settings" class="user-view-link">View profile</a>
+        </div>
       </div>
-      <div class="user-meta">
-        <span class="user-display-name">{{ authService.currentUser?.fullName || 'Bohdan Vivc...' }}</span>
-        <a routerLink="/settings" class="user-view-link">View profile</a>
-      </div>
-    </div>
 
-    <!-- Navigation Items -->
-    <nav class="sidebar-nav">
-      <a routerLink="/home" class="sidebar-nav-item">
-        <lucide-icon name="home" class="w-4 h-4"></lucide-icon>
-        <span>Home</span>
-      </a>
+      <!-- Navigation Items -->
+      <nav class="sidebar-nav">
+        <a routerLink="/home" class="sidebar-nav-item">
+          <lucide-icon name="home" class="w-4 h-4"></lucide-icon>
+          <span>Home</span>
+        </a>
 
-      <a routerLink="/settings" class="sidebar-nav-item" (click)="$event.preventDefault()">
-        <lucide-icon name="mail" class="w-4 h-4"></lucide-icon>
-        <span>Messages</span>
-      </a>
+        <a routerLink="/settings" class="sidebar-nav-item" (click)="$event.preventDefault()">
+          <lucide-icon name="mail" class="w-4 h-4"></lucide-icon>
+          <span>Messages</span>
+        </a>
 
-      <a routerLink="/my-bookings" class="sidebar-nav-item">
-        <lucide-icon name="calendar" class="w-4 h-4"></lucide-icon>
-        <span>Bookings</span>
-      </a>
+        <a routerLink="/my-bookings" class="sidebar-nav-item">
+          <lucide-icon name="calendar" class="w-4 h-4"></lucide-icon>
+          <span>Bookings</span>
+        </a>
 
-      <a routerLink="/settings" class="sidebar-nav-item" (click)="$event.preventDefault()">
-        <lucide-icon name="award" class="w-4 h-4"></lucide-icon>
-        <span>Achievements</span>
-      </a>
+        <a routerLink="/settings" class="sidebar-nav-item" (click)="$event.preventDefault()">
+          <lucide-icon name="award" class="w-4 h-4"></lucide-icon>
+          <span>Achievements</span>
+        </a>
 
-      <a routerLink="/settings" class="sidebar-nav-item" (click)="$event.preventDefault()">
-        <lucide-icon name="users" class="w-4 h-4"></lucide-icon>
-        <span>Connections</span>
-      </a>
+        <a routerLink="/settings" class="sidebar-nav-item" (click)="$event.preventDefault()">
+          <lucide-icon name="users" class="w-4 h-4"></lucide-icon>
+          <span>Connections</span>
+        </a>
 
-      <a routerLink="/settings" class="sidebar-nav-item" (click)="$event.preventDefault()">
-        <lucide-icon name="swords" class="w-4 h-4"></lucide-icon>
-        <span>Group Sessions</span>
-      </a>
+        <a routerLink="/settings" class="sidebar-nav-item" (click)="$event.preventDefault()">
+          <lucide-icon name="swords" class="w-4 h-4"></lucide-icon>
+          <span>Group Sessions</span>
+        </a>
 
-      <a routerLink="/settings" class="sidebar-nav-item sidebar-nav-item--active">
-        <lucide-icon name="settings" class="w-4 h-4"></lucide-icon>
-        <span>Settings</span>
-      </a>
-    </nav>
-
-    <!-- Bottom Footer Logo -->
-    <div class="sidebar-footer">
-      <span class="footer-brand">GOAT SPORTS</span>
-    </div>
-  </aside>
-
-  <!-- Right Main Settings Area -->
-  <main class="settings-main">
-    <div class="settings-main-inner">
-      <!-- Title -->
-      <header class="settings-header">
-        <h1 class="settings-title">Settings</h1>
-      </header>
-
-      <!-- Underline Tabs -->
-      <nav class="settings-tabs" aria-label="Settings Tabs">
-        <button
-          type="button"
-          class="tab-btn"
-          [class.tab-btn--active]="activeTab === 'player'"
-          (click)="setActiveTab('player')"
-        >
-          Mentee profile
-        </button>
-
-        <button
-          type="button"
-          class="tab-btn"
-          [class.tab-btn--active]="activeTab === 'personal'"
-          (click)="setActiveTab('personal')"
-        >
-          Personal Info
-        </button>
-
-        <button
-          type="button"
-          class="tab-btn"
-          [class.tab-btn--active]="activeTab === 'security'"
-          (click)="setActiveTab('security')"
-        >
-          Login & Security
-        </button>
+        <a routerLink="/settings" class="sidebar-nav-item sidebar-nav-item--active">
+          <lucide-icon name="settings" class="w-4 h-4"></lucide-icon>
+          <span>Settings</span>
+        </a>
       </nav>
 
-      <!-- Tab Content -->
-      <section class="settings-content">
-        @switch (activeTab) {
-          @case ('player') {
-            <app-settings-player-tab [user]="(authService.currentUser$ | async) || authService.currentUser" />
+      <!-- Bottom Footer Logo -->
+      <div class="sidebar-footer">
+        <span class="footer-brand">GOAT SPORTS</span>
+      </div>
+    </aside>
+
+    <!-- Right Main Settings Area -->
+    <main class="settings-main">
+      <div class="settings-main-inner">
+        <!-- Title -->
+        <header class="settings-header">
+          <h1 class="settings-title">Settings</h1>
+        </header>
+
+        <!-- Underline Tabs -->
+        <nav class="settings-tabs" aria-label="Settings Tabs">
+          <button
+            type="button"
+            class="tab-btn"
+            [class.tab-btn--active]="activeTab === 'player'"
+            (click)="setActiveTab('player')"
+          >
+            Mentee profile
+          </button>
+
+          <button
+            type="button"
+            class="tab-btn"
+            [class.tab-btn--active]="activeTab === 'personal'"
+            (click)="setActiveTab('personal')"
+          >
+            Personal Info
+          </button>
+
+          <button
+            type="button"
+            class="tab-btn"
+            [class.tab-btn--active]="activeTab === 'security'"
+            (click)="setActiveTab('security')"
+          >
+            Login & Security
+          </button>
+        </nav>
+
+        <!-- Tab Content -->
+        <section class="settings-content">
+          @switch (activeTab) {
+            @case ('player') {
+              <app-settings-player-tab [user]="(authService.currentUser$ | async) || authService.currentUser" />
+            }
+            @case ('personal') {
+              <app-settings-personal-tab [user]="(authService.currentUser$ | async) || authService.currentUser" />
+            }
+            @case ('security') {
+              <app-settings-security-tab [user]="(authService.currentUser$ | async) || authService.currentUser" />
+            }
           }
-          @case ('personal') {
-            <app-settings-personal-tab [user]="(authService.currentUser$ | async) || authService.currentUser" />
-          }
-          @case ('security') {
-            <app-settings-security-tab [user]="(authService.currentUser$ | async) || authService.currentUser" />
-          }
-        }
-      </section>
-    </div>
-  </main>
+        </section>
+      </div>
+    </main>
+  </div>
 </div>
