@@ -123,8 +123,18 @@ function createFinalProgress(
     tone: finalState,
     steps: [
       createStep(0, 'completed', 'Hồ sơ đã được gửi thành công.', application.createdAt),
-      createStep(1, 'completed', 'Thông báo hồ sơ đã được gửi đến quản trị.', application.receivedAt),
-      createStep(2, 'completed', 'Quản trị đã mở và kiểm tra hồ sơ.', application.viewedAt),
+      createStep(
+        1,
+        application.receivedAt ? 'completed' : 'upcoming',
+        application.receivedAt ? 'Thông báo hồ sơ đã được gửi đến quản trị.' : 'Không có dữ liệu tiếp nhận.',
+        application.receivedAt
+      ),
+      createStep(
+        2,
+        application.viewedAt ? 'completed' : 'upcoming',
+        application.viewedAt ? 'Quản trị đã mở và kiểm tra hồ sơ.' : 'Không có dữ liệu xem hồ sơ.',
+        application.viewedAt
+      ),
       createStep(
         3,
         finalState === 'approved' ? 'completed' : 'rejected',
