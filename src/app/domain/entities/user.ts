@@ -5,6 +5,9 @@ export type User = {
   fullName: string;
   avatarUrl?: string;
   status: string;
+  gender?: string;
+  phone?: string;
+  country?: string;
   createdAt: string;
   updatedAt: string;
   role: {
@@ -13,4 +16,4 @@ export type User = {
   };
   keycloakId?: string;
   authProvider?: string;
-}
+};

@@ -1,7 +1,8 @@
-import { Component, Input, inject } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { User } from '@application/dto/user/user.dto';
+import { AuthService } from '@presentation/services/auth.service';
+import { UserService } from '@presentation/services/user.service';
 import { NotifyService } from '@shared/components/notify/notify.service';
-import { PersonalInfoForm } from '../settings.models';
 
 @Component({
   selector: 'app-settings-personal-tab',
@@ -9,20 +10,100 @@ import { PersonalInfoForm } from '../settings.models';
   styleUrls: ['./settings-personal-tab.component.scss'],
   standalone: false
 })
-export class SettingsPersonalTabComponent {
+export class SettingsPersonalTabComponent implements OnInit, OnChanges {
   @Input() user: User | null = null;
+
+  public authService = inject(AuthService);
+  private userService = inject(UserService);
   private notifyService = inject(NotifyService);
 
-  public form: PersonalInfoForm = {
+  public isModalOpen = false;
+  public isSaving = false;
+  public activeEditingField = '';
+
+  public formData = {
     fullName: '',
-    displayName: '',
-    email: '',
-    phone: 'N/A',
-    gender: 'Nam',
-    dateOfBirth: 'N/A',
-    language: 'Tiếng Việt (Mặc định)',
-    darkMode: false
+    username: '',
+    phone: '',
+    country: 'Việt Nam',
+    gender: 'MALE'
   };
+
+  ngOnInit(): void {
+    this.syncFormData();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['user']) {
+      this.syncFormData();
+    }
+  }
+
+  private syncFormData(): void {
+    if (this.user) {
+      this.formData = {
+        fullName: this.user.fullName || '',
+        username: this.user.username || '',
+        phone: this.user.phone || '',
+        country: this.user.country || 'Việt Nam',
+        gender: this.user.gender || 'MALE'
+      };
+    }
+  }
+
+  openEdit(field: string = ''): void {
+    this.activeEditingField = field;
+    this.syncFormData();
+    this.isModalOpen = true;
+  }
+
+  closeModal(): void {
+    this.isModalOpen = false;
+  }
+
+  onSave(): void {
+    if (!this.user?.userId) {
+      this.notifyService.error('Không tìm thấy thông tin tài khoản');
+      return;
+    }
+
+    if (!this.formData.fullName.trim()) {
+      this.notifyService.error('Vui lòng nhập họ và tên');
+      return;
+    }
+
+    this.isSaving = true;
+    const payload: Partial<User> = {
+      fullName: this.formData.fullName.trim(),
+      username: this.formData.username.trim(),
+      phone: this.formData.phone.trim(),
+      country: this.formData.country.trim(),
+      gender: this.formData.gender
+    };
+
+    this.userService.updateUser(this.user.userId, payload).subscribe({
+      next: (updatedUser) => {
+        this.isSaving = false;
+        this.user = { ...this.user, ...updatedUser };
+        this.authService.updateCurrentUser(this.user as User);
+        this.notifyService.success('Cập nhật thông tin cá nhân thành công!');
+        this.closeModal();
+      },
+      error: (err) => {
+        this.isSaving = false;
+        console.error('Failed to update user profile:', err);
+        this.notifyService.error(err?.error?.message || 'Cập nhật thông tin thất bại, vui lòng thử lại');
+      }
+    });
+  }
+
+  formatGender(gender?: string): string {
+    if (!gender) return 'Chưa cập nhật';
+    const normalized = gender.toUpperCase();
+    if (normalized === 'MALE' || normalized === 'NAM') return 'Nam';
+    if (normalized === 'FEMALE' || normalized === 'NU' || normalized === 'NỮ') return 'Nữ';
+    return 'Khác';
+  }
 
   formatDate(dateString?: string): string {
     if (!dateString) return 'Mới tham gia';
@@ -35,9 +116,5 @@ export class SettingsPersonalTabComponent {
     } catch {
       return dateString;
     }
-  }
-
-  onEdit(field: string): void {
-    this.notifyService.info('Tính năng đang hoàn thiện', `Đang chuẩn bị form cập nhật ${field}`);
   }
 }

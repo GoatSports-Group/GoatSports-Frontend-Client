@@ -23,13 +23,12 @@ export interface PlayerProfileForm {
 
 export interface PersonalInfoForm {
   fullName: string;
-  displayName: string;
+  username: string;
   email: string;
   phone: string;
   gender: string;
-  dateOfBirth: string;
-  language: string;
-  darkMode: boolean;
+  country: string;
+  createdAt: string;
 }
 
 export interface SecurityPasswordForm {

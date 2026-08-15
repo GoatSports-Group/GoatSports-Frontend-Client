@@ -5,6 +5,9 @@ export type User = {
   fullName: string;
   avatarUrl?: string;
   status: string;
+  gender?: string;
+  phone?: string;
+  country?: string;
   createdAt: string;
   updatedAt: string;
   role: {
@@ -13,6 +16,6 @@ export type User = {
   };
   keycloakId?: string;
   authProvider?: string;
-}
+};
 
 export { RoleEnum, ROLE_ENUM_OPTIONS } from '@domain/enums/role.enum';

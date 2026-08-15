@@ -4,11 +4,29 @@
     <aside class="settings-sidebar">
       <!-- User Profile Header -->
       <div class="sidebar-user">
-        <div class="user-avatar-wrap">
+        <div
+          class="user-avatar-wrap"
+          (click)="avatarFileInput.click()"
+          title="Bấm để thay đổi ảnh đại diện"
+        >
           <img
             [src]="fallbackAvatar"
             [alt]="authService.currentUser?.fullName || 'User Avatar'"
             class="user-avatar-img"
+          />
+          <div class="avatar-hover-overlay">
+            @if (isUploadingAvatar) {
+              <lucide-icon name="loader-2" class="w-4 h-4 animate-spin text-white"></lucide-icon>
+            } @else {
+              <lucide-icon name="camera" class="w-4 h-4 text-white"></lucide-icon>
+            }
+          </div>
+          <input
+            #avatarFileInput
+            type="file"
+            accept="image/*"
+            class="hidden-file-input"
+            (change)="onAvatarSelected($event)"
           />
         </div>
         <div class="user-meta">
@@ -19,11 +37,6 @@
 
       <!-- Navigation Items -->
       <nav class="sidebar-nav">
-        <a routerLink="/home" class="sidebar-nav-item">
-          <lucide-icon name="home" class="w-4 h-4"></lucide-icon>
-          <span>Trang chủ</span>
-        </a>
-
         <a routerLink="/notifications" class="sidebar-nav-item">
           <div class="sidebar-icon-wrap">
             <lucide-icon name="bell" class="w-4 h-4"></lucide-icon>

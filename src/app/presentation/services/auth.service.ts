@@ -65,6 +65,10 @@ export class AuthService {
     return this.sessionStateService.getCurrentUser();
   }
 
+  public updateCurrentUser(user: User): void {
+    this.sessionStateService.setCurrentUser(user);
+  }
+
   public get isAuthenticated(): boolean {
     return this.sessionStateService.getIsAuthenticated();
   }

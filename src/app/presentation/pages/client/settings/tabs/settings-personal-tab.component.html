@@ -5,7 +5,7 @@
       <h3 class="settings-row__label">Họ và tên</h3>
       <p class="settings-row__value">{{ user?.fullName || 'Chưa cập nhật' }}</p>
     </div>
-    <button type="button" class="settings-row__action" (click)="onEdit('Họ và tên')">
+    <button type="button" class="settings-row__action" (click)="openEdit('Họ và tên')">
       Chỉnh sửa
     </button>
   </div>
@@ -16,7 +16,7 @@
       <h3 class="settings-row__label">Tên đăng nhập</h3>
       <p class="settings-row__value">{{ user?.username || '—' }}</p>
     </div>
-    <button type="button" class="settings-row__action" (click)="onEdit('Tên đăng nhập')">
+    <button type="button" class="settings-row__action" (click)="openEdit('Tên đăng nhập')">
       Chỉnh sửa
     </button>
   </div>
@@ -30,29 +30,27 @@
         <span class="badge-verified">Đã xác thực</span>
       </div>
     </div>
-    <button type="button" class="settings-row__action" (click)="onEdit('Địa chỉ email')">
-      Chỉnh sửa
-    </button>
+    <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider py-1">Cố định</span>
   </div>
 
   <!-- Row 4: Số điện thoại -->
   <div class="settings-row">
     <div class="settings-row__info">
       <h3 class="settings-row__label">Số điện thoại</h3>
-      <p class="settings-row__value">{{ form.phone }}</p>
+      <p class="settings-row__value">{{ user?.phone || 'Chưa cập nhật' }}</p>
     </div>
-    <button type="button" class="settings-row__action" (click)="onEdit('Số điện thoại')">
+    <button type="button" class="settings-row__action" (click)="openEdit('Số điện thoại')">
       Chỉnh sửa
     </button>
   </div>
 
-  <!-- Row 5: Ngôn ngữ hiển thị -->
+  <!-- Row 5: Quốc gia -->
   <div class="settings-row">
     <div class="settings-row__info">
-      <h3 class="settings-row__label">Ngôn ngữ hiển thị</h3>
-      <p class="settings-row__value">{{ form.language }}</p>
+      <h3 class="settings-row__label">Quốc gia</h3>
+      <p class="settings-row__value">{{ user?.country || 'Việt Nam' }}</p>
     </div>
-    <button type="button" class="settings-row__action" (click)="onEdit('Ngôn ngữ hiển thị')">
+    <button type="button" class="settings-row__action" (click)="openEdit('Quốc gia')">
       Chỉnh sửa
     </button>
   </div>
@@ -61,9 +59,9 @@
   <div class="settings-row">
     <div class="settings-row__info">
       <h3 class="settings-row__label">Giới tính</h3>
-      <p class="settings-row__value">{{ form.gender }}</p>
+      <p class="settings-row__value">{{ formatGender(user?.gender) }}</p>
     </div>
-    <button type="button" class="settings-row__action" (click)="onEdit('Giới tính')">
+    <button type="button" class="settings-row__action" (click)="openEdit('Giới tính')">
       Chỉnh sửa
     </button>
   </div>
@@ -77,3 +75,90 @@
     <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider py-1">Cố định</span>
   </div>
 </div>
+
+<!-- Modal Chỉnh sửa thông tin cá nhân -->
+@if (isModalOpen) {
+<div class="modal-backdrop" (click)="closeModal()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Cập nhật thông tin cá nhân</h2>
+      <button type="button" class="btn-close-modal" (click)="closeModal()">
+        <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Full Name -->
+      <div class="form-group">
+        <label class="form-label" for="edit-fullname">Họ và tên <span class="text-red-500">*</span></label>
+        <input
+          id="edit-fullname"
+          type="text"
+          class="form-control"
+          placeholder="Nhập họ và tên đầy đủ"
+          [(ngModel)]="formData.fullName"
+        />
+      </div>
+
+      <!-- Username -->
+      <div class="form-group">
+        <label class="form-label" for="edit-username">Tên đăng nhập</label>
+        <input
+          id="edit-username"
+          type="text"
+          class="form-control"
+          placeholder="Nhập tên đăng nhập"
+          [(ngModel)]="formData.username"
+        />
+      </div>
+
+      <!-- Phone -->
+      <div class="form-group">
+        <label class="form-label" for="edit-phone">Số điện thoại</label>
+        <input
+          id="edit-phone"
+          type="tel"
+          class="form-control"
+          placeholder="Ví dụ: 0912345678"
+          [(ngModel)]="formData.phone"
+        />
+      </div>
+
+      <!-- Country -->
+      <div class="form-group">
+        <label class="form-label" for="edit-country">Quốc gia</label>
+        <input
+          id="edit-country"
+          type="text"
+          class="form-control"
+          placeholder="Nhập quốc gia (Ví dụ: Việt Nam)"
+          [(ngModel)]="formData.country"
+        />
+      </div>
+
+      <!-- Gender -->
+      <div class="form-group">
+        <label class="form-label" for="edit-gender">Giới tính</label>
+        <select id="edit-gender" class="form-control" [(ngModel)]="formData.gender">
+          <option value="MALE">Nam</option>
+          <option value="FEMALE">Nữ</option>
+          <option value="OTHER">Khác</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn-cancel" (click)="closeModal()" [disabled]="isSaving">
+        Hủy
+      </button>
+      <button type="button" class="btn-save" (click)="onSave()" [disabled]="isSaving">
+        @if (isSaving) {
+          <span>Đang lưu...</span>
+        } @else {
+          <span>Lưu thay đổi</span>
+        }
+      </button>
+    </div>
+  </div>
+</div>
+}
