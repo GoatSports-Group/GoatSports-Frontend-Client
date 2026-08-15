@@ -78,4 +78,9 @@ export class HeaderComponent implements OnInit {
   markAllRead() {
     this.notificationService.markAllRead().subscribe();
   }
+
+  deleteNotification(notification: Notification, event: Event): void {
+    event.stopPropagation();
+    this.notificationService.deleteNotification(notification.notificationId).subscribe();
+  }
 }

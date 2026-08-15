@@ -518,6 +518,9 @@ body.dark .main-header {
     .notif-actions {
       flex-shrink: 0;
       align-self: center;
+      display: flex;
+      align-items: center;
+      gap: 6px;
       opacity: 0;
       transition: opacity 0.2s;
 
@@ -536,6 +539,25 @@ body.dark .main-header {
 
         &:hover {
           background-color: var(--primary);
+          color: white;
+        }
+      }
+
+      .delete-notif-item-btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background-color: var(--border-color);
+        color: var(--text-dark);
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: var(--transition-smooth);
+
+        &:hover {
+          background-color: #ef4444;
           color: white;
         }
       }

@@ -67,13 +67,16 @@
               <p class="notif-desc">{{ notif.content }}</p>
               <span class="notif-time">{{ notif.createdAt | date:'dd/MM HH:mm' }}</span>
             </div>
-            @if (notif.status === 'UNREAD') {
             <div class="notif-actions" (click)="$event.stopPropagation()">
+              @if (notif.status === 'UNREAD') {
               <button (click)="onNotificationClick(notif)" class="mark-read-item-btn" title="Đánh dấu đã đọc">
                 <lucide-icon name="check" class="w-3.5 h-3.5"></lucide-icon>
               </button>
+              }
+              <button (click)="deleteNotification(notif, $event)" class="delete-notif-item-btn" title="Xóa thông báo">
+                <lucide-icon name="x" class="w-3.5 h-3.5"></lucide-icon>
+              </button>
             </div>
-            }
           </div>
           }
           }

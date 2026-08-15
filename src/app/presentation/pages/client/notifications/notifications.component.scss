@@ -43,7 +43,7 @@
   @media (max-width: 860px) { padding: 1.5rem 0 3rem 0; }
 }
 
-.notifications-main-inner { width: 100%; max-width: 780px; display: flex; flex-direction: column; }
+.notifications-main-inner { width: 100%; max-width: 100%; display: flex; flex-direction: column; }
 
 .notifications-header {
   display: flex; align-items: flex-start; justify-content: space-between; gap: 1.5rem; margin-bottom: 1.75rem;
