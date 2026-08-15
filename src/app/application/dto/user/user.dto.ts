@@ -18,4 +18,10 @@ export type User = {
   authProvider?: string;
 };
 
+export interface UpdatePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
 export { RoleEnum, ROLE_ENUM_OPTIONS } from '@domain/enums/role.enum';

@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { BaseResponse } from '@application/dto/base/base-response';
-import { User } from '@domain/entities/user';
+import { User, UpdatePasswordRequest } from '@application/dto/user/user.dto';
 import { environment } from '@environments/environment';
 
 @Injectable({
@@ -23,5 +23,9 @@ export class UserApi {
   updateAvatar(userId: string, tempKey: string): Observable<BaseResponse<void>> {
     const params = new HttpParams().set('tempKey', tempKey);
     return this.http.put<BaseResponse<void>>(`${this.apiBase}/auth-service/api/v1/users/${userId}/avatar`, null, { params });
+  }
+
+  updatePassword(payload: UpdatePasswordRequest): Observable<BaseResponse<void>> {
+    return this.http.put<BaseResponse<void>>(`${this.apiBase}/auth-service/api/v1/users/password`, payload);
   }
 }

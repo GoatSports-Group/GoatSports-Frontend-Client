@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { UserRepository } from '@application/ports/persistence/user.repository';
-import { User } from '@domain/entities/user';
+import { User, UpdatePasswordRequest } from '@application/dto/user/user.dto';
 import { UserApi } from '@infrastructure/api/user.api';
 
 @Injectable({
@@ -25,6 +25,12 @@ export class UserRepositoryImpl implements UserRepository {
 
   updateAvatar(userId: string, tempKey: string): Observable<void> {
     return this.userApi.updateAvatar(userId, tempKey).pipe(
+      map(() => void 0)
+    );
+  }
+
+  updatePassword(payload: UpdatePasswordRequest): Observable<void> {
+    return this.userApi.updatePassword(payload).pipe(
       map(() => void 0)
     );
   }
