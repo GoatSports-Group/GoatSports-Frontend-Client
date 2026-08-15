@@ -2,6 +2,7 @@ import { Component, Input, inject } from '@angular/core';
 import { User, UpdatePasswordRequest, CreatePasswordRequest } from '@application/dto/user/user.dto';
 import { AuthService } from '@presentation/services/auth.service';
 import { UserService } from '@presentation/services/user.service';
+import { CryptoService } from '@presentation/services/crypto.service';
 import { NotifyService } from '@shared/components/notify/notify.service';
 
 @Component({
@@ -15,6 +16,7 @@ export class SettingsSecurityTabComponent {
 
   public authService = inject(AuthService);
   private userService = inject(UserService);
+  private cryptoService = inject(CryptoService);
   private notifyService = inject(NotifyService);
 
   public showPasswordModal = false;
@@ -84,25 +86,38 @@ export class SettingsSecurityTabComponent {
     }
 
     this.isSaving = true;
-    const payload: CreatePasswordRequest = {
-      newPassword: this.form.newPassword,
-      confirmPassword: this.form.confirmPassword
-    };
 
-    this.userService.createPassword(payload).subscribe({
-      next: () => {
-        this.isSaving = false;
-        if (this.user) {
-          this.user = { ...this.user, hasPassword: true };
-          this.authService.updateCurrentUser(this.user);
-        }
-        this.notifyService.success('Tạo mật khẩu cho tài khoản thành công!');
-        this.closePasswordModal();
+    this.cryptoService.getPublicKey().subscribe({
+      next: (publicKey) => {
+        const encryptedNewPassword = this.cryptoService.encrypt(this.form.newPassword, publicKey);
+        const encryptedConfirmPassword = this.cryptoService.encrypt(this.form.confirmPassword, publicKey);
+
+        const payload: CreatePasswordRequest = {
+          newPassword: encryptedNewPassword,
+          confirmPassword: encryptedConfirmPassword
+        };
+
+        this.userService.createPassword(payload).subscribe({
+          next: () => {
+            this.isSaving = false;
+            if (this.user) {
+              this.user = { ...this.user, hasPassword: true };
+              this.authService.updateCurrentUser(this.user);
+            }
+            this.notifyService.success('Tạo mật khẩu cho tài khoản thành công!');
+            this.closePasswordModal();
+          },
+          error: (err) => {
+            this.isSaving = false;
+            console.error('Create password failed:', err);
+            this.notifyService.error(err?.error?.message || 'Tạo mật khẩu thất bại. Vui lòng thử lại');
+          }
+        });
       },
       error: (err) => {
         this.isSaving = false;
-        console.error('Create password failed:', err);
-        this.notifyService.error(err?.error?.message || 'Tạo mật khẩu thất bại. Vui lòng thử lại');
+        console.error('Failed to get public key:', err);
+        this.notifyService.error('Không thể thiết lập kết nối bảo mật để mã hóa mật khẩu');
       }
     });
   }
@@ -140,25 +155,45 @@ export class SettingsSecurityTabComponent {
     }
 
     this.isSaving = true;
-    this.userService.updatePassword(this.form).subscribe({
-      next: () => {
-        this.isSaving = false;
-        this.notifyService.success('Đổi mật khẩu thành công!');
-        this.closePasswordModal();
+
+    this.cryptoService.getPublicKey().subscribe({
+      next: (publicKey) => {
+        const encryptedCurrent = this.cryptoService.encrypt(this.form.currentPassword, publicKey);
+        const encryptedNew = this.cryptoService.encrypt(this.form.newPassword, publicKey);
+        const encryptedConfirm = this.cryptoService.encrypt(this.form.confirmPassword, publicKey);
+
+        const payload: UpdatePasswordRequest = {
+          currentPassword: encryptedCurrent,
+          newPassword: encryptedNew,
+          confirmPassword: encryptedConfirm
+        };
+
+        this.userService.updatePassword(payload).subscribe({
+          next: () => {
+            this.isSaving = false;
+            this.notifyService.success('Đổi mật khẩu thành công!');
+            this.closePasswordModal();
+          },
+          error: (err) => {
+            this.isSaving = false;
+            console.error('Update password failed:', err);
+            const errMsg = err?.error?.message || '';
+            if (errMsg.includes('mạng xã hội')) {
+              if (this.user) {
+                this.user = { ...this.user, hasPassword: false };
+                this.authService.updateCurrentUser(this.user);
+              }
+              this.notifyService.info('Thiết lập mật khẩu', 'Tài khoản mạng xã hội chưa có mật khẩu, vui lòng thiết lập mật khẩu');
+            } else {
+              this.notifyService.error(errMsg || 'Đổi mật khẩu thất bại. Vui lòng kiểm tra lại mật khẩu hiện tại');
+            }
+          }
+        });
       },
       error: (err) => {
         this.isSaving = false;
-        console.error('Update password failed:', err);
-        const errMsg = err?.error?.message || '';
-        if (errMsg.includes('mạng xã hội')) {
-          if (this.user) {
-            this.user = { ...this.user, hasPassword: false };
-            this.authService.updateCurrentUser(this.user);
-          }
-          this.notifyService.info('Thiết lập mật khẩu', 'Tài khoản mạng xã hội chưa có mật khẩu, vui lòng thiết lập mật khẩu');
-        } else {
-          this.notifyService.error(errMsg || 'Đổi mật khẩu thất bại. Vui lòng kiểm tra lại mật khẩu hiện tại');
-        }
+        console.error('Failed to get public key:', err);
+        this.notifyService.error('Không thể thiết lập kết nối bảo mật để mã hóa mật khẩu');
       }
     });
   }
