@@ -1,7 +1,7 @@
 import { Component, Input, inject } from '@angular/core';
 import { User } from '@application/dto/user/user.dto';
 import { NotifyService } from '@shared/components/notify/notify.service';
-import { PlayerProfileForm } from '../settings.models';
+import { PlayerProfileForm } from '../../settings.models';
 
 @Component({
   selector: 'app-settings-player-tab',

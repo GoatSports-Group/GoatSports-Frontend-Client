@@ -1,7 +1,7 @@
 import { Component, Input, inject } from '@angular/core';
 import { User } from '@application/dto/user/user.dto';
 import { NotifyService } from '@shared/components/notify/notify.service';
-import { SecurityPasswordForm } from '../settings.models';
+import { SecurityPasswordForm } from '../../settings.models';
 
 @Component({
   selector: 'app-settings-security-tab',
