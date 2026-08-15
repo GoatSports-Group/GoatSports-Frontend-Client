@@ -23,12 +23,16 @@ export class SettingsComponent {
   public activeTab: SettingsTabKey = 'player';
   public tabs = SETTINGS_TABS;
   public isUploadingAvatar = false;
+  public localAvatarPreview: string | null = null;
 
   setActiveTab(key: SettingsTabKey): void {
     this.activeTab = key;
   }
 
   get fallbackAvatar(): string {
+    if (this.localAvatarPreview) {
+      return this.localAvatarPreview;
+    }
     const user = this.authService.currentUser;
     if (user?.avatarUrl) {
       return user.avatarUrl;
@@ -36,6 +40,17 @@ export class SettingsComponent {
     return user?.fullName
       ? `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.fullName)}`
       : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&q=80';
+  }
+
+  onAvatarImgError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    const user = this.authService.currentUser;
+    const fallback = user?.fullName
+      ? `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.fullName)}`
+      : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&q=80';
+    if (img.src !== fallback) {
+      img.src = fallback;
+    }
   }
 
   onAvatarSelected(event: Event): void {
@@ -55,6 +70,10 @@ export class SettingsComponent {
       return;
     }
 
+    // Immediately display preview locally so UI updates instantly without broken image
+    const previewUrl = URL.createObjectURL(file);
+    this.localAvatarPreview = previewUrl;
+
     this.isUploadingAvatar = true;
     this.storageService.uploadAvatar(file).pipe(
       switchMap(tempKey => this.userService.updateAvatar(user.userId, tempKey)),
@@ -69,6 +88,7 @@ export class SettingsComponent {
         this.notifyService.success('Cập nhật ảnh đại diện thành công!');
       },
       error: (err) => {
+        this.localAvatarPreview = null;
         console.error('Failed to update avatar:', err);
         this.notifyService.error(err?.error?.message || 'Không thể cập nhật ảnh đại diện, vui lòng thử lại');
       }

@@ -24,6 +24,7 @@ export class NotificationsComponent implements OnInit {
   public activeFilter: 'ALL' | 'UNREAD' = 'ALL';
   public NotificationStatus = NotificationStatus;
   public isUploadingAvatar = false;
+  public localAvatarPreview: string | null = null;
 
   ngOnInit(): void {
     this.notificationService.fetchNotifications().subscribe();
@@ -64,6 +65,9 @@ export class NotificationsComponent implements OnInit {
   }
 
   get fallbackAvatar(): string {
+    if (this.localAvatarPreview) {
+      return this.localAvatarPreview;
+    }
     const user = this.authService.currentUser;
     if (user?.avatarUrl) {
       return user.avatarUrl;
@@ -71,6 +75,17 @@ export class NotificationsComponent implements OnInit {
     return user?.fullName
       ? `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.fullName)}`
       : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&q=80';
+  }
+
+  onAvatarImgError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    const user = this.authService.currentUser;
+    const fallback = user?.fullName
+      ? `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.fullName)}`
+      : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&q=80';
+    if (img.src !== fallback) {
+      img.src = fallback;
+    }
   }
 
   onAvatarSelected(event: Event): void {
@@ -90,6 +105,9 @@ export class NotificationsComponent implements OnInit {
       return;
     }
 
+    const previewUrl = URL.createObjectURL(file);
+    this.localAvatarPreview = previewUrl;
+
     this.isUploadingAvatar = true;
     this.storageService.uploadAvatar(file).pipe(
       switchMap(tempKey => this.userService.updateAvatar(user.userId, tempKey)),
@@ -104,6 +122,7 @@ export class NotificationsComponent implements OnInit {
         this.notifyService.success('Cập nhật ảnh đại diện thành công!');
       },
       error: (err) => {
+        this.localAvatarPreview = null;
         console.error('Failed to update avatar:', err);
         this.notifyService.error(err?.error?.message || 'Không thể cập nhật ảnh đại diện, vui lòng thử lại');
       }

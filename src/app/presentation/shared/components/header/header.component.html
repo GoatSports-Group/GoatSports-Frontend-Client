@@ -105,7 +105,7 @@
       <!-- User Menu -->
       @if (authService.isAuthenticated$ | async) {
       <button mat-icon-button [matMenuTriggerFor]="userMenu" class="user-avatar-btn" aria-label="User Profile">
-        <img [src]="fallbackAvatar" alt="User Avatar" class="user-avatar">
+        <img [src]="fallbackAvatar" [alt]="authService.currentUser?.fullName || 'User Avatar'" class="user-avatar" (error)="onAvatarImgError($event)">
       </button>
       <mat-menu #userMenu="matMenu" xPosition="before" class="custom-menu">
         <div class="menu-header">

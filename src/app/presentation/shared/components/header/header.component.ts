@@ -61,9 +61,23 @@ export class HeaderComponent implements OnInit {
 
   get fallbackAvatar(): string {
     const user = this.authService.currentUser;
+    if (user?.avatarUrl) {
+      return user.avatarUrl;
+    }
     return user?.fullName
       ? `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.fullName)}`
       : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&q=80';
+  }
+
+  onAvatarImgError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    const user = this.authService.currentUser;
+    const fallback = user?.fullName
+      ? `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.fullName)}`
+      : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&q=80';
+    if (img.src !== fallback) {
+      img.src = fallback;
+    }
   }
 
   getRoleLabel(roleName?: string): string {

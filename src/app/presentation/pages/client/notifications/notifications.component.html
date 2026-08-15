@@ -13,6 +13,7 @@
             [src]="fallbackAvatar"
             [alt]="authService.currentUser?.fullName || 'User Avatar'"
             class="user-avatar-img"
+            (error)="onAvatarImgError($event)"
           />
           <div class="avatar-hover-overlay">
             @if (isUploadingAvatar) {
