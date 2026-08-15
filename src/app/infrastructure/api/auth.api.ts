@@ -4,10 +4,7 @@ import { Observable } from 'rxjs';
 import { BaseResponse } from '@application/dto/base/base-response';
 import { User } from '@domain/entities/user';
 import { environment } from '@environments/environment';
-
-export interface PublicKeyData {
-  publicKey: string;
-}
+import { PublicKeyResponse } from '@application/dto/auth/auth.dto';
 
 @Injectable({
   providedIn: 'root'
@@ -28,7 +25,7 @@ export class AuthApi {
     return this.http.get<BaseResponse<User>>(`${this.apiBase}/auth-service/api/v1/auth/me`);
   }
 
-  getPublicKey(): Observable<BaseResponse<PublicKeyData>> {
-    return this.http.get<BaseResponse<PublicKeyData>>(`${this.apiBase}/auth-service/api/v1/auth/public-key`);
+  getPublicKey(): Observable<BaseResponse<PublicKeyResponse>> {
+    return this.http.get<BaseResponse<PublicKeyResponse>>(`${this.apiBase}/auth-service/api/v1/auth/public-key`);
   }
 }
