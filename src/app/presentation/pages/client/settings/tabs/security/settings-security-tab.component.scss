@@ -56,12 +56,31 @@
     border-radius: 6px;
     transition: var(--transition-smooth);
     white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    line-height: 1.5;
 
     &:hover {
       background-color: rgba(5, 150, 105, 0.08);
       color: #047857;
       text-decoration: underline;
     }
+  }
+
+  &__fixed {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #94a3b8;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    line-height: 1.5;
+    user-select: none;
   }
 
   &__action-danger {
@@ -75,6 +94,10 @@
     border-radius: 6px;
     transition: var(--transition-smooth);
     white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    line-height: 1.5;
 
     &:hover {
       background-color: #fef2f2;

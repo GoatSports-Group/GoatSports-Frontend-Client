@@ -16,7 +16,7 @@
       <h3 class="settings-row__label">Phương thức xác thực</h3>
       <p class="settings-row__value">{{ user?.authProvider || 'GOAT SPORTS SSO' }}</p>
     </div>
-    <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider py-1">Được quản lý</span>
+    <span class="settings-row__fixed">Được quản lý</span>
   </div>
 
   <!-- Row 3: Vai trò tài khoản -->
@@ -25,7 +25,7 @@
       <h3 class="settings-row__label">Vai trò tài khoản</h3>
       <p class="settings-row__value">{{ user?.role?.name || 'PLAYER' }}</p>
     </div>
-    <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider py-1">Hệ thống</span>
+    <span class="settings-row__fixed">Hệ thống</span>
   </div>
 
   <!-- Row 4: Trạng thái tài khoản -->
@@ -37,7 +37,7 @@
         <span class="settings-row__value font-semibold text-emerald-700">Đang hoạt động</span>
       </div>
     </div>
-    <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider py-1">Bình thường</span>
+    <span class="settings-row__fixed">Bình thường</span>
   </div>
 
   <!-- Row 5: Phiên đăng nhập -->
