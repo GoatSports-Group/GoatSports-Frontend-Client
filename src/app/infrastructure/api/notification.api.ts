@@ -47,4 +47,10 @@ export class NotificationApi {
       {}
     );
   }
+
+  deleteNotification(id: string): Observable<BaseResponse<void>> {
+    return this.http.delete<BaseResponse<void>>(
+      `${this.apiBase}/notification-service/api/v1/notifications/${id}`
+    );
+  }
 }

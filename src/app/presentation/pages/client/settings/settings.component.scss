@@ -109,6 +109,34 @@
       transition: var(--transition-smooth);
     }
 
+    .sidebar-icon-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      .nav-unread-dot {
+        position: absolute;
+        top: -1px;
+        right: -1px;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: #ef4444;
+        box-shadow: 0 0 0 2px #ffffff;
+      }
+    }
+
+    .nav-unread-badge {
+      margin-left: auto;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #ffffff;
+      background-color: #059669;
+      padding: 0.1rem 0.45rem;
+      border-radius: 9999px;
+    }
+
     &:hover,
     &--active {
       background-color: #f1f5f9;

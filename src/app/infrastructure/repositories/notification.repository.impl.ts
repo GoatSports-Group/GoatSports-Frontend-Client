@@ -34,4 +34,10 @@ export class NotificationRepositoryImpl implements NotificationRepository {
       map(() => void 0)
     );
   }
+
+  deleteNotification(id: string): Observable<void> {
+    return this.notificationApi.deleteNotification(id).pipe(
+      map(() => void 0)
+    );
+  }
 }

@@ -6,6 +6,7 @@ import { ClientRoutingModule } from './routes/client-routing.module';
 import { ClientComponent } from '@shared/layouts/client/client.component';
 import { HomeComponent } from '@presentation/pages/client/home/home.component';
 import { SettingsComponent } from '@presentation/pages/client/settings/settings.component';
+import { NotificationsComponent } from '@presentation/pages/client/notifications/notifications.component';
 import { SettingsPlayerTabComponent } from '@presentation/pages/client/settings/tabs/settings-player-tab.component';
 import { SettingsPersonalTabComponent } from '@presentation/pages/client/settings/tabs/settings-personal-tab.component';
 import { SettingsSecurityTabComponent } from '@presentation/pages/client/settings/tabs/settings-security-tab.component';
@@ -23,6 +24,7 @@ import { OwnerDocumentsStepComponent } from '@presentation/pages/client/owner-ap
     ClientComponent,
     HomeComponent,
     SettingsComponent,
+    NotificationsComponent,
     SettingsPlayerTabComponent,
     SettingsPersonalTabComponent,
     SettingsSecurityTabComponent,

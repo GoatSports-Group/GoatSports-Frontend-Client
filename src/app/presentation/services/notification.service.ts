@@ -5,6 +5,7 @@ import { GetNotificationsUseCase } from '@application/usecase/notification/get-n
 import { CountUnreadNotificationsUseCase } from '@application/usecase/notification/count-unread-notifications.usecase';
 import { MarkNotificationReadUseCase } from '@application/usecase/notification/mark-notification-read.usecase';
 import { MarkAllNotificationsReadUseCase } from '@application/usecase/notification/mark-all-notifications-read.usecase';
+import { DeleteNotificationUseCase } from '@application/usecase/notification/delete-notification.usecase';
 import { WEBSOCKET_SERVICE_TOKEN } from '@application/ports/websocket.service';
 import { AuthService } from './auth.service';
 import { SessionStateService } from './session-state.service';
@@ -18,6 +19,7 @@ export class NotificationService {
   private countUnreadUseCase = inject(CountUnreadNotificationsUseCase);
   private markReadUseCase = inject(MarkNotificationReadUseCase);
   private markAllReadUseCase = inject(MarkAllNotificationsReadUseCase);
+  private deleteNotificationUseCase = inject(DeleteNotificationUseCase);
   private wsService = inject(WEBSOCKET_SERVICE_TOKEN);
   private authService = inject(AuthService);
   private notify = inject(NotifyService);
@@ -191,6 +193,39 @@ export class NotificationService {
         },
         error: (err) => {
           console.error('Failed to mark all notifications as read:', err);
+          subscriber.error(err);
+        }
+      });
+    });
+  }
+
+  public deleteNotification(id: string): Observable<void> {
+    const notification = this.notificationsSubject.value.find(
+      item => item.notificationId === id
+    );
+
+    return new Observable<void>(subscriber => {
+      this.deleteNotificationUseCase.execute(id).subscribe({
+        next: () => {
+          // Remove from local list
+          const current = this.notificationsSubject.value.filter(
+            n => n.notificationId !== id
+          );
+          this.notificationsSubject.next(current);
+
+          // If was unread, decrement count
+          if (notification && notification.status === NotificationStatus.UNREAD) {
+            const count = Math.max(0, this.unreadCountSubject.value - 1);
+            this.unreadCountSubject.next(count);
+          }
+
+          this.notify.success('Đã xóa thông báo thành công');
+          subscriber.next();
+          subscriber.complete();
+        },
+        error: (err) => {
+          console.error('Failed to delete notification:', err);
+          this.notify.error('Không thể xóa thông báo, vui lòng thử lại');
           subscriber.error(err);
         }
       });

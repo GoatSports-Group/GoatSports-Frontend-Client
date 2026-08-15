@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { AuthService } from '@presentation/services/auth.service';
+import { NotificationService } from '@presentation/services/notification.service';
 import { SETTINGS_TABS, SettingsTabKey } from './settings.models';
 
 @Component({
@@ -10,6 +11,7 @@ import { SETTINGS_TABS, SettingsTabKey } from './settings.models';
 })
 export class SettingsComponent {
   public authService = inject(AuthService);
+  public notificationService = inject(NotificationService);
   public activeTab: SettingsTabKey = 'player';
   public tabs = SETTINGS_TABS;
 

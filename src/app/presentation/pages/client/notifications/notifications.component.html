@@ -1,0 +1,192 @@
+<div class="notifications-page">
+  <div class="notifications-layout">
+    <!-- Left Navigation Sidebar -->
+    <aside class="settings-sidebar">
+      <!-- User Profile Header -->
+      <div class="sidebar-user">
+        <div class="user-avatar-wrap">
+          <img
+            [src]="fallbackAvatar"
+            [alt]="authService.currentUser?.fullName || 'User Avatar'"
+            class="user-avatar-img"
+          />
+        </div>
+        <div class="user-meta">
+          <span class="user-display-name">{{ authService.currentUser?.fullName || 'Người dùng' }}</span>
+          <a routerLink="/settings" class="user-view-link">Xem hồ sơ</a>
+        </div>
+      </div>
+
+      <!-- Navigation Items -->
+      <nav class="sidebar-nav">
+        <a routerLink="/home" class="sidebar-nav-item">
+          <lucide-icon name="home" class="w-4 h-4"></lucide-icon>
+          <span>Trang chủ</span>
+        </a>
+
+        <a routerLink="/notifications" class="sidebar-nav-item sidebar-nav-item--active">
+          <div class="sidebar-icon-wrap">
+            <lucide-icon name="bell" class="w-4 h-4"></lucide-icon>
+            @if ((notificationService.unreadCount$ | async) ?? 0; as unread) {
+              @if (unread > 0) {
+                <span class="nav-unread-dot"></span>
+              }
+            }
+          </div>
+          <span>Thông báo</span>
+          @if ((notificationService.unreadCount$ | async) ?? 0; as unread) {
+            @if (unread > 0) {
+              <span class="nav-unread-badge">{{ unread }}</span>
+            }
+          }
+        </a>
+
+        <a routerLink="/my-bookings" class="sidebar-nav-item">
+          <lucide-icon name="calendar" class="w-4 h-4"></lucide-icon>
+          <span>Lịch đặt sân</span>
+        </a>
+
+        <a routerLink="/settings" class="sidebar-nav-item" (click)="$event.preventDefault()">
+          <lucide-icon name="award" class="w-4 h-4"></lucide-icon>
+          <span>Thành tích</span>
+        </a>
+
+        <a routerLink="/settings" class="sidebar-nav-item" (click)="$event.preventDefault()">
+          <lucide-icon name="users" class="w-4 h-4"></lucide-icon>
+          <span>Kết nối</span>
+        </a>
+
+        <a routerLink="/settings" class="sidebar-nav-item" (click)="$event.preventDefault()">
+          <lucide-icon name="swords" class="w-4 h-4"></lucide-icon>
+          <span>Thi đấu nhóm</span>
+        </a>
+
+        <a routerLink="/settings" class="sidebar-nav-item">
+          <lucide-icon name="settings" class="w-4 h-4"></lucide-icon>
+          <span>Cài đặt</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Right Main Notifications Area -->
+    <main class="notifications-main">
+      <div class="notifications-main-inner">
+        <!-- Header -->
+        <header class="notifications-header">
+          <div>
+            <h1 class="notifications-title">Thông Báo</h1>
+            <p class="notifications-subtitle">Quản lý các thông báo đặt sân, hóa đơn thanh toán và hoạt động tài khoản.</p>
+          </div>
+
+          <div class="header-actions">
+            @if ((notificationService.unreadCount$ | async) ?? 0; as unread) {
+              @if (unread > 0) {
+                <button type="button" class="btn-mark-all-read" (click)="onMarkAllRead()">
+                  <lucide-icon name="check-check" class="w-4 h-4 mr-1.5"></lucide-icon>
+                  Đánh dấu đã đọc tất cả
+                </button>
+              }
+            }
+          </div>
+        </header>
+
+        <!-- Filter Tab Row -->
+        <div class="filter-tabs-row">
+          <div class="filter-pills">
+            <button
+              type="button"
+              class="filter-pill"
+              [class.filter-pill--active]="activeFilter === 'ALL'"
+              (click)="setFilter('ALL')"
+            >
+              Tất cả
+              <span class="count-badge">{{ (notificationService.notifications$ | async)?.length || 0 }}</span>
+            </button>
+
+            <button
+              type="button"
+              class="filter-pill"
+              [class.filter-pill--active]="activeFilter === 'UNREAD'"
+              (click)="setFilter('UNREAD')"
+            >
+              Chưa đọc
+              @if ((notificationService.unreadCount$ | async) ?? 0; as unread) {
+                <span class="count-badge count-badge--unread">{{ unread }}</span>
+              }
+            </button>
+          </div>
+        </div>
+
+        <!-- Notifications Content List -->
+        <section class="notifications-list">
+          @if (filteredNotifications$ | async; as notifs) {
+            @if (notifs.length === 0) {
+              <div class="empty-notifications">
+                <div class="empty-icon-box">
+                  <lucide-icon name="inbox" class="w-8 h-8 text-slate-400"></lucide-icon>
+                </div>
+                <h3 class="empty-title">Không có thông báo nào</h3>
+                <p class="empty-desc">
+                  @if (activeFilter === 'UNREAD') {
+                    Bạn đã đọc tất cả thông báo!
+                  } @else {
+                    Bạn chưa có thông báo mới nào từ hệ thống GOAT SPORTS.
+                  }
+                </p>
+              </div>
+            } @else {
+              <div class="notif-cards-group">
+                @for (item of notifs; track item.notificationId) {
+                  <article
+                    class="notif-card"
+                    [class.notif-card--unread]="item.status === NotificationStatus.UNREAD"
+                    (click)="onMarkRead(item)"
+                  >
+                    <!-- Type Icon -->
+                    <div class="notif-icon-col">
+                      <div class="notif-type-icon" [ngClass]="'icon-type--' + (item.type || 'SYSTEM').toLowerCase()">
+                        <lucide-icon [name]="getNotificationIcon(item.type)" class="w-4 h-4"></lucide-icon>
+                      </div>
+                    </div>
+
+                    <!-- Content Body -->
+                    <div class="notif-body-col">
+                      <div class="notif-top-meta">
+                        <h4 class="notif-item-title">{{ item.title }}</h4>
+                        <div class="notif-right-tools">
+                          <span class="notif-timestamp">{{ formatTime(item.createdAt) }}</span>
+                          @if (item.status === NotificationStatus.UNREAD) {
+                            <span class="unread-glow-dot" title="Chưa đọc"></span>
+                          }
+                          <button
+                            type="button"
+                            class="btn-delete-notif"
+                            (click)="onDelete(item, $event)"
+                            title="Xóa thông báo"
+                          >
+                            <lucide-icon name="trash-2" class="w-3.5 h-3.5"></lucide-icon>
+                          </button>
+                        </div>
+                      </div>
+
+                      <p class="notif-item-content">{{ item.content }}</p>
+
+                      @if (item.status === NotificationStatus.UNREAD) {
+                        <div class="notif-card-footer">
+                          <button type="button" class="btn-quick-read" (click)="onMarkRead(item, $event)">
+                            <lucide-icon name="check" class="w-3 h-3 mr-1"></lucide-icon>
+                            Đánh dấu đã đọc
+                          </button>
+                        </div>
+                      }
+                    </div>
+                  </article>
+                }
+              </div>
+            }
+          }
+        </section>
+      </div>
+    </main>
+  </div>
+</div>

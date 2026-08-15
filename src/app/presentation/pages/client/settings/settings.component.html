@@ -24,9 +24,21 @@
           <span>Trang chủ</span>
         </a>
 
-        <a routerLink="/settings" class="sidebar-nav-item" (click)="$event.preventDefault()">
-          <lucide-icon name="mail" class="w-4 h-4"></lucide-icon>
-          <span>Tin nhắn</span>
+        <a routerLink="/notifications" class="sidebar-nav-item">
+          <div class="sidebar-icon-wrap">
+            <lucide-icon name="bell" class="w-4 h-4"></lucide-icon>
+            @if ((notificationService.unreadCount$ | async) ?? 0; as unread) {
+              @if (unread > 0) {
+                <span class="nav-unread-dot"></span>
+              }
+            }
+          </div>
+          <span>Thông báo</span>
+          @if ((notificationService.unreadCount$ | async) ?? 0; as unread) {
+            @if (unread > 0) {
+              <span class="nav-unread-badge">{{ unread }}</span>
+            }
+          }
         </a>
 
         <a routerLink="/my-bookings" class="sidebar-nav-item">

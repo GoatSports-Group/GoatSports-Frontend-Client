@@ -100,7 +100,11 @@ import {
   LucideKeyRound,
   LucideShieldAlert,
   LucideLoader2,
-  LucideCheckCircle2
+  LucideCheckCircle2,
+  LucideTrash2,
+  LucideCheckCheck,
+  LucideInbox,
+  LucideBellRing
 } from '@lucide/angular';
 
 @NgModule({
@@ -205,7 +209,11 @@ import {
       LucideKeyRound,
       LucideShieldAlert,
       LucideLoader2,
-      LucideCheckCircle2
+      LucideCheckCircle2,
+      LucideTrash2,
+      LucideCheckCheck,
+      LucideInbox,
+      LucideBellRing
     )
   ],
   bootstrap: [AppComponent]
