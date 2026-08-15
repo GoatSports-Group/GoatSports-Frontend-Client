@@ -38,50 +38,68 @@
 
     <!-- Actions (Bookings & User Profile) -->
     <div class="actions-container">
-      <!-- Notification Bell -->
+      <!-- Notification Dropdown Container -->
       @if (authService.isAuthenticated$ | async) {
-      <button mat-icon-button [matMenuTriggerFor]="notifMenu" class="notif-btn" aria-label="Thông báo">
-        <lucide-icon name="bell" [matBadge]="notificationService.unreadCount$ | async"
-          [matBadgeHidden]="(notificationService.unreadCount$ | async) === 0" matBadgeColor="warn"
-          class="notif-icon w-5 h-5"></lucide-icon>
-      </button>
-      <mat-menu #notifMenu="matMenu" xPosition="before" class="custom-notif-menu">
-        <div class="notif-menu-header" (click)="$event.stopPropagation()">
-          <span class="notif-header-title">Thông báo</span>
-          <button (click)="markAllRead()" class="mark-all-read-btn">
-            Đánh dấu tất cả
-          </button>
-        </div>
-        <div class="notif-items-list">
-          @if ((notificationService.notifications$ | async)?.length === 0) {
-          <div class="notif-empty">
-            <lucide-icon name="bell-off" class="w-8 h-8 notif-empty-icon"></lucide-icon>
-            <p>Không có thông báo mới nào</p>
-          </div>
-          } @else {
-          @for (notif of notificationService.notifications$ | async; track notif.notificationId) {
-          <div (click)="onNotificationClick(notif)" class="notif-item-row" [class.unread]="notif.status === 'UNREAD'">
-            <span class="unread-dot" [class.active]="notif.status === 'UNREAD'"></span>
-            <div class="notif-item-content">
-              <span class="notif-title">{{ notif.title }}</span>
-              <p class="notif-desc">{{ notif.content }}</p>
-              <span class="notif-time">{{ notif.createdAt | date:'dd/MM HH:mm' }}</span>
-            </div>
-            <div class="notif-actions" (click)="$event.stopPropagation()">
-              @if (notif.status === 'UNREAD') {
-              <button (click)="onNotificationClick(notif)" class="mark-read-item-btn" title="Đánh dấu đã đọc">
-                <lucide-icon name="check" class="w-3.5 h-3.5"></lucide-icon>
-              </button>
-              }
-              <button (click)="deleteNotification(notif, $event)" class="delete-notif-item-btn" title="Xóa thông báo">
-                <lucide-icon name="x" class="w-3.5 h-3.5"></lucide-icon>
-              </button>
-            </div>
-          </div>
+      <div class="notif-dropdown-container relative">
+        <button (click)="toggleNotifDropdown($event)"
+          class="notif-trigger-btn"
+          aria-label="Thông báo">
+          <lucide-icon name="bell" class="w-5 h-5"></lucide-icon>
+          @if (((notificationService.unreadCount$ | async) ?? 0) > 0) {
+          <span class="notif-count-badge">
+            {{ notificationService.unreadCount$ | async }}
+          </span>
           }
-          }
+        </button>
+
+        <!-- Custom Dropdown Panel -->
+        @if (isNotifOpen) {
+        <div class="custom-notif-panel" (click)="$event.stopPropagation()">
+          <div class="panel-header">
+            <span class="panel-title">Thông báo</span>
+            <button (click)="markAllRead()" class="btn-mark-all">
+              Đánh dấu tất cả
+            </button>
+          </div>
+
+          <div class="panel-list">
+            @if ((notificationService.notifications$ | async)?.length === 0) {
+            <div class="panel-empty">
+              <lucide-icon name="bell-off" class="w-8 h-8 empty-icon"></lucide-icon>
+              <p>Không có thông báo mới nào</p>
+            </div>
+            } @else {
+            @for (notif of notificationService.notifications$ | async; track notif.notificationId) {
+            <div (click)="onNotificationClick(notif)" class="notif-card-item">
+              <span class="status-dot" [class.status-dot--unread]="notif.status === 'UNREAD'"></span>
+
+              <div class="notif-info-block">
+                <span class="notif-title-text">{{ notif.title }}</span>
+                <p class="notif-content-text">{{ notif.content }}</p>
+                <span class="notif-time-text">{{ getRelativeTime(notif.createdAt) }}</span>
+              </div>
+
+              <div class="notif-btn-group" (click)="$event.stopPropagation()">
+                @if (notif.status === 'UNREAD') {
+                <button (click)="onNotificationClick(notif)"
+                  class="action-btn action-btn--read"
+                  title="Đánh dấu đã đọc">
+                  <lucide-icon name="check" class="w-3.5 h-3.5"></lucide-icon>
+                </button>
+                }
+                <button (click)="deleteNotification(notif, $event)"
+                  class="action-btn action-btn--delete"
+                  title="Xóa thông báo">
+                  <lucide-icon name="x" class="w-3.5 h-3.5"></lucide-icon>
+                </button>
+              </div>
+            </div>
+            }
+            }
+          </div>
         </div>
-      </mat-menu>
+        }
+      </div>
       }
 
       <!-- User Menu -->

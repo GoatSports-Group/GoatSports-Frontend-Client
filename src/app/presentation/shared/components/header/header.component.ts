@@ -1,21 +1,24 @@
-import { Component, EventEmitter, OnInit, Output, inject } from '@angular/core';
+import { Component, EventEmitter, HostListener, OnInit, Output, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '@presentation/services/auth.service';
 import { NotificationService } from '@presentation/services/notification.service';
 import { RoleEnum } from '@application/dto/user/user.dto';
 import {
   Notification,
-  NotificationStatus
+  NotificationStatus,
+  NotificationType
 } from '@application/dto/notification/notification.dto';
 import { environment } from '@environments/environment';
+import { formatRelativeTime } from '@presentation/shared/utils/date-trend.utils';
 
 @Component({
-    selector: 'app-header',
-    templateUrl: './header.component.html',
-    styleUrls: ['./header.component.scss'],
-    standalone: false
+  selector: 'app-header',
+  templateUrl: './header.component.html',
+  styleUrls: ['./header.component.scss'],
+  standalone: false
 })
 export class HeaderComponent implements OnInit {
+  readonly getRelativeTime = formatRelativeTime;
   public authService = inject(AuthService);
   public notificationService = inject(NotificationService);
   private router = inject(Router);
@@ -24,6 +27,7 @@ export class HeaderComponent implements OnInit {
 
   searchQuery: string = '';
   adminUrl = environment.adminApiUrl;
+  isNotifOpen = false;
 
   ngOnInit() {
     this.authService.isAuthenticated$;
@@ -43,6 +47,16 @@ export class HeaderComponent implements OnInit {
 
   redirectToLogin() {
     window.location.href = `${this.authApiBase}/login?redirect=${encodeURIComponent(window.location.origin + this.router.url)}`;
+  }
+
+  toggleNotifDropdown(event: Event): void {
+    event.stopPropagation();
+    this.isNotifOpen = !this.isNotifOpen;
+  }
+
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    this.isNotifOpen = false;
   }
 
   get fallbackAvatar(): string {
@@ -68,19 +82,36 @@ export class HeaderComponent implements OnInit {
   }
 
   onNotificationClick(notification: Notification): void {
+    this.isNotifOpen = false;
+
     if (notification.status !== NotificationStatus.UNREAD) {
+      this.navigateFromNotification(notification);
       return;
     }
 
-    this.notificationService.markAsRead(notification.notificationId).subscribe();
+    this.notificationService.markAsRead(notification.notificationId).subscribe({
+      next: () => this.navigateFromNotification(notification)
+    });
+  }
+
+  private navigateFromNotification(notification: Notification): void {
+    if (notification.type === NotificationType.BOOKING) {
+      this.router.navigate(['/my-bookings']);
+    } else if (notification.type === NotificationType.OWNER_APPLICATION) {
+      this.router.navigate(['/owner-application']);
+    }
   }
 
   markAllRead() {
-    this.notificationService.markAllRead().subscribe();
+    this.notificationService.markAllRead().subscribe({
+      error: (err) => console.error('Failed to mark all as read:', err)
+    });
   }
 
   deleteNotification(notification: Notification, event: Event): void {
     event.stopPropagation();
-    this.notificationService.deleteNotification(notification.notificationId).subscribe();
+    this.notificationService.deleteNotification(notification.notificationId).subscribe({
+      error: (err) => console.error('Failed to delete notification:', err)
+    });
   }
 }
