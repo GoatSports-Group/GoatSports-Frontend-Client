@@ -1,5 +1,6 @@
 import { Component, Input, inject } from '@angular/core';
-import { User, UpdatePasswordRequest } from '@application/dto/user/user.dto';
+import { User, UpdatePasswordRequest, CreatePasswordRequest } from '@application/dto/user/user.dto';
+import { AuthService } from '@presentation/services/auth.service';
 import { UserService } from '@presentation/services/user.service';
 import { NotifyService } from '@shared/components/notify/notify.service';
 
@@ -12,6 +13,7 @@ import { NotifyService } from '@shared/components/notify/notify.service';
 export class SettingsSecurityTabComponent {
   @Input() user: User | null = null;
 
+  public authService = inject(AuthService);
   private userService = inject(UserService);
   private notifyService = inject(NotifyService);
 
@@ -27,6 +29,13 @@ export class SettingsSecurityTabComponent {
     newPassword: '',
     confirmPassword: ''
   };
+
+  get hasPassword(): boolean {
+    if (this.user?.hasPassword !== undefined) {
+      return this.user.hasPassword;
+    }
+    return true;
+  }
 
   openPasswordModal(): void {
     this.form = {
@@ -45,6 +54,60 @@ export class SettingsSecurityTabComponent {
   }
 
   onSavePassword(): void {
+    if (this.hasPassword) {
+      this.handleUpdatePassword();
+    } else {
+      this.handleCreatePassword();
+    }
+  }
+
+  private handleCreatePassword(): void {
+    if (!this.form.newPassword) {
+      this.notifyService.error('Vui lòng nhập mật khẩu mới');
+      return;
+    }
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+    if (!passwordRegex.test(this.form.newPassword)) {
+      this.notifyService.error('Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt');
+      return;
+    }
+
+    if (!this.form.confirmPassword) {
+      this.notifyService.error('Vui lòng xác nhận mật khẩu');
+      return;
+    }
+
+    if (this.form.newPassword !== this.form.confirmPassword) {
+      this.notifyService.error('Mật khẩu mới và xác nhận mật khẩu không khớp');
+      return;
+    }
+
+    this.isSaving = true;
+    const payload: CreatePasswordRequest = {
+      newPassword: this.form.newPassword,
+      confirmPassword: this.form.confirmPassword
+    };
+
+    this.userService.createPassword(payload).subscribe({
+      next: () => {
+        this.isSaving = false;
+        if (this.user) {
+          this.user = { ...this.user, hasPassword: true };
+          this.authService.updateCurrentUser(this.user);
+        }
+        this.notifyService.success('Tạo mật khẩu cho tài khoản thành công!');
+        this.closePasswordModal();
+      },
+      error: (err) => {
+        this.isSaving = false;
+        console.error('Create password failed:', err);
+        this.notifyService.error(err?.error?.message || 'Tạo mật khẩu thất bại. Vui lòng thử lại');
+      }
+    });
+  }
+
+  private handleUpdatePassword(): void {
     if (!this.form.currentPassword) {
       this.notifyService.error('Vui lòng nhập mật khẩu hiện tại');
       return;
@@ -86,7 +149,16 @@ export class SettingsSecurityTabComponent {
       error: (err) => {
         this.isSaving = false;
         console.error('Update password failed:', err);
-        this.notifyService.error(err?.error?.message || 'Đổi mật khẩu thất bại. Vui lòng kiểm tra lại mật khẩu hiện tại');
+        const errMsg = err?.error?.message || '';
+        if (errMsg.includes('mạng xã hội')) {
+          if (this.user) {
+            this.user = { ...this.user, hasPassword: false };
+            this.authService.updateCurrentUser(this.user);
+          }
+          this.notifyService.info('Thiết lập mật khẩu', 'Tài khoản mạng xã hội chưa có mật khẩu, vui lòng thiết lập mật khẩu');
+        } else {
+          this.notifyService.error(errMsg || 'Đổi mật khẩu thất bại. Vui lòng kiểm tra lại mật khẩu hiện tại');
+        }
       }
     });
   }

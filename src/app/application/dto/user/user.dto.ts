@@ -16,10 +16,16 @@ export type User = {
   };
   keycloakId?: string;
   authProvider?: string;
+  hasPassword?: boolean;
 };
 
 export interface UpdatePasswordRequest {
   currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export interface CreatePasswordRequest {
   newPassword: string;
   confirmPassword: string;
 }

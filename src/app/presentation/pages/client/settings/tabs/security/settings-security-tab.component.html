@@ -3,10 +3,12 @@
   <div class="settings-row">
     <div class="settings-row__info">
       <h3 class="settings-row__label">Mật khẩu</h3>
-      <p class="settings-row__value font-mono">••••••••••••</p>
+      <p class="settings-row__value" [class.font-mono]="hasPassword" [class.text-amber-600]="!hasPassword">
+        {{ hasPassword ? '••••••••••••' : 'Chưa thiết lập mật khẩu' }}
+      </p>
     </div>
     <button type="button" class="settings-row__action" (click)="openPasswordModal()">
-      Cập nhật
+      {{ hasPassword ? 'Cập nhật' : 'Thiết lập' }}
     </button>
   </div>
 
@@ -67,19 +69,20 @@
   </div>
 </div>
 
-<!-- Modal Đổi Mật Khẩu -->
+<!-- Modal Đổi / Tạo Mật Khẩu -->
 @if (showPasswordModal) {
 <div class="modal-backdrop" (click)="closePasswordModal()">
   <div class="modal-card" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <h3 class="modal-title">Đổi mật khẩu</h3>
+      <h3 class="modal-title">{{ hasPassword ? 'Đổi mật khẩu' : 'Thiết lập mật khẩu mới' }}</h3>
       <button type="button" class="btn-close" (click)="closePasswordModal()">
         <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
       </button>
     </div>
 
     <div class="modal-body">
-      <!-- Mật khẩu hiện tại -->
+      <!-- Mật khẩu hiện tại (Chỉ hiển thị khi đã có mật khẩu) -->
+      @if (hasPassword) {
       <div class="form-group">
         <label class="form-label" for="current-pass">Mật khẩu hiện tại <span class="text-rose-500">*</span></label>
         <div class="input-password-wrap">
@@ -95,10 +98,13 @@
           </button>
         </div>
       </div>
+      }
 
       <!-- Mật khẩu mới -->
       <div class="form-group">
-        <label class="form-label" for="new-pass">Mật khẩu mới <span class="text-rose-500">*</span></label>
+        <label class="form-label" for="new-pass">
+          {{ hasPassword ? 'Mật khẩu mới' : 'Tạo mật khẩu' }} <span class="text-rose-500">*</span>
+        </label>
         <div class="input-password-wrap">
           <input
             id="new-pass"
@@ -118,13 +124,15 @@
 
       <!-- Xác nhận mật khẩu mới -->
       <div class="form-group">
-        <label class="form-label" for="confirm-pass">Xác nhận mật khẩu mới <span class="text-rose-500">*</span></label>
+        <label class="form-label" for="confirm-pass">
+          {{ hasPassword ? 'Xác nhận mật khẩu mới' : 'Xác nhận mật khẩu' }} <span class="text-rose-500">*</span>
+        </label>
         <div class="input-password-wrap">
           <input
             id="confirm-pass"
             [type]="showConfirmPass ? 'text' : 'password'"
             class="form-control"
-            placeholder="Nhập lại mật khẩu mới"
+            placeholder="Nhập lại mật khẩu"
             [(ngModel)]="form.confirmPassword"
           />
           <button type="button" class="btn-toggle-eye" (click)="showConfirmPass = !showConfirmPass">
@@ -142,7 +150,7 @@
         @if (isSaving) {
           <span>Đang lưu...</span>
         } @else {
-          <span>Lưu mật khẩu</span>
+          <span>{{ hasPassword ? 'Lưu mật khẩu' : 'Tạo mật khẩu' }}</span>
         }
       </button>
     </div>
