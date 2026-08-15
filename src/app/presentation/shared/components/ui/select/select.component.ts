@@ -1,10 +1,11 @@
-import { Component, forwardRef, HostListener, Input } from '@angular/core';
+import { Component, ElementRef, forwardRef, HostListener, Input, ViewChild, inject } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 export interface SelectOption {
-  value: string;
+  value: any;
   label: string;
   disabled?: boolean;
+  icon?: string;
 }
 
 @Component({
@@ -19,24 +20,50 @@ export interface SelectOption {
   standalone: false
 })
 export class SelectComponent implements ControlValueAccessor {
+  private elementRef = inject(ElementRef);
+
   @Input() options: readonly SelectOption[] = [];
   @Input() placeholder = 'Chọn một giá trị';
+  @Input() searchable = false;
+  @Input() searchPlaceholder = 'Tìm kiếm...';
+  @Input() disabled = false;
+  @Input() size: 'sm' | 'md' | 'lg' = 'md';
 
-  value = '';
-  open = false;
-  disabled = false;
+  @ViewChild('searchInput') searchInput?: ElementRef<HTMLInputElement>;
 
-  private onChange: (value: string) => void = () => undefined;
+  public value: any = '';
+  public open = false;
+  public searchQuery = '';
+
+  private onChange: (value: any) => void = () => undefined;
   private onTouched: () => void = () => undefined;
 
+  get filteredOptions(): readonly SelectOption[] {
+    if (!this.searchable || !this.searchQuery.trim()) {
+      return this.options;
+    }
+    const query = this.searchQuery.toLowerCase().trim();
+    return this.options.filter(opt =>
+      opt.label.toLowerCase().includes(query) ||
+      String(opt.value).toLowerCase().includes(query)
+    );
+  }
+
   get selectedLabel(): string {
-    return this.options.find(option => option.value === this.value)?.label ?? this.placeholder;
+    const selected = this.options.find(option => option.value === this.value);
+    return selected ? selected.label : '';
   }
 
   toggle(event: MouseEvent): void {
     event.stopPropagation();
     if (this.disabled) return;
     this.open = !this.open;
+    if (this.open) {
+      this.searchQuery = '';
+      if (this.searchable) {
+        setTimeout(() => this.searchInput?.nativeElement.focus(), 50);
+      }
+    }
     this.onTouched();
   }
 
@@ -45,6 +72,7 @@ export class SelectComponent implements ControlValueAccessor {
     if (option.disabled) return;
     this.value = option.value;
     this.open = false;
+    this.searchQuery = '';
     this.onChange(this.value);
     this.onTouched();
   }
@@ -55,16 +83,18 @@ export class SelectComponent implements ControlValueAccessor {
       return;
     }
     if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      this.open = !this.open;
+      if (!this.open) {
+        event.preventDefault();
+        this.open = true;
+      }
     }
   }
 
-  writeValue(value: string | null): void {
+  writeValue(value: any): void {
     this.value = value ?? '';
   }
 
-  registerOnChange(fn: (value: string) => void): void {
+  registerOnChange(fn: (value: any) => void): void {
     this.onChange = fn;
   }
 
@@ -77,8 +107,10 @@ export class SelectComponent implements ControlValueAccessor {
     if (disabled) this.open = false;
   }
 
-  @HostListener('document:click')
-  close(): void {
-    this.open = false;
+  @HostListener('document:click', ['$event'])
+  onClickOutside(event: MouseEvent): void {
+    if (!this.elementRef.nativeElement.contains(event.target)) {
+      this.open = false;
+    }
   }
 }

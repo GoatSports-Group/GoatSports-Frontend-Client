@@ -2,6 +2,7 @@ import { Component, Input, OnInit, OnChanges, SimpleChanges, inject } from '@ang
 import { User } from '@application/dto/user/user.dto';
 import { AuthService } from '@presentation/services/auth.service';
 import { UserService } from '@presentation/services/user.service';
+import { SelectOption } from '@shared/components/ui/select/select.component';
 import { NotifyService } from '@shared/components/notify/notify.service';
 
 @Component({
@@ -20,6 +21,28 @@ export class SettingsPersonalTabComponent implements OnInit, OnChanges {
   public isModalOpen = false;
   public isSaving = false;
   public activeEditingField = '';
+
+  public genderOptions: SelectOption[] = [
+    { value: 'MALE', label: 'Nam' },
+    { value: 'FEMALE', label: 'Nữ' },
+    { value: 'OTHER', label: 'Khác' }
+  ];
+
+  public countryOptions: SelectOption[] = [
+    { value: 'Việt Nam', label: 'Việt Nam' },
+    { value: 'Hàn Quốc', label: 'Hàn Quốc' },
+    { value: 'Nhật Bản', label: 'Nhật Bản' },
+    { value: 'Hoa Kỳ', label: 'Hoa Kỳ' },
+    { value: 'Singapore', label: 'Singapore' },
+    { value: 'Thái Lan', label: 'Thái Lan' },
+    { value: 'Malaysia', label: 'Malaysia' },
+    { value: 'Úc', label: 'Úc' },
+    { value: 'Anh', label: 'Anh' },
+    { value: 'Pháp', label: 'Pháp' },
+    { value: 'Đức', label: 'Đức' },
+    { value: 'Canada', label: 'Canada' },
+    { value: 'Khác', label: 'Khác' }
+  ];
 
   public formData = {
     fullName: '',

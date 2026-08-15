@@ -126,24 +126,24 @@
 
       <!-- Country -->
       <div class="form-group">
-        <label class="form-label" for="edit-country">Quốc gia</label>
-        <input
-          id="edit-country"
-          type="text"
-          class="form-control"
-          placeholder="Nhập quốc gia (Ví dụ: Việt Nam)"
+        <label class="form-label">Quốc gia</label>
+        <app-select
+          [options]="countryOptions"
           [(ngModel)]="formData.country"
+          [searchable]="true"
+          searchPlaceholder="Tìm quốc gia..."
+          placeholder="Chọn quốc gia"
         />
       </div>
 
       <!-- Gender -->
       <div class="form-group">
-        <label class="form-label" for="edit-gender">Giới tính</label>
-        <select id="edit-gender" class="form-control" [(ngModel)]="formData.gender">
-          <option value="MALE">Nam</option>
-          <option value="FEMALE">Nữ</option>
-          <option value="OTHER">Khác</option>
-        </select>
+        <label class="form-label">Giới tính</label>
+        <app-select
+          [options]="genderOptions"
+          [(ngModel)]="formData.gender"
+          placeholder="Chọn giới tính"
+        />
       </div>
     </div>
 

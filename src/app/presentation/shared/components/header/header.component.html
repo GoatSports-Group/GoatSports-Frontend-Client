@@ -41,9 +41,7 @@
       <!-- Notification Dropdown Container -->
       @if (authService.isAuthenticated$ | async) {
       <div class="notif-dropdown-container relative">
-        <button (click)="toggleNotifDropdown($event)"
-          class="notif-trigger-btn"
-          aria-label="Thông báo">
+        <button (click)="toggleNotifDropdown($event)" class="notif-trigger-btn" aria-label="Thông báo">
           <lucide-icon name="bell" class="w-5 h-5"></lucide-icon>
           @if (((notificationService.unreadCount$ | async) ?? 0) > 0) {
           <span class="notif-count-badge">
@@ -81,14 +79,12 @@
 
               <div class="notif-btn-group" (click)="$event.stopPropagation()">
                 @if (notif.status === 'UNREAD') {
-                <button (click)="onNotificationClick(notif)"
-                  class="action-btn action-btn--read"
+                <button (click)="onNotificationClick(notif)" class="action-btn action-btn--read"
                   title="Đánh dấu đã đọc">
                   <lucide-icon name="check" class="w-3.5 h-3.5"></lucide-icon>
                 </button>
                 }
-                <button (click)="deleteNotification(notif, $event)"
-                  class="action-btn action-btn--delete"
+                <button (click)="deleteNotification(notif, $event)" class="action-btn action-btn--delete"
                   title="Xóa thông báo">
                   <lucide-icon name="x" class="w-3.5 h-3.5"></lucide-icon>
                 </button>
@@ -105,7 +101,8 @@
       <!-- User Menu -->
       @if (authService.isAuthenticated$ | async) {
       <button mat-icon-button [matMenuTriggerFor]="userMenu" class="user-avatar-btn" aria-label="User Profile">
-        <img [src]="fallbackAvatar" [alt]="authService.currentUser?.fullName || 'User Avatar'" class="user-avatar" (error)="onAvatarImgError($event)">
+        <img [src]="fallbackAvatar" [alt]="authService.currentUser?.fullName || 'User Avatar'" class="user-avatar"
+          (error)="onAvatarImgError($event)">
       </button>
       <mat-menu #userMenu="matMenu" xPosition="before" class="custom-menu">
         <div class="menu-header">
@@ -116,15 +113,11 @@
           <p class="menu-email">{{ authService.currentUser?.email }}</p>
         </div>
         <mat-divider></mat-divider>
-        <button mat-menu-item routerLink="/settings">
-          <lucide-icon name="settings" class="w-4 h-4 mr-2"></lucide-icon>
-          <span>Cài đặt</span>
-        </button>
         <button mat-menu-item routerLink="/my-bookings">
           <lucide-icon name="history" class="w-4 h-4 mr-2"></lucide-icon>
           <span>Lịch sử đặt sân</span>
         </button>
-        @if (authService.currentUser?.role?.name !== 'ADMIN' && authService.currentUser?.role?.name !== 'VENUE_OWNER') {
+        @if (authService.currentUser?.role?.name !== 'ADMIN') {
         <button mat-menu-item routerLink="/owner-application">
           <lucide-icon name="store" class="w-4 h-4 mr-2"></lucide-icon>
           <span>Đăng ký chủ sân</span>
@@ -136,6 +129,10 @@
           <span>Quản trị</span>
         </a>
         }
+        <button mat-menu-item routerLink="/settings">
+          <lucide-icon name="settings" class="w-4 h-4 mr-2"></lucide-icon>
+          <span>Cài đặt</span>
+        </button>
         <button mat-menu-item (click)="logout()" class="logout-btn-menu">
           <lucide-icon name="log-out" class="w-4 h-4 mr-2"></lucide-icon>
           <span>Đăng xuất</span>
