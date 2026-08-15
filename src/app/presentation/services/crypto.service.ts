@@ -1,21 +1,14 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { tap } from 'rxjs/operators';
 import JSEncrypt from 'jsencrypt';
-import { environment } from '@environments/environment';
-import { BaseResponse } from '@application/dto/base/base-response';
-
-export interface PublicKeyData {
-  publicKey: string;
-}
+import { GetPublicKeyUseCase } from '@application/usecase/auth/get-public-key.usecase';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CryptoService {
-  private http = inject(HttpClient);
-  private apiBase = environment.apiUrl;
+  private getPublicKeyUseCase = inject(GetPublicKeyUseCase);
   private cachedPublicKey: string | null = null;
 
   getPublicKey(): Observable<string> {
@@ -23,11 +16,7 @@ export class CryptoService {
       return of(this.cachedPublicKey);
     }
 
-    return this.http.get<BaseResponse<PublicKeyData>>(`${this.apiBase}/auth-service/api/v1/auth/public-key`).pipe(
-      map(res => {
-        const key = (res as any)?.data?.publicKey || (res as any)?.publicKey || '';
-        return key;
-      }),
+    return this.getPublicKeyUseCase.execute().pipe(
       tap(key => {
         if (key) {
           this.cachedPublicKey = key;

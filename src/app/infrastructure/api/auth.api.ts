@@ -5,6 +5,10 @@ import { BaseResponse } from '@application/dto/base/base-response';
 import { User } from '@domain/entities/user';
 import { environment } from '@environments/environment';
 
+export interface PublicKeyData {
+  publicKey: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -14,13 +18,17 @@ export class AuthApi {
 
   logout(): Observable<BaseResponse<void>> {
     return this.http.post<BaseResponse<void>>(`${this.apiBase}/auth-service/api/v1/auth/logout`, {}, { withCredentials: true });
-}
+  }
 
   refresh(): Observable<BaseResponse<User>> {
     return this.http.get<BaseResponse<User>>(`${this.apiBase}/auth-service/api/v1/auth/refresh`, { withCredentials: true });
-}
+  }
 
   getCurrentUser(): Observable<BaseResponse<User>> {
     return this.http.get<BaseResponse<User>>(`${this.apiBase}/auth-service/api/v1/auth/me`);
-}
+  }
+
+  getPublicKey(): Observable<BaseResponse<PublicKeyData>> {
+    return this.http.get<BaseResponse<PublicKeyData>>(`${this.apiBase}/auth-service/api/v1/auth/public-key`);
+  }
 }
