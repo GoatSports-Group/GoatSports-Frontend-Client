@@ -105,8 +105,11 @@ export class NotificationsComponent implements OnInit {
       return;
     }
 
+    // Immediately display preview locally so UI updates instantly across Header, Sidebar, etc.
     const previewUrl = URL.createObjectURL(file);
     this.localAvatarPreview = previewUrl;
+    const previousUser = { ...user };
+    this.authService.updateCurrentUser({ ...user, avatarUrl: previewUrl });
 
     this.isUploadingAvatar = true;
     this.storageService.uploadAvatar(file).pipe(
@@ -123,6 +126,7 @@ export class NotificationsComponent implements OnInit {
       },
       error: (err) => {
         this.localAvatarPreview = null;
+        this.authService.updateCurrentUser(previousUser);
         console.error('Failed to update avatar:', err);
         this.notifyService.error(err?.error?.message || 'Không thể cập nhật ảnh đại diện, vui lòng thử lại');
       }
