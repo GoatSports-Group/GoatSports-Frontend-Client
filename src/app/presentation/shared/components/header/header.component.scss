@@ -278,10 +278,13 @@ body.dark .main-header {
   box-shadow: var(--shadow-lg) !important;
   border: 1px solid var(--border-color) !important;
   padding: 0 0 !important;
-  min-width: 220px !important;
+  min-width: 240px !important;
+  max-width: 280px !important;
+  overflow: hidden !important;
 
   .mat-mdc-menu-content {
     padding: 0 !important;
+    overflow-x: hidden !important;
   }
 
   .menu-header {
@@ -289,6 +292,8 @@ body.dark .main-header {
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
+    max-width: 100% !important;
+    overflow: hidden !important;
 
     .menu-header-info {
       display: flex;
@@ -296,6 +301,8 @@ body.dark .main-header {
       align-items: center;
       justify-content: space-between;
       gap: 0.5rem;
+      max-width: 100% !important;
+      overflow: hidden !important;
     }
 
     .menu-name {
@@ -305,6 +312,10 @@ body.dark .main-header {
       color: var(--text-dark) !important;
       font-size: 0.95rem;
       letter-spacing: -0.2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 160px;
     }
 
     .menu-email {
@@ -312,11 +323,16 @@ body.dark .main-header {
       font-size: 0.8rem;
       color: var(--text-muted) !important;
       font-family: var(--font-body);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
     }
 
     .menu-role-badge {
       display: inline-block;
       align-self: flex-start;
+      flex-shrink: 0;
       background-color: var(--primary-light) !important;
       color: var(--primary) !important;
       font-size: 0.7rem;
