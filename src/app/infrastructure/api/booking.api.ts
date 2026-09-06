@@ -9,25 +9,25 @@ import {
   CheckInRequest
 } from '@application/dto/booking/booking.dto';
 import { BaseResponse } from '@application/dto/base/base-response';
-import { environment } from '@environments/environment';
+import { API_ENDPOINTS } from '@infrastructure/config/api-endpoints';
 
 @Injectable({
   providedIn: 'root'
 })
 export class BookingApi {
   private http = inject(HttpClient);
-  private apiBase = environment.apiUrl;
+  private readonly apiBase = API_ENDPOINTS.venue;
 
   createBooking(request: CreateBookingRequest): Observable<BaseResponse<Booking>> {
     return this.http.post<BaseResponse<Booking>>(
-      `${this.apiBase}/venue-service/api/v1/bookings`,
+      `${this.apiBase}/bookings`,
       request
     );
   }
 
   getBookingById(bookingId: string): Observable<BaseResponse<Booking>> {
     return this.http.get<BaseResponse<Booking>>(
-      `${this.apiBase}/venue-service/api/v1/bookings/${bookingId}`
+      `${this.apiBase}/bookings/${bookingId}`
     );
   }
 
@@ -37,21 +37,21 @@ export class BookingApi {
       params = params.set('status', status);
     }
     return this.http.get<BaseResponse<Booking[]>>(
-      `${this.apiBase}/venue-service/api/v1/bookings/my-history`,
+      `${this.apiBase}/bookings/my-history`,
       { params }
     );
   }
 
   cancelBooking(bookingId: string, request: CancelBookingRequest): Observable<BaseResponse<BookingCancellation>> {
     return this.http.post<BaseResponse<BookingCancellation>>(
-      `${this.apiBase}/venue-service/api/v1/bookings/${bookingId}/cancel`,
+      `${this.apiBase}/bookings/${bookingId}/cancel`,
       request
     );
   }
 
   checkIn(request: CheckInRequest): Observable<BaseResponse<Booking>> {
     return this.http.post<BaseResponse<Booking>>(
-      `${this.apiBase}/venue-service/api/v1/bookings/check-in`,
+      `${this.apiBase}/bookings/check-in`,
       request
     );
   }

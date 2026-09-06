@@ -16,6 +16,7 @@ import { USER_REPOSITORY_TOKEN } from '@application/ports/persistence/user.repos
 import { STORAGE_REPOSITORY_TOKEN } from '@application/ports/persistence/storage.repository';
 import { VENUE_SEARCH_REPOSITORY_TOKEN } from '@application/ports/persistence/venue-search.repository';
 import { BOOKING_REPOSITORY_TOKEN } from '@application/ports/persistence/booking.repository';
+import { PAYMENT_REPOSITORY_TOKEN } from '@application/ports/persistence/payment.repository';
 import { CHAT_REPOSITORY_TOKEN } from '@application/ports/persistence/chat.repository';
 import { FRIEND_REPOSITORY_TOKEN } from '@application/ports/persistence/friend.repository';
 import { WEBSOCKET_SERVICE_TOKEN } from '@application/ports/websocket.service';
@@ -29,6 +30,7 @@ import { UserRepositoryImpl } from '@infrastructure/repositories/user.repository
 import { StorageRepositoryImpl } from '@infrastructure/repositories/storage.repository.impl';
 import { VenueSearchRepositoryImpl } from '@infrastructure/repositories/venue-search.repository.impl';
 import { BookingRepositoryImpl } from '@infrastructure/repositories/booking.repository.impl';
+import { PaymentRepositoryImpl } from '@infrastructure/repositories/payment.repository.impl';
 import { ChatRepositoryImpl } from '@infrastructure/repositories/chat.repository.impl';
 import { FriendRepositoryImpl } from '@infrastructure/repositories/friend.repository.impl';
 import { StompWebSocketService } from '@infrastructure/websocket/stomp-websocket.service';
@@ -154,6 +156,7 @@ import {
     { provide: STORAGE_REPOSITORY_TOKEN, useClass: StorageRepositoryImpl },
     { provide: VENUE_SEARCH_REPOSITORY_TOKEN, useClass: VenueSearchRepositoryImpl },
     { provide: BOOKING_REPOSITORY_TOKEN, useClass: BookingRepositoryImpl },
+    { provide: PAYMENT_REPOSITORY_TOKEN, useClass: PaymentRepositoryImpl },
     { provide: CHAT_REPOSITORY_TOKEN, useClass: ChatRepositoryImpl },
     { provide: FRIEND_REPOSITORY_TOKEN, useClass: FriendRepositoryImpl },
     { provide: WEBSOCKET_SERVICE_TOKEN, useClass: StompWebSocketService },

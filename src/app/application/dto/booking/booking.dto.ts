@@ -7,11 +7,9 @@ export { CancellationStatus, CANCELLATION_STATUS_LABELS } from '@domain/enums/ca
 
 export interface CreateBookingRequest {
   venueCourtId: string;
-  bookingDate: string;
+  playDate: string;
   startTime: string;
   endTime: string;
-  paymentMethod?: string;
-  note?: string;
 }
 
 export interface CancelBookingRequest {

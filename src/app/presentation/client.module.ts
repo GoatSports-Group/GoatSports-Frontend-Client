@@ -25,6 +25,7 @@ import { BookingCreateComponent } from '@presentation/pages/client/booking/booki
 import { BookingHistoryComponent } from '@presentation/pages/client/booking/history/booking-history.component';
 import { BookingDetailComponent } from '@presentation/pages/client/booking/detail/booking-detail.component';
 import { QrCheckinComponent } from '@presentation/pages/client/booking/checkin/qr-checkin.component';
+import { PaymentResultComponent } from '@presentation/pages/client/payment/payment-result.component';
 import { ChatComponent } from '@presentation/pages/client/chat/chat.component';
 import { FriendsComponent } from '@presentation/pages/client/friends/friends.component';
 import { ClubListComponent } from '@presentation/pages/client/clubs/club-list.component';
@@ -58,6 +59,7 @@ import { AiAssistantModalComponent } from '@presentation/shared/components/ai-as
     BookingHistoryComponent,
     BookingDetailComponent,
     QrCheckinComponent,
+    PaymentResultComponent,
     ChatComponent,
     FriendsComponent,
     ClubListComponent,
@@ -74,4 +76,3 @@ import { AiAssistantModalComponent } from '@presentation/shared/components/ai-as
   ]
 })
 export class ClientModule { }
-

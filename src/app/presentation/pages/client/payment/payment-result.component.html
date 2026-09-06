@@ -1,0 +1,65 @@
+<main class="payment-result-page">
+  <section class="result-card neo-card" [class]="'result-card--' + state">
+    @if (state === 'checking') {
+      <div class="result-icon result-icon--checking">
+        <mat-progress-spinner mode="indeterminate" diameter="46"></mat-progress-spinner>
+      </div>
+      <span class="eyebrow">Đang đối soát</span>
+      <h1>Đang xác nhận thanh toán</h1>
+      <p>GOAT SPORTS đang chờ kết quả cuối cùng từ payOS. Vui lòng giữ trang này trong giây lát.</p>
+    } @else if (state === 'success') {
+      <div class="result-icon result-icon--success">
+        <lucide-icon name="check-circle-2"></lucide-icon>
+      </div>
+      <span class="eyebrow">Thanh toán thành công</span>
+      <h1>Khung giờ của bạn đã được xác nhận</h1>
+      <p>Tiền cọc đã được ghi nhận. Trạng thái vé sẽ được cập nhật tự động sau khi hệ thống nhận webhook.</p>
+      @if (payment) {
+        <div class="payment-summary">
+          <span>Số tiền đã thanh toán</span>
+          <strong>{{ formatPrice(payment.amount) }}</strong>
+        </div>
+      }
+    } @else if (state === 'cancelled') {
+      <div class="result-icon result-icon--cancelled">
+        <lucide-icon name="x-circle"></lucide-icon>
+      </div>
+      <span class="eyebrow">Đã dừng thanh toán</span>
+      <h1>Bạn chưa thanh toán tiền cọc</h1>
+      <p>Đơn chỉ được giữ đến thời hạn hiển thị trên payOS. Bạn có thể quay lại vé để kiểm tra trạng thái.</p>
+    } @else if (state === 'failed') {
+      <div class="result-icon result-icon--failed">
+        <lucide-icon name="shield-alert"></lucide-icon>
+      </div>
+      <span class="eyebrow">Giao dịch chưa thành công</span>
+      <h1>Không thể xác nhận khoản thanh toán</h1>
+      <p>Giao dịch đã thất bại, bị hủy hoặc hết hạn. Không có khoản cọc thành công nào được ghi nhận.</p>
+    } @else if (state === 'pending') {
+      <div class="result-icon result-icon--pending">
+        <lucide-icon name="hourglass"></lucide-icon>
+      </div>
+      <span class="eyebrow">Đang chờ ngân hàng</span>
+      <h1>Giao dịch vẫn đang được xử lý</h1>
+      <p>Kết quả từ payOS chưa hoàn tất. Bạn có thể kiểm tra lại hoặc xem vé đặt sân.</p>
+    } @else {
+      <div class="result-icon result-icon--missing">
+        <lucide-icon name="receipt"></lucide-icon>
+      </div>
+      <span class="eyebrow">Không tìm thấy giao dịch</span>
+      <h1>Thiếu thông tin đối soát</h1>
+      <p>Phiên thanh toán có thể đã được mở ở tab khác hoặc dữ liệu trình duyệt đã bị xóa.</p>
+    }
+
+    <div class="result-actions">
+      @if (state === 'pending') {
+        <button mat-stroked-button type="button" [disabled]="checking" (click)="checkPayment()">
+          Kiểm tra lại
+        </button>
+      }
+      <a mat-flat-button color="primary" [routerLink]="bookingUrl">
+        {{ context ? 'Xem vé đặt sân' : 'Xem lịch sử đặt sân' }}
+      </a>
+      <a mat-button routerLink="/venues">Tiếp tục tìm sân</a>
+    </div>
+  </section>
+</main>

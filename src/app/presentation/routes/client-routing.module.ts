@@ -11,6 +11,7 @@ import { BookingCreateComponent } from '@presentation/pages/client/booking/booki
 import { BookingHistoryComponent } from '@presentation/pages/client/booking/history/booking-history.component';
 import { BookingDetailComponent } from '@presentation/pages/client/booking/detail/booking-detail.component';
 import { QrCheckinComponent } from '@presentation/pages/client/booking/checkin/qr-checkin.component';
+import { PaymentResultComponent } from '@presentation/pages/client/payment/payment-result.component';
 import { ChatComponent } from '@presentation/pages/client/chat/chat.component';
 import { FriendsComponent } from '@presentation/pages/client/friends/friends.component';
 import { ClubListComponent } from '@presentation/pages/client/clubs/club-list.component';
@@ -32,6 +33,18 @@ const routes: Routes = [
       { path: 'booking/history', component: BookingHistoryComponent, canActivate: [AuthGuard] },
       { path: 'booking/detail/:id', component: BookingDetailComponent, canActivate: [AuthGuard] },
       { path: 'booking/check-in', component: QrCheckinComponent, canActivate: [AuthGuard] },
+      {
+        path: 'payment/success',
+        component: PaymentResultComponent,
+        canActivate: [AuthGuard],
+        data: { paymentResult: 'success' }
+      },
+      {
+        path: 'payment/cancel',
+        component: PaymentResultComponent,
+        canActivate: [AuthGuard],
+        data: { paymentResult: 'cancelled' }
+      },
       { path: 'my-bookings', redirectTo: 'booking/history', pathMatch: 'full' },
       { path: 'clubs', component: ClubListComponent },
       { path: 'clubs/:id', component: ClubDetailComponent },
