@@ -17,8 +17,13 @@
       <a routerLink="/home" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: true}"
         class="nav-item">Trang Chủ</a>
       <a routerLink="/venues" routerLinkActive="active-link" class="nav-item">Tìm Sân Đấu</a>
-      <a routerLink="/ai-recommendation" routerLinkActive="active-link" class="nav-item">Gợi Ý AI</a>
+      <a routerLink="/clubs" routerLinkActive="active-link" class="nav-item">Câu Lạc Bộ</a>
+      <a routerLink="/tournaments" routerLinkActive="active-link" class="nav-item">Giải Đấu</a>
+      <a routerLink="/matchmaking" routerLinkActive="active-link" class="nav-item">AI Ghép Kèo</a>
+      <a routerLink="/friends" routerLinkActive="active-link" class="nav-item">Bạn Bè</a>
+      <a routerLink="/chat" routerLinkActive="active-link" class="nav-item">Tin Nhắn</a>
     </nav>
+
 
     <!-- Search Bar (Desktop) -->
     <div class="search-container">
@@ -113,20 +118,24 @@
           <p class="menu-email">{{ authService.currentUser?.email }}</p>
         </div>
         <mat-divider></mat-divider>
-        <button mat-menu-item routerLink="/my-bookings">
+        <button mat-menu-item routerLink="/booking/history">
           <lucide-icon name="history" class="w-4 h-4 mr-2"></lucide-icon>
-          <span>Lịch sử đặt sân</span>
+          <span>Vé đặt sân của tôi</span>
         </button>
-        @if (authService.currentUser?.role?.name !== 'ADMIN') {
-        <button mat-menu-item routerLink="/owner-application">
-          <lucide-icon name="store" class="w-4 h-4 mr-2"></lucide-icon>
-          <span>Đăng ký chủ sân</span>
+        <button mat-menu-item routerLink="/booking/check-in">
+          <lucide-icon name="qr-code" class="w-4 h-4 mr-2 text-emerald-600"></lucide-icon>
+          <span>Quét vé Check-in</span>
         </button>
+        @if (authService.currentUser?.role?.name === 'VENUE_OWNER' || authService.currentUser?.role?.name === 'ADMIN') {
+        <a mat-menu-item [href]="adminUrl + '/admin/dashboard'">
+          <lucide-icon name="layout-dashboard" class="w-4 h-4 mr-2 text-emerald-600"></lucide-icon>
+          <span>Bảng điều khiển {{ authService.currentUser?.role?.name === 'VENUE_OWNER' ? 'Chủ Sân' : 'Quản Trị' }}</span>
+        </a>
         }
         @if (authService.currentUser?.role?.name === 'ADMIN') {
         <a mat-menu-item [href]="adminUrl + '/admin'">
           <lucide-icon name="shield-check" class="w-4 h-4 mr-2 text-primary"></lucide-icon>
-          <span>Quản trị</span>
+          <span>Quản trị hệ thống</span>
         </a>
         }
         <button mat-menu-item routerLink="/settings">
@@ -139,6 +148,10 @@
         </button>
       </mat-menu>
       } @else {
+      <button mat-stroked-button (click)="redirectToRegisterOwner()" class="partner-btn text-emerald-600 hidden md:inline-flex">
+        <lucide-icon name="store" class="w-4 h-4 mr-1.5"></lucide-icon>
+        Dành cho chủ sân
+      </button>
       <button mat-flat-button color="primary" (click)="redirectToLogin()" class="login-btn">
         Đăng Nhập
       </button>

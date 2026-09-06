@@ -1,0 +1,136 @@
+<div class="clubs-container">
+  <!-- Hero Section -->
+  <div class="hero-banner">
+    <div class="hero-content">
+      <div class="badge-pill">
+        <i class="pi pi-shield"></i> Cộng Đồng Thể Thao
+      </div>
+      <h1 class="hero-title">Câu Lạc Bộ & Hội Nhóm Thể Thao</h1>
+      <p class="hero-subtitle">
+        Tham gia cùng hàng nghìn người chơi thể thao cùng đam mê, tổ chức giao lưu hàng tuần và thi đấu giao hữu.
+      </p>
+      <div class="hero-actions">
+        <button class="btn-primary" (click)="openCreateModal()">
+          <i class="pi pi-plus"></i> Tạo Câu Lạc Bộ Của Bạn
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters & Search -->
+  <div class="filter-bar">
+    <div class="search-box">
+      <i class="pi pi-search search-icon"></i>
+      <input type="text" [(ngModel)]="searchKeyword" (keyup.enter)="loadClubs()" placeholder="Tìm theo tên CLB, khu vực..." />
+    </div>
+
+    <div class="sport-pills">
+      <button *ngFor="let s of sports" [class.active]="selectedSport === s.value" (click)="selectSport(s.value)" class="sport-pill">
+        <i [class]="s.icon"></i> {{ s.label }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Club Cards Grid -->
+  <div class="club-grid" *ngIf="!loading && clubs.length > 0">
+    <div class="club-card" *ngFor="let club of clubs" (click)="goToDetail(club.clubId)">
+      <div class="card-cover" [style.backgroundImage]="'url(' + (club.coverUrl || 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=800') + ')'">
+        <span class="sport-tag">{{ club.sportType }}</span>
+        <span class="privacy-tag" [class.private]="club.privacy === 'PRIVATE'">
+          <i [class]="club.privacy === 'PRIVATE' ? 'pi pi-lock' : 'pi pi-globe'"></i>
+          {{ club.privacy === 'PRIVATE' ? 'Riêng tư' : 'Công khai' }}
+        </span>
+      </div>
+
+      <div class="card-body">
+        <div class="club-header">
+          <div class="club-avatar">
+            <img [src]="club.avatarUrl || 'https://api.dicebear.com/7.x/identicon/svg?seed=' + club.name" alt="Avatar" />
+          </div>
+          <div class="club-meta">
+            <h3 class="club-name">{{ club.name }}</h3>
+            <span class="club-region"><i class="pi pi-map-marker"></i> {{ club.region || 'Toàn quốc' }}</span>
+          </div>
+        </div>
+
+        <p class="club-desc">{{ club.description || 'Chưa có mô tả chi tiết cho câu lạc bộ này.' }}</p>
+
+        <div class="card-footer">
+          <div class="member-badge">
+            <i class="pi pi-users"></i>
+            <span>{{ club.memberCount || 1 }} / {{ club.maxMembers || 50 }} thành viên</span>
+          </div>
+          <button class="btn-join">Chi tiết <i class="pi pi-arrow-right"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="!loading && clubs.length === 0">
+    <i class="pi pi-inbox empty-icon"></i>
+    <h3>Chưa có câu lạc bộ nào phù hợp</h3>
+    <p>Hãy là người đầu tiên sáng lập câu lạc bộ thể thao trong khu vực của bạn!</p>
+    <button class="btn-primary" (click)="openCreateModal()"><i class="pi pi-plus"></i> Tạo Câu Lạc Bộ</button>
+  </div>
+
+  <!-- Create Modal -->
+  <div class="modal-overlay" *ngIf="showCreateModal" (click)="showCreateModal = false">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2><i class="pi pi-plus-circle"></i> Sáng Lập Câu Lạc Bộ</h2>
+        <button class="btn-close" (click)="showCreateModal = false"><i class="pi pi-times"></i></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Tên Câu Lạc Bộ *</label>
+          <input type="text" [(ngModel)]="newClub.name" placeholder="VD: CLB Cầu Lông Thủ Đức Fast & Furious" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Môn Thể Thao *</label>
+            <select [(ngModel)]="newClub.sportType">
+              <option value="BADMINTON">Cầu lông</option>
+              <option value="FOOTBALL">Bóng đá</option>
+              <option value="PICKLEBALL">Pickleball</option>
+              <option value="TENNIS">Tennis</option>
+              <option value="BASKETBALL">Bóng rổ</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Khu Vực *</label>
+            <input type="text" [(ngModel)]="newClub.region" placeholder="VD: TP. Hồ Chí Minh" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Mô Tả & Hoạt Động</label>
+          <textarea rows="3" [(ngModel)]="newClub.description" placeholder="Giới thiệu về mục tiêu, thời gian sinh hoạt, trình độ phù hợp..."></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Chế Độ Gia Nhập</label>
+            <select [(ngModel)]="newClub.approvalMode">
+              <option value="AUTO">Tự động duyệt ngay</option>
+              <option value="MANUAL">Chủ nhiệm CLB phê duyệt</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Số Thành Viên Tối Đa</label>
+            <input type="number" [(ngModel)]="newClub.maxMembers" />
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="showCreateModal = false">Hủy</button>
+        <button class="btn-primary" [disabled]="!newClub.name" (click)="createClub()">
+          <i class="pi pi-check"></i> Xác Nhận Tạo
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

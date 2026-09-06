@@ -1,0 +1,116 @@
+<div class="venue-search-page">
+  <!-- Search Header Banner -->
+  <div class="search-hero">
+    <div class="container">
+      <div class="hero-header-content">
+        <h1 class="page-title athletic-title">Khám Phá Sân Thể Thao</h1>
+        <p class="page-subtitle">Tìm kiếm sân bóng đá, cầu lông, tennis, pickleball gần bạn với lịch trống trực tiếp</p>
+      </div>
+
+      <!-- Quick Search Bar -->
+      <div class="search-bar-box neo-card">
+        <div class="search-input-group">
+          <lucide-icon name="search" class="w-5 h-5 text-slate-400 mr-2 shrink-0"></lucide-icon>
+          <input
+            type="text"
+            placeholder="Tìm theo tên sân, địa chỉ, tiện ích..."
+            [(ngModel)]="filter.keyword"
+            (keyup.enter)="onFilterChange()"
+            class="main-search-input"
+          />
+        </div>
+
+        <div class="divider-v"></div>
+
+        <div class="select-group">
+          <lucide-icon name="map-pin" class="w-5 h-5 text-slate-400 mr-2 shrink-0"></lucide-icon>
+          <select [(ngModel)]="filter.district" (change)="onFilterChange()" class="district-select">
+            @for (d of districts; track d) {
+              <option [value]="d === 'Tất cả quận' ? '' : d">{{ d }}</option>
+            }
+          </select>
+        </div>
+
+        <button mat-flat-button color="primary" (click)="onFilterChange()" class="search-submit-btn neo-btn">
+          <lucide-icon name="search" class="w-4 h-4 mr-1"></lucide-icon>
+          Tìm Kiếm
+        </button>
+      </div>
+
+      <!-- Sport Filter Chips -->
+      <div class="sport-chips-bar">
+        <button
+          type="button"
+          class="sport-chip"
+          [class.active]="filter.sportType === 'all'"
+          (click)="selectSport('all')"
+        >
+          <lucide-icon name="activity" class="w-4 h-4 mr-1.5"></lucide-icon>
+          Tất cả môn
+        </button>
+
+        @for (sport of sportTypes; track sport.value) {
+          <button
+            type="button"
+            class="sport-chip"
+            [class.active]="filter.sportType === sport.value"
+            (click)="selectSport(sport.value)"
+          >
+            {{ sport.label }}
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Search Main Content -->
+  <div class="container main-content">
+    <div class="results-header">
+      <div class="results-count">
+        <span class="font-semibold text-slate-800">{{ totalVenues }}</span> cụm sân thể thao phù hợp
+      </div>
+
+      @if (filter.keyword || filter.district || filter.sportType !== 'all') {
+        <button mat-button color="warn" (click)="resetFilters()" class="clear-btn text-xs">
+          <lucide-icon name="x" class="w-3.5 h-3.5 mr-1"></lucide-icon>
+          Xóa bộ lọc
+        </button>
+      }
+    </div>
+
+    <!-- Loading State -->
+    @if (loading) {
+      <div class="venues-grid">
+        @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+          <div class="skeleton-card neo-card">
+            <app-loading-skeleton height="200px" borderRadius="16px 16px 0 0"></app-loading-skeleton>
+            <div class="p-4 space-y-3">
+              <app-loading-skeleton height="20px" width="70%"></app-loading-skeleton>
+              <app-loading-skeleton height="16px" width="90%"></app-loading-skeleton>
+              <app-loading-skeleton height="24px" width="40%"></app-loading-skeleton>
+            </div>
+          </div>
+        }
+      </div>
+    } @else if (venues.length > 0) {
+      <!-- Results Grid -->
+      <div class="venues-grid">
+        @for (venue of venues; track venue.venueId) {
+          <app-venue-card [venue]="venue"></app-venue-card>
+        }
+      </div>
+    } @else {
+      <!-- Empty State -->
+      <div class="empty-state neo-card">
+        <div class="empty-icon-box">
+          <lucide-icon name="search" class="w-12 h-12 text-slate-300"></lucide-icon>
+        </div>
+        <h3>Không tìm thấy cụm sân nào phù hợp</h3>
+        <p>Hãy thử thay đổi từ khóa tìm kiếm, mở rộng khu vực hoặc chọn bộ môn khác.</p>
+        <button mat-flat-button color="primary" (click)="resetFilters()" class="neo-btn mt-4">
+          Xem tất cả sân
+        </button>
+      </div>
+    }
+  </div>
+</div>

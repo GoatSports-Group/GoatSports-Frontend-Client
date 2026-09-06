@@ -1,0 +1,168 @@
+.venue-card {
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  overflow: hidden;
+  cursor: pointer;
+  height: 100%;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+    border-color: rgba(16, 185, 129, 0.4);
+  }
+
+  .image-wrapper {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    background: #f1f5f9;
+    overflow: hidden;
+
+    .venue-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+
+    &:hover .venue-img {
+      transform: scale(1.05);
+    }
+
+    .badge-overlay {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      .rating-badge {
+        display: inline-flex;
+        align-items: center;
+        background: rgba(15, 23, 42, 0.85);
+        backdrop-filter: blur(8px);
+        color: #ffffff;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.8125rem;
+        font-weight: 600;
+
+        .reviews-count {
+          color: #94a3b8;
+          font-weight: 400;
+          margin-left: 3px;
+        }
+      }
+
+      .distance-badge {
+        display: inline-flex;
+        align-items: center;
+        background: rgba(16, 185, 129, 0.9);
+        backdrop-filter: blur(8px);
+        color: #ffffff;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+      }
+    }
+  }
+
+  .card-body {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+
+    .sports-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 8px;
+
+      .sport-tag {
+        font-size: 0.6875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        background: #ecfdf5;
+        color: #059669;
+        padding: 2px 8px;
+        border-radius: 6px;
+      }
+    }
+
+    .venue-name {
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 0 0 6px;
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .location-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      margin-bottom: 16px;
+
+      .address-text {
+        font-size: 0.8125rem;
+        color: #64748b;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+    }
+
+    .card-footer {
+      margin-top: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 12px;
+      border-top: 1px solid #f1f5f9;
+
+      .price-box {
+        display: flex;
+        align-items: baseline;
+        gap: 4px;
+
+        .price-label {
+          font-size: 0.75rem;
+          color: #94a3b8;
+        }
+
+        .price-value {
+          font-size: 1.0625rem;
+          font-weight: 700;
+          color: #059669;
+        }
+
+        .price-unit {
+          font-size: 0.75rem;
+          color: #94a3b8;
+        }
+      }
+
+      .book-btn {
+        border-radius: 10px;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        height: 36px;
+        padding: 0 14px;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      }
+    }
+  }
+}

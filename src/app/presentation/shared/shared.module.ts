@@ -35,6 +35,7 @@ import { SelectComponent } from '@shared/components/ui/select/select.component';
 import { FileUploadComponent } from '@shared/components/file-upload/file-upload.component';
 import { PolicyLayoutComponent } from '@shared/layouts/policy/policy-layout.component';
 import { ScreenLoaderComponent } from '@shared/components/screen-loader/screen-loader.component';
+import { QrCodeComponent } from '@shared/components/qr-code/qr-code.component';
 
 const MATERIAL_MODULES = [
   MatToolbarModule,
@@ -67,7 +68,8 @@ const COMPONENT_DECLARATIONS = [
   SelectComponent,
   FileUploadComponent,
   PolicyLayoutComponent,
-  ScreenLoaderComponent
+  ScreenLoaderComponent,
+  QrCodeComponent
 ];
 
 @NgModule({

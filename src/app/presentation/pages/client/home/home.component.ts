@@ -1,18 +1,25 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { SportType } from '@application/dto/venue/venue.dto';
+import { VENUE_SEARCH_REPOSITORY_TOKEN } from '@application/ports/persistence/venue-search.repository';
+import { Venue, SportType, SPORT_TYPE_OPTIONS } from '@application/dto/venue/venue.dto';
 
 @Component({
-    selector: 'app-home',
-    templateUrl: './home.component.html',
-    styleUrls: ['./home.component.scss'],
-    standalone: false
+  selector: 'app-home',
+  templateUrl: './home.component.html',
+  styleUrls: ['./home.component.scss'],
+  standalone: false
 })
 export class HomeComponent implements OnInit {
   private router = inject(Router);
+  private venueSearchRepo = inject(VENUE_SEARCH_REPOSITORY_TOKEN);
 
   readonly SportType = SportType;
   sportTypes = Object.values(SportType);
+
+  featuredVenues: Venue[] = [];
+  searchQuery: string = '';
+  sportType: string = 'all';
+  loading = true;
 
   getSportIcon(type: SportType): string {
     switch (type) {
@@ -38,41 +45,37 @@ export class HomeComponent implements OnInit {
     }
   }
 
-  featuredVenues: any[] = [];
-  searchQuery: string = '';
-  sportType: string = 'all';
-  loading = true;
-
-  ngOnInit() {
+  ngOnInit(): void {
     this.loadHomeData();
   }
 
-  loadHomeData() {
-    this.loading = false;
-    this.featuredVenues = [];
+  loadHomeData(): void {
+    this.loading = true;
+    this.venueSearchRepo.searchVenues({ page: 0, size: 6 }).subscribe({
+      next: res => {
+        this.featuredVenues = res?.data?.result || [];
+        this.loading = false;
+      },
+      error: err => {
+        console.error('Error loading featured venues:', err);
+        this.featuredVenues = [];
+        this.loading = false;
+      }
+    });
   }
 
-  onSearch() {
-    // No-op
+  onSearch(): void {
+    const queryParams: any = {};
+    if (this.searchQuery) queryParams.keyword = this.searchQuery;
+    if (this.sportType && this.sportType !== 'all') queryParams.sportType = this.sportType;
+    this.router.navigate(['/venues'], { queryParams });
   }
 
-  viewVenue(venueId: string) {
-    // No-op
+  viewVenue(venueId: string): void {
+    this.router.navigate(['/venues', venueId]);
   }
 
-  selectSport(sportId: string) {
-    // No-op
-  }
-
-  getSportTypeLabel(type: string): string {
-    switch (type) {
-      case 'soccer': return SportType.SOCCER;
-      case 'badminton': return SportType.BADMINTON;
-      case 'tennis': return SportType.TENNIS;
-      case 'pickleball': return SportType.PICKLEBALL;
-      case 'basketball': return SportType.BASKETBALL;
-      case 'volleyball': return SportType.VOLLEYBALL;
-      default: return type;
-    }
+  selectSport(sportId: string): void {
+    this.router.navigate(['/venues'], { queryParams: { sportType: sportId } });
   }
 }

@@ -1,0 +1,182 @@
+<div class="chat-layout-wrapper">
+  <!-- Left Column: Conversations List -->
+  <div class="rooms-sidebar">
+    <div class="sidebar-header">
+      <div class="title-row">
+        <h2 class="sidebar-title">Tin Nhắn</h2>
+        <button class="btn-icon" (click)="showNewGroupModal = true" title="Tạo nhóm mới">
+          <lucide-icon name="plus" class="w-5 h-5"></lucide-icon>
+        </button>
+      </div>
+
+      <!-- Search Input -->
+      <div class="search-box">
+        <lucide-icon name="search" class="search-icon w-4 h-4"></lucide-icon>
+        <input
+          type="text"
+          placeholder="Tìm kiếm cuộc trò chuyện..."
+          [(ngModel)]="searchRoomQuery"
+          (input)="filterRooms()"
+        />
+      </div>
+    </div>
+
+    <!-- Rooms List -->
+    <div class="rooms-list-container">
+      @if (loadingRooms) {
+        <div class="loading-state">
+          <mat-progress-spinner mode="indeterminate" diameter="28"></mat-progress-spinner>
+          <span>Đang tải hội thoại...</span>
+        </div>
+      } @else if (filteredRooms.length > 0) {
+        @for (room of filteredRooms; track room.roomId) {
+          <div
+            class="room-item"
+            [class.active]="activeRoom?.roomId === room.roomId"
+            (click)="selectRoom(room)"
+          >
+            <div class="avatar-wrap">
+              <img [src]="room.avatarUrl || 'assets/images/default-avatar.png'" [alt]="room.name || 'Room'" />
+              <span class="online-indicator"></span>
+            </div>
+
+            <div class="room-info">
+              <div class="room-header-row">
+                <span class="room-name">{{ room.name || 'Người dùng Goat' }}</span>
+                @if (room.lastMessageAt) {
+                  <span class="room-time">{{ room.lastMessageAt | date:'HH:mm' }}</span>
+                }
+              </div>
+              <div class="room-footer-row">
+                <p class="room-last-msg">{{ room.lastMessage || 'Bắt đầu cuộc trò chuyện...' }}</p>
+                @if (room.unreadCount > 0) {
+                  <span class="unread-badge">{{ room.unreadCount }}</span>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      } @else {
+        <div class="empty-rooms">
+          <lucide-icon name="message-square" class="w-10 h-10 text-slate-300"></lucide-icon>
+          <p>Chưa có cuộc trò chuyện nào</p>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Right Column: Active Chat Feed -->
+  <div class="chat-main-panel">
+    @if (activeRoom) {
+      <!-- Active Chat Header -->
+      <div class="active-chat-header">
+        <div class="partner-meta">
+          <div class="avatar-wrap">
+            <img [src]="activeRoom.avatarUrl || 'assets/images/default-avatar.png'" [alt]="activeRoom.name" />
+            <span class="online-indicator"></span>
+          </div>
+          <div>
+            <h3 class="partner-name">{{ activeRoom.name || 'Người chơi Goat' }}</h3>
+            <span class="partner-status">
+              @if (partnerTypingName) {
+                <span class="typing-text">{{ partnerTypingName }} đang gõ...</span>
+              } @else {
+                <span class="online-text">Đang trực tuyến</span>
+              }
+            </span>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <button class="btn-icon" routerLink="/venues" title="Tìm sân rủ bạn">
+            <lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Messages Feed Scroll -->
+      <div class="messages-container" #messagesScroll>
+        @if (loadingMessages) {
+          <div class="loading-state">
+            <mat-progress-spinner mode="indeterminate" diameter="24"></mat-progress-spinner>
+          </div>
+        } @else {
+          @for (msg of messages; track msg.messageId) {
+            <div
+              class="message-bubble-row"
+              [class.outgoing]="msg.senderId === currentUserId"
+              [class.incoming]="msg.senderId !== currentUserId"
+            >
+              @if (msg.senderId !== currentUserId) {
+                <img
+                  class="msg-avatar"
+                  [src]="msg.senderAvatar || 'assets/images/default-avatar.png'"
+                  alt="avatar"
+                />
+              }
+
+              <div class="bubble-content">
+                @if (msg.type === 'MATCH_INVITE') {
+                  <div class="match-invite-card">
+                    <div class="invite-header">
+                      <lucide-icon name="trophy" class="w-4 h-4 text-amber-500"></lucide-icon>
+                      <span>Lời Mời Giao Lưu Thể Thao</span>
+                    </div>
+                    <p class="invite-body">{{ msg.content }}</p>
+                    <button class="btn-join-match" routerLink="/venues">Xem & Đặt Sân Cùng</button>
+                  </div>
+                } @else {
+                  <p class="bubble-text">{{ msg.content }}</p>
+                }
+                <span class="msg-time">{{ msg.createdAt | date:'HH:mm' }}</span>
+              </div>
+            </div>
+          }
+        }
+      </div>
+
+      <!-- Input Bar -->
+      <div class="chat-input-bar">
+        <textarea
+          class="chat-textarea"
+          rows="1"
+          placeholder="Nhập tin nhắn..."
+          [(ngModel)]="messageInput"
+          (keydown)="onInputKeyDown($event)"
+        ></textarea>
+        <button
+          class="btn-send"
+          [disabled]="!messageInput.trim() || sendingMessage"
+          (click)="sendMessage()"
+        >
+          <lucide-icon name="send" class="w-5 h-5"></lucide-icon>
+        </button>
+      </div>
+    } @else {
+      <div class="no-active-chat">
+        <lucide-icon name="messages-square" class="w-16 h-16 text-slate-300 mb-3"></lucide-icon>
+        <h3>Chào mừng đến với Goat Chat!</h3>
+        <p>Chọn một cuộc trò chuyện từ danh sách hoặc tìm bạn bè để bắt đầu giao lưu thể thao.</p>
+      </div>
+    }
+  </div>
+
+  <!-- Create Group Modal -->
+  @if (showNewGroupModal) {
+    <div class="modal-backdrop" (click)="showNewGroupModal = false">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <h3>Tạo Nhóm Chat Thể Thao</h3>
+        <input
+          type="text"
+          class="modal-input"
+          placeholder="Tên nhóm (VD: CLB Cầu Lông Thủ Đức)..."
+          [(ngModel)]="newGroupName"
+        />
+        <div class="modal-actions">
+          <button class="btn-cancel" (click)="showNewGroupModal = false">Hủy</button>
+          <button class="btn-confirm" (click)="createGroup()">Tạo Nhóm</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

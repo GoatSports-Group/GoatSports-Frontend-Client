@@ -14,6 +14,10 @@ import { OWNER_APPLICATION_REPOSITORY_TOKEN } from '@application/ports/persisten
 import { NOTIFICATION_REPOSITORY_TOKEN } from '@application/ports/persistence/notification.repository';
 import { USER_REPOSITORY_TOKEN } from '@application/ports/persistence/user.repository';
 import { STORAGE_REPOSITORY_TOKEN } from '@application/ports/persistence/storage.repository';
+import { VENUE_SEARCH_REPOSITORY_TOKEN } from '@application/ports/persistence/venue-search.repository';
+import { BOOKING_REPOSITORY_TOKEN } from '@application/ports/persistence/booking.repository';
+import { CHAT_REPOSITORY_TOKEN } from '@application/ports/persistence/chat.repository';
+import { FRIEND_REPOSITORY_TOKEN } from '@application/ports/persistence/friend.repository';
 import { WEBSOCKET_SERVICE_TOKEN } from '@application/ports/websocket.service';
 import { CURRENT_USER_PROVIDER_TOKEN } from '@application/ports/current-user.provider';
 import { SessionStateService } from '@presentation/services/session-state.service';
@@ -23,10 +27,23 @@ import { OwnerApplicationRepositoryImpl } from '@infrastructure/repositories/own
 import { NotificationRepositoryImpl } from '@infrastructure/repositories/notification.repository.impl';
 import { UserRepositoryImpl } from '@infrastructure/repositories/user.repository.impl';
 import { StorageRepositoryImpl } from '@infrastructure/repositories/storage.repository.impl';
+import { VenueSearchRepositoryImpl } from '@infrastructure/repositories/venue-search.repository.impl';
+import { BookingRepositoryImpl } from '@infrastructure/repositories/booking.repository.impl';
+import { ChatRepositoryImpl } from '@infrastructure/repositories/chat.repository.impl';
+import { FriendRepositoryImpl } from '@infrastructure/repositories/friend.repository.impl';
 import { StompWebSocketService } from '@infrastructure/websocket/stomp-websocket.service';
+
+import { ClubRepositoryPort } from '@application/ports/club.repository.port';
+import { TournamentRepositoryPort } from '@application/ports/tournament.repository.port';
+import { AiRepositoryPort } from '@application/ports/ai.repository.port';
+import { ClubRepository } from '@infrastructure/repositories/club.repository';
+import { TournamentRepository } from '@infrastructure/repositories/tournament.repository';
+import { AiRepository } from '@infrastructure/repositories/ai.repository';
+
 
 import {
   provideLucideIcons,
+  LucideQrCode,
   LucideMenu,
   LucideSearch,
   LucideX,
@@ -135,9 +152,18 @@ import {
     { provide: NOTIFICATION_REPOSITORY_TOKEN, useClass: NotificationRepositoryImpl },
     { provide: USER_REPOSITORY_TOKEN, useClass: UserRepositoryImpl },
     { provide: STORAGE_REPOSITORY_TOKEN, useClass: StorageRepositoryImpl },
+    { provide: VENUE_SEARCH_REPOSITORY_TOKEN, useClass: VenueSearchRepositoryImpl },
+    { provide: BOOKING_REPOSITORY_TOKEN, useClass: BookingRepositoryImpl },
+    { provide: CHAT_REPOSITORY_TOKEN, useClass: ChatRepositoryImpl },
+    { provide: FRIEND_REPOSITORY_TOKEN, useClass: FriendRepositoryImpl },
     { provide: WEBSOCKET_SERVICE_TOKEN, useClass: StompWebSocketService },
     { provide: CURRENT_USER_PROVIDER_TOKEN, useExisting: SessionStateService },
+    { provide: ClubRepositoryPort, useClass: ClubRepository },
+    { provide: TournamentRepositoryPort, useClass: TournamentRepository },
+    { provide: AiRepositoryPort, useClass: AiRepository },
+
     provideLucideIcons(
+      LucideQrCode,
       LucideMenu,
       LucideSearch,
       LucideX,

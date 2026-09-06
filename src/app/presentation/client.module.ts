@@ -18,6 +18,21 @@ import { OwnerRepresentativeStepComponent } from '@presentation/pages/client/own
 import { OwnerBusinessStepComponent } from '@presentation/pages/client/owner-application/step/business/owner-business-step.component';
 import { OwnerAddressStepComponent } from '@presentation/pages/client/owner-application/step/address/owner-address-step.component';
 import { OwnerDocumentsStepComponent } from '@presentation/pages/client/owner-application/step/documents/owner-documents-step.component';
+import { VenueSearchComponent } from '@presentation/pages/client/venues/venue-search.component';
+import { VenueCardComponent } from '@presentation/pages/client/venues/venue-card/venue-card.component';
+import { VenueDetailComponent } from '@presentation/pages/client/venues/venue-detail/venue-detail.component';
+import { BookingCreateComponent } from '@presentation/pages/client/booking/booking-create.component';
+import { BookingHistoryComponent } from '@presentation/pages/client/booking/history/booking-history.component';
+import { BookingDetailComponent } from '@presentation/pages/client/booking/detail/booking-detail.component';
+import { QrCheckinComponent } from '@presentation/pages/client/booking/checkin/qr-checkin.component';
+import { ChatComponent } from '@presentation/pages/client/chat/chat.component';
+import { FriendsComponent } from '@presentation/pages/client/friends/friends.component';
+import { ClubListComponent } from '@presentation/pages/client/clubs/club-list.component';
+import { ClubDetailComponent } from '@presentation/pages/client/clubs/club-detail.component';
+import { TournamentListComponent } from '@presentation/pages/client/tournaments/tournament-list.component';
+import { TournamentDetailComponent } from '@presentation/pages/client/tournaments/tournament-detail.component';
+import { MatchmakingComponent } from '@presentation/pages/client/matchmaking/matchmaking.component';
+import { AiAssistantModalComponent } from '@presentation/shared/components/ai-assistant-modal/ai-assistant-modal.component';
 
 @NgModule({
   declarations: [
@@ -35,7 +50,22 @@ import { OwnerDocumentsStepComponent } from '@presentation/pages/client/owner-ap
     OwnerRepresentativeStepComponent,
     OwnerBusinessStepComponent,
     OwnerAddressStepComponent,
-    OwnerDocumentsStepComponent
+    OwnerDocumentsStepComponent,
+    VenueSearchComponent,
+    VenueCardComponent,
+    VenueDetailComponent,
+    BookingCreateComponent,
+    BookingHistoryComponent,
+    BookingDetailComponent,
+    QrCheckinComponent,
+    ChatComponent,
+    FriendsComponent,
+    ClubListComponent,
+    ClubDetailComponent,
+    TournamentListComponent,
+    TournamentDetailComponent,
+    MatchmakingComponent,
+    AiAssistantModalComponent
   ],
   imports: [
     CommonModule,
@@ -44,3 +74,4 @@ import { OwnerDocumentsStepComponent } from '@presentation/pages/client/owner-ap
   ]
 })
 export class ClientModule { }
+

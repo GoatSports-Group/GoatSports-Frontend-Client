@@ -1,0 +1,142 @@
+<div class="booking-create-page">
+  <div class="container py-8">
+    <div class="breadcrumb-row mb-4">
+      <a [routerLink]="['/venues', venueId]" class="back-link">
+        <lucide-icon name="arrow-left" class="w-4 h-4 mr-1"></lucide-icon>
+        Quay lại trang cụm sân
+      </a>
+    </div>
+
+    <div class="booking-grid">
+      <!-- Left: Booking Form -->
+      <div class="form-col space-y-6">
+        <div class="form-card neo-card p-6">
+          <h1 class="page-title athletic-title mb-4">Xác Nhận Đặt Sân</h1>
+
+          <!-- Venue & Court Preview -->
+          @if (venue && court) {
+            <div class="venue-summary-box mb-6">
+              <div class="venue-icon-circle">
+                <lucide-icon name="trophy" class="w-6 h-6 text-emerald-600"></lucide-icon>
+              </div>
+              <div class="venue-info">
+                <h3 class="venue-title font-bold text-slate-900">{{ venue.name }}</h3>
+                <p class="court-name text-emerald-600 font-semibold text-sm">{{ court.name }} ({{ court.sportType }})</p>
+                <p class="venue-addr text-xs text-slate-500 mt-1">{{ venue.address || (venue.district + ', ' + venue.city) }}</p>
+              </div>
+            </div>
+          }
+
+          <!-- Date & Time Info -->
+          <div class="booking-details-form space-y-4">
+            <div class="form-row">
+              <label class="form-label">Ngày thi đấu</label>
+              <div class="info-badge font-semibold">{{ date }}</div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="form-label">Giờ bắt đầu</label>
+                <div class="info-badge font-semibold">{{ startTime.slice(0, 5) }}</div>
+              </div>
+              <div>
+                <label class="form-label">Giờ kết thúc</label>
+                <div class="info-badge font-semibold">{{ endTime.slice(0, 5) }}</div>
+              </div>
+            </div>
+
+            <div>
+              <label class="form-label">Ghi chú cho chủ sân (Tùy chọn)</label>
+              <textarea
+                [(ngModel)]="note"
+                rows="3"
+                placeholder="Ví dụ: Cần mượn thêm bóng, thuê trọng tài..."
+                class="note-textarea"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Method Selector -->
+        <div class="payment-card neo-card p-6">
+          <h2 class="section-title athletic-title mb-4">Phương Thức Thanh Toán Cọc</h2>
+
+          <div class="payment-methods-grid">
+            @for (method of paymentMethods; track method.value) {
+              <div
+                class="payment-option"
+                [class.selected]="selectedPaymentMethod === method.value"
+                (click)="selectedPaymentMethod = method.value"
+              >
+                <lucide-icon [name]="method.icon" class="w-5 h-5 mr-3 text-emerald-600"></lucide-icon>
+                <span class="font-semibold text-sm text-slate-800">{{ method.label }}</span>
+                <div class="radio-indicator">
+                  <div class="inner-dot"></div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Price Summary & Checkout -->
+      <div class="summary-col">
+        <div class="summary-card neo-card p-6 sticky top-24">
+          <h2 class="summary-title athletic-title mb-4">Tóm Tắt Chi Phí</h2>
+
+          <div class="summary-rows space-y-3 mb-6">
+            <div class="summary-row">
+              <span class="text-slate-600">Đơn giá / giờ</span>
+              <span class="font-semibold text-slate-800">{{ formatPrice(court?.pricePerHour || 100000) }}</span>
+            </div>
+
+            <div class="summary-row">
+              <span class="text-slate-600">Thời lượng</span>
+              <span class="font-semibold text-slate-800">{{ getDurationHours() }} giờ</span>
+            </div>
+
+            <div class="divider-line"></div>
+
+            <div class="summary-row">
+              <span class="text-slate-600 font-semibold">Tổng tiền sân</span>
+              <span class="font-bold text-slate-900 text-lg">{{ formatPrice(getTotalPrice()) }}</span>
+            </div>
+
+            <div class="summary-row deposit-row">
+              <span class="text-emerald-700 font-bold">Tiền đặt cọc giữ chỗ (30%)</span>
+              <span class="font-bold text-emerald-700 text-lg">{{ formatPrice(getDepositAmount()) }}</span>
+            </div>
+
+            <div class="summary-row remaining-row">
+              <span class="text-slate-500 text-xs">Thanh toán tại quầy khi nhận sân</span>
+              <span class="font-semibold text-slate-600 text-sm">{{ formatPrice(getRemainingAmount()) }}</span>
+            </div>
+          </div>
+
+          <!-- Guarantee Badge -->
+          <div class="guarantee-box mb-6">
+            <lucide-icon name="shield-check" class="w-5 h-5 text-emerald-600 mr-2 shrink-0"></lucide-icon>
+            <span class="text-xs text-slate-600">
+              Giữ sân 100% khi thanh toán cọc thành công. Hoàn cọc 100% nếu hủy trước 24h.
+            </span>
+          </div>
+
+          <button
+            mat-flat-button
+            color="primary"
+            class="checkout-btn neo-btn w-full"
+            [disabled]="submitting || !court"
+            (click)="confirmBooking()"
+          >
+            @if (submitting) {
+              <mat-progress-spinner mode="indeterminate" diameter="20" class="inline-block mr-2"></mat-progress-spinner>
+              <span>Đang xử lý...</span>
+            } @else {
+              <span>Thanh Toán Cọc {{ formatPrice(getDepositAmount()) }}</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

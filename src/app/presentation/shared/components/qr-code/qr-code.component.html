@@ -1,0 +1,15 @@
+<div class="qr-container" [style.width.px]="size + 24">
+  <div class="qr-box shadow-sm">
+    @if (qrSvgDataUrl) {
+      <img [src]="qrSvgDataUrl" [alt]="title" class="qr-image" [style.width.px]="size" [style.height.px]="size" />
+    } @else {
+      <div class="qr-placeholder" [style.width.px]="size" [style.height.px]="size">
+        <lucide-icon name="qr-code" class="w-10 h-10 text-slate-400"></lucide-icon>
+        <span class="text-xs text-slate-500 mt-2">Chưa có mã QR</span>
+      </div>
+    }
+  </div>
+  @if (title) {
+    <p class="qr-caption">{{ title }}</p>
+  }
+</div>

@@ -107,22 +107,35 @@
         <h2 class="section-title athletic-title">Cụm Sân Thể Thao Nổi Bật</h2>
         <p class="section-subtitle">Các địa điểm có chất lượng dịch vụ cao nhất được cộng đồng đánh giá tốt</p>
       </div>
-      <button mat-stroked-button color="primary" routerLink="/home" class="neo-btn">Xem Tất Cả Sân <lucide-icon
+      <button mat-stroked-button color="primary" routerLink="/venues" class="neo-btn">Xem Tất Cả Sân <lucide-icon
           matSuffix name="arrow-right" class="w-4 h-4 ml-2"></lucide-icon></button>
     </div>
 
-    <div class="home-coming-soon">
-      <div class="coming-soon-badge"><lucide-icon name="hourglass" class="w-4 h-4 mr-2"></lucide-icon> Sắp Ra Mắt</div>
-      <lucide-icon name="rotate-cw" class="coming-soon-icon w-12 h-12 block mx-auto mb-2 text-emerald-500"></lucide-icon>
-      <h3>Danh Sách Sân Đang Được Cập Nhật</h3>
-      <p>Hệ thống đặt sân thực tế đang được đồng bộ hóa dữ liệu. GOAT Sports sẽ ra mắt danh sách các cụm sân thực tế trong thời gian ngắn nhất.</p>
-      
-      <div class="coming-soon-grid">
-        <div class="placeholder-card skeleton-shimmer neo-card"></div>
-        <div class="placeholder-card skeleton-shimmer neo-card"></div>
-        <div class="placeholder-card skeleton-shimmer neo-card"></div>
+    @if (loading) {
+      <div class="venues-grid">
+        @for (i of [1, 2, 3]; track i) {
+          <div class="skeleton-card neo-card">
+            <app-loading-skeleton height="200px" borderRadius="16px 16px 0 0"></app-loading-skeleton>
+            <div class="p-4 space-y-3">
+              <app-loading-skeleton height="20px" width="70%"></app-loading-skeleton>
+              <app-loading-skeleton height="16px" width="90%"></app-loading-skeleton>
+              <app-loading-skeleton height="24px" width="40%"></app-loading-skeleton>
+            </div>
+          </div>
+        }
       </div>
-    </div>
+    } @else if (featuredVenues.length > 0) {
+      <div class="venues-grid">
+        @for (venue of featuredVenues; track venue.venueId) {
+          <app-venue-card [venue]="venue"></app-venue-card>
+        }
+      </div>
+    } @else {
+      <div class="empty-state neo-card text-center py-8">
+        <p class="text-sm text-slate-500">Chưa có cụm sân nào hiển thị. Hãy xem toàn bộ danh mục sân thể thao!</p>
+        <button mat-flat-button color="primary" routerLink="/venues" class="neo-btn mt-3">Khám Phá Danh Mục</button>
+      </div>
+    }
   </section>
 
   <!-- 5. Benefit Grid Section -->

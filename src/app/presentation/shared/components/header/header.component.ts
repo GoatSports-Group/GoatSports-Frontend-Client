@@ -49,6 +49,10 @@ export class HeaderComponent implements OnInit {
     window.location.href = `${this.authApiBase}/login?redirect=${encodeURIComponent(window.location.origin + this.router.url)}`;
   }
 
+  redirectToRegisterOwner() {
+    window.location.href = `${this.authApiBase}/sign-up?role=venue_owner`;
+  }
+
   toggleNotifDropdown(event: Event): void {
     event.stopPropagation();
     this.isNotifOpen = !this.isNotifOpen;

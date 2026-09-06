@@ -1,0 +1,45 @@
+<div class="venue-card neo-card hover-scale" [routerLink]="['/venues', venue.venueId]">
+  <div class="image-wrapper">
+    <img [src]="getPrimaryImage()" [alt]="venue.name" class="venue-img" />
+    <div class="badge-overlay">
+      <div class="rating-badge">
+        <lucide-icon name="star" class="w-3.5 h-3.5 fill-amber-400 text-amber-400 mr-1"></lucide-icon>
+        <span>{{ venue.averageRating || '5.0' }}</span>
+        <span class="reviews-count">({{ venue.totalReviews || 0 }})</span>
+      </div>
+      @if (venue.distanceKm) {
+        <div class="distance-badge">
+          <lucide-icon name="map-pin" class="w-3.5 h-3.5 mr-1"></lucide-icon>
+          <span>{{ venue.distanceKm }} km</span>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="card-body">
+    <div class="sports-tags">
+      @for (sport of venue.sportTypes; track sport) {
+        <span class="sport-tag">{{ sport }}</span>
+      }
+    </div>
+
+    <h3 class="venue-name">{{ venue.name }}</h3>
+
+    <div class="location-row">
+      <lucide-icon name="map-pin" class="w-4 h-4 text-slate-400 shrink-0"></lucide-icon>
+      <span class="address-text">{{ venue.address || (venue.district + ', ' + venue.city) }}</span>
+    </div>
+
+    <div class="card-footer">
+      <div class="price-box">
+        <span class="price-label">Giá từ</span>
+        <span class="price-value">{{ formatPrice(venue.minPrice || 80000) }}</span>
+        <span class="price-unit">/giờ</span>
+      </div>
+      <button mat-flat-button color="primary" class="book-btn neo-btn">
+        Đặt Sân
+        <lucide-icon name="arrow-right" class="w-4 h-4 ml-1"></lucide-icon>
+      </button>
+    </div>
+  </div>
+</div>

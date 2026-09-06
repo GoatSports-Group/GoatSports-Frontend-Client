@@ -1,0 +1,51 @@
+<!-- Floating Trigger Button -->
+<button class="floating-ai-btn" (click)="toggleChat()">
+  <i class="pi pi-bolt"></i>
+  <span class="ai-label">AI Assistant</span>
+</button>
+
+<!-- Chat Window -->
+<div class="ai-chat-window" *ngIf="isOpen">
+  <div class="chat-header">
+    <div class="bot-profile">
+      <div class="bot-avatar"><i class="pi pi-bolt"></i></div>
+      <div>
+        <h4>GoatSports AI</h4>
+        <span class="status-dot">Trực tuyến</span>
+      </div>
+    </div>
+    <button class="btn-close" (click)="toggleChat()"><i class="pi pi-times"></i></button>
+  </div>
+
+  <div class="chat-messages">
+    <div class="msg-bubble" *ngFor="let m of messages" [class.user]="m.sender === 'USER'" [class.ai]="m.sender === 'AI'">
+      <p class="text">{{ m.text }}</p>
+
+      <!-- Suggested Venues -->
+      <div class="venues-suggestions" *ngIf="m.venues && m.venues.length > 0">
+        <div class="sugg-card" *ngFor="let v of m.venues" (click)="goToVenue(v.venueId)">
+          <h5>{{ v.venueName }}</h5>
+          <span class="meta">{{ v.distanceKm }} km • {{ v.rating }} ⭐ • {{ v.priceRange }}</span>
+          <p class="reason">{{ v.matchReason }}</p>
+        </div>
+      </div>
+
+
+      <!-- Suggested Actions -->
+      <div class="actions-chips" *ngIf="m.actions && m.actions.length > 0">
+        <button *ngFor="let act of m.actions" (click)="sendMessage(act)">
+          {{ act }}
+        </button>
+      </div>
+    </div>
+
+    <div class="msg-bubble ai typing" *ngIf="loading">
+      <span>AI đang suy nghĩ...</span>
+    </div>
+  </div>
+
+  <div class="chat-footer">
+    <input type="text" [(ngModel)]="inputText" (keyup.enter)="sendMessage()" placeholder="Hỏi tìm sân, đối thủ ghép kèo..." />
+    <button class="btn-send" (click)="sendMessage()"><i class="pi pi-send"></i></button>
+  </div>
+</div>

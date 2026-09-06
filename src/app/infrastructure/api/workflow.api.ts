@@ -12,29 +12,30 @@ import { environment } from '@environments/environment';
 export class WorkflowApi {
   private http = inject(HttpClient);
   private apiBase = environment.apiUrl;
+  private publicWorkflowApiBase = `${this.apiBase}/workflow-service/api/v1/workflows/public`;
 
   startWorkflow(variables: StartProcessRequest): Observable<BaseResponse<ProcessInstanceResponse>> {
     return this.http.post<BaseResponse<ProcessInstanceResponse>>(
-      `${this.apiBase}/workflow-service/api/v1/workflows/start`,
+      `${this.publicWorkflowApiBase}/start`,
       { variables }
     );
   }
 
   getProcessInstanceVariables(instanceKey: number | string): Observable<BaseResponse<ProcessInstanceVariablesResponse>> {
     return this.http.get<BaseResponse<ProcessInstanceVariablesResponse>>(
-      `${this.apiBase}/workflow-service/api/v1/workflows/instances/${instanceKey}/variables`
+      `${this.publicWorkflowApiBase}/instances/${instanceKey}/variables`
     );
   }
 
   getTasksByProcessInstance(instanceKey: number | string): Observable<BaseResponse<UserTaskResponse>> {
     return this.http.get<BaseResponse<UserTaskResponse>>(
-      `${this.apiBase}/workflow-service/api/v1/workflows/instances/${instanceKey}/tasks`
+      `${this.publicWorkflowApiBase}/instances/${instanceKey}/tasks`
     );
   }
 
   completeUserTask(completeTask: CompleteTaskRequest): Observable<BaseResponse<void>> {
     return this.http.post<BaseResponse<void>>(
-      `${this.apiBase}/workflow-service/api/v1/workflows/tasks/${completeTask.taskKey}/complete`,
+      `${this.publicWorkflowApiBase}/tasks/${completeTask.taskKey}/complete`,
       completeTask.completeTask
     );
   }

@@ -1,0 +1,83 @@
+<div class="qr-checkin-page">
+  <div class="container py-8">
+    <div class="checkin-container max-w-lg mx-auto">
+      <div class="header-box text-center mb-6">
+        <div class="scanner-icon-circle mx-auto mb-3">
+          <lucide-icon name="qr-code" class="w-8 h-8 text-emerald-600"></lucide-icon>
+        </div>
+        <h1 class="page-title athletic-title">Quét Mã Vé Check-in</h1>
+        <p class="page-subtitle">Xác nhận khách vào sân và đối soát số tiền còn lại tại quầy</p>
+      </div>
+
+      <!-- Checkin Card -->
+      <div class="checkin-card neo-card p-6">
+        @if (!checkedInBooking) {
+          <!-- Manual Code Entry Form -->
+          <div class="input-section space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1.5">NHẬP MÃ VÉ ĐIỆN TỬ HOẶC MÃ QR</label>
+              <div class="input-wrapper">
+                <input
+                  type="text"
+                  placeholder="Ví dụ: GS9A8B7C hoặc GOATSPORTS:BOOKING:..."
+                  [(ngModel)]="bookingCodeInput"
+                  (keyup.enter)="performCheckIn()"
+                  class="code-input font-mono uppercase"
+                />
+              </div>
+            </div>
+
+            <button
+              mat-flat-button
+              color="primary"
+              class="checkin-btn neo-btn w-full"
+              [disabled]="checkingIn || !bookingCodeInput.trim()"
+              (click)="performCheckIn()"
+            >
+              @if (checkingIn) {
+                <mat-progress-spinner mode="indeterminate" diameter="20" class="inline-block mr-2"></mat-progress-spinner>
+                <span>Đang đối soát...</span>
+              } @else {
+                <lucide-icon name="check-circle" class="w-4 h-4 mr-2"></lucide-icon>
+                <span>Xác Nhận Check-in</span>
+              }
+            </button>
+          </div>
+        } @else {
+          <!-- Success Result -->
+          <div class="success-box text-center">
+            <div class="success-icon-badge mx-auto mb-3">
+              <lucide-icon name="check" class="w-8 h-8 text-emerald-600"></lucide-icon>
+            </div>
+            <h3 class="text-xl font-extrabold text-slate-900 mb-1">Check-in Thành Công!</h3>
+            <p class="text-xs text-slate-500 mb-6">Vé đặt sân hợp lệ đã được xác nhận vào sân</p>
+
+            <div class="result-details text-left space-y-3 bg-slate-50 p-4 rounded-xl mb-6">
+              <div class="flex justify-between text-sm">
+                <span class="text-slate-500">Mã vé:</span>
+                <strong class="font-mono text-slate-900">{{ checkedInBooking.bookingCode }}</strong>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-slate-500">Sân con:</span>
+                <strong class="text-slate-900">{{ checkedInBooking.courtName || 'Sân tiêu chuẩn' }}</strong>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-slate-500">Khung giờ:</span>
+                <strong class="text-slate-900">{{ checkedInBooking.startTime.slice(0, 5) }} - {{ checkedInBooking.endTime.slice(0, 5) }}</strong>
+              </div>
+              <div class="divider-line my-2 border-t border-slate-200"></div>
+              <div class="flex justify-between text-sm items-center">
+                <span class="text-emerald-700 font-bold">Số tiền cần thu tại quầy:</span>
+                <span class="text-lg font-extrabold text-emerald-700">{{ formatPrice(checkedInBooking.remainingAmount || 0) }}</span>
+              </div>
+            </div>
+
+            <button mat-stroked-button color="primary" class="w-full h-11 rounded-xl" (click)="resetCheckIn()">
+              Tiếp tục quét vé tiếp theo
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

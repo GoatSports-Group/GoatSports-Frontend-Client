@@ -1,0 +1,66 @@
+.qr-checkin-page {
+  min-height: 100vh;
+  background: #f8fafc;
+  padding-bottom: 80px;
+
+  .scanner-icon-circle {
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    background: #ecfdf5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #0f172a;
+  }
+
+  .page-subtitle {
+    color: #64748b;
+    font-size: 0.875rem;
+  }
+
+  .checkin-card {
+    background: #ffffff;
+    border-radius: 24px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+
+    .code-input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      outline: none;
+
+      &:focus {
+        border-color: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+      }
+    }
+
+    .checkin-btn {
+      height: 48px;
+      border-radius: 14px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+
+    .success-icon-badge {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #ecfdf5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+}

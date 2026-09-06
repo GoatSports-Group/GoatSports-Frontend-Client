@@ -1,0 +1,103 @@
+<div class="matchmaking-container">
+  <!-- Setup View -->
+  <div class="setup-card" *ngIf="!isSearching && !matchedSession">
+    <div class="header-icon">
+      <i class="pi pi-bolt"></i>
+    </div>
+    <h1 class="title">AI Matchmaking Ghép Kèo Thông Minh</h1>
+    <p class="subtitle">
+      Thuật toán AI tự động tìm kiếm đối thủ ngang trình độ ELO và vị trí gần nhất để bạn có những trận giao lưu kịch tính nhất!
+    </p>
+
+    <!-- Sport Selection -->
+    <div class="section-group">
+      <label>1. Chọn Môn Thể Thao</label>
+      <div class="sport-grid">
+        <button *ngFor="let s of sports" [class.selected]="selectedSport === s.value" (click)="selectedSport = s.value" class="sport-btn">
+          <i [class]="s.icon"></i>
+          <span>{{ s.label }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Skill Selection -->
+    <div class="section-group">
+      <label>2. Trình Độ Bản Thân</label>
+      <div class="skill-grid">
+        <button *ngFor="let sk of skills" [class.selected]="selectedSkill === sk.value" (click)="selectedSkill = sk.value" class="skill-btn">
+          {{ sk.label }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Distance Slider -->
+    <div class="section-group">
+      <div class="dist-header">
+        <label>3. Bán Kính Tìm Kiếm</label>
+        <span class="dist-val">{{ maxDistance }} km</span>
+      </div>
+      <input type="range" min="2" max="30" [(ngModel)]="maxDistance" class="slider" />
+    </div>
+
+    <button class="btn-start" (click)="startMatchmaking()">
+      <i class="pi pi-search"></i> Bắt Đầu Tìm Đối Thủ
+    </button>
+  </div>
+
+  <!-- Radar Searching View -->
+  <div class="radar-card" *ngIf="isSearching">
+    <div class="radar-pulse">
+      <div class="wave wave1"></div>
+      <div class="wave wave2"></div>
+      <div class="wave wave3"></div>
+      <i class="pi pi-bolt center-icon"></i>
+    </div>
+
+    <h2 class="searching-title">Đang quét tìm đối thủ phù hợp...</h2>
+    <p class="searching-sub">Môn: {{ selectedSport }} • Bán kính {{ maxDistance }} km</p>
+    <div class="timer-badge">{{ elapsedSeconds }}s</div>
+
+    <button class="btn-cancel" (click)="cancelSearch()">
+      <i class="pi pi-times"></i> Hủy Tìm Kiếm
+    </button>
+  </div>
+
+  <!-- Match Found View -->
+  <div class="matched-card" *ngIf="matchedSession">
+    <div class="match-badge"><i class="pi pi-check-circle"></i> ĐÃ GHÉP CẶP THÀNH CÔNG!</div>
+    <h2 class="comp-score">Độ Tương Thích: {{ matchedSession.compatibilityScore }}%</h2>
+
+    <div class="players-vs">
+      <div class="player-box">
+        <img [src]="matchedSession.player1.avatarUrl || 'https://api.dicebear.com/7.x/identicon/svg?seed=' + matchedSession.player1.playerName" alt="Player 1" />
+        <h4>{{ matchedSession.player1.playerName }}</h4>
+        <span class="elo">ELO {{ matchedSession.player1.eloRating }}</span>
+      </div>
+
+      <div class="vs-circle">VS</div>
+
+      <div class="player-box">
+        <img [src]="matchedSession.player2.avatarUrl || 'https://api.dicebear.com/7.x/identicon/svg?seed=' + matchedSession.player2.playerName" alt="Player 2" />
+        <h4>{{ matchedSession.player2.playerName }}</h4>
+        <span class="elo">ELO {{ matchedSession.player2.eloRating }}</span>
+      </div>
+    </div>
+
+    <div class="venue-sugg">
+      <i class="pi pi-map-marker"></i>
+      <div>
+        <strong>Địa điểm đề xuất:</strong>
+        <p>{{ matchedSession.recommendedVenueName || 'Goat Sports Arena' }} (Cách {{ matchedSession.distanceKm }} km)</p>
+      </div>
+    </div>
+
+    <div class="matched-actions">
+      <button class="btn-chat" (click)="openChat()">
+        <i class="pi pi-comments"></i> Nhắn Tin Trực Tiếp
+      </button>
+      <button class="btn-again" (click)="matchedSession = null">
+        Tìm Trận Khác
+      </button>
+    </div>
+  </div>
+</div>

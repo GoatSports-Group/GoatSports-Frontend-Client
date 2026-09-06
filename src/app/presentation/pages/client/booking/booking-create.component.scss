@@ -1,0 +1,184 @@
+.booking-create-page {
+  min-height: 100vh;
+  background: #f8fafc;
+  padding-bottom: 80px;
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    color: #059669;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-decoration: none;
+    transition: transform 0.2s ease;
+
+    &:hover {
+      transform: translateX(-3px);
+    }
+  }
+
+  .booking-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 32px;
+
+    @media (max-width: 860px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .form-card, .payment-card, .summary-card {
+    background: #ffffff;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+  }
+
+  .page-title, .section-title, .summary-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #0f172a;
+  }
+
+  .venue-summary-box {
+    display: flex;
+    align-items: center;
+    background: #f1f5f9;
+    padding: 14px 16px;
+    border-radius: 14px;
+    gap: 14px;
+
+    .venue-icon-circle {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: #ecfdf5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      shrink: 0;
+    }
+  }
+
+  .form-label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 6px;
+  }
+
+  .info-badge {
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 0.9375rem;
+    color: #0f172a;
+  }
+
+  .note-textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    outline: none;
+    resize: none;
+
+    &:focus {
+      border-color: #10b981;
+    }
+  }
+
+  .payment-methods-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    .payment-option {
+      display: flex;
+      align-items: center;
+      padding: 14px 16px;
+      border-radius: 12px;
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      .radio-indicator {
+        margin-left: auto;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 2px solid #cbd5e1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        .inner-dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          background: transparent;
+        }
+      }
+
+      &.selected {
+        background: #ecfdf5;
+        border-color: #10b981;
+
+        .radio-indicator {
+          border-color: #10b981;
+
+          .inner-dot {
+            background: #10b981;
+          }
+        }
+      }
+    }
+  }
+
+  .summary-rows {
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.875rem;
+
+      &.deposit-row {
+        background: #ecfdf5;
+        padding: 10px 12px;
+        border-radius: 10px;
+      }
+    }
+
+    .divider-line {
+      height: 1px;
+      background: #e2e8f0;
+      margin: 8px 0;
+    }
+  }
+
+  .guarantee-box {
+    display: flex;
+    align-items: center;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    padding: 10px 12px;
+    border-radius: 10px;
+  }
+
+  .checkout-btn {
+    height: 48px;
+    border-radius: 14px;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  }
+}

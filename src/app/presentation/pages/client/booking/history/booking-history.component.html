@@ -1,0 +1,85 @@
+<div class="booking-history-page">
+  <div class="container py-8">
+    <div class="header-section mb-6">
+      <h1 class="page-title athletic-title">Vé Đặt Sân Của Tôi</h1>
+      <p class="page-subtitle">Quản lý các vé đặt sân, mã QR check-in và lịch sử thi đấu</p>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="status-tabs-bar mb-6">
+      @for (tab of statusTabs; track tab.value) {
+        <button
+          type="button"
+          class="status-tab"
+          [class.active]="selectedStatus === tab.value"
+          (click)="onTabChange(tab.value)"
+        >
+          {{ tab.label }}
+        </button>
+      }
+    </div>
+
+    <!-- Content -->
+    @if (loading) {
+      <div class="space-y-4">
+        @for (i of [1, 2, 3]; track i) {
+          <div class="p-6 bg-white rounded-2xl border border-slate-200">
+            <app-loading-skeleton height="24px" width="40%"></app-loading-skeleton>
+            <div class="mt-3">
+              <app-loading-skeleton height="16px" width="60%"></app-loading-skeleton>
+            </div>
+          </div>
+        }
+      </div>
+    } @else if (bookings.length > 0) {
+      <div class="tickets-grid">
+        @for (booking of bookings; track booking.bookingId) {
+          <div class="ticket-card neo-card" (click)="viewDetail(booking.bookingId)">
+            <div class="ticket-header">
+              <div class="code-badge">
+                <lucide-icon name="receipt" class="w-4 h-4 mr-1 text-emerald-600"></lucide-icon>
+                <span>{{ booking.bookingCode }}</span>
+              </div>
+              <span class="status-pill" [class]="'status-' + (statusColors[booking.status] || 'slate')">
+                {{ statusLabels[booking.status] || booking.status }}
+              </span>
+            </div>
+
+            <div class="ticket-body">
+              <h3 class="court-title">{{ booking.courtName || 'Sân thể thao' }}</h3>
+
+              <div class="info-row">
+                <lucide-icon name="calendar" class="w-4 h-4 text-slate-400 mr-2"></lucide-icon>
+                <span>Ngày: <strong>{{ booking.bookingDate }}</strong></span>
+              </div>
+
+              <div class="info-row">
+                <lucide-icon name="clock" class="w-4 h-4 text-slate-400 mr-2"></lucide-icon>
+                <span>Giờ: <strong>{{ booking.startTime.slice(0, 5) }} - {{ booking.endTime.slice(0, 5) }}</strong></span>
+              </div>
+
+              <div class="info-row price-row">
+                <span class="text-slate-500 text-xs">Cọc đã thanh toán:</span>
+                <span class="font-bold text-emerald-600">{{ formatPrice(booking.depositAmount) }}</span>
+              </div>
+            </div>
+
+            <div class="ticket-footer">
+              <span class="view-detail-text">Xem mã QR vé & Chi tiết</span>
+              <lucide-icon name="arrow-right" class="w-4 h-4 text-emerald-600"></lucide-icon>
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="empty-tickets neo-card text-center py-12">
+        <lucide-icon name="receipt" class="w-12 h-12 text-slate-300 mx-auto mb-3"></lucide-icon>
+        <h3 class="text-lg font-bold text-slate-800">Chưa có vé đặt sân nào</h3>
+        <p class="text-sm text-slate-500 mt-1 mb-4">Khám phá ngay danh sách các cụm sân thể thao hàng đầu và đặt sân trực tuyến.</p>
+        <button mat-flat-button color="primary" routerLink="/venues" class="neo-btn">
+          Khám phá sân ngay
+        </button>
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,172 @@
+<div class="friends-page-wrapper">
+  <div class="friends-container">
+    <!-- Header -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Cộng Đồng Thể Thao & Bạn Bè</h1>
+        <p class="page-subtitle">Tìm kiếm đồng đội, kết nối đối thủ và giao lưu các bộ môn thể thao</p>
+      </div>
+      <button class="btn-chat-shortcut" routerLink="/chat">
+        <lucide-icon name="message-circle" class="w-4 h-4"></lucide-icon>
+        <span>Mở Tin Nhắn</span>
+      </button>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="tabs-nav">
+      <button
+        class="tab-btn"
+        [class.active]="activeTab === 'FRIENDS'"
+        (click)="switchTab('FRIENDS')"
+      >
+        <span>Bạn Bè ({{ friends.length }})</span>
+      </button>
+      <button
+        class="tab-btn"
+        [class.active]="activeTab === 'RECEIVED'"
+        (click)="switchTab('RECEIVED')"
+      >
+        <span>Lời Mời Đã Nhận ({{ pendingReceived.length }})</span>
+      </button>
+      <button
+        class="tab-btn"
+        [class.active]="activeTab === 'SENT'"
+        (click)="switchTab('SENT')"
+      >
+        <span>Lời Mời Đã Gửi ({{ pendingSent.length }})</span>
+      </button>
+      <button
+        class="tab-btn"
+        [class.active]="activeTab === 'DISCOVER'"
+        (click)="switchTab('DISCOVER')"
+      >
+        <span>Khám Phá Người Chơi</span>
+      </button>
+    </div>
+
+    <!-- Content Sections -->
+    <div class="tab-content-area">
+      <!-- 1. Friends List -->
+      @if (activeTab === 'FRIENDS') {
+        @if (loading) {
+          <div class="loading-box">
+            <mat-progress-spinner mode="indeterminate" diameter="32"></mat-progress-spinner>
+          </div>
+        } @else if (friends.length > 0) {
+          <div class="friends-grid">
+            @for (f of friends; track f.friendshipId) {
+              <div class="friend-card">
+                <div class="card-avatar-wrap">
+                  <img [src]="getFriendAvatar(f)" alt="Avatar" />
+                  <span class="status-dot online"></span>
+                </div>
+                <div class="card-info">
+                  <h4 class="card-name">{{ getFriendName(f) }}</h4>
+                  <span class="card-role">Đồng đội GoatSports</span>
+                </div>
+                <div class="card-actions">
+                  <button class="btn-action chat" (click)="startChat(f)">
+                    <lucide-icon name="message-square" class="w-4 h-4"></lucide-icon>
+                    <span>Nhắn tin</span>
+                  </button>
+                  <button class="btn-action unfriend" (click)="unfriend(f)" title="Hủy kết bạn">
+                    <lucide-icon name="user-x" class="w-4 h-4"></lucide-icon>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">
+            <lucide-icon name="users" class="w-12 h-12 text-slate-300"></lucide-icon>
+            <p>Bạn chưa có bạn bè nào. Hãy qua mục "Khám Phá Người Chơi" để kết nối nhé!</p>
+          </div>
+        }
+      }
+
+      <!-- 2. Received Requests -->
+      @if (activeTab === 'RECEIVED') {
+        @if (pendingReceived.length > 0) {
+          <div class="friends-grid">
+            @for (f of pendingReceived; track f.friendshipId) {
+              <div class="friend-card">
+                <div class="card-avatar-wrap">
+                  <img [src]="f.requesterAvatar || 'assets/images/default-avatar.png'" alt="Avatar" />
+                </div>
+                <div class="card-info">
+                  <h4 class="card-name">{{ f.requesterName || 'Người chơi Goat' }}</h4>
+                  <span class="card-role">Muốn kết bạn cùng bạn</span>
+                </div>
+                <div class="card-actions">
+                  <button class="btn-action accept" (click)="respondRequest(f, true)">
+                    Chấp nhận
+                  </button>
+                  <button class="btn-action decline" (click)="respondRequest(f, false)">
+                    Từ chối
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">
+            <lucide-icon name="user-check" class="w-12 h-12 text-slate-300"></lucide-icon>
+            <p>Không có lời mời kết bạn nào đang chờ duyệt.</p>
+          </div>
+        }
+      }
+
+      <!-- 3. Sent Requests -->
+      @if (activeTab === 'SENT') {
+        @if (pendingSent.length > 0) {
+          <div class="friends-grid">
+            @for (f of pendingSent; track f.friendshipId) {
+              <div class="friend-card">
+                <div class="card-avatar-wrap">
+                  <img [src]="f.addresseeAvatar || 'assets/images/default-avatar.png'" alt="Avatar" />
+                </div>
+                <div class="card-info">
+                  <h4 class="card-name">{{ f.addresseeName || 'Người chơi Goat' }}</h4>
+                  <span class="card-role">Đang chờ đối phương chấp nhận</span>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">
+            <lucide-icon name="send" class="w-12 h-12 text-slate-300"></lucide-icon>
+            <p>Bạn chưa gửi lời mời kết bạn nào.</p>
+          </div>
+        }
+      }
+
+      <!-- 4. Discover Players -->
+      @if (activeTab === 'DISCOVER') {
+        <div class="friends-grid">
+          @for (p of discoverPlayers; track p.userId) {
+            <div class="friend-card discover-card">
+              <div class="card-avatar-wrap">
+                <img [src]="p.avatarUrl" alt="Avatar" />
+              </div>
+              <div class="card-info">
+                <h4 class="card-name">{{ p.fullName }}</h4>
+                <div class="card-tags">
+                  @for (sport of p.sports; track sport) {
+                    <span class="tag-sport">{{ sport }}</span>
+                  }
+                </div>
+                <p class="player-level">{{ p.level }} • {{ p.district }}</p>
+              </div>
+              <div class="card-actions">
+                <button class="btn-action add-friend" (click)="sendRequest(p)">
+                  <lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon>
+                  <span>Kết bạn</span>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>

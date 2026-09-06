@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Subject, Observable } from 'rxjs';
 import { Notification } from '@domain/entities/notification';
+import { ChatMessage, ChatTypingEvent } from '@application/dto/chat/chat.dto';
 import { WebSocketService } from '@application/ports/websocket.service';
 import {
   CURRENT_USER_PROVIDER_TOKEN,
@@ -63,12 +64,18 @@ export class StompWebSocketService implements WebSocketService {
   private apiBase = environment.apiUrl;
   private notificationSubscriptionId = 'sub-user-notifications';
   private progressSubscriptionId = 'sub-owner-application-progress';
+  private chatInboxSubscriptionId = 'sub-user-chat-inbox';
+  private activeRoomSubscriptions = new Set<string>();
   private currentUserProvider = inject<CurrentUserProvider>(CURRENT_USER_PROVIDER_TOKEN);
 
   private notificationSubject = new Subject<Notification>();
   public notifications$: Observable<Notification> = this.notificationSubject.asObservable();
   private progressSubject = new Subject<OwnerApplicationProgressChangedEvent>();
   public ownerApplicationProgress$ = this.progressSubject.asObservable();
+  private chatMessageSubject = new Subject<ChatMessage>();
+  public chatMessages$: Observable<ChatMessage> = this.chatMessageSubject.asObservable();
+  private typingEventSubject = new Subject<ChatTypingEvent>();
+  public typingEvents$: Observable<ChatTypingEvent> = this.typingEventSubject.asObservable();
 
   constructor() { }
 
@@ -127,6 +134,46 @@ export class StompWebSocketService implements WebSocketService {
     this.isConnected = false;
   }
 
+  public subscribeToRoom(roomId: string): void {
+    if (!roomId) return;
+    this.activeRoomSubscriptions.add(roomId);
+    if (this.isConnected) {
+      this.subscribe(`sub-room-${roomId}`, `/topic/rooms/${roomId}`);
+      this.subscribe(`sub-typing-${roomId}`, `/topic/rooms/${roomId}/typing`);
+    }
+  }
+
+  public unsubscribeFromRoom(roomId: string): void {
+    if (!roomId) return;
+    this.activeRoomSubscriptions.delete(roomId);
+    if (this.isConnected) {
+      this.unsubscribe(`sub-room-${roomId}`);
+      this.unsubscribe(`sub-typing-${roomId}`);
+    }
+  }
+
+  public sendChatMessage(payload: any): void {
+    if (!this.socket || !this.isConnected) {
+      console.warn('Cannot send STOMP message: WebSocket not connected.');
+      return;
+    }
+    const frame = new StompFrame('SEND', { destination: '/app/chat.send' }, JSON.stringify(payload));
+    this.socket.send(frame.toString());
+  }
+
+  public sendTyping(roomId: string, senderName: string, isTyping: boolean): void {
+    if (!this.socket || !this.isConnected) return;
+    const currentUserId = this.currentUserProvider.getCurrentUserId();
+    const payload = {
+      roomId,
+      senderId: currentUserId,
+      senderName,
+      isTyping
+    };
+    const frame = new StompFrame('SEND', { destination: '/app/chat.typing' }, JSON.stringify(payload));
+    this.socket.send(frame.toString());
+  }
+
   private sendConnectFrame(): void {
     if (!this.socket) return;
 
@@ -149,6 +196,13 @@ export class StompWebSocketService implements WebSocketService {
 
     this.subscribe(this.notificationSubscriptionId, `/topic/user/notifications/${currentUserId}`);
     this.subscribe(this.progressSubscriptionId, `/topic/user/owner-application-progress/${currentUserId}`);
+    this.subscribe(this.chatInboxSubscriptionId, `/topic/user/chats/${currentUserId}`);
+
+    // Re-subscribe to any active rooms
+    this.activeRoomSubscriptions.forEach(roomId => {
+      this.subscribe(`sub-room-${roomId}`, `/topic/rooms/${roomId}`);
+      this.subscribe(`sub-typing-${roomId}`, `/topic/rooms/${roomId}/typing`);
+    });
   }
 
   private sendUnsubscribeFrame(): void {
@@ -157,6 +211,11 @@ export class StompWebSocketService implements WebSocketService {
     try {
       this.unsubscribe(this.notificationSubscriptionId);
       this.unsubscribe(this.progressSubscriptionId);
+      this.unsubscribe(this.chatInboxSubscriptionId);
+      this.activeRoomSubscriptions.forEach(roomId => {
+        this.unsubscribe(`sub-room-${roomId}`);
+        this.unsubscribe(`sub-typing-${roomId}`);
+      });
       console.log('STOMP UNSUBSCRIBE sent');
     } catch (e) {
       console.error('Error sending unsubscribe frame:', e);
@@ -164,7 +223,6 @@ export class StompWebSocketService implements WebSocketService {
   }
 
   private handleMessage(data: string): void {
-    // Ignore heartbeats (empty lines/keep-alives)
     if (data === '\n' || data === '\r\n') {
       return;
     }
@@ -183,18 +241,32 @@ export class StompWebSocketService implements WebSocketService {
           const currentUserId = this.currentUserProvider.getCurrentUserId();
           const destination = frame.headers['destination'];
           if (destination === `/topic/user/notifications/${currentUserId}`) {
-            console.log('STOMP MESSAGE received:', frame.body);
             try {
               const notification: Notification = JSON.parse(frame.body);
               this.notificationSubject.next(notification);
             } catch (jsonErr) {
-              console.error('Failed to parse STOMP message body as JSON:', jsonErr);
+              console.error('Failed to parse STOMP notification:', jsonErr);
             }
           } else if (destination === `/topic/user/owner-application-progress/${currentUserId}`) {
             try {
               this.progressSubject.next(JSON.parse(frame.body));
             } catch (jsonErr) {
-              console.error('Failed to parse owner application progress event:', jsonErr);
+              console.error('Failed to parse progress event:', jsonErr);
+            }
+          } else if (destination === `/topic/user/chats/${currentUserId}` || destination?.startsWith('/topic/rooms/')) {
+            if (destination.endsWith('/typing')) {
+              try {
+                this.typingEventSubject.next(JSON.parse(frame.body));
+              } catch (jsonErr) {
+                console.error('Failed to parse typing event:', jsonErr);
+              }
+            } else {
+              try {
+                const chatMsg: ChatMessage = JSON.parse(frame.body);
+                this.chatMessageSubject.next(chatMsg);
+              } catch (jsonErr) {
+                console.error('Failed to parse chat message:', jsonErr);
+              }
             }
           }
           break;
@@ -223,7 +295,6 @@ export class StompWebSocketService implements WebSocketService {
     this.isConnected = false;
     this.socket = null;
 
-    // Retry connection after 5 seconds
     if (!this.reconnectTimeout) {
       console.log('Attempting reconnection in 5 seconds...');
       this.reconnectTimeout = setTimeout(() => {
