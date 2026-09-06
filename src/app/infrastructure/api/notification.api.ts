@@ -1,9 +1,10 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Notification } from '@domain/entities/notification';
 import { BaseResponse } from '@application/dto/base/base-response';
 import { environment } from '@environments/environment';
+import { NotificationQuery } from '@application/dto/notification/notification.dto';
 
 export interface NotificationListResponse {
   meta: {
@@ -22,9 +23,18 @@ export class NotificationApi {
   private http = inject(HttpClient);
   private apiBase = environment.apiUrl;
 
-  getNotifications(): Observable<BaseResponse<NotificationListResponse>> {
+  getNotifications(query: NotificationQuery): Observable<BaseResponse<NotificationListResponse>> {
+    let params = new HttpParams()
+      .set('page', Math.max(0, query.page - 1))
+      .set('size', query.pageSize);
+
+    if (query.status) {
+      params = params.set('filter', `status : '${query.status}'`);
+    }
+
     return this.http.get<BaseResponse<NotificationListResponse>>(
-      `${this.apiBase}/notification-service/api/v1/notifications`
+      `${this.apiBase}/notification-service/api/v1/notifications`,
+      { params }
     );
   }
 

@@ -8,6 +8,8 @@ export interface Notification {
   content: string;
   type: NotificationType;
   status: NotificationStatus;
+  sourceService?: string;
+  referenceType?: string;
   referenceId?: string;
   createdAt: string;
   readAt?: string;

@@ -602,6 +602,23 @@ body.dark .main-header {
         }
       }
     }
+
+    .panel-footer-link {
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      border-top: 1px solid #f1f5f9;
+      color: #047857;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-decoration: none;
+
+      &:hover {
+        background: #ecfdf5;
+      }
+    }
   }
 }
 

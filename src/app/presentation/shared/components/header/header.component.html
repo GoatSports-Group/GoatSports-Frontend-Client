@@ -60,19 +60,21 @@
         <div class="custom-notif-panel" (click)="$event.stopPropagation()">
           <div class="panel-header">
             <span class="panel-title">Thông báo</span>
-            <button (click)="markAllRead()" class="btn-mark-all">
-              Đánh dấu tất cả
-            </button>
+            @if (((notificationService.unreadCount$ | async) ?? 0) > 0) {
+              <button type="button" (click)="markAllRead()" class="btn-mark-all">
+                Đánh dấu tất cả đã đọc
+              </button>
+            }
           </div>
 
           <div class="panel-list">
-            @if ((notificationService.notifications$ | async)?.length === 0) {
+            @if ((notificationService.recentNotifications$ | async)?.length === 0) {
             <div class="panel-empty">
               <lucide-icon name="bell-off" class="w-8 h-8 empty-icon"></lucide-icon>
               <p>Không có thông báo mới nào</p>
             </div>
             } @else {
-            @for (notif of notificationService.notifications$ | async; track notif.notificationId) {
+            @for (notif of notificationService.recentNotifications$ | async; track notif.notificationId) {
             <div (click)="onNotificationClick(notif)" class="notif-card-item">
               <span class="status-dot" [class.status-dot--unread]="notif.status === 'UNREAD'"></span>
 
@@ -84,20 +86,20 @@
 
               <div class="notif-btn-group" (click)="$event.stopPropagation()">
                 @if (notif.status === 'UNREAD') {
-                <button (click)="onNotificationClick(notif)" class="action-btn action-btn--read"
-                  title="Đánh dấu đã đọc">
+                <button type="button" (click)="onNotificationClick(notif)" class="action-btn action-btn--read"
+                  aria-label="Đánh dấu đã đọc">
                   <lucide-icon name="check" class="w-3.5 h-3.5"></lucide-icon>
                 </button>
                 }
-                <button (click)="deleteNotification(notif, $event)" class="action-btn action-btn--delete"
-                  title="Xóa thông báo">
-                  <lucide-icon name="x" class="w-3.5 h-3.5"></lucide-icon>
-                </button>
               </div>
             </div>
             }
             }
           </div>
+          <a routerLink="/notifications" class="panel-footer-link" (click)="isNotifOpen = false">
+            Xem tất cả thông báo
+            <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon>
+          </a>
         </div>
         }
       </div>

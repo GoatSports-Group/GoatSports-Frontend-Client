@@ -10,6 +10,7 @@ import {
 } from '@application/dto/notification/notification.dto';
 import { environment } from '@environments/environment';
 import { formatRelativeTime } from '@presentation/shared/utils/date-trend.utils';
+import { NotifyService } from '@shared/components/notify/notify.service';
 
 @Component({
   selector: 'app-header',
@@ -22,6 +23,7 @@ export class HeaderComponent implements OnInit {
   public authService = inject(AuthService);
   public notificationService = inject(NotificationService);
   private router = inject(Router);
+  private notify = inject(NotifyService);
 
   @Output() menuToggle = new EventEmitter<void>();
 
@@ -108,28 +110,50 @@ export class HeaderComponent implements OnInit {
     }
 
     this.notificationService.markAsRead(notification.notificationId).subscribe({
-      next: () => this.navigateFromNotification(notification)
+      next: () => this.navigateFromNotification(notification),
+      error: () => {
+        this.notify.error('Không thể cập nhật thông báo.');
+        this.navigateFromNotification(notification);
+      }
     });
   }
 
   private navigateFromNotification(notification: Notification): void {
-    if (notification.type === NotificationType.BOOKING) {
-      this.router.navigate(['/booking/history']);
-    } else if (notification.type === NotificationType.OWNER_APPLICATION) {
-      this.router.navigate(['/owner-application']);
+    const referenceId = notification.referenceId;
+    switch ((notification.referenceType || '').toUpperCase()) {
+      case 'OWNER_APPLICATION':
+        void this.router.navigate(['/owner-application']);
+        break;
+      case 'BOOKING':
+        void this.router.navigate(referenceId ? ['/booking/detail', referenceId] : ['/booking/history']);
+        break;
+      case 'FRIENDSHIP':
+        void this.router.navigate(['/friends']);
+        break;
+      case 'MESSAGE':
+        void this.router.navigate(['/chat']);
+        break;
+      case 'CLUB':
+        void this.router.navigate(referenceId ? ['/clubs', referenceId] : ['/clubs']);
+        break;
+      case 'TOURNAMENT':
+        void this.router.navigate(referenceId ? ['/tournaments', referenceId] : ['/tournaments']);
+        break;
+      case 'MATCHMAKING_SESSION':
+        void this.router.navigate(['/matchmaking']);
+        break;
+      default:
+        if (notification.type === NotificationType.OWNER_APPLICATION) {
+          void this.router.navigate(['/owner-application']);
+        } else if (notification.type === NotificationType.BOOKING) {
+          void this.router.navigate(['/booking/history']);
+        }
     }
   }
 
   markAllRead() {
     this.notificationService.markAllRead().subscribe({
-      error: (err) => console.error('Failed to mark all as read:', err)
-    });
-  }
-
-  deleteNotification(notification: Notification, event: Event): void {
-    event.stopPropagation();
-    this.notificationService.deleteNotification(notification.notificationId).subscribe({
-      error: (err) => console.error('Failed to delete notification:', err)
+      error: () => this.notify.error('Không thể cập nhật thông báo.')
     });
   }
 }

@@ -4,6 +4,7 @@ import { map } from 'rxjs/operators';
 import { NotificationRepository } from '@application/ports/persistence/notification.repository';
 import { Notification } from '@domain/entities/notification';
 import { NotificationApi } from '@infrastructure/api/notification.api';
+import { NotificationPage, NotificationQuery } from '@application/dto/notification/notification.dto';
 
 @Injectable({
   providedIn: 'root'
@@ -11,9 +12,15 @@ import { NotificationApi } from '@infrastructure/api/notification.api';
 export class NotificationRepositoryImpl implements NotificationRepository {
   private notificationApi = inject(NotificationApi);
 
-  getNotifications(): Observable<Notification[]> {
-    return this.notificationApi.getNotifications().pipe(
-      map(response => response.data?.result || [])
+  getNotifications(query: NotificationQuery): Observable<NotificationPage> {
+    return this.notificationApi.getNotifications(query).pipe(
+      map(response => ({
+        items: response.data?.result ?? [],
+        total: response.data?.meta?.total ?? 0,
+        page: response.data?.meta?.page ?? query.page,
+        pageSize: response.data?.meta?.pageSize ?? query.pageSize,
+        totalPages: response.data?.meta?.pages ?? 0
+      }))
     );
   }
 

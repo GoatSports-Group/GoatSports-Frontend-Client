@@ -61,6 +61,7 @@ export class StompWebSocketService implements WebSocketService {
   private socket: WebSocket | null = null;
   private isConnected = false;
   private reconnectTimeout: any = null;
+  private shouldReconnect = false;
   private apiBase = environment.apiUrl;
   private notificationSubscriptionId = 'sub-user-notifications';
   private progressSubscriptionId = 'sub-owner-application-progress';
@@ -80,6 +81,7 @@ export class StompWebSocketService implements WebSocketService {
   constructor() { }
 
   public connect(): void {
+    this.shouldReconnect = true;
     if (this.socket || this.isConnected) {
       return;
     }
@@ -93,23 +95,28 @@ export class StompWebSocketService implements WebSocketService {
     console.log('Connecting to WebSocket at:', wsUrl);
 
     try {
-      this.socket = new WebSocket(wsUrl);
+      const socket = new WebSocket(wsUrl);
+      this.socket = socket;
 
-      this.socket.onopen = () => {
+      socket.onopen = () => {
+        if (this.socket !== socket) return;
         console.log('WebSocket connection opened. Sending STOMP CONNECT...');
         this.sendConnectFrame();
       };
 
-      this.socket.onmessage = (event: MessageEvent) => {
+      socket.onmessage = (event: MessageEvent) => {
+        if (this.socket !== socket) return;
         this.handleMessage(event.data);
       };
 
-      this.socket.onclose = (event: CloseEvent) => {
+      socket.onclose = (event: CloseEvent) => {
+        if (this.socket !== socket) return;
         console.log('WebSocket connection closed:', event.reason);
         this.handleDisconnect();
       };
 
-      this.socket.onerror = (error: Event) => {
+      socket.onerror = (error: Event) => {
+        if (this.socket !== socket) return;
         console.error('WebSocket error occurred:', error);
       };
     } catch (err) {
@@ -119,17 +126,19 @@ export class StompWebSocketService implements WebSocketService {
   }
 
   public disconnect(): void {
+    this.shouldReconnect = false;
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);
       this.reconnectTimeout = null;
     }
 
-    if (this.socket) {
+    const socket = this.socket;
+    if (socket) {
       if (this.isConnected) {
         this.sendUnsubscribeFrame();
       }
-      this.socket.close();
       this.socket = null;
+      socket.close();
     }
     this.isConnected = false;
   }
@@ -295,7 +304,7 @@ export class StompWebSocketService implements WebSocketService {
     this.isConnected = false;
     this.socket = null;
 
-    if (!this.reconnectTimeout) {
+    if (this.shouldReconnect && !this.reconnectTimeout) {
       console.log('Attempting reconnection in 5 seconds...');
       this.reconnectTimeout = setTimeout(() => {
         this.reconnectTimeout = null;

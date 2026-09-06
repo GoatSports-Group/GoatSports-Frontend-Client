@@ -1,55 +1,39 @@
 <div class="notifications-page">
   <div class="notifications-layout">
-    <!-- Left Navigation Sidebar -->
     <aside class="settings-sidebar">
-      <!-- User Profile Header -->
       <div class="sidebar-user">
-        <div
-          class="user-avatar-wrap"
-          (click)="avatarFileInput.click()"
-          title="Bấm để thay đổi ảnh đại diện"
-        >
-          <img
-            [src]="fallbackAvatar"
-            [alt]="authService.currentUser?.fullName || 'User Avatar'"
-            class="user-avatar-img"
-            (error)="onAvatarImgError($event)"
-          />
-          <div class="avatar-hover-overlay">
-            @if (isUploadingAvatar) {
-              <lucide-icon name="loader-2" class="w-4 h-4 animate-spin text-white"></lucide-icon>
-            } @else {
-              <lucide-icon name="camera" class="w-4 h-4 text-white"></lucide-icon>
-            }
-          </div>
-          <input
-            #avatarFileInput
-            type="file"
-            accept="image/*"
-            class="hidden-file-input"
-            (change)="onAvatarSelected($event)"
-          />
-        </div>
+        <a routerLink="/settings" class="user-avatar-wrap" aria-label="Mở hồ sơ cá nhân">
+          @if (avatarUrl; as currentAvatarUrl) {
+            <img
+              [src]="currentAvatarUrl"
+              [alt]="'Ảnh đại diện của ' + (authService.currentUser?.fullName || authService.currentUser?.username || 'người dùng')"
+              class="user-avatar-img"
+              (error)="onAvatarImgError()"
+            />
+          } @else {
+            <span class="user-avatar-initials" aria-hidden="true">{{ userInitials }}</span>
+          }
+        </a>
         <div class="user-meta">
-          <span class="user-display-name">{{ authService.currentUser?.fullName || 'Người dùng' }}</span>
+          <span class="user-display-name">
+            {{ authService.currentUser?.fullName || authService.currentUser?.username || 'Người dùng' }}
+          </span>
           <a routerLink="/settings" class="user-view-link">Xem hồ sơ</a>
         </div>
       </div>
 
-      <!-- Navigation Items -->
-      <nav class="sidebar-nav">
-
-        <a routerLink="/notifications" class="sidebar-nav-item sidebar-nav-item--active">
+      <nav class="sidebar-nav" aria-label="Khu vực cá nhân">
+        <a routerLink="/notifications" class="sidebar-nav-item sidebar-nav-item--active" aria-current="page">
           <div class="sidebar-icon-wrap">
             <lucide-icon name="bell" class="w-4 h-4"></lucide-icon>
-            @if ((notificationService.unreadCount$ | async) ?? 0; as unread) {
+            @if ((unreadCount$ | async) ?? 0; as unread) {
               @if (unread > 0) {
                 <span class="nav-unread-dot"></span>
               }
             }
           </div>
           <span>Thông báo</span>
-          @if ((notificationService.unreadCount$ | async) ?? 0; as unread) {
+          @if ((unreadCount$ | async) ?? 0; as unread) {
             @if (unread > 0) {
               <span class="nav-unread-badge">{{ unread }}</span>
             }
@@ -60,11 +44,6 @@
           <lucide-icon name="calendar" class="w-4 h-4"></lucide-icon>
           <span>Lịch đặt sân</span>
         </a>
-
-        <span class="sidebar-nav-item" aria-disabled="true" title="Tính năng thành tích đang được phát triển">
-          <lucide-icon name="award" class="w-4 h-4"></lucide-icon>
-          <span>Thành tích</span>
-        </span>
 
         <a routerLink="/friends" class="sidebar-nav-item">
           <lucide-icon name="users" class="w-4 h-4"></lucide-icon>
@@ -83,104 +62,160 @@
       </nav>
     </aside>
 
-    <!-- Right Main Notifications Area -->
     <main class="notifications-main">
       <div class="notifications-main-inner">
-        <!-- Header -->
         <header class="notifications-header">
           <div>
-            <h1 class="notifications-title">Thông Báo</h1>
-            <p class="notifications-subtitle">Quản lý các thông báo đặt sân, hóa đơn thanh toán và hoạt động tài khoản.</p>
+            <h1 class="notifications-title">Thông báo</h1>
+            <p class="notifications-subtitle">Theo dõi hoạt động đặt sân, thanh toán và tài khoản của bạn.</p>
           </div>
 
-          <div class="header-actions">
-            @if ((notificationService.unreadCount$ | async) ?? 0; as unread) {
-              @if (unread > 0) {
-                <button type="button" class="btn-mark-all-read" (click)="onMarkAllRead()">
-                  <lucide-icon name="check-check" class="w-4 h-4 mr-1.5"></lucide-icon>
-                  Đánh dấu đã đọc tất cả
-                </button>
-              }
+          @if ((unreadCount$ | async) ?? 0; as unread) {
+            @if (unread > 0) {
+              <button
+                type="button"
+                class="btn-mark-all-read"
+                [disabled]="isMarkingAll()"
+                (click)="onMarkAllRead()"
+              >
+                <lucide-icon
+                  [name]="isMarkingAll() ? 'loader-2' : 'check-check'"
+                  class="w-4 h-4 mr-1.5"
+                  [class.animate-spin]="isMarkingAll()"
+                ></lucide-icon>
+                {{ isMarkingAll() ? 'Đang cập nhật...' : 'Đánh dấu tất cả đã đọc' }}
+              </button>
             }
-          </div>
+          }
         </header>
 
-        <!-- Filter Tab Row -->
         <div class="filter-tabs-row">
-          <div class="filter-pills">
+          <div class="filter-pills" role="tablist" aria-label="Lọc thông báo">
             <button
               type="button"
+              role="tab"
               class="filter-pill"
-              [class.filter-pill--active]="activeFilter === 'ALL'"
+              [class.filter-pill--active]="activeFilter() === 'ALL'"
+              [attr.aria-selected]="activeFilter() === 'ALL'"
               (click)="setFilter('ALL')"
             >
               Tất cả
-              <span class="count-badge">{{ (notificationService.notifications$ | async)?.length || 0 }}</span>
+              <span class="count-badge">{{ (allCount$ | async) ?? 0 }}</span>
             </button>
 
             <button
               type="button"
+              role="tab"
               class="filter-pill"
-              [class.filter-pill--active]="activeFilter === 'UNREAD'"
+              [class.filter-pill--active]="activeFilter() === 'UNREAD'"
+              [attr.aria-selected]="activeFilter() === 'UNREAD'"
               (click)="setFilter('UNREAD')"
             >
               Chưa đọc
-              @if ((notificationService.unreadCount$ | async) ?? 0; as unread) {
-                <span class="count-badge count-badge--unread">{{ unread }}</span>
-              }
+              <span class="count-badge count-badge--unread">{{ (unreadCount$ | async) ?? 0 }}</span>
             </button>
           </div>
         </div>
 
-        <!-- Notifications Content List -->
-        <section class="notifications-list">
-          @if (filteredNotifications$ | async; as notifs) {
-            @if (notifs.length === 0) {
+        <section class="notifications-list" aria-live="polite">
+          @if (notifications$ | async; as notifications) {
+            @if (isLoading()) {
+              <div class="notification-skeletons" aria-label="Đang tải thông báo">
+                @for (item of [1, 2, 3]; track item) {
+                  <div class="notification-skeleton">
+                    <span class="skeleton-icon"></span>
+                    <div class="skeleton-lines">
+                      <span></span>
+                      <span></span>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else if (loadFailed() && notifications.length === 0) {
+              <div class="empty-notifications empty-notifications--error" role="alert">
+                <div class="empty-icon-box">
+                  <lucide-icon name="alert-triangle" class="w-7 h-7"></lucide-icon>
+                </div>
+                <h2 class="empty-title">Chưa thể tải thông báo</h2>
+                <p class="empty-desc">Kiểm tra kết nối rồi thử lại.</p>
+                <button type="button" class="btn-retry" (click)="retry()">Thử lại</button>
+              </div>
+            } @else if (notifications.length === 0) {
               <div class="empty-notifications">
                 <div class="empty-icon-box">
                   <lucide-icon name="inbox" class="w-8 h-8 text-slate-400"></lucide-icon>
                 </div>
-                <h3 class="empty-title">Không có thông báo nào</h3>
+                <h2 class="empty-title">Không có thông báo</h2>
                 <p class="empty-desc">
-                  @if (activeFilter === 'UNREAD') {
-                    Bạn đã đọc tất cả thông báo!
+                  @if (activeFilter() === 'UNREAD') {
+                    Bạn đã đọc tất cả thông báo.
                   } @else {
-                    Bạn chưa có thông báo mới nào từ hệ thống GOAT SPORTS.
+                    Thông báo mới từ GOAT SPORTS sẽ xuất hiện tại đây.
                   }
                 </p>
               </div>
             } @else {
+              @if (loadFailed()) {
+                <div class="inline-error" role="alert">
+                  <span>Chưa thể tải thêm thông báo.</span>
+                  <button type="button" (click)="loadMore()">Thử lại</button>
+                </div>
+              }
+
               <div class="notif-cards-group">
-                @for (item of notifs; track item.notificationId) {
+                @for (item of notifications; track item.notificationId) {
                   <article
                     class="notif-card"
                     [class.notif-card--unread]="item.status === NotificationStatus.UNREAD"
-                    (click)="onMarkRead(item)"
+                    [class.notif-card--actionable]="canOpenNotification(item)"
+                    [attr.tabindex]="canOpenNotification(item) ? 0 : null"
+                    [attr.aria-label]="item.title || 'Thông báo'"
+                    (click)="onOpenNotification(item)"
+                    (keydown.enter)="onOpenNotification(item)"
                   >
-                    <!-- Type Icon -->
                     <div class="notif-icon-col">
                       <div class="notif-type-icon" [ngClass]="'icon-type--' + (item.type || 'SYSTEM').toLowerCase()">
                         <lucide-icon [name]="getNotificationIcon(item.type)" class="w-4 h-4"></lucide-icon>
                       </div>
                     </div>
 
-                    <!-- Content Body -->
                     <div class="notif-body-col">
                       <div class="notif-top-meta">
-                        <h4 class="notif-item-title">{{ item.title }}</h4>
+                        <div class="notif-heading">
+                          <span class="notif-type-label">{{ getNotificationTypeLabel(item.type) }}</span>
+                          <h2 class="notif-item-title">{{ item.title || 'Thông báo' }}</h2>
+                        </div>
+
                         <div class="notif-right-tools">
-                          <span class="notif-timestamp">{{ formatTime(item.createdAt) }}</span>
+                          <time class="notif-timestamp" [attr.datetime]="item.createdAt">
+                            {{ formatTime(item.createdAt) }}
+                          </time>
                           @if (item.status === NotificationStatus.UNREAD) {
                             <span class="unread-glow-dot" title="Chưa đọc"></span>
                           }
-                          <button
-                            type="button"
-                            class="btn-delete-notif"
-                            (click)="onDelete(item, $event)"
-                            title="Xóa thông báo"
-                          >
-                            <lucide-icon name="trash-2" class="w-3.5 h-3.5"></lucide-icon>
-                          </button>
+
+                          @if (confirmingDeleteId() === item.notificationId) {
+                            <div class="delete-confirm" (click)="$event.stopPropagation()">
+                              <button type="button" class="btn-delete-cancel" (click)="cancelDelete($event)">Hủy</button>
+                              <button
+                                type="button"
+                                class="btn-delete-confirm"
+                                [disabled]="isPending(item.notificationId)"
+                                (click)="confirmDelete(item, $event)"
+                              >
+                                {{ isPending(item.notificationId) ? 'Đang xóa...' : 'Xóa' }}
+                              </button>
+                            </div>
+                          } @else {
+                            <button
+                              type="button"
+                              class="btn-delete-notif"
+                              aria-label="Xóa thông báo"
+                              (click)="requestDelete(item, $event)"
+                            >
+                              <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon>
+                            </button>
+                          }
                         </div>
                       </div>
 
@@ -188,9 +223,18 @@
 
                       @if (item.status === NotificationStatus.UNREAD) {
                         <div class="notif-card-footer">
-                          <button type="button" class="btn-quick-read" (click)="onMarkRead(item, $event)">
-                            <lucide-icon name="check" class="w-3 h-3 mr-1"></lucide-icon>
-                            Đánh dấu đã đọc
+                          <button
+                            type="button"
+                            class="btn-quick-read"
+                            [disabled]="isPending(item.notificationId)"
+                            (click)="onMarkRead(item, $event)"
+                          >
+                            <lucide-icon
+                              [name]="isPending(item.notificationId) ? 'loader-2' : 'check'"
+                              class="w-3.5 h-3.5 mr-1"
+                              [class.animate-spin]="isPending(item.notificationId)"
+                            ></lucide-icon>
+                            {{ isPending(item.notificationId) ? 'Đang cập nhật...' : 'Đánh dấu đã đọc' }}
                           </button>
                         </div>
                       }
@@ -198,6 +242,20 @@
                   </article>
                 }
               </div>
+
+              @if (canLoadMore) {
+                <div class="load-more-wrap">
+                  <span>Đang hiển thị {{ notifications.length }} / {{ loadedCount }} thông báo</span>
+                  <button type="button" class="btn-load-more" [disabled]="isLoadingMore()" (click)="loadMore()">
+                    <lucide-icon
+                      [name]="isLoadingMore() ? 'loader-2' : 'arrow-down'"
+                      class="w-4 h-4"
+                      [class.animate-spin]="isLoadingMore()"
+                    ></lucide-icon>
+                    {{ isLoadingMore() ? 'Đang tải...' : 'Xem thêm' }}
+                  </button>
+                </div>
+              }
             }
           }
         </section>

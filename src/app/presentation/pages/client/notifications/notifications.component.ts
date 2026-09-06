@@ -1,12 +1,12 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { Observable, map } from 'rxjs';
-import { finalize, switchMap } from 'rxjs/operators';
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
+import { finalize } from 'rxjs/operators';
 import { Notification, NotificationStatus, NotificationType } from '@application/dto/notification/notification.dto';
 import { AuthService } from '@presentation/services/auth.service';
 import { NotificationService } from '@presentation/services/notification.service';
-import { StorageService } from '@presentation/services/storage.service';
-import { UserService } from '@presentation/services/user.service';
 import { NotifyService } from '@shared/components/notify/notify.service';
+
+type NotificationFilter = 'ALL' | 'UNREAD';
 
 @Component({
   selector: 'app-notifications',
@@ -15,163 +15,293 @@ import { NotifyService } from '@shared/components/notify/notify.service';
   standalone: false
 })
 export class NotificationsComponent implements OnInit {
-  public authService = inject(AuthService);
-  public notificationService = inject(NotificationService);
-  private storageService = inject(StorageService);
-  private userService = inject(UserService);
-  private notifyService = inject(NotifyService);
+  readonly authService = inject(AuthService);
+  readonly notificationService = inject(NotificationService);
+  private readonly notifyService = inject(NotifyService);
+  private readonly router = inject(Router);
 
-  public activeFilter: 'ALL' | 'UNREAD' = 'ALL';
-  public NotificationStatus = NotificationStatus;
-  public isUploadingAvatar = false;
-  public localAvatarPreview: string | null = null;
+  readonly activeFilter = signal<NotificationFilter>('ALL');
+  readonly isLoading = signal(true);
+  readonly isLoadingMore = signal(false);
+  readonly loadFailed = signal(false);
+  readonly isMarkingAll = signal(false);
+  readonly confirmingDeleteId = signal<string | null>(null);
+  readonly pendingIds = signal<ReadonlySet<string>>(new Set());
+  readonly avatarLoadFailed = signal(false);
+
+  readonly NotificationStatus = NotificationStatus;
+  readonly notifications$ = this.notificationService.notifications$;
+  readonly unreadCount$ = this.notificationService.unreadCount$;
+  readonly allCount$ = this.notificationService.allCount$;
+
+  private readonly pageSize = 10;
+  private requestSequence = 0;
 
   ngOnInit(): void {
-    this.notificationService.fetchNotifications().subscribe();
-    this.notificationService.fetchUnreadCount().subscribe();
+    this.loadNotifications(true);
   }
 
-  get filteredNotifications$(): Observable<Notification[]> {
-    return this.notificationService.notifications$.pipe(
-      map(items => {
-        if (this.activeFilter === 'UNREAD') {
-          return items.filter(item => item.status === NotificationStatus.UNREAD);
-        }
-        return items;
-      })
-    );
+  get avatarUrl(): string | null {
+    if (this.avatarLoadFailed()) return null;
+    return this.authService.currentUser?.avatarUrl || null;
   }
 
-  setFilter(filter: 'ALL' | 'UNREAD'): void {
-    this.activeFilter = filter;
+  get userInitials(): string {
+    const user = this.authService.currentUser;
+    const source = user?.fullName || user?.username || user?.email || 'GS';
+    return source
+      .trim()
+      .split(/\s+/)
+      .slice(-2)
+      .map(part => part.charAt(0).toUpperCase())
+      .join('') || 'GS';
   }
 
-  onMarkRead(notification: Notification, event?: Event): void {
-    if (event) {
-      event.stopPropagation();
-    }
+  get canLoadMore(): boolean {
+    const state = this.notificationService.pageState;
+    return state.page > 0 && state.page < state.totalPages;
+  }
+
+  get loadedCount(): number {
+    return this.notificationService.pageState.total;
+  }
+
+  setFilter(filter: NotificationFilter): void {
+    if (filter === this.activeFilter() && !this.loadFailed()) return;
+    this.activeFilter.set(filter);
+    this.confirmingDeleteId.set(null);
+    this.loadNotifications(true);
+  }
+
+  retry(): void {
+    this.loadNotifications(true);
+  }
+
+  loadMore(): void {
+    if (!this.canLoadMore || this.isLoadingMore()) return;
+    this.loadNotifications(false);
+  }
+
+  onOpenNotification(notification: Notification): void {
+    if (this.isPending(notification.notificationId)) return;
+
     if (notification.status === NotificationStatus.UNREAD) {
-      this.notificationService.markAsRead(notification.notificationId).subscribe();
+      this.markAsRead(notification, true);
+      return;
     }
+
+    this.navigateForNotification(notification);
+  }
+
+  onMarkRead(notification: Notification, event: Event): void {
+    event.stopPropagation();
+    this.markAsRead(notification, false);
   }
 
   onMarkAllRead(): void {
-    this.notificationService.markAllRead().subscribe();
-  }
+    if (this.isMarkingAll()) return;
+    this.isMarkingAll.set(true);
 
-  onDelete(notification: Notification, event: Event): void {
-    event.stopPropagation();
-    this.notificationService.deleteNotification(notification.notificationId).subscribe();
-  }
-
-  get fallbackAvatar(): string {
-    if (this.localAvatarPreview) {
-      return this.localAvatarPreview;
-    }
-    const user = this.authService.currentUser;
-    if (user?.avatarUrl) {
-      return user.avatarUrl;
-    }
-    return user?.fullName
-      ? `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.fullName)}`
-      : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&q=80';
-  }
-
-  onAvatarImgError(event: Event): void {
-    const img = event.target as HTMLImageElement;
-    const user = this.authService.currentUser;
-    const fallback = user?.fullName
-      ? `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.fullName)}`
-      : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&q=80';
-    if (img.src !== fallback) {
-      img.src = fallback;
-    }
-  }
-
-  onAvatarSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-
-    const user = this.authService.currentUser;
-    if (!user?.userId) {
-      this.notifyService.error('Vui lòng đăng nhập để cập nhật ảnh đại diện');
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      this.notifyService.error('Ảnh đại diện không được vượt quá 5MB');
-      input.value = '';
-      return;
-    }
-
-    // Immediately display preview locally so UI updates instantly across Header, Sidebar, etc.
-    const previewUrl = URL.createObjectURL(file);
-    this.localAvatarPreview = previewUrl;
-    const previousUser = { ...user };
-    this.authService.updateCurrentUser({ ...user, avatarUrl: previewUrl });
-
-    this.isUploadingAvatar = true;
-    this.storageService.uploadAvatar(file).pipe(
-      switchMap(tempKey => this.userService.updateAvatar(user.userId, tempKey)),
-      switchMap(() => this.authService.getCurrentUser()),
-      finalize(() => {
-        this.isUploadingAvatar = false;
-        input.value = '';
-      })
+    this.notificationService.markAllRead().pipe(
+      finalize(() => this.isMarkingAll.set(false))
     ).subscribe({
-      next: (refreshedUser) => {
-        this.authService.updateCurrentUser(refreshedUser);
-        this.notifyService.success('Cập nhật ảnh đại diện thành công!');
-      },
-      error: (err) => {
-        this.localAvatarPreview = null;
-        this.authService.updateCurrentUser(previousUser);
-        console.error('Failed to update avatar:', err);
-        this.notifyService.error(err?.error?.message || 'Không thể cập nhật ảnh đại diện, vui lòng thử lại');
-      }
+      next: () => this.notifyService.success('Đã đánh dấu tất cả thông báo là đã đọc.'),
+      error: () => this.notifyService.error('Không thể cập nhật thông báo. Vui lòng thử lại.')
     });
+  }
+
+  requestDelete(notification: Notification, event: Event): void {
+    event.stopPropagation();
+    this.confirmingDeleteId.set(notification.notificationId);
+  }
+
+  cancelDelete(event: Event): void {
+    event.stopPropagation();
+    this.confirmingDeleteId.set(null);
+  }
+
+  confirmDelete(notification: Notification, event: Event): void {
+    event.stopPropagation();
+    const id = notification.notificationId;
+    if (this.isPending(id)) return;
+
+    this.addPending(id);
+    this.notificationService.deleteNotification(id).pipe(
+      finalize(() => this.removePending(id))
+    ).subscribe({
+      next: () => {
+        this.confirmingDeleteId.set(null);
+        this.notifyService.success('Đã xóa thông báo.');
+      },
+      error: () => this.notifyService.error('Không thể xóa thông báo. Vui lòng thử lại.')
+    });
+  }
+
+  isPending(id: string): boolean {
+    return this.pendingIds().has(id);
+  }
+
+  canOpenNotification(notification: Notification): boolean {
+    return notification.status === NotificationStatus.UNREAD || this.getNotificationRoute(notification) !== null;
+  }
+
+  onAvatarImgError(): void {
+    this.avatarLoadFailed.set(true);
   }
 
   getNotificationIcon(type?: NotificationType): string {
     switch (type) {
-      case NotificationType.BOOKING:
-        return 'calendar';
-      case NotificationType.PAYMENT:
-        return 'credit-card';
       case NotificationType.OWNER_APPLICATION:
         return 'store';
-      case NotificationType.USER:
-        return 'user';
+      case NotificationType.BOOKING:
+        return 'calendar';
+      case NotificationType.CHECK_IN:
+        return 'check-circle';
+      case NotificationType.REVIEW:
+        return 'star';
+      case NotificationType.PAYMENT:
+        return 'credit-card';
+      case NotificationType.REFUND:
+        return 'wallet';
+      case NotificationType.MATCHMAKING:
+        return 'target';
+      case NotificationType.FRIENDSHIP:
+        return 'users';
+      case NotificationType.MESSAGE:
+        return 'mail';
+      case NotificationType.CONTENT_MODERATION:
+        return 'shield-alert';
+      case NotificationType.CLUB:
+        return 'swords';
+      case NotificationType.CLUB_FEE:
+        return 'receipt';
+      case NotificationType.TOURNAMENT:
+        return 'trophy';
       case NotificationType.SYSTEM:
       default:
         return 'bell';
     }
   }
 
-  formatTime(dateStr?: string): string {
-    if (!dateStr) return '';
-    try {
-      const date = new Date(dateStr);
-      const now = new Date();
-      const diffMs = now.getTime() - date.getTime();
-      const diffMins = Math.floor(diffMs / (1000 * 60));
-      const diffHours = Math.floor(diffMins / 60);
-      const diffDays = Math.floor(diffHours / 24);
-
-      if (diffMins < 1) return 'Vừa xong';
-      if (diffMins < 60) return `${diffMins} phút trước`;
-      if (diffHours < 24) return `${diffHours} giờ trước`;
-      if (diffDays === 1) return 'Hôm qua';
-      if (diffDays < 7) return `${diffDays} ngày trước`;
-
-      return date.toLocaleDateString('vi-VN', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      });
-    } catch {
-      return dateStr;
+  getNotificationTypeLabel(type?: NotificationType): string {
+    switch (type) {
+      case NotificationType.OWNER_APPLICATION: return 'Đăng ký chủ sân';
+      case NotificationType.BOOKING: return 'Đặt sân';
+      case NotificationType.CHECK_IN: return 'Nhận sân';
+      case NotificationType.REVIEW: return 'Đánh giá';
+      case NotificationType.PAYMENT: return 'Thanh toán';
+      case NotificationType.REFUND: return 'Hoàn tiền';
+      case NotificationType.MATCHMAKING: return 'Ghép trận';
+      case NotificationType.FRIENDSHIP: return 'Kết nối';
+      case NotificationType.MESSAGE: return 'Tin nhắn';
+      case NotificationType.CONTENT_MODERATION: return 'Kiểm duyệt';
+      case NotificationType.CLUB: return 'Câu lạc bộ';
+      case NotificationType.CLUB_FEE: return 'Phí câu lạc bộ';
+      case NotificationType.TOURNAMENT: return 'Giải đấu';
+      case NotificationType.SYSTEM:
+      default: return 'Hệ thống';
     }
+  }
+
+  formatTime(dateStr?: string): string {
+    if (!dateStr) return 'Không rõ thời gian';
+    const date = new Date(dateStr);
+    if (Number.isNaN(date.getTime())) return 'Không rõ thời gian';
+
+    const diffMs = Math.max(0, Date.now() - date.getTime());
+    const diffMins = Math.floor(diffMs / 60_000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 1) return 'Vừa xong';
+    if (diffMins < 60) return `${diffMins} phút trước`;
+    if (diffHours < 24) return `${diffHours} giờ trước`;
+    if (diffDays === 1) return 'Hôm qua';
+    if (diffDays < 7) return `${diffDays} ngày trước`;
+
+    return date.toLocaleString('vi-VN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  }
+
+  private loadNotifications(reset: boolean): void {
+    const sequence = ++this.requestSequence;
+    const page = reset ? 1 : this.notificationService.pageState.page + 1;
+    const status = this.activeFilter() === 'UNREAD' ? NotificationStatus.UNREAD : undefined;
+
+    if (reset) {
+      this.isLoading.set(true);
+    } else {
+      this.isLoadingMore.set(true);
+    }
+    this.loadFailed.set(false);
+
+    this.notificationService.fetchNotifications({ status, page, pageSize: this.pageSize }, !reset).pipe(
+      finalize(() => {
+        if (sequence !== this.requestSequence) return;
+        this.isLoading.set(false);
+        this.isLoadingMore.set(false);
+      })
+    ).subscribe({
+      error: () => {
+        if (sequence !== this.requestSequence) return;
+        this.loadFailed.set(true);
+        if (!reset) {
+          this.notifyService.error('Không thể tải thêm thông báo. Vui lòng thử lại.');
+        }
+      }
+    });
+  }
+
+  private markAsRead(notification: Notification, navigateAfter: boolean): void {
+    const id = notification.notificationId;
+    this.addPending(id);
+
+    this.notificationService.markAsRead(id).pipe(
+      finalize(() => this.removePending(id))
+    ).subscribe({
+      next: () => {
+        if (navigateAfter) this.navigateForNotification(notification);
+      },
+      error: () => {
+        this.notifyService.error('Không thể đánh dấu thông báo là đã đọc.');
+        if (navigateAfter) this.navigateForNotification(notification);
+      }
+    });
+  }
+
+  private navigateForNotification(notification: Notification): void {
+    const route = this.getNotificationRoute(notification);
+    if (route) void this.router.navigate(route);
+  }
+
+  private getNotificationRoute(notification: Notification): string[] | null {
+    const id = notification.referenceId;
+    switch ((notification.referenceType || '').toUpperCase()) {
+      case 'OWNER_APPLICATION': return ['/owner-application'];
+      case 'BOOKING': return id ? ['/booking/detail', id] : ['/booking/history'];
+      case 'FRIENDSHIP': return ['/friends'];
+      case 'MESSAGE': return ['/chat'];
+      case 'CLUB': return id ? ['/clubs', id] : ['/clubs'];
+      case 'TOURNAMENT': return id ? ['/tournaments', id] : ['/tournaments'];
+      case 'MATCHMAKING_SESSION': return ['/matchmaking'];
+      default: return null;
+    }
+  }
+
+  private addPending(id: string): void {
+    this.pendingIds.update(current => new Set([...current, id]));
+  }
+
+  private removePending(id: string): void {
+    this.pendingIds.update(current => {
+      const next = new Set(current);
+      next.delete(id);
+      return next;
+    });
   }
 }

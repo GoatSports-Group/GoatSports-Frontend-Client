@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { NotificationRepository, NOTIFICATION_REPOSITORY_TOKEN } from '@application/ports/persistence/notification.repository';
-import { Notification } from '@domain/entities/notification';
+import { NotificationPage, NotificationQuery } from '@application/dto/notification/notification.dto';
 
 @Injectable({
   providedIn: 'root'
@@ -11,7 +11,7 @@ export class GetNotificationsUseCase {
     @Inject(NOTIFICATION_REPOSITORY_TOKEN) private repository: NotificationRepository
   ) { }
 
-  execute(): Observable<Notification[]> {
-    return this.repository.getNotifications();
+  execute(query: NotificationQuery): Observable<NotificationPage> {
+    return this.repository.getNotifications(query);
   }
 }
