@@ -112,7 +112,7 @@ export class TournamentDetailComponent implements OnInit {
   registerTeam(): void {
     const user = this.authService.currentUser;
     if (!user) {
-      this.router.navigate(['/auth/login']);
+      this.authService.redirectToLogin();
       return;
     }
 

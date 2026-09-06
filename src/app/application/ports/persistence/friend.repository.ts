@@ -13,8 +13,7 @@ export interface FriendRepository {
   getPendingSent(): Observable<BaseResponse<Friendship[]>>;
   sendFriendRequest(request: SendFriendRequestPayload): Observable<BaseResponse<Friendship>>;
   respondFriendRequest(friendshipId: string, payload: RespondFriendRequestPayload): Observable<BaseResponse<Friendship>>;
-  unfriend(friendId: string): Observable<BaseResponse<void>>;
-  checkStatus(targetUserId: string): Observable<BaseResponse<string>>;
+  unfriend(friendshipId: string): Observable<BaseResponse<void>>;
 }
 
 export const FRIEND_REPOSITORY_TOKEN = new InjectionToken<FriendRepository>('FRIEND_REPOSITORY_TOKEN');

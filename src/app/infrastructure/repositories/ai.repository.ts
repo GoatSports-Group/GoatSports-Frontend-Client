@@ -1,16 +1,16 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { Observable } from 'rxjs';
 import { AiRepositoryPort } from '@application/ports/ai.repository.port';
 import { MatchmakingSessionModel, VenueRecommendationModel, ChatbotResponseModel } from '@domain/models/matchmaking.model';
-import { environment } from '@environments/environment';
+import { API_ENDPOINTS } from '@infrastructure/config/api-endpoints';
 
 
 @Injectable({
   providedIn: 'root'
 })
 export class AiRepository extends AiRepositoryPort {
-  private readonly baseUrl = `${environment.apiUrl || 'http://localhost:8080'}/api/v1/ai`;
+  private readonly baseUrl = API_ENDPOINTS.ai;
 
   constructor(private readonly http: HttpClient) {
     super();

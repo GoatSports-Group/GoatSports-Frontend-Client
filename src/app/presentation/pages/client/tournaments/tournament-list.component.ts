@@ -72,7 +72,7 @@ export class TournamentListComponent implements OnInit {
   createTournament(): void {
     const user = this.authService.currentUser;
     if (!user) {
-      this.router.navigate(['/auth/login']);
+      this.authService.redirectToLogin();
       return;
     }
 

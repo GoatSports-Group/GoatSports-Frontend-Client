@@ -35,11 +35,7 @@ export class FriendRepositoryImpl implements FriendRepository {
     return this.api.respondFriendRequest(friendshipId, payload);
   }
 
-  unfriend(friendId: string): Observable<BaseResponse<void>> {
-    return this.api.unfriend(friendId);
-  }
-
-  checkStatus(targetUserId: string): Observable<BaseResponse<string>> {
-    return this.api.checkStatus(targetUserId);
+  unfriend(friendshipId: string): Observable<BaseResponse<void>> {
+    return this.api.unfriend(friendshipId);
   }
 }

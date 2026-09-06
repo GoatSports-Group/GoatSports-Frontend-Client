@@ -128,11 +128,7 @@ export class FriendsComponent implements OnInit {
   }
 
   unfriend(friendship: Friendship): void {
-    const targetId = friendship.requesterId === this.currentUserId
-      ? friendship.addresseeId
-      : friendship.requesterId;
-
-    this.friendRepo.unfriend(targetId).subscribe({
+    this.friendRepo.unfriend(friendship.friendshipId).subscribe({
       next: () => {
         this.notifyService.success('Đã hủy kết bạn.');
         this.loadData();

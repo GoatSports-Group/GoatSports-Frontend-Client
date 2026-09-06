@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {
   Friendship,
@@ -7,56 +7,81 @@ import {
   RespondFriendRequestPayload
 } from '@application/dto/friend/friend.dto';
 import { BaseResponse } from '@application/dto/base/base-response';
-import { environment } from '@environments/environment';
+import { API_ENDPOINTS } from '@infrastructure/config/api-endpoints';
+import {
+  CURRENT_USER_PROVIDER_TOKEN,
+  CurrentUserProvider
+} from '@application/ports/current-user.provider';
 
 @Injectable({
   providedIn: 'root'
 })
 export class FriendApi {
   private http = inject(HttpClient);
-  private apiBase = environment.apiUrl;
+  private currentUser = inject<CurrentUserProvider>(CURRENT_USER_PROVIDER_TOKEN);
+  private readonly apiBase = `${API_ENDPOINTS.social}/friends`;
 
   getFriends(): Observable<BaseResponse<Friendship[]>> {
     return this.http.get<BaseResponse<Friendship[]>>(
-      `${this.apiBase}/notification-service/api/v1/friends`
+      this.apiBase,
+      { params: this.currentUserParams() }
     );
   }
 
   getPendingReceived(): Observable<BaseResponse<Friendship[]>> {
     return this.http.get<BaseResponse<Friendship[]>>(
-      `${this.apiBase}/notification-service/api/v1/friends/requests/received`
+      `${this.apiBase}/requests/received`,
+      { params: this.currentUserParams() }
     );
   }
 
   getPendingSent(): Observable<BaseResponse<Friendship[]>> {
     return this.http.get<BaseResponse<Friendship[]>>(
-      `${this.apiBase}/notification-service/api/v1/friends/requests/sent`
+      `${this.apiBase}/requests/sent`,
+      { params: this.currentUserParams() }
     );
   }
 
   sendFriendRequest(payload: SendFriendRequestPayload): Observable<BaseResponse<Friendship>> {
     return this.http.post<BaseResponse<Friendship>>(
-      `${this.apiBase}/notification-service/api/v1/friends/requests`,
-      payload
+      `${this.apiBase}/requests`,
+      {
+        requesterId: this.requireCurrentUserId(),
+        requesterName: this.currentUser.getCurrentUserName(),
+        requesterAvatar: this.currentUser.getCurrentUserAvatar(),
+        addresseeId: payload.targetUserId,
+        addresseeName: payload.targetUserName,
+        addresseeAvatar: payload.targetUserAvatar
+      }
     );
   }
 
   respondFriendRequest(friendshipId: string, payload: RespondFriendRequestPayload): Observable<BaseResponse<Friendship>> {
     return this.http.put<BaseResponse<Friendship>>(
-      `${this.apiBase}/notification-service/api/v1/friends/requests/${friendshipId}/respond`,
-      payload
+      `${this.apiBase}/requests/${friendshipId}/respond`,
+      {
+        actorUserId: this.requireCurrentUserId(),
+        accepted: payload.accepted
+      }
     );
   }
 
-  unfriend(friendId: string): Observable<BaseResponse<void>> {
+  unfriend(friendshipId: string): Observable<BaseResponse<void>> {
     return this.http.delete<BaseResponse<void>>(
-      `${this.apiBase}/notification-service/api/v1/friends/${friendId}`
+      `${this.apiBase}/${friendshipId}`,
+      { params: this.currentUserParams() }
     );
   }
 
-  checkStatus(targetUserId: string): Observable<BaseResponse<string>> {
-    return this.http.get<BaseResponse<string>>(
-      `${this.apiBase}/notification-service/api/v1/friends/status/${targetUserId}`
-    );
+  private currentUserParams(): HttpParams {
+    return new HttpParams().set('userId', this.requireCurrentUserId());
+  }
+
+  private requireCurrentUserId(): string {
+    const userId = this.currentUser.getCurrentUserId();
+    if (!userId) {
+      throw new Error('Không tìm thấy phiên đăng nhập hiện tại.');
+    }
+    return userId;
   }
 }

@@ -53,7 +53,7 @@ export class HomeComponent implements OnInit {
     this.loading = true;
     this.venueSearchRepo.searchVenues({ page: 0, size: 6 }).subscribe({
       next: res => {
-        this.featuredVenues = res?.data?.result || [];
+        this.featuredVenues = res?.data?.items || [];
         this.loading = false;
       },
       error: err => {

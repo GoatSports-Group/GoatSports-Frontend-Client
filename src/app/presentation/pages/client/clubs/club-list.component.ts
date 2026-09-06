@@ -48,7 +48,7 @@ export class ClubListComponent implements OnInit {
   loadClubs(): void {
     this.loading = true;
     const sport = this.selectedSport === 'ALL' ? undefined : this.selectedSport;
-    this.clubRepo.searchClubs(sport, this.searchKeyword).subscribe({
+    this.clubRepo.searchClubs(sport, undefined, this.searchKeyword).subscribe({
       next: (res) => {
         this.clubs = res || [];
         this.loading = false;
@@ -79,7 +79,7 @@ export class ClubListComponent implements OnInit {
 
   openCreateModal(): void {
     if (!this.authService.currentUser) {
-      this.router.navigate(['/auth/login']);
+      this.authService.redirectToLogin();
       return;
     }
     this.showCreateModal = true;
@@ -88,7 +88,7 @@ export class ClubListComponent implements OnInit {
   createClub(): void {
     const user = this.authService.currentUser;
     if (!user) {
-      this.router.navigate(['/auth/login']);
+      this.authService.redirectToLogin();
       return;
     }
 

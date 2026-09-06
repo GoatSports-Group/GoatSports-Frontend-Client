@@ -86,7 +86,7 @@ export class ClubDetailComponent implements OnInit {
   joinClub(): void {
     const user = this.authService.currentUser;
     if (!user) {
-      this.router.navigate(['/auth/login']);
+      this.authService.redirectToLogin();
       return;
     }
 
@@ -131,4 +131,3 @@ export class ClubDetailComponent implements OnInit {
     });
   }
 }
-

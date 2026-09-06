@@ -6,6 +6,7 @@ import { SessionStateService } from '@presentation/services/session-state.servic
 import { LogoutUseCase } from '@application/usecase/auth/logout.usecase';
 import { RefreshTokenUseCase } from '@application/usecase/auth/refresh-token.usecase';
 import { GetCurrentUserUseCase } from '@application/usecase/auth/get-current-user.usecase';
+import { environment } from '@environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -71,6 +72,10 @@ export class AuthService {
 
   public get isAuthenticated(): boolean {
     return this.sessionStateService.getIsAuthenticated();
+  }
+
+  public redirectToLogin(returnUrl: string = window.location.href): void {
+    window.location.href = `${environment.authApiUrl}/login?redirect=${encodeURIComponent(returnUrl)}`;
   }
 
   public performLogout() {

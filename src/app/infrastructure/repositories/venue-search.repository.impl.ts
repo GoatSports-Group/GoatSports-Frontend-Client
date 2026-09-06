@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { VenueSearchRepository } from '@application/ports/persistence/venue-search.repository';
 import { VenueSearchApi } from '@infrastructure/api/venue-search.api';
 import { Venue, VenueSearchFilter } from '@application/dto/venue/venue.dto';
-import { BaseResponse, BaseListResponse } from '@application/dto/base/base-response';
+import { BaseResponse, PageResult } from '@application/dto/base/base-response';
 import { TimeSlot } from '@application/dto/booking/booking.dto';
 
 @Injectable({
@@ -12,7 +12,7 @@ import { TimeSlot } from '@application/dto/booking/booking.dto';
 export class VenueSearchRepositoryImpl implements VenueSearchRepository {
   private api = inject(VenueSearchApi);
 
-  searchVenues(filter: VenueSearchFilter): Observable<BaseResponse<BaseListResponse<Venue>>> {
+  searchVenues(filter: VenueSearchFilter): Observable<BaseResponse<PageResult<Venue>>> {
     return this.api.searchVenues(filter);
   }
 

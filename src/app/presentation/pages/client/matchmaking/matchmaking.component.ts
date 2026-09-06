@@ -50,7 +50,7 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
   startMatchmaking(): void {
     const user = this.authService.currentUser;
     if (!user) {
-      this.router.navigate(['/auth/login']);
+      this.authService.redirectToLogin();
       return;
     }
 
@@ -120,4 +120,3 @@ export class MatchmakingComponent implements OnInit, OnDestroy {
     this.router.navigate(['/chat']);
   }
 }
-

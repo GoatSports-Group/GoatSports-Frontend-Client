@@ -34,8 +34,8 @@ export class HeaderComponent implements OnInit {
   }
 
   onSearch() {
-    this.router.navigate(['/home'], {
-      queryParams: { search: this.searchQuery.trim() }
+    this.router.navigate(['/venues'], {
+      queryParams: { keyword: this.searchQuery.trim() || null }
     });
   }
 
@@ -114,7 +114,7 @@ export class HeaderComponent implements OnInit {
 
   private navigateFromNotification(notification: Notification): void {
     if (notification.type === NotificationType.BOOKING) {
-      this.router.navigate(['/my-bookings']);
+      this.router.navigate(['/booking/history']);
     } else if (notification.type === NotificationType.OWNER_APPLICATION) {
       this.router.navigate(['/owner-application']);
     }

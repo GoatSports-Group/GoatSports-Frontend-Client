@@ -63,8 +63,8 @@ export class VenueSearchComponent implements OnInit {
     }).subscribe({
       next: res => {
         if (res?.data) {
-          this.venues = res.data.result || [];
-          this.totalVenues = res.data.meta?.total || 0;
+          this.venues = res.data.items || [];
+          this.totalVenues = res.data.total || 0;
         } else {
           this.venues = [];
           this.totalVenues = 0;

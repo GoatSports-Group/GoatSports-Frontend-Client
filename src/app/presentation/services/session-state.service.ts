@@ -29,6 +29,15 @@ export class SessionStateService implements CurrentUserProvider {
     return this.currentUserSubject.value?.userId ?? null;
   }
 
+  getCurrentUserName(): string | null {
+    const user = this.currentUserSubject.value;
+    return user?.fullName || user?.username || user?.email || null;
+  }
+
+  getCurrentUserAvatar(): string | null {
+    return this.currentUserSubject.value?.avatarUrl ?? null;
+  }
+
   setSessionReady(ready: boolean): void {
     this.sessionReadySubject.next(ready);
   }

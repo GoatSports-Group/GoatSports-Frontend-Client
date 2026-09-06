@@ -82,7 +82,8 @@
   gap: 10px;
 }
 
-.social-links a {
+.social-links a,
+.social-links span {
   display: inline-flex;
   width: 40px;
   height: 40px;
@@ -93,6 +94,11 @@
   background: #fff;
   color: #64748b;
   box-shadow: 0 1px 2px rgb(15 23 42 / 4%);
+}
+
+.social-links span[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: .55;
 }
 
 .social-links a:hover {

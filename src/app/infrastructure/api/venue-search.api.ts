@@ -2,18 +2,18 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Venue, VenueSearchFilter } from '@application/dto/venue/venue.dto';
-import { BaseResponse, BaseListResponse } from '@application/dto/base/base-response';
+import { BaseResponse, PageResult } from '@application/dto/base/base-response';
 import { TimeSlot } from '@application/dto/booking/booking.dto';
-import { environment } from '@environments/environment';
+import { API_ENDPOINTS } from '@infrastructure/config/api-endpoints';
 
 @Injectable({
   providedIn: 'root'
 })
 export class VenueSearchApi {
   private http = inject(HttpClient);
-  private apiBase = environment.apiUrl;
+  private readonly apiBase = API_ENDPOINTS.venue;
 
-  searchVenues(filter: VenueSearchFilter): Observable<BaseResponse<BaseListResponse<Venue>>> {
+  searchVenues(filter: VenueSearchFilter): Observable<BaseResponse<PageResult<Venue>>> {
     let params = new HttpParams();
     if (filter.keyword) params = params.set('keyword', filter.keyword);
     if (filter.sportType && filter.sportType !== 'all') params = params.set('sportType', filter.sportType);
@@ -28,22 +28,22 @@ export class VenueSearchApi {
     if (filter.page !== undefined) params = params.set('page', filter.page.toString());
     if (filter.size !== undefined) params = params.set('size', filter.size.toString());
 
-    return this.http.get<BaseResponse<BaseListResponse<Venue>>>(
-      `${this.apiBase}/venue-service/api/v1/venues`,
+    return this.http.get<BaseResponse<PageResult<Venue>>>(
+      `${this.apiBase}/venues`,
       { params }
     );
   }
 
   getVenueDetails(venueId: string): Observable<BaseResponse<Venue>> {
     return this.http.get<BaseResponse<Venue>>(
-      `${this.apiBase}/venue-service/api/v1/venues/${venueId}`
+      `${this.apiBase}/venues/${venueId}`
     );
   }
 
   getCourtSlots(courtId: string, date: string): Observable<BaseResponse<TimeSlot[]>> {
     const params = new HttpParams().set('date', date);
     return this.http.get<BaseResponse<TimeSlot[]>>(
-      `${this.apiBase}/venue-service/api/v1/venue-courts/${courtId}/slots`,
+      `${this.apiBase}/venue-courts/${courtId}/slots`,
       { params }
     );
   }
