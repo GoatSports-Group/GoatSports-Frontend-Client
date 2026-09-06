@@ -19,12 +19,12 @@ export class VenueSearchApi {
     if (filter.sportType && filter.sportType !== 'all') params = params.set('sportType', filter.sportType);
     if (filter.district) params = params.set('district', filter.district);
     if (filter.city) params = params.set('city', filter.city);
-    if (filter.latitude) params = params.set('latitude', filter.latitude.toString());
-    if (filter.longitude) params = params.set('longitude', filter.longitude.toString());
-    if (filter.radiusKm) params = params.set('radiusKm', filter.radiusKm.toString());
-    if (filter.minPrice) params = params.set('minPrice', filter.minPrice.toString());
-    if (filter.maxPrice) params = params.set('maxPrice', filter.maxPrice.toString());
-    if (filter.minRating) params = params.set('minRating', filter.minRating.toString());
+    if (filter.latitude != null) params = params.set('latitude', filter.latitude.toString());
+    if (filter.longitude != null) params = params.set('longitude', filter.longitude.toString());
+    if (filter.radiusKm != null) params = params.set('radiusKm', filter.radiusKm.toString());
+    if (filter.minPrice != null) params = params.set('minPrice', filter.minPrice.toString());
+    if (filter.maxPrice != null) params = params.set('maxPrice', filter.maxPrice.toString());
+    if (filter.minRating != null) params = params.set('minRating', filter.minRating.toString());
     if (filter.page !== undefined) params = params.set('page', filter.page.toString());
     if (filter.size !== undefined) params = params.set('size', filter.size.toString());
 

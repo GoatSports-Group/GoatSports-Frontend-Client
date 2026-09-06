@@ -2,12 +2,17 @@ import { SportType } from '@domain/enums/sport-type.enum';
 
 export interface VenueCourt {
   venueCourtId: string;
+  venueId?: string;
   sportType: SportType;
   name: string;
   capacity: number;
-  pricePerHour: number;
-  indoor: boolean;
+  surfaceType?: string;
+  /** Legacy field kept for the booking form; live pricing is supplied by TimeSlot. */
+  pricePerHour?: number;
+  indoor?: boolean;
   active: boolean;
+  availabilityStatus?: string | null;
+  unavailableUntil?: string | null;
 }
 
 export interface Venue {
@@ -27,12 +32,12 @@ export interface Venue {
   ward?: string;
   district?: string;
   city?: string;
-  latitude?: number;
-  longitude?: number;
+  latitude?: number | null;
+  longitude?: number | null;
   imageUrls: string[];
   amenities: string[];
   sportTypes?: string[];
   totalCourts?: number;
-  distanceKm?: number;
+  distanceKm?: number | null;
   courts?: VenueCourt[];
 }

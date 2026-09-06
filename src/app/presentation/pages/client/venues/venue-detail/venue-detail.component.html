@@ -1,15 +1,24 @@
 <div class="venue-detail-page">
   @if (loading) {
-    <div class="container py-8">
+    <div class="container py-8" aria-label="Đang tải thông tin sân">
       <app-loading-skeleton height="400px" borderRadius="24px"></app-loading-skeleton>
       <div class="mt-8 space-y-4">
         <app-loading-skeleton height="32px" width="50%"></app-loading-skeleton>
         <app-loading-skeleton height="20px" width="80%"></app-loading-skeleton>
       </div>
     </div>
+  } @else if (detailError) {
+    <section class="detail-error neo-card" role="alert">
+      <lucide-icon name="circle-alert" class="w-12 h-12 text-red-400"></lucide-icon>
+      <h1>Không tải được thông tin sân</h1>
+      <p>{{ detailError }}</p>
+      <div class="error-actions">
+        <a mat-stroked-button routerLink="/venues">Quay lại danh sách</a>
+        <button mat-flat-button color="primary" type="button" (click)="loadVenueDetails()">Thử lại</button>
+      </div>
+    </section>
   } @else if (venue) {
-    <div class="container py-6">
-      <!-- Breadcrumb -->
+    <main class="container py-6">
       <div class="breadcrumb-row mb-4">
         <a routerLink="/venues" class="back-link">
           <lucide-icon name="arrow-left" class="w-4 h-4 mr-1"></lucide-icon>
@@ -17,115 +26,138 @@
         </a>
       </div>
 
-      <!-- Main Layout: 2 Columns -->
       <div class="detail-grid">
-        <!-- Left: Gallery & Info -->
         <div class="left-col space-y-6">
-          <!-- Gallery -->
-          <div class="gallery-card neo-card">
+          <section class="gallery-card neo-card" aria-label="Hình ảnh sân">
             <div class="main-image-box">
-              <img [src]="getImages()[selectedImageIndex]" [alt]="venue.name" class="main-gallery-img" />
+              <img [src]="venueImages[selectedImageIndex]" [alt]="venue.name" class="main-gallery-img" (error)="onImageError($event)" />
               <div class="rating-chip">
                 <lucide-icon name="star" class="w-4 h-4 fill-amber-400 text-amber-400 mr-1"></lucide-icon>
-                <span class="font-bold">{{ venue.averageRating || '5.0' }}</span>
-                <span class="text-slate-300 ml-1">({{ venue.totalReviews || 0 }} đánh giá)</span>
+                @if (venue.totalReviews > 0) {
+                  <span class="font-bold">{{ venue.averageRating | number:'1.1-1' }}</span>
+                  <span class="text-slate-300 ml-1">({{ venue.totalReviews }} đánh giá)</span>
+                } @else {
+                  <span>Chưa có đánh giá</span>
+                }
               </div>
             </div>
 
-            @if (getImages().length > 1) {
+            @if (venueImages.length > 1) {
               <div class="thumbnails-row">
-                @for (img of getImages(); track $index) {
-                  <button
-                    type="button"
-                    class="thumb-btn"
-                    [class.active]="selectedImageIndex === $index"
-                    (click)="selectedImageIndex = $index"
-                  >
-                    <img [src]="img" alt="Thumbnail" />
+                @for (image of venueImages; track image) {
+                  <button type="button" class="thumb-btn" [class.active]="selectedImageIndex === $index" (click)="selectedImageIndex = $index" [attr.aria-label]="'Xem ảnh ' + ($index + 1)">
+                    <img [src]="image" [alt]="venue.name + ' - ảnh ' + ($index + 1)" loading="lazy" (error)="onImageError($event)" />
                   </button>
                 }
               </div>
             }
-          </div>
+          </section>
 
-          <!-- Description & Details -->
-          <div class="info-card neo-card p-6">
+          <section class="info-card neo-card p-6">
             <h1 class="venue-title athletic-title">{{ venue.name }}</h1>
-            <div class="meta-row">
+
+            <div class="meta-grid">
               <div class="meta-item">
-                <lucide-icon name="map-pin" class="w-4 h-4 text-emerald-500 mr-1.5"></lucide-icon>
-                <span>{{ venue.address || (venue.district + ', ' + venue.city) }}</span>
+                <lucide-icon name="map-pin" class="w-4 h-4 text-emerald-500"></lucide-icon>
+                <span>{{ fullAddress }}</span>
               </div>
               <div class="meta-item">
-                <lucide-icon name="clock" class="w-4 h-4 text-emerald-500 mr-1.5"></lucide-icon>
-                <span>Mở cửa: 06:00 - 22:00</span>
+                <lucide-icon name="clock" class="w-4 h-4 text-emerald-500"></lucide-icon>
+                <span>Mở cửa: {{ formatTime(venue.openTime) }} – {{ formatTime(venue.closeTime) }}</span>
               </div>
+              @if (venue.phone) {
+                <a class="meta-item" [href]="'tel:' + venue.phone">
+                  <lucide-icon name="phone" class="w-4 h-4 text-emerald-500"></lucide-icon>
+                  <span>{{ venue.phone }}</span>
+                </a>
+              }
+              @if (venue.email) {
+                <a class="meta-item" [href]="'mailto:' + venue.email">
+                  <lucide-icon name="mail" class="w-4 h-4 text-emerald-500"></lucide-icon>
+                  <span>{{ venue.email }}</span>
+                </a>
+              }
             </div>
 
-            <p class="description-text">{{ venue.description || 'Cụm sân thể thao tiêu chuẩn chất lượng cao với đầy đủ tiện ích và mặt sân đạt chuẩn thi đấu quốc tế.' }}</p>
+            @if (mapUrl) {
+              <a class="map-link" [href]="mapUrl" target="_blank" rel="noopener noreferrer">
+                <lucide-icon name="map" class="w-4 h-4"></lucide-icon>
+                Xem đường đi trên Google Maps
+              </a>
+            }
 
-            <!-- Amenities -->
+            @if (venue.description) {
+              <p class="description-text">{{ venue.description }}</p>
+            }
+
             <div class="amenities-section mt-6">
-              <h3 class="section-heading">Tiện ích cụm sân</h3>
-              <div class="amenities-grid">
-                @for (amenity of (venue.amenities || ['Bãi đỗ xe', 'Wifi', 'Đèn chiếu sáng', 'Căn tin nước uống', 'Phòng thay đồ']); track amenity) {
-                  <div class="amenity-badge">
-                    <lucide-icon [name]="amenityIcons[amenity] || 'check-circle'" class="w-4 h-4 text-emerald-600 mr-2"></lucide-icon>
-                    <span>{{ amenity }}</span>
-                  </div>
-                }
-              </div>
+              <h2 class="section-heading">Tiện ích cụm sân</h2>
+              @if (venue.amenities.length) {
+                <div class="amenities-grid">
+                  @for (amenity of venue.amenities; track amenity) {
+                    <div class="amenity-badge">
+                      <lucide-icon [name]="amenityIcons[amenity] || 'circle-check'" class="w-4 h-4 text-emerald-600 mr-2"></lucide-icon>
+                      <span>{{ amenity }}</span>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <p class="muted-copy">Chủ sân chưa cập nhật thông tin tiện ích.</p>
+              }
             </div>
-          </div>
+          </section>
         </div>
 
-        <!-- Right: Courts & Booking Matrix -->
-        <div class="right-col space-y-6">
-          <div class="booking-card neo-card p-6">
-            <h2 class="card-title athletic-title mb-4">Lịch Trống & Đặt Sân</h2>
-
-            <!-- Date Picker -->
-            <div class="date-selector-row mb-4">
-              <label class="block text-xs font-semibold text-slate-600 mb-1.5">CHỌN NGÀY THI ĐẤU</label>
-              <div class="date-input-wrapper">
-                <input
-                  type="date"
-                  [value]="selectedDate"
-                  (change)="onDateChange($event)"
-                  class="date-input"
-                />
+        <aside class="right-col space-y-6">
+          <section class="booking-card neo-card p-6" aria-labelledby="booking-schedule-title">
+            <div class="booking-title-row">
+              <div>
+                <h2 id="booking-schedule-title" class="card-title athletic-title">Lịch Trống & Đặt Sân</h2>
+                @if (venue.minPrice != null) {
+                  <p class="price-summary">Giá từ {{ formatPrice(venue.minPrice) }}/giờ</p>
+                }
               </div>
+              <span class="live-badge"><span></span> Dữ liệu trực tiếp</span>
             </div>
 
-            <!-- Court Selector Tabs -->
-            @if (venue.courts && venue.courts.length > 0) {
+            <div class="date-selector-row mb-4">
+              <label for="booking-date" class="field-label">Chọn ngày thi đấu</label>
+              <input id="booking-date" type="date" [value]="selectedDate" [min]="today" [max]="maxBookingDate" (change)="onDateChange($event)" class="date-input" />
+            </div>
+
+            @if (venue.courts?.length) {
               <div class="courts-selector mb-4">
-                <label class="block text-xs font-semibold text-slate-600 mb-1.5">CHỌN SÂN CON</label>
+                <span class="field-label">Chọn sân con</span>
                 <div class="courts-pills">
                   @for (court of venue.courts; track court.venueCourtId) {
-                    <button
-                      type="button"
-                      class="court-pill"
-                      [class.active]="selectedCourt?.venueCourtId === court.venueCourtId"
-                      (click)="selectCourt(court)"
-                    >
-                      <span class="court-name">{{ court.name }}</span>
-                      <span class="court-price">{{ formatPrice(court.pricePerHour || 100000) }}/h</span>
+                    <button type="button" class="court-pill" [class.active]="selectedCourt?.venueCourtId === court.venueCourtId" [disabled]="!court.active" (click)="selectCourt(court)">
+                      <span>
+                        <strong class="court-name">{{ court.name }}</strong>
+                        <small>{{ getSportLabel(court.sportType) }} · {{ court.capacity }} người</small>
+                      </span>
+                      @if (court.surfaceType) {
+                        <span class="surface-type">{{ court.surfaceType }}</span>
+                      }
                     </button>
                   }
                 </div>
               </div>
 
-              <!-- Available Slots Matrix -->
               <div class="slots-matrix-box">
                 <div class="matrix-header">
-                  <span class="text-xs font-semibold text-slate-600">KHUNG GIỜ TRỐNG NGÀY {{ selectedDate }}</span>
+                  <span>Khung giờ ngày {{ selectedDate | date:'dd/MM/yyyy' }}</span>
                 </div>
 
                 @if (loadingSlots) {
-                  <div class="py-8 text-center">
-                    <mat-progress-spinner mode="indeterminate" diameter="32" class="mx-auto"></mat-progress-spinner>
-                    <span class="text-xs text-slate-400 mt-2 block">Đang tải lịch trống...</span>
+                  <div class="slot-feedback">
+                    <mat-progress-spinner mode="indeterminate" diameter="32"></mat-progress-spinner>
+                    <span>Đang tải lịch trống...</span>
+                  </div>
+                } @else if (slotsError) {
+                  <div class="slot-feedback slot-feedback--error" role="alert">
+                    <lucide-icon name="wifi-off" class="w-6 h-6"></lucide-icon>
+                    <span>{{ slotsError }}</span>
+                    <button type="button" (click)="loadSlots()">Thử lại</button>
                   </div>
                 } @else if (courtSlots.length > 0) {
                   <div class="slots-grid">
@@ -133,25 +165,34 @@
                       <button
                         type="button"
                         class="slot-btn"
-                        [class.booked]="slot.status === 'BOOKED'"
-                        [disabled]="slot.status === 'BOOKED'"
+                        [class.slot-btn--locked]="slot.status === TimeSlotStatus.LOCKED"
+                        [class.slot-btn--booked]="slot.status === TimeSlotStatus.BOOKED"
+                        [class.slot-btn--maintenance]="slot.status === TimeSlotStatus.MAINTENANCE"
+                        [disabled]="!isSlotAvailable(slot)"
                         (click)="goToBooking(selectedCourt!, slot)"
                       >
-                        <span class="slot-time">{{ slot.startTime.slice(0, 5) }} - {{ slot.endTime.slice(0, 5) }}</span>
-                        <span class="slot-status">{{ slot.status === 'BOOKED' ? 'Đã đặt' : 'Trống' }}</span>
+                        <span class="slot-time">{{ formatTime(slot.startTime) }} – {{ formatTime(slot.endTime) }}</span>
+                        <span class="slot-price">{{ formatPrice(slot.pricePerHour) }}</span>
+                        <span class="slot-status">{{ getSlotStatus(slot) }}</span>
                       </button>
                     }
+                  </div>
+                } @else {
+                  <div class="slot-feedback">
+                    <lucide-icon name="calendar-x" class="w-7 h-7"></lucide-icon>
+                    <span>Ngày này chưa có khung giờ khả dụng.</span>
                   </div>
                 }
               </div>
             } @else {
               <div class="empty-courts-notice">
-                <p class="text-sm text-slate-500">Chưa có sân con nào được cấu hình cho cụm sân này.</p>
+                <lucide-icon name="circle-alert" class="w-6 h-6"></lucide-icon>
+                <p>Chủ sân chưa cấu hình sân con đang hoạt động.</p>
               </div>
             }
-          </div>
-        </div>
+          </section>
+        </aside>
       </div>
-    </div>
+    </main>
   }
 </div>

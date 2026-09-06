@@ -23,7 +23,7 @@ export class HomeComponent implements OnInit {
 
   getSportIcon(type: SportType): string {
     switch (type) {
-      case SportType.SOCCER: return 'trophy';
+      case SportType.FOOTBALL: return 'trophy';
       case SportType.BADMINTON: return 'target';
       case SportType.TENNIS: return 'activity';
       case SportType.PICKLEBALL: return 'swords';
@@ -35,7 +35,7 @@ export class HomeComponent implements OnInit {
 
   getSportColor(type: SportType): string {
     switch (type) {
-      case SportType.SOCCER: return '#ecfdf5';
+      case SportType.FOOTBALL: return '#ecfdf5';
       case SportType.BADMINTON: return '#f0f9ff';
       case SportType.TENNIS: return '#fef3c7';
       case SportType.PICKLEBALL: return '#ecfdf5';

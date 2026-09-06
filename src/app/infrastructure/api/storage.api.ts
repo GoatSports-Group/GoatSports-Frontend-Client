@@ -30,6 +30,13 @@ export class StorageApi {
     });
   }
 
+  getFileUrl(key: string): Observable<string> {
+    return this.http.get(`${this.apiBase}/storage-service/api/v1/files`, {
+      params: { key },
+      responseType: 'text'
+    });
+  }
+
   confirmUpload(tempKey: string): Observable<BaseResponse<string[]>> {
     const payload = [{ tempKey }];
     return this.http.post<BaseResponse<string[]>>(

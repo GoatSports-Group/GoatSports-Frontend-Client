@@ -5,6 +5,7 @@ import { PresignedUrlResponse } from '@application/dto/storage/storage.dto';
 export interface StorageRepository {
   getPresignedUrl(fileName: string, contentType: string, folder: string): Observable<PresignedUrlResponse[]>;
   uploadToPresignedUrl(uploadUrl: string, file: File): Observable<any>;
+  getFileUrl(key: string): Observable<string>;
   confirmUpload(tempKey: string): Observable<string[]>;
   uploadAvatar(file: File): Observable<string>;
 }

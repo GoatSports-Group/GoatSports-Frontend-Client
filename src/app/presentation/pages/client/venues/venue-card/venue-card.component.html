@@ -1,13 +1,17 @@
 <div class="venue-card neo-card hover-scale" [routerLink]="['/venues', venue.venueId]">
   <div class="image-wrapper">
-    <img [src]="getPrimaryImage()" [alt]="venue.name" class="venue-img" />
+    <img [src]="primaryImage" [alt]="venue.name" class="venue-img" loading="lazy" (error)="onImageError($event)" />
     <div class="badge-overlay">
       <div class="rating-badge">
         <lucide-icon name="star" class="w-3.5 h-3.5 fill-amber-400 text-amber-400 mr-1"></lucide-icon>
-        <span>{{ venue.averageRating || '5.0' }}</span>
-        <span class="reviews-count">({{ venue.totalReviews || 0 }})</span>
+        @if (venue.totalReviews > 0) {
+          <span>{{ venue.averageRating | number:'1.1-1' }}</span>
+          <span class="reviews-count">({{ venue.totalReviews }})</span>
+        } @else {
+          <span>Chưa có đánh giá</span>
+        }
       </div>
-      @if (venue.distanceKm) {
+      @if (venue.distanceKm != null) {
         <div class="distance-badge">
           <lucide-icon name="map-pin" class="w-3.5 h-3.5 mr-1"></lucide-icon>
           <span>{{ venue.distanceKm }} km</span>
@@ -19,7 +23,7 @@
   <div class="card-body">
     <div class="sports-tags">
       @for (sport of venue.sportTypes; track sport) {
-        <span class="sport-tag">{{ sport }}</span>
+        <span class="sport-tag">{{ getSportLabel(sport) }}</span>
       }
     </div>
 
@@ -33,8 +37,10 @@
     <div class="card-footer">
       <div class="price-box">
         <span class="price-label">Giá từ</span>
-        <span class="price-value">{{ formatPrice(venue.minPrice || 80000) }}</span>
-        <span class="price-unit">/giờ</span>
+        <span class="price-value">{{ formatPrice(venue.minPrice) }}</span>
+        @if (venue.minPrice != null) {
+          <span class="price-unit">/giờ</span>
+        }
       </div>
       <button mat-flat-button color="primary" class="book-btn neo-btn">
         Đặt Sân

@@ -1,5 +1,13 @@
-import { Component, Input } from '@angular/core';
+import { Component, DestroyRef, Input, OnChanges, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { catchError, of, take } from 'rxjs';
 import { Venue } from '@application/dto/venue/venue.dto';
+import { SPORT_TYPE_OPTIONS } from '@application/dto/venue/venue.dto';
+import { GetStorageFileUrlUseCase } from '@application/usecase/storage/get-storage-file-url.usecase';
+import {
+  isAbsoluteVenueImageUrl,
+  VENUE_PLACEHOLDER_IMAGE
+} from '@presentation/shared/utils/venue-media.utils';
 
 @Component({
   selector: 'app-venue-card',
@@ -7,21 +15,55 @@ import { Venue } from '@application/dto/venue/venue.dto';
   styleUrls: ['./venue-card.component.scss'],
   standalone: false
 })
-export class VenueCardComponent {
+export class VenueCardComponent implements OnChanges {
+  private readonly getFileUrl = inject(GetStorageFileUrlUseCase);
+  private readonly destroyRef = inject(DestroyRef);
+
   @Input() venue!: Venue;
+  primaryImage = VENUE_PLACEHOLDER_IMAGE;
+  private currentImageKey = '';
 
-  getDefaultImage(): string {
-    return 'https://images.unsplash.com/photo-1542652694-40abf526446e?w=600&q=80';
+  ngOnChanges(): void {
+    this.resolvePrimaryImage(this.venue?.imageUrls?.[0]);
   }
 
-  getPrimaryImage(): string {
-    if (this.venue?.imageUrls && this.venue.imageUrls.length > 0) {
-      return this.venue.imageUrls[0];
+  onImageError(event: Event): void {
+    const image = event.target as HTMLImageElement;
+    if (!image.src.endsWith(VENUE_PLACEHOLDER_IMAGE)) {
+      image.src = VENUE_PLACEHOLDER_IMAGE;
     }
-    return this.getDefaultImage();
   }
 
-  formatPrice(price: number): string {
+  getSportLabel(value: string): string {
+    return SPORT_TYPE_OPTIONS.find(option => option.value === value)?.label || value;
+  }
+
+  formatPrice(price: number | null | undefined): string {
+    if (price == null) return 'Liên hệ';
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+  }
+
+  private resolvePrimaryImage(value?: string | null): void {
+    const image = value?.trim() ?? '';
+    this.currentImageKey = image;
+    this.primaryImage = VENUE_PLACEHOLDER_IMAGE;
+    if (!image) return;
+
+    if (isAbsoluteVenueImageUrl(image)) {
+      this.primaryImage = image;
+      return;
+    }
+
+    this.getFileUrl.execute(image).pipe(
+      take(1),
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => of(''))
+    ).subscribe(url => {
+      if (this.currentImageKey !== image) return;
+      const resolvedUrl = url.trim();
+      this.primaryImage = isAbsoluteVenueImageUrl(resolvedUrl)
+        ? resolvedUrl
+        : VENUE_PLACEHOLDER_IMAGE;
+    });
   }
 }

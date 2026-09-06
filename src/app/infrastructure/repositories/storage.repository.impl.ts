@@ -21,6 +21,10 @@ export class StorageRepositoryImpl implements StorageRepository {
     return this.storageApi.uploadToPresignedUrl(uploadUrl, file);
   }
 
+  getFileUrl(key: string): Observable<string> {
+    return this.storageApi.getFileUrl(key);
+  }
+
   confirmUpload(tempKey: string): Observable<string[]> {
     return this.storageApi.confirmUpload(tempKey).pipe(
       map((response: any) => (Array.isArray(response) ? response : (response?.data || [])))

@@ -1,5 +1,5 @@
 export enum SportType {
-  SOCCER = 'SOCCER',
+  FOOTBALL = 'FOOTBALL',
   BADMINTON = 'BADMINTON',
   TENNIS = 'TENNIS',
   PICKLEBALL = 'PICKLEBALL',
@@ -9,7 +9,7 @@ export enum SportType {
 
 export const SPORT_TYPE_OPTIONS = [
   {
-    value: SportType.SOCCER,
+    value: SportType.FOOTBALL,
     label: 'Bóng đá',
   },
   {
