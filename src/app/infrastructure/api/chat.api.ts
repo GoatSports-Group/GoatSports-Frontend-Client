@@ -21,11 +21,21 @@ interface ConversationApiResponse {
   type: ChatRoom['type'];
   name?: string;
   avatarUrl?: string;
+  contextId?: string;
+  lastMessageId?: string;
   lastMessageContent?: string;
   lastMessageAt?: string;
   lastSenderId?: string;
   unreadCount?: number;
-  members?: Array<{ userId: string }>;
+  members?: Array<{
+    userId: string;
+    userName?: string;
+    userAvatar?: string;
+    role?: string;
+    joinedAt?: string;
+    lastReadMessageId?: string;
+    leftAt?: string;
+  }>;
   createdAt: string;
   updatedAt: string;
 }
@@ -34,12 +44,16 @@ interface MessageApiResponse {
   messageId: string;
   conversationId: string;
   senderId: string;
+  clientMessageId?: string;
   senderName?: string;
   senderAvatar?: string;
   content: string;
   type: ChatMessage['type'];
   status?: string;
-  attachments?: unknown[];
+  replyToMessageId?: string;
+  attachments?: ChatMessage['attachments'];
+  receipts?: ChatMessage['receipts'];
+  deleted?: boolean;
   sentAt: string;
   editedAt?: string;
 }
@@ -68,13 +82,7 @@ export class ChatApi {
   getOrCreateDirectRoom(request: CreateDirectRoomRequest): Observable<BaseResponse<ChatRoom>> {
     let params = new HttpParams()
       .set('user1Id', this.requireCurrentUserId())
-      .set('user1Name', this.currentUser.getCurrentUserName() || 'Người chơi GoatSports')
-      .set('user2Id', request.targetUserId)
-      .set('user2Name', request.targetUserName || 'Người chơi GoatSports');
-
-    const user1Avatar = this.currentUser.getCurrentUserAvatar();
-    if (user1Avatar) params = params.set('user1Avatar', user1Avatar);
-    if (request.targetUserAvatar) params = params.set('user2Avatar', request.targetUserAvatar);
+      .set('user2Id', request.targetUserId);
 
     return this.http.post<BaseResponse<ConversationApiResponse>>(
       `${this.apiBase}/direct`,
@@ -91,7 +99,7 @@ export class ChatApi {
         name: request.name,
         avatarUrl: request.avatarUrl,
         creatorId: this.requireCurrentUserId(),
-        members: request.participantIds.map(userId => ({ userId }))
+        members: request.participants.map(participant => ({ userId: participant.userId }))
       }
     ).pipe(map(response => ({ ...response, data: this.toChatRoom(response.data) })));
   }
@@ -123,8 +131,7 @@ export class ChatApi {
       `${this.apiBase}/${roomId}/messages`,
       {
         senderId: this.requireCurrentUserId(),
-        senderName: this.currentUser.getCurrentUserName(),
-        senderAvatar: this.currentUser.getCurrentUserAvatar(),
+        clientMessageId: request.clientMessageId,
         content: request.content,
         type: request.type || 'TEXT'
       }
@@ -148,12 +155,19 @@ export class ChatApi {
   }
 
   private toChatRoom(item: ConversationApiResponse): ChatRoom {
+    const participants = item.members || [];
+    const counterpart = item.type === 'DIRECT'
+      ? participants.find(member => member.userId !== this.requireCurrentUserId())
+      : undefined;
     return {
       roomId: item.conversationId,
       type: item.type,
-      name: item.name,
-      avatarUrl: item.avatarUrl,
-      participantIds: item.members?.map(member => member.userId) || [],
+      name: counterpart?.userName || item.name,
+      avatarUrl: counterpart?.userAvatar || item.avatarUrl,
+      contextId: item.contextId,
+      lastMessageId: item.lastMessageId,
+      participantIds: participants.map(member => member.userId),
+      participants,
       lastMessage: item.lastMessageContent,
       lastMessageAt: item.lastMessageAt,
       lastSenderId: item.lastSenderId,
@@ -168,13 +182,19 @@ export class ChatApi {
       messageId: item.messageId,
       roomId: item.conversationId,
       senderId: item.senderId,
+      clientMessageId: item.clientMessageId,
       senderName: item.senderName,
       senderAvatar: item.senderAvatar,
       content: item.content,
       type: item.type,
-      metadata: item.attachments?.length ? JSON.stringify(item.attachments) : undefined,
+      status: item.status as ChatMessage['status'],
+      replyToMessageId: item.replyToMessageId,
+      attachments: item.attachments || [],
+      receipts: item.receipts || [],
+      deleted: item.deleted,
       isRead: item.status === 'READ',
-      createdAt: item.sentAt
+      createdAt: item.sentAt,
+      editedAt: item.editedAt
     };
   }
 }

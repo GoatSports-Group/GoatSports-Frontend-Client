@@ -128,7 +128,13 @@ import {
   LucideTrash2,
   LucideCheckCheck,
   LucideInbox,
-  LucideBellRing
+  LucideBellRing,
+  LucideMessageCircle,
+  LucideMessageSquare,
+  LucideMessagesSquare,
+  LucideUserX,
+  LucideUserCheck,
+  LucideUserPlus
 } from '@lucide/angular';
 
 @NgModule({
@@ -250,7 +256,13 @@ import {
       LucideTrash2,
       LucideCheckCheck,
       LucideInbox,
-      LucideBellRing
+      LucideBellRing,
+      LucideMessageCircle,
+      LucideMessageSquare,
+      LucideMessagesSquare,
+      LucideUserX,
+      LucideUserCheck,
+      LucideUserPlus
     )
   ],
   bootstrap: [AppComponent]

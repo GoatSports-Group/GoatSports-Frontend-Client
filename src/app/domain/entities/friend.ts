@@ -9,6 +9,6 @@ export interface Friendship {
   addresseeName?: string;
   addresseeAvatar?: string;
   status: FriendshipStatus;
-  createdAt: string;
-  updatedAt: string;
+  requestedAt: string;
+  respondedAt?: string;
 }

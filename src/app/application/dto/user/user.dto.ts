@@ -38,4 +38,11 @@ export interface CreatePasswordRequest {
   confirmPassword: string;
 }
 
+export interface PlayerSummary {
+  userId: string;
+  username: string;
+  fullName: string;
+  avatarUrl?: string;
+}
+
 export { RoleEnum, ROLE_ENUM_OPTIONS } from '@domain/enums/role.enum';

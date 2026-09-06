@@ -1,20 +1,20 @@
-export { ChatRoom, ChatMessage } from '@domain/entities/chat';
+import { ChatParticipant } from '@domain/entities/chat';
+export { ChatRoom, ChatMessage, ChatParticipant, ChatMessageAttachment, ChatMessageReceipt } from '@domain/entities/chat';
 export { ChatRoomType } from '@domain/enums/chat-room-type.enum';
 export { MessageType } from '@domain/enums/message-type.enum';
 
 export interface CreateDirectRoomRequest {
   targetUserId: string;
-  targetUserName?: string;
-  targetUserAvatar?: string;
 }
 
 export interface CreateGroupRoomRequest {
   name: string;
   avatarUrl?: string;
-  participantIds: string[];
+  participants: ChatParticipant[];
 }
 
 export interface SendMessageRequest {
+  clientMessageId?: string;
   content: string;
   type?: string;
   metadata?: string;

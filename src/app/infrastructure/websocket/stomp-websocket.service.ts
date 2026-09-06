@@ -59,13 +59,15 @@ class StompFrame {
 })
 export class StompWebSocketService implements WebSocketService {
   private socket: WebSocket | null = null;
+  private socialSocket: WebSocket | null = null;
   private isConnected = false;
+  private isSocialConnected = false;
   private reconnectTimeout: any = null;
+  private socialReconnectTimeout: any = null;
   private shouldReconnect = false;
   private apiBase = environment.apiUrl;
   private notificationSubscriptionId = 'sub-user-notifications';
   private progressSubscriptionId = 'sub-owner-application-progress';
-  private chatInboxSubscriptionId = 'sub-user-chat-inbox';
   private activeRoomSubscriptions = new Set<string>();
   private currentUserProvider = inject<CurrentUserProvider>(CURRENT_USER_PROVIDER_TOKEN);
 
@@ -82,6 +84,7 @@ export class StompWebSocketService implements WebSocketService {
 
   public connect(): void {
     this.shouldReconnect = true;
+    this.connectSocialSocket();
     if (this.socket || this.isConnected) {
       return;
     }
@@ -131,6 +134,10 @@ export class StompWebSocketService implements WebSocketService {
       clearTimeout(this.reconnectTimeout);
       this.reconnectTimeout = null;
     }
+    if (this.socialReconnectTimeout) {
+      clearTimeout(this.socialReconnectTimeout);
+      this.socialReconnectTimeout = null;
+    }
 
     const socket = this.socket;
     if (socket) {
@@ -141,46 +148,66 @@ export class StompWebSocketService implements WebSocketService {
       socket.close();
     }
     this.isConnected = false;
+
+    const socialSocket = this.socialSocket;
+    if (socialSocket) {
+      if (this.isSocialConnected) {
+        this.activeRoomSubscriptions.forEach(roomId => {
+          this.socialUnsubscribe(`sub-social-room-${roomId}`);
+          this.socialUnsubscribe(`sub-social-typing-${roomId}`);
+        });
+      }
+      this.socialSocket = null;
+      socialSocket.close();
+    }
+    this.isSocialConnected = false;
   }
 
   public subscribeToRoom(roomId: string): void {
     if (!roomId) return;
+    if (this.activeRoomSubscriptions.has(roomId)) return;
     this.activeRoomSubscriptions.add(roomId);
-    if (this.isConnected) {
-      this.subscribe(`sub-room-${roomId}`, `/topic/rooms/${roomId}`);
-      this.subscribe(`sub-typing-${roomId}`, `/topic/rooms/${roomId}/typing`);
+    if (this.isSocialConnected) {
+      this.socialSubscribe(`sub-social-room-${roomId}`, `/topic/conversations/${roomId}`);
+      this.socialSubscribe(`sub-social-typing-${roomId}`, `/topic/conversations/${roomId}/typing`);
     }
   }
 
   public unsubscribeFromRoom(roomId: string): void {
     if (!roomId) return;
     this.activeRoomSubscriptions.delete(roomId);
-    if (this.isConnected) {
-      this.unsubscribe(`sub-room-${roomId}`);
-      this.unsubscribe(`sub-typing-${roomId}`);
+    if (this.isSocialConnected) {
+      this.socialUnsubscribe(`sub-social-room-${roomId}`);
+      this.socialUnsubscribe(`sub-social-typing-${roomId}`);
     }
   }
 
   public sendChatMessage(payload: any): void {
-    if (!this.socket || !this.isConnected) {
+    if (!this.socialSocket || !this.isSocialConnected) {
       console.warn('Cannot send STOMP message: WebSocket not connected.');
       return;
     }
-    const frame = new StompFrame('SEND', { destination: '/app/chat.send' }, JSON.stringify(payload));
-    this.socket.send(frame.toString());
+    const body = {
+      conversationId: payload.conversationId || payload.roomId,
+      senderId: payload.senderId,
+      clientMessageId: payload.clientMessageId || crypto.randomUUID(),
+      content: payload.content,
+      type: payload.type,
+      replyToMessageId: payload.replyToMessageId
+    };
+    this.sendSocialFrame(new StompFrame('SEND', { destination: '/app/social/chat.send' }, JSON.stringify(body)));
   }
 
   public sendTyping(roomId: string, senderName: string, isTyping: boolean): void {
-    if (!this.socket || !this.isConnected) return;
+    if (!this.socialSocket || !this.isSocialConnected) return;
     const currentUserId = this.currentUserProvider.getCurrentUserId();
     const payload = {
-      roomId,
-      senderId: currentUserId,
-      senderName,
-      isTyping
+      conversationId: roomId,
+      userId: currentUserId,
+      userName: senderName || this.currentUserProvider.getCurrentUserName() || 'Người chơi GoatSports',
+      typing: isTyping
     };
-    const frame = new StompFrame('SEND', { destination: '/app/chat.typing' }, JSON.stringify(payload));
-    this.socket.send(frame.toString());
+    this.sendSocialFrame(new StompFrame('SEND', { destination: '/app/social/chat.typing' }, JSON.stringify(payload)));
   }
 
   private sendConnectFrame(): void {
@@ -205,13 +232,6 @@ export class StompWebSocketService implements WebSocketService {
 
     this.subscribe(this.notificationSubscriptionId, `/topic/user/notifications/${currentUserId}`);
     this.subscribe(this.progressSubscriptionId, `/topic/user/owner-application-progress/${currentUserId}`);
-    this.subscribe(this.chatInboxSubscriptionId, `/topic/user/chats/${currentUserId}`);
-
-    // Re-subscribe to any active rooms
-    this.activeRoomSubscriptions.forEach(roomId => {
-      this.subscribe(`sub-room-${roomId}`, `/topic/rooms/${roomId}`);
-      this.subscribe(`sub-typing-${roomId}`, `/topic/rooms/${roomId}/typing`);
-    });
   }
 
   private sendUnsubscribeFrame(): void {
@@ -220,11 +240,6 @@ export class StompWebSocketService implements WebSocketService {
     try {
       this.unsubscribe(this.notificationSubscriptionId);
       this.unsubscribe(this.progressSubscriptionId);
-      this.unsubscribe(this.chatInboxSubscriptionId);
-      this.activeRoomSubscriptions.forEach(roomId => {
-        this.unsubscribe(`sub-room-${roomId}`);
-        this.unsubscribe(`sub-typing-${roomId}`);
-      });
       console.log('STOMP UNSUBSCRIBE sent');
     } catch (e) {
       console.error('Error sending unsubscribe frame:', e);
@@ -262,21 +277,6 @@ export class StompWebSocketService implements WebSocketService {
             } catch (jsonErr) {
               console.error('Failed to parse progress event:', jsonErr);
             }
-          } else if (destination === `/topic/user/chats/${currentUserId}` || destination?.startsWith('/topic/rooms/')) {
-            if (destination.endsWith('/typing')) {
-              try {
-                this.typingEventSubject.next(JSON.parse(frame.body));
-              } catch (jsonErr) {
-                console.error('Failed to parse typing event:', jsonErr);
-              }
-            } else {
-              try {
-                const chatMsg: ChatMessage = JSON.parse(frame.body);
-                this.chatMessageSubject.next(chatMsg);
-              } catch (jsonErr) {
-                console.error('Failed to parse chat message:', jsonErr);
-              }
-            }
           }
           break;
         case 'ERROR':
@@ -309,6 +309,129 @@ export class StompWebSocketService implements WebSocketService {
       this.reconnectTimeout = setTimeout(() => {
         this.reconnectTimeout = null;
         this.connect();
+      }, 5000);
+    }
+  }
+
+  private connectSocialSocket(): void {
+    if (this.socialSocket || this.isSocialConnected) return;
+
+    let wsUrl = this.apiBase.replace(/^http/, 'ws').replace(/\/+$/, '');
+    wsUrl += '/social-service/ws/websocket';
+
+    try {
+      const socket = new WebSocket(wsUrl);
+      this.socialSocket = socket;
+
+      socket.onmessage = (event: MessageEvent) => {
+        if (this.socialSocket !== socket) return;
+        this.handleSocialTransportMessage(event.data);
+      };
+      socket.onclose = () => {
+        if (this.socialSocket !== socket) return;
+        this.handleSocialDisconnect();
+      };
+      socket.onerror = () => {
+        if (this.socialSocket === socket) {
+          console.error('Không thể kết nối WebSocket trò chuyện.');
+        }
+      };
+    } catch {
+      this.handleSocialDisconnect();
+    }
+  }
+
+  private handleSocialTransportMessage(data: string): void {
+    if (data === 'o') {
+      this.sendSocialFrame(new StompFrame('CONNECT', {
+        'accept-version': '1.1,1.2',
+        'heart-beat': '0,0'
+      }, ''));
+      return;
+    }
+    if (data === 'h' || !data.startsWith('a')) return;
+
+    try {
+      const messages = JSON.parse(data.substring(1)) as string[];
+      messages.forEach(message => this.handleSocialStompFrame(message));
+    } catch (error) {
+      console.error('Không thể đọc dữ liệu WebSocket trò chuyện.', error);
+    }
+  }
+
+  private handleSocialStompFrame(data: string): void {
+    const frame = StompFrame.parse(data);
+    if (!frame) return;
+
+    if (frame.command === 'CONNECTED') {
+      this.isSocialConnected = true;
+      this.activeRoomSubscriptions.forEach(roomId => {
+        this.socialSubscribe(`sub-social-room-${roomId}`, `/topic/conversations/${roomId}`);
+        this.socialSubscribe(`sub-social-typing-${roomId}`, `/topic/conversations/${roomId}/typing`);
+      });
+      return;
+    }
+    if (frame.command !== 'MESSAGE') return;
+
+    const destination = frame.headers['destination'] || '';
+    const match = destination.match(/^\/topic\/conversations\/([^/]+)(\/typing)?$/);
+    if (!match) return;
+
+    try {
+      const payload = JSON.parse(frame.body);
+      const roomId = match[1];
+      if (match[2]) {
+        this.typingEventSubject.next({
+          roomId,
+          senderId: payload.userId,
+          senderName: payload.userName,
+          isTyping: Boolean(payload.typing)
+        });
+      } else {
+        this.chatMessageSubject.next({
+          messageId: payload.messageId,
+          roomId: payload.conversationId || roomId,
+          senderId: payload.senderId,
+          senderName: payload.senderName,
+          senderAvatar: payload.senderAvatar,
+          content: payload.content,
+          type: payload.type,
+          status: payload.status,
+          clientMessageId: payload.clientMessageId,
+          replyToMessageId: payload.replyToMessageId,
+          attachments: payload.attachments || [],
+          receipts: payload.receipts || [],
+          deleted: payload.deleted,
+          isRead: payload.status === 'READ',
+          createdAt: payload.sentAt,
+          editedAt: payload.editedAt
+        });
+      }
+    } catch (error) {
+      console.error('Không thể chuyển đổi dữ liệu trò chuyện realtime.', error);
+    }
+  }
+
+  private sendSocialFrame(frame: StompFrame): void {
+    if (!this.socialSocket || this.socialSocket.readyState !== WebSocket.OPEN) return;
+    this.socialSocket.send(JSON.stringify([frame.toString()]));
+  }
+
+  private socialSubscribe(id: string, destination: string): void {
+    this.sendSocialFrame(new StompFrame('SUBSCRIBE', { id, destination }, ''));
+  }
+
+  private socialUnsubscribe(id: string): void {
+    this.sendSocialFrame(new StompFrame('UNSUBSCRIBE', { id }, ''));
+  }
+
+  private handleSocialDisconnect(): void {
+    this.isSocialConnected = false;
+    this.socialSocket = null;
+    if (this.shouldReconnect && !this.socialReconnectTimeout) {
+      this.socialReconnectTimeout = setTimeout(() => {
+        this.socialReconnectTimeout = null;
+        this.connectSocialSocket();
       }, 5000);
     }
   }

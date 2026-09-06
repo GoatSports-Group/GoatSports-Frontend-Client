@@ -5,7 +5,9 @@ import { FriendApi } from '@infrastructure/api/friend.api';
 import {
   Friendship,
   SendFriendRequestPayload,
-  RespondFriendRequestPayload
+  RespondFriendRequestPayload,
+  UserBlock,
+  BlockUserPayload
 } from '@application/dto/friend/friend.dto';
 import { BaseResponse } from '@application/dto/base/base-response';
 
@@ -37,5 +39,17 @@ export class FriendRepositoryImpl implements FriendRepository {
 
   unfriend(friendshipId: string): Observable<BaseResponse<void>> {
     return this.api.unfriend(friendshipId);
+  }
+
+  getBlockedUsers(): Observable<BaseResponse<UserBlock[]>> {
+    return this.api.getBlockedUsers();
+  }
+
+  blockUser(payload: BlockUserPayload): Observable<BaseResponse<UserBlock>> {
+    return this.api.blockUser(payload);
+  }
+
+  unblockUser(blockId: string): Observable<BaseResponse<void>> {
+    return this.api.unblockUser(blockId);
   }
 }

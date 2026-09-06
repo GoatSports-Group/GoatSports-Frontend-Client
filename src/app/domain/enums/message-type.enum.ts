@@ -1,7 +1,7 @@
 export enum MessageType {
   TEXT = 'TEXT',
   IMAGE = 'IMAGE',
-  MATCH_INVITE = 'MATCH_INVITE',
-  LOCATION = 'LOCATION',
+  VIDEO = 'VIDEO',
+  FILE = 'FILE',
   SYSTEM = 'SYSTEM',
 }
