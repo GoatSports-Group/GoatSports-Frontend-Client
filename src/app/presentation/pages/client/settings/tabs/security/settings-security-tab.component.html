@@ -16,7 +16,7 @@
   <div class="settings-row">
     <div class="settings-row__info">
       <h3 class="settings-row__label">Phương thức xác thực</h3>
-      <p class="settings-row__value">{{ user?.authProvider || 'GOAT SPORTS SSO' }}</p>
+      <p class="settings-row__value">{{ authenticationMethods }}</p>
     </div>
     <span class="settings-row__fixed">Được quản lý</span>
   </div>
@@ -25,7 +25,7 @@
   <div class="settings-row">
     <div class="settings-row__info">
       <h3 class="settings-row__label">Vai trò tài khoản</h3>
-      <p class="settings-row__value">{{ user?.role?.name || 'PLAYER' }}</p>
+      <p class="settings-row__value">{{ roleLabel }}</p>
     </div>
     <span class="settings-row__fixed">Hệ thống</span>
   </div>
@@ -35,36 +35,23 @@
     <div class="settings-row__info">
       <h3 class="settings-row__label">Trạng thái tài khoản</h3>
       <div class="status-row">
-        <span class="status-dot"></span>
-        <span class="settings-row__value font-semibold text-emerald-700">Đang hoạt động</span>
+        <span class="status-dot" [class.status-dot--inactive]="!isActive"></span>
+        <span class="settings-row__value font-semibold" [class.text-emerald-700]="isActive">{{ statusLabel }}</span>
       </div>
     </div>
-    <span class="settings-row__fixed">Bình thường</span>
+    <span class="settings-row__fixed">Hệ thống</span>
   </div>
 
   <!-- Row 5: Phiên đăng nhập -->
   <div class="settings-row">
     <div class="settings-row__info">
-      <h3 class="settings-row__label">Phiên đăng nhập</h3>
+      <h3 class="settings-row__label">Thiết bị hiện tại</h3>
       <p class="settings-row__subtext">
-        Đang đăng nhập trên thiết bị này qua trình duyệt Chrome / Trình duyệt hiện tại.
+        Đăng xuất an toàn khỏi phiên đang sử dụng trên trình duyệt này.
       </p>
     </div>
-    <button type="button" class="settings-row__action" (click)="onAction('Đăng xuất tất cả thiết bị')">
-      Đăng xuất các thiết bị
-    </button>
-  </div>
-
-  <!-- Row 6: Xóa tài khoản -->
-  <div class="settings-row settings-row--danger">
-    <div class="settings-row__info">
-      <h3 class="settings-row__label text-red-600">Xóa tài khoản</h3>
-      <p class="settings-row__subtext">
-        Xóa vĩnh viễn tài khoản và toàn bộ lịch sử đặt sân của bạn khỏi nền tảng GOAT SPORTS.
-      </p>
-    </div>
-    <button type="button" class="settings-row__action-danger" (click)="onAction('Xóa tài khoản')">
-      Xóa tài khoản
+    <button type="button" class="settings-row__action" (click)="logoutCurrentSession()" [disabled]="isLoggingOut">
+      {{ isLoggingOut ? 'Đang đăng xuất...' : 'Đăng xuất' }}
     </button>
   </div>
 </div>
@@ -72,10 +59,17 @@
 <!-- Modal Đổi / Tạo Mật Khẩu -->
 @if (showPasswordModal) {
 <div class="modal-backdrop" (click)="closePasswordModal()">
-  <div class="modal-card" (click)="$event.stopPropagation()">
+  <form
+    class="modal-card"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="password-modal-title"
+    (click)="$event.stopPropagation()"
+    (ngSubmit)="onSavePassword()"
+  >
     <div class="modal-header">
-      <h3 class="modal-title">{{ hasPassword ? 'Đổi mật khẩu' : 'Thiết lập mật khẩu mới' }}</h3>
-      <button type="button" class="btn-close" (click)="closePasswordModal()">
+      <h3 id="password-modal-title" class="modal-title">{{ hasPassword ? 'Đổi mật khẩu' : 'Thiết lập mật khẩu mới' }}</h3>
+      <button type="button" class="btn-close" aria-label="Đóng" (click)="closePasswordModal()">
         <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
       </button>
     </div>
@@ -91,9 +85,11 @@
             [type]="showCurrentPass ? 'text' : 'password'"
             class="form-control"
             placeholder="Nhập mật khẩu hiện tại"
+            autocomplete="current-password"
             [(ngModel)]="form.currentPassword"
+            name="currentPassword"
           />
-          <button type="button" class="btn-toggle-eye" (click)="showCurrentPass = !showCurrentPass">
+          <button type="button" class="btn-toggle-eye" [attr.aria-label]="showCurrentPass ? 'Ẩn mật khẩu hiện tại' : 'Hiện mật khẩu hiện tại'" (click)="showCurrentPass = !showCurrentPass">
             <lucide-icon [name]="showCurrentPass ? 'eye-off' : 'eye'" class="w-4 h-4"></lucide-icon>
           </button>
         </div>
@@ -111,9 +107,11 @@
             [type]="showNewPass ? 'text' : 'password'"
             class="form-control"
             placeholder="Nhập mật khẩu mới"
+            autocomplete="new-password"
             [(ngModel)]="form.newPassword"
+            name="newPassword"
           />
-          <button type="button" class="btn-toggle-eye" (click)="showNewPass = !showNewPass">
+          <button type="button" class="btn-toggle-eye" [attr.aria-label]="showNewPass ? 'Ẩn mật khẩu mới' : 'Hiện mật khẩu mới'" (click)="showNewPass = !showNewPass">
             <lucide-icon [name]="showNewPass ? 'eye-off' : 'eye'" class="w-4 h-4"></lucide-icon>
           </button>
         </div>
@@ -133,9 +131,11 @@
             [type]="showConfirmPass ? 'text' : 'password'"
             class="form-control"
             placeholder="Nhập lại mật khẩu"
+            autocomplete="new-password"
             [(ngModel)]="form.confirmPassword"
+            name="confirmPassword"
           />
-          <button type="button" class="btn-toggle-eye" (click)="showConfirmPass = !showConfirmPass">
+          <button type="button" class="btn-toggle-eye" [attr.aria-label]="showConfirmPass ? 'Ẩn mật khẩu xác nhận' : 'Hiện mật khẩu xác nhận'" (click)="showConfirmPass = !showConfirmPass">
             <lucide-icon [name]="showConfirmPass ? 'eye-off' : 'eye'" class="w-4 h-4"></lucide-icon>
           </button>
         </div>
@@ -146,7 +146,7 @@
       <button type="button" class="btn-cancel" (click)="closePasswordModal()" [disabled]="isSaving">
         Hủy
       </button>
-      <button type="button" class="btn-save" (click)="onSavePassword()" [disabled]="isSaving">
+      <button type="submit" class="btn-save" [disabled]="isSaving">
         @if (isSaving) {
           <span>Đang lưu...</span>
         } @else {
@@ -154,6 +154,6 @@
         }
       </button>
     </div>
-  </div>
+  </form>
 </div>
 }

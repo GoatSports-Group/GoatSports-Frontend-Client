@@ -15,9 +15,17 @@ export type User = {
     name: string;
   };
   keycloakId?: string;
-  authProvider?: string;
+  authProviders?: string[];
   hasPassword?: boolean;
 };
+
+export interface UpdateUserRequest {
+  username: string;
+  fullName: string;
+  phone: string;
+  country: string;
+  gender: string;
+}
 
 export interface UpdatePasswordRequest {
   currentPassword: string;

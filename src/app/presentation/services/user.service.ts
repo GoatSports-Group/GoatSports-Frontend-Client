@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { User, UpdatePasswordRequest, CreatePasswordRequest } from '@application/dto/user/user.dto';
+import { User, UpdateUserRequest, UpdatePasswordRequest, CreatePasswordRequest } from '@application/dto/user/user.dto';
+import { GetUserByIdUseCase } from '@application/usecase/user/get-user-by-id.usecase';
 import { UpdateUserUseCase } from '@application/usecase/user/update-user.usecase';
 import { UpdateUserAvatarUseCase } from '@application/usecase/user/update-user-avatar.usecase';
 import { UpdatePasswordUseCase } from '@application/usecase/user/update-password.usecase';
@@ -10,12 +11,17 @@ import { CreatePasswordUseCase } from '@application/usecase/user/create-password
   providedIn: 'root'
 })
 export class UserService {
+  private getUserByIdUseCase = inject(GetUserByIdUseCase);
   private updateUserUseCase = inject(UpdateUserUseCase);
   private updateUserAvatarUseCase = inject(UpdateUserAvatarUseCase);
   private updatePasswordUseCase = inject(UpdatePasswordUseCase);
   private createPasswordUseCase = inject(CreatePasswordUseCase);
 
-  updateUser(userId: string, data: Partial<User>): Observable<User> {
+  getUserById(userId: string): Observable<User> {
+    return this.getUserByIdUseCase.execute(userId);
+  }
+
+  updateUser(userId: string, data: UpdateUserRequest): Observable<User> {
     return this.updateUserUseCase.execute(userId, data);
   }
 

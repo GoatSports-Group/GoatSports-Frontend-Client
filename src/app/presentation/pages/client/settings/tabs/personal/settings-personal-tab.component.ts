@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, inject } from '@angular/core';
-import { User } from '@application/dto/user/user.dto';
+import { User, UpdateUserRequest } from '@application/dto/user/user.dto';
 import { AuthService } from '@presentation/services/auth.service';
 import { UserService } from '@presentation/services/user.service';
 import { SelectOption } from '@shared/components/ui/select/select.component';
@@ -20,36 +20,18 @@ export class SettingsPersonalTabComponent implements OnInit, OnChanges {
 
   public isModalOpen = false;
   public isSaving = false;
-  public activeEditingField = '';
-
-  public genderOptions: SelectOption[] = [
+  public readonly genderOptions: SelectOption[] = [
     { value: 'MALE', label: 'Nam' },
     { value: 'FEMALE', label: 'Nữ' },
     { value: 'OTHER', label: 'Khác' }
-  ];
-
-  public countryOptions: SelectOption[] = [
-    { value: 'Việt Nam', label: 'Việt Nam' },
-    { value: 'Hàn Quốc', label: 'Hàn Quốc' },
-    { value: 'Nhật Bản', label: 'Nhật Bản' },
-    { value: 'Hoa Kỳ', label: 'Hoa Kỳ' },
-    { value: 'Singapore', label: 'Singapore' },
-    { value: 'Thái Lan', label: 'Thái Lan' },
-    { value: 'Malaysia', label: 'Malaysia' },
-    { value: 'Úc', label: 'Úc' },
-    { value: 'Anh', label: 'Anh' },
-    { value: 'Pháp', label: 'Pháp' },
-    { value: 'Đức', label: 'Đức' },
-    { value: 'Canada', label: 'Canada' },
-    { value: 'Khác', label: 'Khác' }
   ];
 
   public formData = {
     fullName: '',
     username: '',
     phone: '',
-    country: 'Việt Nam',
-    gender: 'MALE'
+    country: '',
+    gender: ''
   };
 
   ngOnInit(): void {
@@ -68,56 +50,77 @@ export class SettingsPersonalTabComponent implements OnInit, OnChanges {
         fullName: this.user.fullName || '',
         username: this.user.username || '',
         phone: this.user.phone || '',
-        country: this.user.country || 'Việt Nam',
-        gender: this.user.gender || 'MALE'
+        country: this.user.country || '',
+        gender: this.user.gender || ''
       };
     }
   }
 
-  openEdit(field: string = ''): void {
-    this.activeEditingField = field;
+  openEdit(): void {
     this.syncFormData();
     this.isModalOpen = true;
   }
 
   closeModal(): void {
+    if (this.isSaving) return;
     this.isModalOpen = false;
   }
 
   onSave(): void {
+    if (this.isSaving) return;
+
     if (!this.user?.userId) {
-      this.notifyService.error('Không tìm thấy thông tin tài khoản');
+      this.notifyService.error('Không tìm thấy thông tin tài khoản. Vui lòng tải lại trang.');
       return;
     }
 
-    if (!this.formData.fullName.trim()) {
-      this.notifyService.error('Vui lòng nhập họ và tên');
-      return;
-    }
-
-    this.isSaving = true;
-    const payload: Partial<User> = {
+    const payload: UpdateUserRequest = {
       fullName: this.formData.fullName.trim(),
       username: this.formData.username.trim(),
-      phone: this.formData.phone.trim(),
+      phone: this.normalizePhone(this.formData.phone),
       country: this.formData.country.trim(),
       gender: this.formData.gender
     };
 
+    if (!payload.fullName) {
+      this.notifyService.error('Vui lòng nhập họ và tên.');
+      return;
+    }
+
+    if (!payload.username) {
+      this.notifyService.error('Vui lòng nhập tên đăng nhập.');
+      return;
+    }
+
+    if (payload.phone && !/^\+?\d{8,15}$/.test(payload.phone)) {
+      this.notifyService.error('Số điện thoại chưa đúng định dạng. Vui lòng nhập từ 8 đến 15 chữ số.');
+      return;
+    }
+
+    if (!payload.gender) {
+      this.notifyService.error('Vui lòng chọn giới tính.');
+      return;
+    }
+
+    this.isSaving = true;
     this.userService.updateUser(this.user.userId, payload).subscribe({
       next: (updatedUser) => {
         this.isSaving = false;
-        this.user = { ...this.user, ...updatedUser };
-        this.authService.updateCurrentUser(this.user as User);
-        this.notifyService.success('Cập nhật thông tin cá nhân thành công!');
+        this.authService.updateCurrentUser(updatedUser);
+        this.notifyService.success('Đã cập nhật hồ sơ cá nhân.');
         this.closeModal();
       },
       error: (err) => {
         this.isSaving = false;
-        console.error('Failed to update user profile:', err);
-        this.notifyService.error(err?.error?.message || 'Cập nhật thông tin thất bại, vui lòng thử lại');
+        const message = this.getErrorMessage(err);
+        this.notifyService.error(message);
       }
     });
+  }
+
+  get isEmailVerified(): boolean {
+    const status = (this.user?.status || '').toUpperCase();
+    return status === 'ACTIVE' || status === 'HOẠT ĐỘNG';
   }
 
   formatGender(gender?: string): string {
@@ -130,14 +133,24 @@ export class SettingsPersonalTabComponent implements OnInit, OnChanges {
 
   formatDate(dateString?: string): string {
     if (!dateString) return 'Mới tham gia';
-    try {
-      return new Date(dateString).toLocaleDateString('vi-VN', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      });
-    } catch {
-      return dateString;
+    const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return 'Chưa có thông tin';
+    return date.toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  }
+
+  private normalizePhone(phone: string): string {
+    return phone.trim().replace(/[\s.()-]/g, '');
+  }
+
+  private getErrorMessage(error: unknown): string {
+    const candidate = (error as { error?: { message?: unknown } })?.error?.message;
+    if (typeof candidate === 'string' && candidate.toLowerCase().includes('tên đăng nhập')) {
+      return 'Tên đăng nhập đã được sử dụng. Vui lòng chọn tên khác.';
     }
+    return 'Không thể cập nhật hồ sơ. Vui lòng kiểm tra thông tin và thử lại.';
   }
 }

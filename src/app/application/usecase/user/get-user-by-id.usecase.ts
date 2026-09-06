@@ -1,17 +1,17 @@
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { User } from '@application/dto/user/user.dto';
 import { UserRepository, USER_REPOSITORY_TOKEN } from '@application/ports/persistence/user.repository';
-import { User, UpdateUserRequest } from '@application/dto/user/user.dto';
 
 @Injectable({
   providedIn: 'root'
 })
-export class UpdateUserUseCase {
+export class GetUserByIdUseCase {
   constructor(
     @Inject(USER_REPOSITORY_TOKEN) private repository: UserRepository
   ) { }
 
-  execute(userId: string, data: UpdateUserRequest): Observable<User> {
-    return this.repository.updateUser(userId, data);
+  execute(userId: string): Observable<User> {
+    return this.repository.getUserById(userId);
   }
 }

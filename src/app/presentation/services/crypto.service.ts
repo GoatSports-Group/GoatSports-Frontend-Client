@@ -34,10 +34,12 @@ export class CryptoService {
         : `-----BEGIN PUBLIC KEY-----\n${publicKeyBase64}\n-----END PUBLIC KEY-----`;
       encryptor.setPublicKey(formattedKey);
       const encrypted = encryptor.encrypt(plainText);
-      return encrypted || plainText;
-    } catch (e) {
-      console.error('RSA encryption failed:', e);
-      return plainText;
+      if (!encrypted) {
+        throw new Error('Không thể mã hóa dữ liệu');
+      }
+      return encrypted;
+    } catch {
+      throw new Error('Không thể mã hóa dữ liệu');
     }
   }
 }

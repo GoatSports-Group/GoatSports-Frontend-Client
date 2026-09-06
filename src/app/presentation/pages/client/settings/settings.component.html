@@ -4,17 +4,23 @@
     <aside class="settings-sidebar">
       <!-- User Profile Header -->
       <div class="sidebar-user">
-        <div
+        <button
+          type="button"
           class="user-avatar-wrap"
           (click)="avatarFileInput.click()"
-          title="Bấm để thay đổi ảnh đại diện"
+          [disabled]="isUploadingAvatar"
+          aria-label="Thay đổi ảnh đại diện"
         >
-          <img
-            [src]="fallbackAvatar"
-            [alt]="authService.currentUser?.fullName || 'User Avatar'"
-            class="user-avatar-img"
-            (error)="onAvatarImgError($event)"
-          />
+          @if (avatarUrl; as currentAvatarUrl) {
+            <img
+              [src]="currentAvatarUrl"
+              [alt]="'Ảnh đại diện của ' + (user?.fullName || user?.username || 'người dùng')"
+              class="user-avatar-img"
+              (error)="onAvatarImgError()"
+            />
+          } @else {
+            <span class="user-avatar-initials" aria-hidden="true">{{ userInitials }}</span>
+          }
           <div class="avatar-hover-overlay">
             @if (isUploadingAvatar) {
               <lucide-icon name="loader-2" class="w-4 h-4 animate-spin text-white"></lucide-icon>
@@ -22,17 +28,18 @@
               <lucide-icon name="camera" class="w-4 h-4 text-white"></lucide-icon>
             }
           </div>
-          <input
-            #avatarFileInput
-            type="file"
-            accept="image/*"
-            class="hidden-file-input"
-            (change)="onAvatarSelected($event)"
-          />
-        </div>
+        </button>
+        <input
+          #avatarFileInput
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          class="hidden-file-input"
+          [disabled]="isUploadingAvatar"
+          (change)="onAvatarSelected($event)"
+        />
         <div class="user-meta">
-          <span class="user-display-name">{{ authService.currentUser?.fullName || 'Người dùng' }}</span>
-          <a routerLink="/settings" class="user-view-link">Xem hồ sơ</a>
+          <span class="user-display-name">{{ user?.fullName || user?.username || 'Người dùng' }}</span>
+          <span class="user-view-link">Chạm ảnh để thay đổi</span>
         </div>
       </div>
 
@@ -60,11 +67,6 @@
           <span>Lịch đặt sân</span>
         </a>
 
-        <span class="sidebar-nav-item" aria-disabled="true" title="Tính năng thành tích đang được phát triển">
-          <lucide-icon name="award" class="w-4 h-4"></lucide-icon>
-          <span>Thành tích</span>
-        </span>
-
         <a routerLink="/friends" class="sidebar-nav-item">
           <lucide-icon name="users" class="w-4 h-4"></lucide-icon>
           <span>Kết nối</span>
@@ -90,48 +92,49 @@
           <h1 class="settings-title">Cài Đặt</h1>
         </header>
 
+        @if (profileLoadFailed) {
+          <div class="profile-state profile-state--error" role="alert">
+            <div>
+              <strong>Chưa thể tải hồ sơ</strong>
+              <span>Kiểm tra kết nối rồi thử lại.</span>
+            </div>
+            <button type="button" (click)="loadProfile()">Thử lại</button>
+          </div>
+        }
+
         <!-- Underline Tabs -->
-        <nav class="settings-tabs" aria-label="Cài đặt Tabs">
-          <button
-            type="button"
-            class="tab-btn"
-            [class.tab-btn--active]="activeTab === 'player'"
-            (click)="setActiveTab('player')"
-          >
-            Hồ sơ người chơi
-          </button>
-
-          <button
-            type="button"
-            class="tab-btn"
-            [class.tab-btn--active]="activeTab === 'personal'"
-            (click)="setActiveTab('personal')"
-          >
-            Thông tin cá nhân
-          </button>
-
-          <button
-            type="button"
-            class="tab-btn"
-            [class.tab-btn--active]="activeTab === 'security'"
-            (click)="setActiveTab('security')"
-          >
-            Đăng nhập & Bảo mật
-          </button>
+        <nav class="settings-tabs" aria-label="Các mục cài đặt">
+          @for (tab of tabs; track tab.key) {
+            <button
+              type="button"
+              class="tab-btn"
+              [class.tab-btn--active]="activeTab === tab.key"
+              [attr.aria-current]="activeTab === tab.key ? 'page' : null"
+              (click)="setActiveTab(tab.key)"
+            >
+              {{ tab.label }}
+            </button>
+          }
         </nav>
 
         <!-- Tab Content -->
         <section class="settings-content">
-          @switch (activeTab) {
-            @case ('player') {
-              <app-settings-player-tab [user]="(authService.currentUser$ | async) || authService.currentUser" />
+          @if (isLoadingProfile && !user) {
+            <div class="profile-state" aria-live="polite">
+              <lucide-icon name="loader-2" class="w-5 h-5 animate-spin"></lucide-icon>
+              <span>Đang tải hồ sơ...</span>
+            </div>
+          } @else if (user) {
+            @switch (activeTab) {
+              @case ('personal') {
+                <app-settings-personal-tab [user]="user" />
+              }
+              @case ('security') {
+                <app-settings-security-tab [user]="user" />
+              }
             }
-            @case ('personal') {
-              <app-settings-personal-tab [user]="(authService.currentUser$ | async) || authService.currentUser" />
-            }
-            @case ('security') {
-              <app-settings-security-tab [user]="(authService.currentUser$ | async) || authService.currentUser" />
-            }
+          } @else if (!profileLoadFailed) {
+            <div class="profile-state">Không tìm thấy thông tin tài khoản.</div>
           }
         </section>
       </div>

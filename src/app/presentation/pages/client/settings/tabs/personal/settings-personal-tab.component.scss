@@ -40,7 +40,8 @@
   &__action {
     background: transparent;
     border: none;
-    padding: 0.25rem 0.5rem;
+    min-height: 44px;
+    padding: 0.5rem 0.75rem;
     font-size: 0.9rem;
     font-weight: 600;
     color: #059669;
@@ -92,6 +93,12 @@
   border: 1px solid rgba(5, 150, 105, 0.2);
   padding: 0.15rem 0.5rem;
   border-radius: 9999px;
+
+  &--pending {
+    background-color: #fffbeb;
+    color: #b45309;
+    border-color: #fde68a;
+  }
 }
 
 // Modal Styles
@@ -173,6 +180,7 @@
 
   .form-control {
     width: 100%;
+    min-height: 46px;
     padding: 0.65rem 0.85rem;
     font-size: 0.9rem;
     color: #0f172a;
@@ -200,6 +208,7 @@
   background-color: #f8fafc;
 
   .btn-cancel {
+    min-height: 44px;
     padding: 0.6rem 1.25rem;
     font-size: 0.875rem;
     font-weight: 600;
@@ -217,6 +226,7 @@
   }
 
   .btn-save {
+    min-height: 44px;
     padding: 0.6rem 1.4rem;
     font-size: 0.875rem;
     font-weight: 600;
@@ -235,6 +245,26 @@
     &:disabled {
       opacity: 0.6;
       cursor: not-allowed;
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .settings-row {
+    gap: 0.75rem;
+    padding: 1.2rem 0;
+  }
+
+  .email-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .modal-footer {
+    .btn-cancel,
+    .btn-save {
+      flex: 1;
     }
   }
 }

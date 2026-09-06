@@ -1,4 +1,4 @@
-export type SettingsTabKey = 'player' | 'personal' | 'security';
+export type SettingsTabKey = 'personal' | 'security';
 
 export interface SettingsTabItem {
   key: SettingsTabKey;
@@ -6,33 +6,6 @@ export interface SettingsTabItem {
 }
 
 export const SETTINGS_TABS: SettingsTabItem[] = [
-  { key: 'player', label: 'Hồ sơ người chơi' },
-  { key: 'personal', label: 'Thông tin cá nhân' },
-  { key: 'security', label: 'Đăng nhập & Bảo mật' }
+  { key: 'personal', label: 'Hồ sơ cá nhân' },
+  { key: 'security', label: 'Đăng nhập và bảo mật' }
 ];
-
-export interface PlayerProfileForm {
-  expertise: string;
-  company: string;
-  role: string;
-  linkedIn: string;
-  twitter: string;
-  portfolio: string;
-  affiliatePartner: string;
-}
-
-export interface PersonalInfoForm {
-  fullName: string;
-  username: string;
-  email: string;
-  phone: string;
-  gender: string;
-  country: string;
-  createdAt: string;
-}
-
-export interface SecurityPasswordForm {
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
-}

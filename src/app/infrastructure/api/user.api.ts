@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { BaseResponse } from '@application/dto/base/base-response';
-import { User, UpdatePasswordRequest, CreatePasswordRequest } from '@application/dto/user/user.dto';
+import { User, UpdateUserRequest, UpdatePasswordRequest, CreatePasswordRequest } from '@application/dto/user/user.dto';
 import { environment } from '@environments/environment';
 
 @Injectable({
@@ -16,7 +16,7 @@ export class UserApi {
     return this.http.get<BaseResponse<User>>(`${this.apiBase}/auth-service/api/v1/users/${userId}`);
   }
 
-  updateUser(userId: string, payload: Partial<User>): Observable<BaseResponse<User>> {
+  updateUser(userId: string, payload: UpdateUserRequest): Observable<BaseResponse<User>> {
     return this.http.put<BaseResponse<User>>(`${this.apiBase}/auth-service/api/v1/users/${userId}`, payload);
   }
 

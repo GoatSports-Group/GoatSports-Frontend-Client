@@ -15,6 +15,6 @@ export type User = {
     name: string;
   };
   keycloakId?: string;
-  authProvider?: string;
+  authProviders?: string[];
   hasPassword?: boolean;
 };

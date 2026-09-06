@@ -5,7 +5,7 @@
       <h3 class="settings-row__label">Họ và tên</h3>
       <p class="settings-row__value">{{ user?.fullName || 'Chưa cập nhật' }}</p>
     </div>
-    <button type="button" class="settings-row__action" (click)="openEdit('Họ và tên')">
+    <button type="button" class="settings-row__action" (click)="openEdit()">
       Chỉnh sửa
     </button>
   </div>
@@ -16,7 +16,7 @@
       <h3 class="settings-row__label">Tên đăng nhập</h3>
       <p class="settings-row__value">{{ user?.username || '—' }}</p>
     </div>
-    <button type="button" class="settings-row__action" (click)="openEdit('Tên đăng nhập')">
+    <button type="button" class="settings-row__action" (click)="openEdit()">
       Chỉnh sửa
     </button>
   </div>
@@ -27,7 +27,9 @@
       <h3 class="settings-row__label">Địa chỉ email</h3>
       <div class="email-row">
         <span class="settings-row__value">{{ user?.email || '—' }}</span>
-        <span class="badge-verified">Đã xác thực</span>
+        <span class="badge-verified" [class.badge-verified--pending]="!isEmailVerified">
+          {{ isEmailVerified ? 'Đã xác thực' : 'Chờ xác thực' }}
+        </span>
       </div>
     </div>
     <span class="settings-row__fixed">Cố định</span>
@@ -39,7 +41,7 @@
       <h3 class="settings-row__label">Số điện thoại</h3>
       <p class="settings-row__value">{{ user?.phone || 'Chưa cập nhật' }}</p>
     </div>
-    <button type="button" class="settings-row__action" (click)="openEdit('Số điện thoại')">
+    <button type="button" class="settings-row__action" (click)="openEdit()">
       Chỉnh sửa
     </button>
   </div>
@@ -48,9 +50,9 @@
   <div class="settings-row">
     <div class="settings-row__info">
       <h3 class="settings-row__label">Quốc gia</h3>
-      <p class="settings-row__value">{{ user?.country || 'Việt Nam' }}</p>
+      <p class="settings-row__value">{{ user?.country || 'Chưa cập nhật' }}</p>
     </div>
-    <button type="button" class="settings-row__action" (click)="openEdit('Quốc gia')">
+    <button type="button" class="settings-row__action" (click)="openEdit()">
       Chỉnh sửa
     </button>
   </div>
@@ -61,7 +63,7 @@
       <h3 class="settings-row__label">Giới tính</h3>
       <p class="settings-row__value">{{ formatGender(user?.gender) }}</p>
     </div>
-    <button type="button" class="settings-row__action" (click)="openEdit('Giới tính')">
+    <button type="button" class="settings-row__action" (click)="openEdit()">
       Chỉnh sửa
     </button>
   </div>
@@ -79,10 +81,17 @@
 <!-- Modal Chỉnh sửa thông tin cá nhân -->
 @if (isModalOpen) {
 <div class="modal-backdrop" (click)="closeModal()">
-  <div class="modal-card" (click)="$event.stopPropagation()">
+  <form
+    class="modal-card"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="personal-modal-title"
+    (click)="$event.stopPropagation()"
+    (ngSubmit)="onSave()"
+  >
     <div class="modal-header">
-      <h2 class="modal-title">Cập nhật thông tin cá nhân</h2>
-      <button type="button" class="btn-close-modal" (click)="closeModal()">
+      <h2 id="personal-modal-title" class="modal-title">Cập nhật thông tin cá nhân</h2>
+      <button type="button" class="btn-close-modal" aria-label="Đóng" (click)="closeModal()">
         <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
       </button>
     </div>
@@ -96,7 +105,10 @@
           type="text"
           class="form-control"
           placeholder="Nhập họ và tên đầy đủ"
+          autocomplete="name"
+          maxlength="255"
           [(ngModel)]="formData.fullName"
+          name="fullName"
         />
       </div>
 
@@ -108,7 +120,10 @@
           type="text"
           class="form-control"
           placeholder="Nhập tên đăng nhập"
+          autocomplete="username"
+          maxlength="255"
           [(ngModel)]="formData.username"
+          name="username"
         />
       </div>
 
@@ -120,19 +135,24 @@
           type="tel"
           class="form-control"
           placeholder="Ví dụ: 0912345678"
+          autocomplete="tel"
+          maxlength="20"
           [(ngModel)]="formData.phone"
+          name="phone"
         />
       </div>
 
       <!-- Country -->
       <div class="form-group">
         <label class="form-label">Quốc gia</label>
-        <app-select
-          [options]="countryOptions"
+        <input
+          type="text"
+          class="form-control"
           [(ngModel)]="formData.country"
-          [searchable]="true"
-          searchPlaceholder="Tìm quốc gia..."
-          placeholder="Chọn quốc gia"
+          placeholder="Nhập quốc gia"
+          autocomplete="country-name"
+          maxlength="100"
+          name="country"
         />
       </div>
 
@@ -143,6 +163,7 @@
           [options]="genderOptions"
           [(ngModel)]="formData.gender"
           placeholder="Chọn giới tính"
+          name="gender"
         />
       </div>
     </div>
@@ -151,7 +172,7 @@
       <button type="button" class="btn-cancel" (click)="closeModal()" [disabled]="isSaving">
         Hủy
       </button>
-      <button type="button" class="btn-save" (click)="onSave()" [disabled]="isSaving">
+      <button type="submit" class="btn-save" [disabled]="isSaving">
         @if (isSaving) {
           <span>Đang lưu...</span>
         } @else {
@@ -159,6 +180,6 @@
         }
       </button>
     </div>
-  </div>
+  </form>
 </div>
 }
