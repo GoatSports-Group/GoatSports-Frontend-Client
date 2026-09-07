@@ -1,133 +1,101 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { catchError, forkJoin, of } from 'rxjs';
 import { ClubRepositoryPort } from '@application/ports/club.repository.port';
-import { Club, ClubMember, ClubActivity } from '@application/dto/club/club.dto';
-
+import { User } from '@application/dto/user/user.dto';
+import { Club as ClubModel, ClubActivity as ClubActivityModel, ClubMember as ClubMemberModel,
+  CreateClubActivityPayload } from '@application/dto/club/club.dto';
 import { AuthService } from '@presentation/services/auth.service';
+import { PlayerDirectoryService } from '@presentation/services/player-directory.service';
+import { NotifyService } from '@shared/components/notify/notify.service';
+
+type ClubTab = 'OVERVIEW' | 'ACTIVITIES' | 'MEMBERS';
 
 @Component({
-  selector: 'app-club-detail',
-  templateUrl: './club-detail.component.html',
-  styleUrls: ['./club-detail.component.scss'],
-  standalone: false
+  selector: 'app-club-detail', templateUrl: './club-detail.component.html',
+  styleUrls: ['./club-detail.component.scss'], changeDetection: ChangeDetectionStrategy.OnPush, standalone: false
 })
-export class ClubDetailComponent implements OnInit {
-  clubId = '';
-  club: Club | null = null;
-  members: ClubMember[] = [];
-  activities: ClubActivity[] = [];
-  activeTab: 'OVERVIEW' | 'MEMBERS' | 'ACTIVITIES' = 'OVERVIEW';
-  loading = false;
-  isMember = false;
-  isOwner = false;
-  showActivityModal = false;
+export class ClubDetailComponent {
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly repository = inject(ClubRepositoryPort);
+  private readonly auth = inject(AuthService);
+  private readonly directory = inject(PlayerDirectoryService);
+  private readonly notify = inject(NotifyService);
+  readonly clubId = this.route.snapshot.paramMap.get('id') ?? '';
 
-  newActivity: Partial<ClubActivity> = {
-    title: '',
-    description: '',
-    startTime: '',
-    endTime: '',
-    maxParticipants: 12
-  };
+  readonly club = signal<ClubModel | null>(null);
+  readonly members = signal<ClubMemberModel[]>([]);
+  readonly activities = signal<ClubActivityModel[]>([]);
+  readonly membership = signal<ClubMemberModel | null>(null);
+  readonly users = signal<ReadonlyMap<string, User>>(new Map());
+  readonly activeTab = signal<ClubTab>('OVERVIEW');
+  readonly loading = signal(true);
+  readonly error = signal<string | null>(null);
+  readonly mutating = signal(false);
+  readonly showActivityModal = signal(false);
+  readonly isOwner = computed(() => this.club()?.ownerId === this.auth.currentUser?.userId);
+  readonly isManager = computed(() => this.isOwner() || (this.membership()?.status === 'ACTIVE' && this.membership()?.role === 'ADMIN'));
+  readonly isActiveMember = computed(() => this.membership()?.status === 'ACTIVE');
+  activityForm: CreateClubActivityPayload = { title: '', description: '', startAt: '', endAt: '' };
 
-  constructor(
-    private readonly route: ActivatedRoute,
-    private readonly router: Router,
-    private readonly clubRepo: ClubRepositoryPort,
-    private readonly authService: AuthService
-  ) {}
+  constructor() { if (this.clubId) this.load(); else this.error.set('Mã câu lạc bộ không hợp lệ.'); }
 
-  ngOnInit(): void {
-    this.clubId = this.route.snapshot.paramMap.get('id') || '';
-    if (this.clubId) {
-      this.loadDetails();
-      this.loadMembers();
-      this.loadActivities();
-    }
-  }
-
-  loadDetails(): void {
-    this.loading = true;
-    this.clubRepo.getClubDetails(this.clubId).subscribe({
-      next: (res) => {
-        this.club = res;
-        this.loading = false;
-        const user = this.authService.currentUser;
-        if (user && this.club) {
-          this.isOwner = (this.club.ownerId === user.userId);
-        }
-      },
-      error: () => {
-        this.loading = false;
-      }
-    });
-  }
-
-  loadMembers(): void {
-    this.clubRepo.getClubMembers(this.clubId).subscribe({
-      next: (res) => {
-        this.members = res || [];
-        const user = this.authService.currentUser;
-        if (user) {
-          this.isMember = this.members.some(m => m.userId === user.userId && m.status === 'ACCEPTED');
-        }
-      }
-    });
-  }
-
-  loadActivities(): void {
-    this.clubRepo.getClubActivities(this.clubId).subscribe({
-      next: (res) => {
-        this.activities = res || [];
-      }
-    });
-  }
-
-  joinClub(): void {
-    const user = this.authService.currentUser;
-    if (!user) {
-      this.authService.redirectToLogin();
-      return;
-    }
-
-    this.clubRepo.joinClub(this.clubId, {
-      userId: user.userId,
-      userName: user.fullName || user.email,
-      userAvatar: user.avatarUrl,
-      introMessage: 'Xin chào mọi người!'
+  load(): void {
+    this.loading.set(true); this.error.set(null);
+    const membershipRequest = this.auth.currentUser
+      ? this.repository.getMyMembership(this.clubId).pipe(catchError(() => of(null))) : of(null);
+    forkJoin({
+      club: this.repository.getClubDetails(this.clubId),
+      members: this.repository.getClubMembers(this.clubId),
+      activities: this.repository.getClubActivities(this.clubId),
+      membership: membershipRequest
     }).subscribe({
-      next: () => {
-        this.loadDetails();
-        this.loadMembers();
-      }
+      next: data => {
+        this.club.set(data.club); this.members.set(data.members); this.activities.set(data.activities);
+        this.membership.set(data.membership); this.loading.set(false); this.resolveUsers(data.club, data.members);
+      },
+      error: () => { this.error.set('Không thể tải thông tin câu lạc bộ.'); this.loading.set(false); }
     });
   }
-
-  leaveClub(): void {
-    const user = this.authService.currentUser;
-    if (!user) return;
-
-    this.clubRepo.leaveClub(this.clubId, user.userId).subscribe({
-      next: () => {
-        this.isMember = false;
-        this.loadDetails();
-        this.loadMembers();
-      }
+  setTab(tab: ClubTab): void { this.activeTab.set(tab); }
+  join(): void {
+    if (!this.auth.currentUser) { this.auth.redirectToLogin(); return; }
+    this.mutating.set(true);
+    this.repository.joinClub(this.clubId).subscribe({
+      next: membership => { this.membership.set(membership); this.mutating.set(false);
+        this.notify.success(membership.status === 'ACTIVE' ? 'Đã tham gia câu lạc bộ.' : 'Yêu cầu đang chờ duyệt.'); this.load(); },
+      error: error => { this.mutating.set(false); this.notify.error(error?.error?.message ?? 'Không thể tham gia câu lạc bộ.'); }
     });
   }
-
+  leave(): void {
+    if (this.mutating()) return; this.mutating.set(true);
+    this.repository.leaveClub(this.clubId).subscribe({
+      next: () => { this.mutating.set(false); this.membership.set(null); this.notify.success('Đã rời câu lạc bộ.'); this.load(); },
+      error: error => { this.mutating.set(false); this.notify.error(error?.error?.message ?? 'Không thể rời câu lạc bộ.'); }
+    });
+  }
+  respond(member: ClubMemberModel, accepted: boolean): void {
+    this.repository.respondMembership(this.clubId, member.membershipId, accepted).subscribe({
+      next: () => { this.notify.success(accepted ? 'Đã duyệt thành viên.' : 'Đã từ chối yêu cầu.'); this.load(); },
+      error: error => this.notify.error(error?.error?.message ?? 'Không thể xử lý yêu cầu.')
+    });
+  }
   createActivity(): void {
-    const user = this.authService.currentUser;
-    if (!user) return;
-
-    this.clubRepo.createClubActivity(this.clubId, {
-      ...this.newActivity,
-      creatorId: user.userId
-    } as any).subscribe({
-      next: () => {
-        this.showActivityModal = false;
-        this.loadActivities();
-      }
+    if (!this.activityForm.title.trim() || !this.activityForm.startAt || !this.activityForm.endAt) return;
+    this.mutating.set(true);
+    this.repository.createClubActivity(this.clubId, { ...this.activityForm, title: this.activityForm.title.trim() }).subscribe({
+      next: activity => { this.activities.update(items => [activity, ...items]); this.showActivityModal.set(false);
+        this.mutating.set(false); this.activityForm = { title: '', description: '', startAt: '', endAt: '' };
+        this.notify.success('Đã tạo hoạt động.'); },
+      error: error => { this.mutating.set(false); this.notify.error(error?.error?.message ?? 'Không thể tạo hoạt động.'); }
     });
+  }
+  openChat(): void { const id = this.club()?.conversationId; if (id) void this.router.navigate(['/chat', id]); }
+  displayName(userId: string): string { return this.users().get(userId)?.fullName || this.users().get(userId)?.email || `Người dùng ${userId.slice(0, 8)}`; }
+  avatar(userId: string): string | undefined { return this.users().get(userId)?.avatarUrl; }
+  initials(value: string): string { return value.split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase(); }
+  private resolveUsers(club: ClubModel, members: ClubMemberModel[]): void {
+    this.directory.resolve([club.ownerId, ...members.map(member => member.userId)]).subscribe(users => this.users.set(users));
   }
 }

@@ -1,192 +1,60 @@
-<div class="tournament-detail-page" *ngIf="tournament">
-  <!-- Header -->
-  <div class="header-card">
-    <div class="header-top">
-      <div class="badges">
-        <span class="sport-pill">{{ tournament.sportType }}</span>
-        <span class="status-pill">{{ tournament.status }}</span>
-        <span class="format-pill">{{ tournament.format === 'SINGLE_ELIMINATION' ? 'Loại Trực Tiếp' : 'Vòng Tròn' }}</span>
-      </div>
-      <button class="btn-register" *ngIf="tournament.status === 'OPEN_REGISTRATION'" (click)="showRegisterModal = true">
-        <i class="pi pi-user-plus"></i> Đăng Ký Tham Gia
-      </button>
-      <button class="btn-generate" *ngIf="isOrganizer && fixtures.length === 0 && teams.length >= 2" (click)="generateBracket()">
-        <i class="pi pi-sitemap"></i> Bốc Thăm & Tạo Nhánh Đấu
-      </button>
-    </div>
+<main class="tournament-detail-page">
+  @if (loading()) { <div class="header-card"><app-loading-skeleton height="240px"></app-loading-skeleton></div> }
+  @else if (error()) { <section class="empty-bracket" role="alert"><lucide-icon name="alert-triangle" class="empty-icon"></lucide-icon>
+    <h2>Chưa tải được giải đấu</h2><p>{{ error() }}</p><button class="btn-primary" (click)="load()">Thử lại</button></section> }
+  @else if (tournament(); as currentTournament) {
+    <section class="header-card"><div class="header-top"><div class="badges"><span class="sport-pill">{{ currentTournament.sportType }}</span>
+      <span class="status-pill">{{ statusLabel(currentTournament.status) }}</span><span class="format-pill">{{ currentTournament.format === 'SINGLE_ELIMINATION' ? 'Loại trực tiếp' : 'Vòng tròn' }}</span></div>
+      <div class="header-actions">
+        @if (currentTournament.status === 'REGISTRATION_OPEN' && !myRegistration()) { <button class="btn-register" (click)="showRegisterModal.set(true)">Đăng ký tham gia</button> }
+        @if (myRegistration(); as registration) { <span class="status-pill">{{ registration.status }}</span>
+          @if (registration.status === 'PENDING_PAYMENT') { <button class="btn-generate" [disabled]="mutating()" (click)="payRegistration(registration)">Thanh toán lệ phí</button> }
+          @if (registration.status !== 'CANCELLED') { <button class="btn-register" [disabled]="mutating()" (click)="cancelRegistration()">Hủy đăng ký</button> } }
+        @if (isOrganizer() && fixtures().length === 0 && teams().length >= 2) { <button class="btn-generate" [disabled]="mutating()" (click)="generateFixtures()">Tạo lịch đấu</button> }
+      </div></div>
+      <h1 class="title">{{ currentTournament.name }}</h1><p class="organizer">Ban tổ chức: {{ displayName(currentTournament.organizerId) }}</p>
+      <p>{{ currentTournament.description || 'Giải đấu chưa cập nhật mô tả.' }}</p>
+      <div class="stats-row"><div class="stat-box"><span class="label">Giải thưởng</span><span class="val prize">{{ currentTournament.prizePool | number }} đ</span></div>
+        <div class="stat-box"><span class="label">Lệ phí</span><span class="val">{{ currentTournament.entryFee | number }} đ</span></div>
+        <div class="stat-box"><span class="label">Đăng ký</span><span class="val">{{ currentTournament.currentParticipants }}/{{ currentTournament.maxParticipants }}</span></div>
+        <div class="stat-box"><span class="label">Thời gian</span><span class="val">{{ currentTournament.startDate | date:'dd/MM' }} – {{ currentTournament.endDate | date:'dd/MM/yyyy' }}</span></div></div>
+    </section>
 
-    <h1 class="title">{{ tournament.name }}</h1>
-    <p class="organizer"><i class="pi pi-shield"></i> Ban Tổ Chức: {{ tournament.organizerName || 'GoatSports' }}</p>
+    <nav class="tabs-nav" role="tablist"><button role="tab" [class.active]="activeTab() === 'FIXTURES'" (click)="setTab('FIXTURES')">Lịch đấu ({{ fixtures().length }})</button>
+      @if (currentTournament.format === 'ROUND_ROBIN') { <button role="tab" [class.active]="activeTab() === 'STANDINGS'" (click)="setTab('STANDINGS')">Bảng xếp hạng</button> }
+      <button role="tab" [class.active]="activeTab() === 'TEAMS'" (click)="setTab('TEAMS')">Đăng ký ({{ teams().length }})</button></nav>
 
-    <div class="stats-row">
-      <div class="stat-box">
-        <span class="label">Tổng giải thưởng</span>
-        <span class="val prize">{{ tournament.prizePool ? (tournament.prizePool | number) + ' đ' : 'Cúp Vô Địch' }}</span>
-      </div>
-      <div class="stat-box">
-        <span class="label">Lệ phí tham gia</span>
-        <span class="val">{{ tournament.entryFee ? (tournament.entryFee | number) + ' đ' : 'Miễn phí' }}</span>
-      </div>
-      <div class="stat-box">
-        <span class="label">Số đội đăng ký</span>
-        <span class="val">{{ tournament.currentParticipants }}/{{ tournament.maxParticipants }}</span>
-      </div>
-    </div>
-  </div>
+    <section class="tab-body">
+      @if (activeTab() === 'FIXTURES') {
+        @if (fixtures().length) { <div class="bracket-grid">@for (fixture of fixtures(); track fixture.fixtureId) {
+          <article class="bracket-match" [class.editable]="isOrganizer()" (click)="openScore(fixture)"><div class="round-label">{{ fixture.roundName }} · Trận {{ fixture.matchNumber }}</div>
+            <div class="team-row" [class.winner]="fixture.winnerRegistrationId === fixture.registration1Id"><span>{{ registrationName(fixture.registration1Id) }}</span><strong>{{ fixture.score1 ?? '-' }}</strong></div>
+            <div class="team-row" [class.winner]="fixture.winnerRegistrationId === fixture.registration2Id"><span>{{ registrationName(fixture.registration2Id) }}</span><strong>{{ fixture.score2 ?? '-' }}</strong></div>
+            <span class="edit-hint">{{ fixture.status }}</span></article>
+        }</div> } @else { <div class="empty-bracket"><lucide-icon name="swords" class="empty-icon"></lucide-icon><h2>Chưa có lịch thi đấu</h2><p>Ban tổ chức sẽ tạo lịch sau khi có đủ đăng ký.</p></div> }
+      } @else if (activeTab() === 'STANDINGS') {
+        <div class="standings-container"><table class="standings-table"><thead><tr><th>#</th><th>Đội / VĐV</th><th>Trận</th><th>Thắng</th><th>Hòa</th><th>Thua</th><th>HS</th><th>Điểm</th></tr></thead>
+          <tbody>@for (standing of standings(); track standing.registrationId) { <tr><td>{{ standing.rank }}</td><td>{{ registrationName(standing.registrationId) }}</td>
+            <td>{{ standing.played }}</td><td>{{ standing.won }}</td><td>{{ standing.drawn }}</td><td>{{ standing.lost }}</td><td>{{ standing.scoreFor - standing.scoreAgainst }}</td><td class="pts">{{ standing.points }}</td></tr> }</tbody></table></div>
+      } @else {
+        <div class="teams-grid">@for (registration of teams(); track registration.registrationId) { <article class="team-card"><div class="avatar"><lucide-icon name="shield"></lucide-icon></div>
+          <div class="team-info"><h2>{{ registration.teamName || displayName(registration.registeredBy) }}</h2><span class="player-name">Đại diện: {{ displayName(registration.registeredBy) }}</span>
+            <span class="badge">{{ registration.skillLevel || 'Chưa khai báo' }} · {{ registration.status }}</span></div></article> }</div>
+      }
+    </section>
 
-  <!-- Tabs Navigation -->
-  <div class="tabs-nav">
-    <button [class.active]="activeTab === 'BRACKET'" (click)="activeTab = 'BRACKET'">
-      <i class="pi pi-sitemap"></i> Nhánh Đấu (Knockout)
-    </button>
-    <button [class.active]="activeTab === 'FIXTURES'" (click)="activeTab = 'FIXTURES'">
-      <i class="pi pi-calendar"></i> Lịch Thi Đấu & Tỷ Số ({{ fixtures.length }})
-    </button>
-    <button [class.active]="activeTab === 'STANDINGS'" (click)="activeTab = 'STANDINGS'" *ngIf="tournament.format === 'ROUND_ROBIN'">
-      <i class="pi pi-list"></i> Bảng Xếp Hạng
-    </button>
-    <button [class.active]="activeTab === 'TEAMS'" (click)="activeTab = 'TEAMS'">
-      <i class="pi pi-users"></i> Danh Sách VĐV/Đội ({{ teams.length }})
-    </button>
-  </div>
+    @if (showRegisterModal()) { <div class="modal-overlay" (click)="showRegisterModal.set(false)"><section class="modal-card" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+      <h2>Đăng ký giải đấu</h2><div class="form-group"><label for="reg-type">Hình thức</label><select id="reg-type" [(ngModel)]="registrationForm.type"><option value="INDIVIDUAL">Cá nhân</option><option value="CLUB">Câu lạc bộ</option></select></div>
+      @if (registrationForm.type === 'CLUB') { <div class="form-group"><label for="reg-club">Mã câu lạc bộ *</label><input id="reg-club" [(ngModel)]="registrationForm.clubId" /></div> }
+      <div class="form-group"><label for="reg-name">Tên thi đấu / tên đội</label><input id="reg-name" [(ngModel)]="registrationForm.teamName" /></div>
+      <div class="form-group"><label for="reg-skill">Trình độ</label><select id="reg-skill" [(ngModel)]="registrationForm.skillLevel"><option value="BEGINNER">Mới chơi</option><option value="INTERMEDIATE">Trung bình</option><option value="ADVANCED">Nâng cao</option><option value="PRO">Chuyên nghiệp</option></select></div>
+      <div class="modal-footer"><button class="btn-secondary" (click)="showRegisterModal.set(false)">Hủy</button><button class="btn-primary" [disabled]="mutating()" (click)="register()">Xác nhận đăng ký</button></div>
+    </section></div> }
 
-  <!-- Tab Content -->
-  <div class="tab-body">
-    <!-- Bracket View -->
-    <div class="bracket-container" *ngIf="activeTab === 'BRACKET'">
-      <div class="bracket-grid" *ngIf="fixtures.length > 0">
-        <div class="bracket-match" *ngFor="let f of fixtures" [class.editable]="isOrganizer" (click)="openScoreModal(f)">
-          <div class="round-label">{{ f.roundName }} • Trận #{{ f.matchNumber }}</div>
-          <div class="team-row" [class.winner]="f.winnerRegistrationId === f.registration1Id && f.winnerRegistrationId">
-            <span class="team-name">{{ f.team1Name || 'TBD' }}</span>
-            <span class="team-score">{{ f.score1 !== null ? f.score1 : '-' }}</span>
-          </div>
-          <div class="team-row" [class.winner]="f.winnerRegistrationId === f.registration2Id && f.winnerRegistrationId">
-            <span class="team-name">{{ f.team2Name || 'TBD' }}</span>
-            <span class="team-score">{{ f.score2 !== null ? f.score2 : '-' }}</span>
-          </div>
-          <span class="edit-hint" *ngIf="isOrganizer"><i class="pi pi-pencil"></i> Nhập điểm</span>
-        </div>
-      </div>
-
-      <div class="empty-bracket" *ngIf="fixtures.length === 0">
-        <i class="pi pi-sitemap empty-icon"></i>
-        <h3>Chưa tạo bảng đấu</h3>
-        <p>Bảng đấu sẽ được ban tổ chức tạo sau khi cổng đăng ký đóng.</p>
-      </div>
-    </div>
-
-    <!-- Fixtures Tab -->
-    <div class="fixtures-container" *ngIf="activeTab === 'FIXTURES'">
-      <div class="fixture-card" *ngFor="let f of fixtures">
-        <div class="match-meta">
-          <span class="round">{{ f.roundName }}</span>
-          <span class="status">{{ f.status === 'COMPLETED' ? 'Đã kết thúc' : 'Sắp diễn ra' }}</span>
-        </div>
-        <div class="teams-versus">
-          <div class="team">{{ f.team1Name }}</div>
-          <div class="score-box">
-            <span class="score">{{ f.score1 !== null ? f.score1 : '-' }}</span>
-            <span class="divider">:</span>
-            <span class="score">{{ f.score2 !== null ? f.score2 : '-' }}</span>
-          </div>
-          <div class="team">{{ f.team2Name }}</div>
-        </div>
-        <div class="organizer-actions" *ngIf="isOrganizer">
-          <button class="btn-score" (click)="openScoreModal(f)"><i class="pi pi-pencil"></i> Cập nhật tỷ số</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Standings Tab (Round Robin) -->
-    <div class="standings-container" *ngIf="activeTab === 'STANDINGS'">
-      <table class="standings-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Đội / VĐV</th>
-            <th>Trận</th>
-            <th>Thắng</th>
-            <th>Hòa</th>
-            <th>Thua</th>
-            <th>Hiệu số</th>
-            <th>Điểm</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let s of standings; let i = index">
-            <td><strong>{{ i + 1 }}</strong></td>
-            <td>{{ s.teamName }}</td>
-            <td>{{ s.matchesPlayed }}</td>
-            <td>{{ s.won }}</td>
-            <td>{{ s.drawn }}</td>
-            <td>{{ s.lost }}</td>
-            <td>{{ s.scoreDifference > 0 ? '+' + s.scoreDifference : s.scoreDifference }}</td>
-            <td class="pts">{{ s.points }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Teams Tab -->
-    <div class="teams-grid" *ngIf="activeTab === 'TEAMS'">
-      <div class="team-card" *ngFor="let t of teams">
-        <div class="avatar"><i class="pi pi-shield"></i></div>
-        <div class="team-info">
-          <h4>{{ t.teamName }}</h4>
-          <span class="player-name">Đại diện: {{ t.playerName }}</span>
-          <span class="badge">{{ t.skillLevel || 'VĐV Thể Thao' }}</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Register Modal -->
-  <div class="modal-overlay" *ngIf="showRegisterModal" (click)="showRegisterModal = false">
-    <div class="modal-card" (click)="$event.stopPropagation()">
-      <h2><i class="pi pi-user-plus"></i> Đăng Ký Giải Đấu</h2>
-      <div class="form-group">
-        <label>Tên Đội / Vận Động Viên *</label>
-        <input type="text" [(ngModel)]="regForm.teamName" placeholder="VD: Warriors FC / Nguyễn Văn A" />
-      </div>
-      <div class="form-group">
-        <label>Mã Vận Động Viên (nếu có)</label>
-        <input type="text" [(ngModel)]="regForm.athleteIdCode" placeholder="ATH-2026" />
-      </div>
-      <div class="form-group">
-        <label>Trình Độ</label>
-        <select [(ngModel)]="regForm.skillLevel">
-          <option value="Phong Trào">Phong Trào</option>
-          <option value="Bán Chuyên">Bán Chuyên</option>
-          <option value="Chuyên Nghiệp">Chuyên Nghiệp</option>
-        </select>
-      </div>
-      <div class="modal-footer">
-        <button class="btn-secondary" (click)="showRegisterModal = false">Hủy</button>
-        <button class="btn-primary" (click)="registerTeam()">Xác Nhận Đăng Ký</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Score Modal -->
-  <div class="modal-overlay" *ngIf="showScoreModal" (click)="showScoreModal = false">
-    <div class="modal-card" (click)="$event.stopPropagation()">
-      <h2><i class="pi pi-pencil"></i> Cập Nhật Kết Quả Trận Đấu</h2>
-      <div class="score-inputs">
-        <div class="team-input">
-          <label>{{ selectedFixture?.team1Name }}</label>
-          <input type="number" [(ngModel)]="score1" />
-        </div>
-        <div class="vs">VS</div>
-        <div class="team-input">
-          <label>{{ selectedFixture?.team2Name }}</label>
-          <input type="number" [(ngModel)]="score2" />
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn-secondary" (click)="showScoreModal = false">Hủy</button>
-        <button class="btn-primary" (click)="saveScore()">Lưu Tỷ Số</button>
-      </div>
-    </div>
-  </div>
-</div>
+    @if (showScoreModal() && selectedFixture(); as fixture) { <div class="modal-overlay" (click)="showScoreModal.set(false)"><section class="modal-card" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+      <h2>Cập nhật kết quả</h2><div class="score-inputs"><div class="team-input"><label>{{ registrationName(fixture.registration1Id) }}</label><input type="number" min="0" [(ngModel)]="score1" /></div>
+        <div class="vs">VS</div><div class="team-input"><label>{{ registrationName(fixture.registration2Id) }}</label><input type="number" min="0" [(ngModel)]="score2" /></div></div>
+      <div class="modal-footer"><button class="btn-secondary" (click)="showScoreModal.set(false)">Hủy</button><button class="btn-primary" [disabled]="mutating()" (click)="saveScore()">Lưu tỷ số</button></div>
+    </section></div> }
+  }
+</main>

@@ -1,13 +1,22 @@
 import { Observable } from 'rxjs';
-import { ClubModel, ClubMemberModel, ClubActivityModel } from '@domain/models/club.model';
+import {
+  ClubActivityModel,
+  ClubMemberModel,
+  ClubModel,
+  CreateClubActivityPayload,
+  CreateClubPayload,
+  SportType
+} from '@domain/models/club.model';
 
 export abstract class ClubRepositoryPort {
-  abstract searchClubs(sportType?: string, region?: string, keyword?: string): Observable<ClubModel[]>;
+  abstract searchClubs(sportType?: SportType, keyword?: string): Observable<ClubModel[]>;
   abstract getClubDetails(clubId: string): Observable<ClubModel>;
-  abstract createClub(data: Partial<ClubModel>): Observable<ClubModel>;
-  abstract joinClub(clubId: string, payload: { userId: string; userName: string; userAvatar?: string; userPhone?: string; introMessage?: string }): Observable<ClubMemberModel>;
+  abstract createClub(payload: CreateClubPayload): Observable<ClubModel>;
+  abstract joinClub(clubId: string): Observable<ClubMemberModel>;
+  abstract leaveClub(clubId: string): Observable<void>;
+  abstract getMyMembership(clubId: string): Observable<ClubMemberModel | null>;
   abstract getClubMembers(clubId: string): Observable<ClubMemberModel[]>;
+  abstract respondMembership(clubId: string, membershipId: string, accepted: boolean): Observable<ClubMemberModel>;
   abstract getClubActivities(clubId: string): Observable<ClubActivityModel[]>;
-  abstract createClubActivity(clubId: string, payload: Partial<ClubActivityModel> & { creatorId: string }): Observable<ClubActivityModel>;
-  abstract leaveClub(clubId: string, userId: string): Observable<void>;
+  abstract createClubActivity(clubId: string, payload: CreateClubActivityPayload): Observable<ClubActivityModel>;
 }

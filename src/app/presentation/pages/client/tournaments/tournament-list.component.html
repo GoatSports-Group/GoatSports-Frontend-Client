@@ -1,125 +1,46 @@
-<div class="tournaments-container">
-  <!-- Hero Section -->
-  <div class="hero-banner">
-    <div class="hero-content">
-      <div class="badge-pill">
-        <i class="pi pi-trophy"></i> Đấu Trường Thể Thao
-      </div>
-      <h1 class="hero-title">Giải Đấu & Cup Thể Thao Phong Trào</h1>
-      <p class="hero-subtitle">
-        Khám phá các giải đấu thể thao chuyên nghiệp và phong trào, đăng ký tranh tài cùng đồng đội, nhận cúp vinh quang và tiền thưởng hấp dẫn.
-      </p>
-      <div class="hero-actions">
-        <button class="btn-primary" (click)="showCreateModal = true">
-          <i class="pi pi-plus"></i> Khởi Tạo Giải Đấu Mới
-        </button>
-      </div>
-    </div>
-  </div>
+<main class="tournaments-container">
+  <section class="hero-banner"><div class="badge-pill"><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon> Thi đấu GoatSports</div>
+    <h1 class="hero-title">Giải đấu thể thao</h1><p class="hero-subtitle">Đăng ký tranh tài, theo dõi lịch đấu và bảng xếp hạng trực tiếp.</p>
+    <button type="button" class="btn-primary" (click)="openCreateModal()"><lucide-icon name="plus" class="w-4 h-4"></lucide-icon>Tạo giải đấu</button>
+  </section>
+  <section class="filter-bar" aria-label="Bộ lọc giải đấu"><div class="search-box"><lucide-icon name="search" class="search-icon w-4 h-4"></lucide-icon>
+    <input type="search" [ngModel]="keyword()" (ngModelChange)="updateKeyword($event)" (keyup.enter)="load()" placeholder="Tìm giải đấu" /></div>
+    <div class="sport-pills">@for (sport of sports; track sport.value) { <button type="button" class="sport-pill"
+      [class.active]="selectedSport() === sport.value" (click)="selectSport(sport.value)">{{ sport.label }}</button> }</div>
+  </section>
+  @if (loading()) {
+    <div class="tournament-grid">@for (item of [1,2,3,4,5,6]; track item) { <div class="tournament-card card-body"><app-loading-skeleton height="180px"></app-loading-skeleton></div> }</div>
+  } @else if (error()) {
+    <section class="empty-state" role="alert"><lucide-icon name="alert-triangle" class="empty-icon"></lucide-icon><h2>Chưa tải được giải đấu</h2>
+      <p>{{ error() }}</p><button class="btn-primary" (click)="load()">Thử lại</button></section>
+  } @else if (tournaments().length) {
+    <section class="tournament-grid">@for (tournament of tournaments(); track tournament.tournamentId) {
+      <article class="tournament-card" tabindex="0" role="button" (click)="goToDetail(tournament.tournamentId)" (keydown.enter)="goToDetail(tournament.tournamentId)">
+        <div class="card-banner"><span class="sport-tag">{{ tournament.sportType }}</span><span class="status-tag"
+          [class.open]="tournament.status === 'REGISTRATION_OPEN'" [class.progress]="tournament.status === 'IN_PROGRESS'">{{ statusLabel(tournament.status) }}</span></div>
+        <div class="card-body"><h2 class="tournament-name">{{ tournament.name }}</h2><p class="organizer">Bắt đầu {{ tournament.startDate | date:'dd/MM/yyyy' }}</p>
+          <div class="meta-row"><div class="meta-item"><span class="label">Giải thưởng</span><span class="value prize">{{ tournament.prizePool | number }} đ</span></div>
+            <div class="meta-item"><span class="label">Thể thức</span><span class="value">{{ tournament.format === 'SINGLE_ELIMINATION' ? 'Loại trực tiếp' : 'Vòng tròn' }}</span></div></div>
+          <div class="card-footer"><span class="teams-count">{{ tournament.currentParticipants }}/{{ tournament.maxParticipants }} đăng ký</span><span class="btn-register">Xem chi tiết →</span></div>
+        </div></article>
+    }</section>
+  } @else { <section class="empty-state"><lucide-icon name="trophy" class="empty-icon"></lucide-icon><h2>Chưa có giải đấu phù hợp</h2></section> }
 
-  <!-- Filters -->
-  <div class="filter-bar">
-    <div class="search-box">
-      <i class="pi pi-search search-icon"></i>
-      <input type="text" [(ngModel)]="searchKeyword" (keyup.enter)="loadTournaments()" placeholder="Tìm giải đấu theo tên, môn thể thao..." />
-    </div>
-
-    <div class="sport-pills">
-      <button *ngFor="let s of sports" [class.active]="selectedSport === s.value" (click)="selectSport(s.value)" class="sport-pill">
-        {{ s.label }}
-      </button>
-    </div>
-  </div>
-
-  <!-- Tournament Grid -->
-  <div class="tournament-grid" *ngIf="!loading && tournaments.length > 0">
-    <div class="tournament-card" *ngFor="let t of tournaments" (click)="goToDetail(t.tournamentId)">
-      <div class="card-banner" [style.backgroundImage]="'url(' + (t.bannerUrl || 'https://images.unsplash.com/photo-1511886929837-354d827aae26?w=800') + ')'">
-        <span class="sport-tag">{{ t.sportType }}</span>
-        <span class="status-tag" [class.open]="t.status === 'OPEN_REGISTRATION'" [class.progress]="t.status === 'IN_PROGRESS'">
-          {{ t.status === 'OPEN_REGISTRATION' ? 'Đang mở đăng ký' : (t.status === 'IN_PROGRESS' ? 'Đang diễn ra' : t.status) }}
-        </span>
-      </div>
-
-      <div class="card-body">
-        <h3 class="tournament-name">{{ t.name }}</h3>
-        <p class="organizer"><i class="pi pi-shield"></i> BTC: {{ t.organizerName || 'GoatSports Organizer' }}</p>
-
-        <div class="meta-row">
-          <div class="meta-item">
-            <span class="label">Tổng giải thưởng</span>
-            <span class="value prize">{{ t.prizePool ? (t.prizePool | number) + ' đ' : 'Cúp & Huy Chương' }}</span>
-          </div>
-          <div class="meta-item">
-            <span class="label">Thể thức</span>
-            <span class="value">{{ t.format === 'SINGLE_ELIMINATION' ? 'Loại trực tiếp' : 'Vòng tròn' }}</span>
-          </div>
-        </div>
-
-        <div class="card-footer">
-          <div class="teams-count">
-            <i class="pi pi-users"></i>
-            <span>{{ t.currentParticipants || 0 }}/{{ t.maxParticipants || 16 }} Đội</span>
-          </div>
-          <button class="btn-register">Xem Bảng Đấu <i class="pi pi-arrow-right"></i></button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Empty State -->
-  <div class="empty-state" *ngIf="!loading && tournaments.length === 0">
-    <i class="pi pi-trophy empty-icon"></i>
-    <h3>Chưa có giải đấu nào phù hợp</h3>
-    <p>Hãy trở thành người tổ chức giải đấu thể thao đầu tiên!</p>
-    <button class="btn-primary" (click)="showCreateModal = true"><i class="pi pi-plus"></i> Tạo Giải Đấu</button>
-  </div>
-
-  <!-- Create Modal -->
-  <div class="modal-overlay" *ngIf="showCreateModal" (click)="showCreateModal = false">
-    <div class="modal-card" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h2><i class="pi pi-trophy"></i> Khởi Tạo Giải Đấu Mới</h2>
-        <button class="btn-close" (click)="showCreateModal = false"><i class="pi pi-times"></i></button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label>Tên Giải Đấu *</label>
-          <input type="text" [(ngModel)]="newTournament.name" placeholder="VD: Giải Cầu Lông Goat Open 2026" />
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Môn Thể Thao *</label>
-            <select [(ngModel)]="newTournament.sportType">
-              <option value="BADMINTON">Cầu lông</option>
-              <option value="FOOTBALL">Bóng đá</option>
-              <option value="PICKLEBALL">Pickleball</option>
-              <option value="TENNIS">Tennis</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Thể Thức Thi Đấu</label>
-            <select [(ngModel)]="newTournament.format">
-              <option value="SINGLE_ELIMINATION">Loại trực tiếp (Knockout)</option>
-              <option value="ROUND_ROBIN">Vòng tròn tính điểm</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Lệ Phí Đăng Ký (VNĐ)</label>
-            <input type="number" [(ngModel)]="newTournament.entryFee" />
-          </div>
-          <div class="form-group">
-            <label>Tổng Giải Thưởng (VNĐ)</label>
-            <input type="number" [(ngModel)]="newTournament.prizePool" />
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn-secondary" (click)="showCreateModal = false">Hủy</button>
-        <button class="btn-primary" [disabled]="!newTournament.name" (click)="createTournament()">Tạo Giải</button>
-      </div>
-    </div>
-  </div>
-</div>
+  @if (showCreateModal()) {
+    <div class="modal-overlay" (click)="closeCreateModal()"><section class="modal-card" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+      <div class="modal-header"><h2>Tạo giải đấu</h2><button class="btn-close" aria-label="Đóng" (click)="closeCreateModal()"><lucide-icon name="x"></lucide-icon></button></div>
+      <div class="modal-body"><div class="form-group"><label for="t-name">Tên giải đấu *</label><input id="t-name" [(ngModel)]="createForm.name" /></div>
+        <div class="form-group"><label for="t-description">Mô tả</label><textarea id="t-description" rows="3" [(ngModel)]="createForm.description"></textarea></div>
+        <div class="form-row"><div class="form-group"><label for="t-sport">Môn thể thao</label><select id="t-sport" [(ngModel)]="createForm.sportType">
+          @for (sport of sports.slice(1); track sport.value) { <option [ngValue]="sport.value">{{ sport.label }}</option> }</select></div>
+          <div class="form-group"><label for="t-format">Thể thức</label><select id="t-format" [(ngModel)]="createForm.format"><option value="SINGLE_ELIMINATION">Loại trực tiếp</option><option value="ROUND_ROBIN">Vòng tròn</option></select></div></div>
+        <div class="form-row"><div class="form-group"><label for="t-max">Số đăng ký tối đa</label><input id="t-max" type="number" min="2" [(ngModel)]="createForm.maxParticipants" /></div>
+          <div class="form-group"><label for="t-fee">Lệ phí</label><input id="t-fee" type="number" min="0" [(ngModel)]="createForm.entryFee" /></div></div>
+        <div class="form-row"><div class="form-group"><label for="t-open">Mở đăng ký</label><input id="t-open" type="date" [(ngModel)]="createForm.registrationOpenDate" /></div>
+          <div class="form-group"><label for="t-close">Đóng đăng ký</label><input id="t-close" type="date" [(ngModel)]="createForm.registrationCloseDate" /></div></div>
+        <div class="form-row"><div class="form-group"><label for="t-start">Bắt đầu</label><input id="t-start" type="date" [(ngModel)]="createForm.startDate" /></div>
+          <div class="form-group"><label for="t-end">Kết thúc</label><input id="t-end" type="date" [(ngModel)]="createForm.endDate" /></div></div>
+      </div><div class="modal-footer"><button class="btn-secondary" (click)="closeCreateModal()">Hủy</button><button class="btn-primary" [disabled]="saving() || !createForm.name.trim()" (click)="createTournament()">{{ saving() ? 'Đang tạo...' : 'Tạo giải đấu' }}</button></div>
+    </section></div>
+  }
+</main>

@@ -1,151 +1,79 @@
-<div class="club-detail-page" *ngIf="club">
-  <!-- Header Cover -->
-  <div class="detail-cover" [style.backgroundImage]="'url(' + (club.coverUrl || 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=1200') + ')'">
-    <div class="cover-overlay"></div>
-    <div class="header-inner">
-      <div class="avatar-large">
-        <img [src]="club.avatarUrl || 'https://api.dicebear.com/7.x/identicon/svg?seed=' + club.name" alt="Avatar" />
-      </div>
-      <div class="header-meta">
-        <div class="tags-row">
-          <span class="sport-badge">{{ club.sportType }}</span>
-          <span class="privacy-badge">{{ club.privacy === 'PRIVATE' ? 'CLB Riêng Tư' : 'CLB Mở' }}</span>
+<main class="club-detail-page">
+  @if (loading()) {
+    <div class="info-card"><app-loading-skeleton height="260px"></app-loading-skeleton></div>
+  } @else if (error()) {
+    <section class="empty-state" role="alert"><lucide-icon name="alert-triangle" class="empty-icon"></lucide-icon>
+      <h2>Chưa tải được câu lạc bộ</h2><p>{{ error() }}</p><button class="btn-join-main" (click)="load()">Thử lại</button></section>
+  } @else if (club(); as currentClub) {
+    <section class="detail-cover">
+      <div class="cover-overlay"></div><div class="header-inner">
+        <div class="avatar-large">
+          @if (currentClub.logoUrl) { <img [src]="currentClub.logoUrl" [alt]="'Logo ' + currentClub.name" /> }
+          @else { <span>{{ initials(currentClub.name) }}</span> }
         </div>
-        <h1 class="title">{{ club.name }}</h1>
-        <p class="submeta">
-          <span><i class="pi pi-user"></i> Chủ nhiệm: <strong>{{ club.ownerName || 'Chủ nhiệm CLB' }}</strong></span>
-          <span><i class="pi pi-map-marker"></i> {{ club.region }}</span>
-          <span><i class="pi pi-users"></i> {{ club.memberCount }}/{{ club.maxMembers }} thành viên</span>
-        </p>
-      </div>
-
-      <div class="header-action">
-        <button class="btn-join-main" *ngIf="!isMember && !isOwner" (click)="joinClub()">
-          <i class="pi pi-user-plus"></i> Tham Gia Câu Lạc Bộ
-        </button>
-        <button class="btn-leave" *ngIf="isMember && !isOwner" (click)="leaveClub()">
-          <i class="pi pi-sign-out"></i> Rời CLB
-        </button>
-        <span class="owner-tag" *ngIf="isOwner"><i class="pi pi-crown"></i> Chủ Nhiệm CLB</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Navigation Tabs -->
-  <div class="tabs-nav">
-    <button [class.active]="activeTab === 'OVERVIEW'" (click)="activeTab = 'OVERVIEW'">
-      <i class="pi pi-info-circle"></i> Giới Thiệu
-    </button>
-    <button [class.active]="activeTab === 'ACTIVITIES'" (click)="activeTab = 'ACTIVITIES'">
-      <i class="pi pi-calendar"></i> Hoạt Động ({{ activities.length }})
-    </button>
-    <button [class.active]="activeTab === 'MEMBERS'" (click)="activeTab = 'MEMBERS'">
-      <i class="pi pi-users"></i> Thành Viên ({{ members.length }})
-    </button>
-  </div>
-
-  <!-- Tab Contents -->
-  <div class="tab-body">
-    <!-- Overview Tab -->
-    <div class="tab-pane" *ngIf="activeTab === 'OVERVIEW'">
-      <div class="overview-grid">
-        <div class="info-card">
-          <h3><i class="pi pi-align-left"></i> Về Câu Lạc Bộ</h3>
-          <p class="desc-text">{{ club.description || 'Chưa có thông tin mô tả chi tiết.' }}</p>
+        <div class="header-meta"><div class="tags-row"><span class="sport-badge">{{ currentClub.sportType }}</span>
+          <span class="privacy-badge">{{ currentClub.privacy === 'PRIVATE' ? 'Riêng tư' : 'Công khai' }}</span></div>
+          <h1 class="title">{{ currentClub.name }}</h1>
+          <p class="submeta"><span><lucide-icon name="user" class="w-4 h-4"></lucide-icon>{{ displayName(currentClub.ownerId) }}</span>
+            <span><lucide-icon name="users" class="w-4 h-4"></lucide-icon>{{ currentClub.memberCount }} thành viên</span></p>
         </div>
-
-        <div class="side-info">
-          <div class="info-box">
-            <h4>Chế độ xét duyệt</h4>
-            <p>{{ club.approvalMode === 'AUTO' ? 'Tự động duyệt ngay lập tức' : 'Chủ nhiệm duyệt thủ công' }}</p>
-          </div>
-          <div class="info-box">
-            <h4>Phí sinh hoạt tháng</h4>
-            <p class="price-val">{{ club.membershipFee ? (club.membershipFee | number) + ' đ' : 'Miễn phí' }}</p>
-          </div>
+        <div class="header-action">
+          @if (isOwner()) { <span class="owner-tag">Chủ câu lạc bộ</span> }
+          @else if (membership()?.status === 'PENDING') { <span class="owner-tag">Đang chờ duyệt</span> }
+          @else if (isActiveMember()) { <button class="btn-leave" [disabled]="mutating()" (click)="leave()">Rời câu lạc bộ</button> }
+          @else { <button class="btn-join-main" [disabled]="mutating()" (click)="join()">Tham gia</button> }
+          @if (currentClub.conversationId && isActiveMember()) { <button class="btn-join-main" (click)="openChat()">Mở nhóm chat</button> }
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Activities Tab -->
-    <div class="tab-pane" *ngIf="activeTab === 'ACTIVITIES'">
-      <div class="tab-header-action">
-        <h3>Lịch Sinh Hoạt & Giao Lưu</h3>
-        <button class="btn-create-act" (click)="showActivityModal = true">
-          <i class="pi pi-plus"></i> Tạo Hoạt Động Mới
-        </button>
-      </div>
+    <nav class="tabs-nav" role="tablist" aria-label="Thông tin câu lạc bộ">
+      <button role="tab" [class.active]="activeTab() === 'OVERVIEW'" (click)="setTab('OVERVIEW')">Giới thiệu</button>
+      <button role="tab" [class.active]="activeTab() === 'ACTIVITIES'" (click)="setTab('ACTIVITIES')">Hoạt động ({{ activities().length }})</button>
+      <button role="tab" [class.active]="activeTab() === 'MEMBERS'" (click)="setTab('MEMBERS')">Thành viên ({{ members().length }})</button>
+    </nav>
 
-      <div class="activity-list" *ngIf="activities.length > 0">
-        <div class="activity-card" *ngFor="let act of activities">
-          <div class="act-date">
-            <i class="pi pi-calendar-plus"></i>
-            <span>{{ act.startTime | date:'HH:mm dd/MM' }}</span>
-          </div>
-          <div class="act-info">
-            <h4>{{ act.title }}</h4>
-            <p>{{ act.description || 'Giao lưu thể thao thường kỳ cùng các thành viên CLB.' }}</p>
-            <span class="venue-pill"><i class="pi pi-map-marker"></i> {{ act.venueName || 'Sân Thể Thao Trung Tâm' }}</span>
-          </div>
-          <div class="act-status">
-            <span class="participants-badge">{{ act.currentParticipants || 1 }}/{{ act.maxParticipants || 12 }} tham gia</span>
-          </div>
+    <section class="tab-body">
+      @if (activeTab() === 'OVERVIEW') {
+        <div class="overview-grid"><article class="info-card"><h2>Về câu lạc bộ</h2>
+          <p class="desc-text">{{ currentClub.description || 'Câu lạc bộ chưa cập nhật mô tả.' }}</p></article>
+          <aside class="side-info"><div class="info-box"><h3>Duyệt thành viên</h3>
+            <p>{{ currentClub.approvalMode === 'AUTO' ? 'Tự động' : 'Chủ câu lạc bộ duyệt' }}</p></div>
+            <div class="info-box"><h3>Thành tích</h3><p>{{ currentClub.winCount }} thắng · {{ currentClub.drawCount }} hòa · {{ currentClub.lossCount }} thua</p></div></aside></div>
+      } @else if (activeTab() === 'ACTIVITIES') {
+        <div class="tab-header-action"><h2>Lịch hoạt động</h2>
+          @if (isManager()) { <button class="btn-create-act" (click)="showActivityModal.set(true)">Tạo hoạt động</button> }</div>
+        @if (activities().length) { <div class="activity-list">
+          @for (activity of activities(); track activity.activityId) {
+            <article class="activity-card"><div class="act-date">{{ activity.startAt | date:'HH:mm dd/MM' }}</div>
+              <div class="act-info"><h3>{{ activity.title }}</h3><p>{{ activity.description || 'Không có mô tả.' }}</p>
+                @if (activity.venueId) { <a [routerLink]="['/venues', activity.venueId]">Xem địa điểm</a> }</div>
+              <span>{{ activity.endAt | date:'HH:mm' }}</span></article>
+          }
+        </div> } @else { <div class="empty-state"><p>Chưa có hoạt động nào.</p></div> }
+      } @else {
+        <div class="members-grid">
+          @for (member of members(); track member.membershipId) {
+            <article class="member-card">
+              @if (avatar(member.userId); as avatarUrl) { <img [src]="avatarUrl" [alt]="displayName(member.userId)" /> }
+              @else { <div class="club-avatar">{{ initials(displayName(member.userId)) }}</div> }
+              <div class="member-info"><h3>{{ displayName(member.userId) }}</h3><span class="role-badge">{{ member.role }} · {{ member.status }}</span></div>
+              @if (isManager() && member.status === 'PENDING') { <button (click)="respond(member, true)">Duyệt</button><button (click)="respond(member, false)">Từ chối</button> }
+            </article>
+          }
         </div>
-      </div>
+      }
+    </section>
 
-      <div class="empty-state" *ngIf="activities.length === 0">
-        <i class="pi pi-calendar empty-icon"></i>
-        <p>Chưa có hoạt động giao lưu nào được tạo gần đây.</p>
-      </div>
-    </div>
-
-    <!-- Members Tab -->
-    <div class="tab-pane" *ngIf="activeTab === 'MEMBERS'">
-      <div class="members-grid">
-        <div class="member-card" *ngFor="let m of members">
-          <img [src]="m.userAvatar || 'https://api.dicebear.com/7.x/identicon/svg?seed=' + m.userName" alt="Avatar" />
-          <div class="member-info">
-            <h4>{{ m.userName }}</h4>
-            <span class="role-badge" [class.owner]="m.role === 'OWNER'">
-              <i [class]="m.role === 'OWNER' ? 'pi pi-crown' : 'pi pi-user'"></i> {{ m.role }}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Activity Modal -->
-  <div class="modal-overlay" *ngIf="showActivityModal" (click)="showActivityModal = false">
-    <div class="modal-card" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h2><i class="pi pi-calendar-plus"></i> Lên Lịch Giao Lưu CLB</h2>
-        <button class="btn-close" (click)="showActivityModal = false"><i class="pi pi-times"></i></button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label>Tiêu Đề *</label>
-          <input type="text" [(ngModel)]="newActivity.title" placeholder="VD: Giao lưu cầu lông tối Thứ 5" />
-        </div>
-        <div class="form-group">
-          <label>Mô Tả</label>
-          <textarea rows="2" [(ngModel)]="newActivity.description" placeholder="Thông tin thêm về trình độ, tiền sân..."></textarea>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Thời Gian Bắt Đầu *</label>
-            <input type="datetime-local" [(ngModel)]="newActivity.startTime" />
-          </div>
-          <div class="form-group">
-            <label>Số Người Tối Đa</label>
-            <input type="number" [(ngModel)]="newActivity.maxParticipants" />
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn-secondary" (click)="showActivityModal = false">Hủy</button>
-        <button class="btn-primary" [disabled]="!newActivity.title || !newActivity.startTime" (click)="createActivity()">Tạo Lịch</button>
-      </div>
-    </div>
-  </div>
-</div>
+    @if (showActivityModal()) {
+      <div class="modal-overlay" (click)="showActivityModal.set(false)"><section class="modal-card" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+        <h2>Tạo hoạt động</h2><div class="form-group"><label for="activity-title">Tiêu đề *</label><input id="activity-title" [(ngModel)]="activityForm.title" /></div>
+        <div class="form-group"><label for="activity-description">Mô tả</label><textarea id="activity-description" [(ngModel)]="activityForm.description"></textarea></div>
+        <div class="form-row"><div class="form-group"><label for="activity-start">Bắt đầu *</label><input id="activity-start" type="datetime-local" [(ngModel)]="activityForm.startAt" /></div>
+          <div class="form-group"><label for="activity-end">Kết thúc *</label><input id="activity-end" type="datetime-local" [(ngModel)]="activityForm.endAt" /></div></div>
+        <div class="modal-footer"><button class="btn-secondary" (click)="showActivityModal.set(false)">Hủy</button>
+          <button class="btn-join-main" [disabled]="mutating() || !activityForm.title || !activityForm.startAt || !activityForm.endAt" (click)="createActivity()">Tạo hoạt động</button></div>
+      </section></div>
+    }
+  }
+</main>

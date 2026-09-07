@@ -1,37 +1,48 @@
+export type SportType = 'FOOTBALL' | 'BADMINTON' | 'TENNIS' | 'BASKETBALL' | 'PICKLEBALL' | 'VOLLEYBALL';
+export type ClubPrivacy = 'PUBLIC' | 'PRIVATE';
+export type ClubApprovalMode = 'AUTO' | 'MANUAL';
+export type ClubRole = 'OWNER' | 'ADMIN' | 'MEMBER';
+export type ClubMemberStatus = 'PENDING' | 'ACTIVE' | 'REJECTED' | 'LEFT' | 'REMOVED' | 'BANNED';
+
 export interface ClubModel {
   clubId: string;
+  ownerId: string;
   name: string;
   description?: string;
-  avatarUrl?: string;
-  coverUrl?: string;
-  sportType: string;
-  region?: string;
-  district?: string;
-  city?: string;
-  ownerId: string;
-  ownerName?: string;
-  approvalMode: 'AUTO' | 'MANUAL';
-  privacy: 'PUBLIC' | 'PRIVATE';
-  membershipFee?: number;
-  memberCount: number;
-  maxMembers: number;
-  groupChatId?: string;
+  logoUrl?: string;
+  sportType: SportType;
+  privacy: ClubPrivacy;
+  approvalMode: ClubApprovalMode;
+  conversationId?: string;
   active: boolean;
+  winCount: number;
+  lossCount: number;
+  drawCount: number;
+  matchCount: number;
+  winRate: number;
+  memberCount: number;
   createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateClubPayload {
+  name: string;
+  description?: string;
+  logoUrl?: string;
+  sportType: SportType;
+  privacy: ClubPrivacy;
+  approvalMode: ClubApprovalMode;
 }
 
 export interface ClubMemberModel {
-  clubMemberId: string;
+  membershipId: string;
   clubId: string;
   userId: string;
-  userName: string;
-  userAvatar?: string;
-  userPhone?: string;
-  role: 'OWNER' | 'ADMIN' | 'MEMBER';
-  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'LEFT';
-  introMessage?: string;
-  appliedAt?: string;
+  role: ClubRole;
+  status: ClubMemberStatus;
   joinedAt?: string;
+  respondedBy?: string;
+  respondedAt?: string;
 }
 
 export interface ClubActivityModel {
@@ -40,10 +51,16 @@ export interface ClubActivityModel {
   title: string;
   description?: string;
   venueId?: string;
-  venueName?: string;
-  startTime: string;
-  endTime: string;
-  maxParticipants?: number;
-  currentParticipants?: number;
-  status: string;
+  startAt: string;
+  endAt: string;
+  createdBy: string;
+  createdAt?: string;
+}
+
+export interface CreateClubActivityPayload {
+  title: string;
+  description?: string;
+  venueId?: string;
+  startAt: string;
+  endAt: string;
 }

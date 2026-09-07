@@ -38,9 +38,9 @@ export interface PaymentAttempt {
 }
 
 export interface CreatePaymentRequest {
-  referenceType: 'BOOKING';
+  referenceType: 'BOOKING' | 'CLUB_FEE' | 'TOURNAMENT_REGISTRATION';
   referenceId: string;
-  purpose: 'BOOKING_DEPOSIT';
+  purpose: 'BOOKING_DEPOSIT' | 'BOOKING_REMAINING' | 'CLUB_FEE' | 'TOURNAMENT_FEE';
   amount: number;
   currency: 'VND';
   description: string;
@@ -56,3 +56,5 @@ export interface BookingDepositCheckout {
   payment: Payment;
   attempt: PaymentAttempt;
 }
+
+export type PaymentCheckout = BookingDepositCheckout;

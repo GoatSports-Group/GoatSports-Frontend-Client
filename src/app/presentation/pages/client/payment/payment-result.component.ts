@@ -8,7 +8,7 @@ import {
   PaymentRepository
 } from '@application/ports/persistence/payment.repository';
 import {
-  PendingBookingPayment,
+  PendingPaymentContext,
   PendingBookingPaymentService
 } from '@presentation/services/pending-booking-payment.service';
 
@@ -26,7 +26,7 @@ export class PaymentResultComponent implements OnInit {
   private readonly pendingPayment = inject(PendingBookingPaymentService);
   private readonly destroyRef = inject(DestroyRef);
 
-  context: PendingBookingPayment | null = null;
+  context: PendingPaymentContext | null = null;
   payment: Payment | null = null;
   state: PaymentResultState = 'checking';
   checking = false;
@@ -72,7 +72,12 @@ export class PaymentResultComponent implements OnInit {
   }
 
   get bookingUrl(): string {
-    return this.context ? `/booking/detail/${this.context.bookingId}` : '/booking/history';
+    if (this.context?.kind === 'TOURNAMENT') return `/tournaments/${this.context.tournamentId}`;
+    return this.context && 'bookingId' in this.context ? `/booking/detail/${this.context.bookingId}` : '/booking/history';
+  }
+
+  get isTournamentPayment(): boolean {
+    return this.context?.kind === 'TOURNAMENT';
   }
 
   formatPrice(value?: number): string {

@@ -1,136 +1,92 @@
-<div class="clubs-container">
-  <!-- Hero Section -->
-  <div class="hero-banner">
-    <div class="hero-content">
-      <div class="badge-pill">
-        <i class="pi pi-shield"></i> Cộng Đồng Thể Thao
-      </div>
-      <h1 class="hero-title">Câu Lạc Bộ & Hội Nhóm Thể Thao</h1>
-      <p class="hero-subtitle">
-        Tham gia cùng hàng nghìn người chơi thể thao cùng đam mê, tổ chức giao lưu hàng tuần và thi đấu giao hữu.
-      </p>
-      <div class="hero-actions">
-        <button class="btn-primary" (click)="openCreateModal()">
-          <i class="pi pi-plus"></i> Tạo Câu Lạc Bộ Của Bạn
-        </button>
-      </div>
-    </div>
-  </div>
+<main class="clubs-container">
+  <section class="hero-banner">
+    <div class="badge-pill"><lucide-icon name="users" class="w-4 h-4"></lucide-icon> Cộng đồng thể thao</div>
+    <h1 class="hero-title">Câu lạc bộ thể thao</h1>
+    <p class="hero-subtitle">Tìm cộng đồng phù hợp, tham gia hoạt động và cùng nhau thi đấu.</p>
+    <button type="button" class="btn-primary" (click)="openCreateModal()">
+      <lucide-icon name="plus" class="w-4 h-4"></lucide-icon> Tạo câu lạc bộ
+    </button>
+  </section>
 
-  <!-- Filters & Search -->
-  <div class="filter-bar">
+  <section class="filter-bar" aria-label="Bộ lọc câu lạc bộ">
     <div class="search-box">
-      <i class="pi pi-search search-icon"></i>
-      <input type="text" [(ngModel)]="searchKeyword" (keyup.enter)="loadClubs()" placeholder="Tìm theo tên CLB, khu vực..." />
+      <lucide-icon name="search" class="search-icon w-4 h-4"></lucide-icon>
+      <input type="search" [ngModel]="keyword()" (ngModelChange)="updateKeyword($event)"
+        (keyup.enter)="load()" placeholder="Tìm theo tên hoặc mô tả" aria-label="Tìm câu lạc bộ" />
     </div>
-
     <div class="sport-pills">
-      <button *ngFor="let s of sports" [class.active]="selectedSport === s.value" (click)="selectSport(s.value)" class="sport-pill">
-        <i [class]="s.icon"></i> {{ s.label }}
-      </button>
+      @for (sport of sports; track sport.value) {
+        <button type="button" class="sport-pill" [class.active]="selectedSport() === sport.value"
+          (click)="selectSport(sport.value)">{{ sport.label }}</button>
+      }
     </div>
-  </div>
+  </section>
 
-  <!-- Club Cards Grid -->
-  <div class="club-grid" *ngIf="!loading && clubs.length > 0">
-    <div class="club-card" *ngFor="let club of clubs" (click)="goToDetail(club.clubId)">
-      <div class="card-cover" [style.backgroundImage]="'url(' + (club.coverUrl || 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=800') + ')'">
-        <span class="sport-tag">{{ club.sportType }}</span>
-        <span class="privacy-tag" [class.private]="club.privacy === 'PRIVATE'">
-          <i [class]="club.privacy === 'PRIVATE' ? 'pi pi-lock' : 'pi pi-globe'"></i>
-          {{ club.privacy === 'PRIVATE' ? 'Riêng tư' : 'Công khai' }}
-        </span>
-      </div>
-
-      <div class="card-body">
-        <div class="club-header">
-          <div class="club-avatar">
-            <img [src]="club.avatarUrl || 'https://api.dicebear.com/7.x/identicon/svg?seed=' + club.name" alt="Avatar" />
-          </div>
-          <div class="club-meta">
-            <h3 class="club-name">{{ club.name }}</h3>
-            <span class="club-region"><i class="pi pi-map-marker"></i> {{ club.region || 'Toàn quốc' }}</span>
-          </div>
-        </div>
-
-        <p class="club-desc">{{ club.description || 'Chưa có mô tả chi tiết cho câu lạc bộ này.' }}</p>
-
-        <div class="card-footer">
-          <div class="member-badge">
-            <i class="pi pi-users"></i>
-            <span>{{ club.memberCount || 1 }} / {{ club.maxMembers || 50 }} thành viên</span>
-          </div>
-          <button class="btn-join">Chi tiết <i class="pi pi-arrow-right"></i></button>
-        </div>
-      </div>
+  @if (loading()) {
+    <div class="club-grid" aria-label="Đang tải câu lạc bộ">
+      @for (item of [1, 2, 3, 4, 5, 6]; track item) {
+        <div class="club-card card-body"><app-loading-skeleton height="180px"></app-loading-skeleton></div>
+      }
     </div>
-  </div>
-
-  <!-- Empty state -->
-  <div class="empty-state" *ngIf="!loading && clubs.length === 0">
-    <i class="pi pi-inbox empty-icon"></i>
-    <h3>Chưa có câu lạc bộ nào phù hợp</h3>
-    <p>Hãy là người đầu tiên sáng lập câu lạc bộ thể thao trong khu vực của bạn!</p>
-    <button class="btn-primary" (click)="openCreateModal()"><i class="pi pi-plus"></i> Tạo Câu Lạc Bộ</button>
-  </div>
-
-  <!-- Create Modal -->
-  <div class="modal-overlay" *ngIf="showCreateModal" (click)="showCreateModal = false">
-    <div class="modal-card" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h2><i class="pi pi-plus-circle"></i> Sáng Lập Câu Lạc Bộ</h2>
-        <button class="btn-close" (click)="showCreateModal = false"><i class="pi pi-times"></i></button>
-      </div>
-
-      <div class="modal-body">
-        <div class="form-group">
-          <label>Tên Câu Lạc Bộ *</label>
-          <input type="text" [(ngModel)]="newClub.name" placeholder="VD: CLB Cầu Lông Thủ Đức Fast & Furious" />
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>Môn Thể Thao *</label>
-            <select [(ngModel)]="newClub.sportType">
-              <option value="BADMINTON">Cầu lông</option>
-              <option value="FOOTBALL">Bóng đá</option>
-              <option value="PICKLEBALL">Pickleball</option>
-              <option value="TENNIS">Tennis</option>
-              <option value="BASKETBALL">Bóng rổ</option>
-            </select>
+  } @else if (error()) {
+    <section class="empty-state" role="alert">
+      <lucide-icon name="alert-triangle" class="empty-icon"></lucide-icon><h2>Chưa tải được câu lạc bộ</h2>
+      <p>{{ error() }}</p><button type="button" class="btn-primary" (click)="load()">Thử lại</button>
+    </section>
+  } @else if (clubs().length) {
+    <section class="club-grid">
+      @for (club of clubs(); track club.clubId) {
+        <article class="club-card" tabindex="0" role="button" (click)="goToDetail(club.clubId)"
+          (keydown.enter)="goToDetail(club.clubId)">
+          <div class="card-cover">
+            <span class="sport-tag">{{ club.sportType }}</span>
+            <span class="privacy-tag" [class.private]="club.privacy === 'PRIVATE'">
+              <lucide-icon [name]="club.privacy === 'PRIVATE' ? 'lock' : 'globe'" class="w-3 h-3"></lucide-icon>
+              {{ club.privacy === 'PRIVATE' ? 'Riêng tư' : 'Công khai' }}
+            </span>
           </div>
-          <div class="form-group">
-            <label>Khu Vực *</label>
-            <input type="text" [(ngModel)]="newClub.region" placeholder="VD: TP. Hồ Chí Minh" />
+          <div class="card-body">
+            <div class="club-header">
+              <div class="club-avatar">
+                @if (club.logoUrl) { <img [src]="club.logoUrl" [alt]="'Logo ' + club.name" /> }
+                @else { <span>{{ initials(club.name) }}</span> }
+              </div>
+              <div class="club-meta"><h2 class="club-name">{{ club.name }}</h2><span>{{ club.memberCount }} thành viên</span></div>
+            </div>
+            <p class="club-desc">{{ club.description || 'Câu lạc bộ chưa cập nhật mô tả.' }}</p>
+            <div class="card-footer"><span>{{ club.winRate || 0 | number:'1.0-1' }}% thắng</span><span class="btn-join">Xem chi tiết →</span></div>
           </div>
-        </div>
+        </article>
+      }
+    </section>
+  } @else {
+    <section class="empty-state"><lucide-icon name="inbox" class="empty-icon"></lucide-icon>
+      <h2>Chưa có câu lạc bộ phù hợp</h2><p>Thử đổi bộ lọc hoặc tạo cộng đồng đầu tiên.</p>
+    </section>
+  }
 
-        <div class="form-group">
-          <label>Mô Tả & Hoạt Động</label>
-          <textarea rows="3" [(ngModel)]="newClub.description" placeholder="Giới thiệu về mục tiêu, thời gian sinh hoạt, trình độ phù hợp..."></textarea>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>Chế Độ Gia Nhập</label>
-            <select [(ngModel)]="newClub.approvalMode">
-              <option value="AUTO">Tự động duyệt ngay</option>
-              <option value="MANUAL">Chủ nhiệm CLB phê duyệt</option>
-            </select>
+  @if (showCreateModal()) {
+    <div class="modal-overlay" role="presentation" (click)="closeCreateModal()">
+      <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="create-club-title" (click)="$event.stopPropagation()">
+        <div class="modal-header"><h2 id="create-club-title">Tạo câu lạc bộ</h2>
+          <button type="button" class="btn-close" aria-label="Đóng" (click)="closeCreateModal()"><lucide-icon name="x"></lucide-icon></button></div>
+        <div class="modal-body">
+          <div class="form-group"><label for="club-name">Tên câu lạc bộ *</label><input id="club-name" [(ngModel)]="createForm.name" /></div>
+          <div class="form-group"><label for="club-description">Mô tả</label><textarea id="club-description" rows="3" [(ngModel)]="createForm.description"></textarea></div>
+          <div class="form-row">
+            <div class="form-group"><label for="club-sport">Môn thể thao</label><select id="club-sport" [(ngModel)]="createForm.sportType">
+              @for (sport of sports.slice(1); track sport.value) { <option [ngValue]="sport.value">{{ sport.label }}</option> }
+            </select></div>
+            <div class="form-group"><label for="club-privacy">Quyền riêng tư</label><select id="club-privacy" [(ngModel)]="createForm.privacy">
+              <option value="PUBLIC">Công khai</option><option value="PRIVATE">Riêng tư</option></select></div>
           </div>
-          <div class="form-group">
-            <label>Số Thành Viên Tối Đa</label>
-            <input type="number" [(ngModel)]="newClub.maxMembers" />
-          </div>
+          <div class="form-group"><label for="club-approval">Duyệt thành viên</label><select id="club-approval" [(ngModel)]="createForm.approvalMode">
+            <option value="AUTO">Tự động</option><option value="MANUAL">Thủ công</option></select></div>
         </div>
-      </div>
-
-      <div class="modal-footer">
-        <button class="btn-secondary" (click)="showCreateModal = false">Hủy</button>
-        <button class="btn-primary" [disabled]="!newClub.name" (click)="createClub()">
-          <i class="pi pi-check"></i> Xác Nhận Tạo
-        </button>
-      </div>
+        <div class="modal-footer"><button type="button" class="btn-secondary" (click)="closeCreateModal()">Hủy</button>
+          <button type="button" class="btn-primary" [disabled]="saving() || !createForm.name.trim()" (click)="createClub()">
+            {{ saving() ? 'Đang tạo...' : 'Tạo câu lạc bộ' }}</button></div>
+      </section>
     </div>
-  </div>
-</div>
+  }
+</main>
