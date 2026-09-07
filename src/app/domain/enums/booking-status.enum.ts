@@ -4,9 +4,9 @@ export enum BookingStatus {
   CHECKED_IN = 'CHECKED_IN',
   COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
-  REFUND_REQUESTED = 'REFUND_REQUESTED',
-  REFUND_PROCESSING = 'REFUND_PROCESSING',
+  REFUND_PENDING = 'REFUND_PENDING',
   REFUNDED = 'REFUNDED',
+  EXPIRED = 'EXPIRED',
 }
 
 export const BOOKING_STATUS_LABELS: Record<BookingStatus, string> = {
@@ -15,9 +15,9 @@ export const BOOKING_STATUS_LABELS: Record<BookingStatus, string> = {
   [BookingStatus.CHECKED_IN]: 'Đã nhận sân',
   [BookingStatus.COMPLETED]: 'Hoàn thành',
   [BookingStatus.CANCELLED]: 'Đã hủy',
-  [BookingStatus.REFUND_REQUESTED]: 'Yêu cầu hoàn cọc',
-  [BookingStatus.REFUND_PROCESSING]: 'Đang hoàn cọc',
+  [BookingStatus.REFUND_PENDING]: 'Chờ hoàn cọc',
   [BookingStatus.REFUNDED]: 'Đã hoàn tiền',
+  [BookingStatus.EXPIRED]: 'Đã hết hạn',
 };
 
 export const BOOKING_STATUS_COLORS: Record<BookingStatus, string> = {
@@ -26,7 +26,7 @@ export const BOOKING_STATUS_COLORS: Record<BookingStatus, string> = {
   [BookingStatus.CHECKED_IN]: 'blue',
   [BookingStatus.COMPLETED]: 'emerald',
   [BookingStatus.CANCELLED]: 'rose',
-  [BookingStatus.REFUND_REQUESTED]: 'purple',
-  [BookingStatus.REFUND_PROCESSING]: 'purple',
+  [BookingStatus.REFUND_PENDING]: 'purple',
   [BookingStatus.REFUNDED]: 'slate',
+  [BookingStatus.EXPIRED]: 'slate',
 };

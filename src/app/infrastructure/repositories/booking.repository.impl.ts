@@ -10,7 +10,7 @@ import {
   CancelBookingRequest,
   CheckInRequest
 } from '@application/dto/booking/booking.dto';
-import { BaseResponse } from '@application/dto/base/base-response';
+import { BaseListResponse, BaseResponse } from '@application/dto/base/base-response';
 
 @Injectable({
   providedIn: 'root'
@@ -32,10 +32,17 @@ export class BookingRepositoryImpl implements BookingRepository {
     })));
   }
 
-  getMyBookingHistory(status?: string, page?: number, size?: number): Observable<BaseResponse<Booking[]>> {
+  getMyBookingHistory(
+    status?: string,
+    page?: number,
+    size?: number
+  ): Observable<BaseResponse<BaseListResponse<Booking>>> {
     return this.api.getMyBookingHistory(status, page, size).pipe(map(response => ({
       ...response,
-      data: (response.data ?? []).map(booking => this.normalizeBooking(booking))
+      data: {
+        meta: response.data?.meta ?? { page: 0, pageSize: size ?? 20, pages: 0, total: 0 },
+        result: (response.data?.result ?? []).map(booking => this.normalizeBooking(booking))
+      }
     })));
   }
 
@@ -53,9 +60,7 @@ export class BookingRepositoryImpl implements BookingRepository {
   private normalizeBooking(booking: Booking): Booking {
     return {
       ...booking,
-      userId: booking.userId ?? booking.playerId,
-      bookingDate: booking.bookingDate ?? booking.playDate ?? '',
-      playDate: booking.playDate ?? booking.bookingDate
+      userId: booking.userId ?? booking.playerId
     };
   }
 }

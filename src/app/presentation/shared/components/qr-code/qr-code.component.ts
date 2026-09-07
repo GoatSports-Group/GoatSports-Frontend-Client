@@ -1,9 +1,10 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 
 @Component({
   selector: 'app-qr-code',
   templateUrl: './qr-code.component.html',
   styleUrls: ['./qr-code.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false
 })
 export class QrCodeComponent implements OnChanges {
@@ -17,6 +18,18 @@ export class QrCodeComponent implements OnChanges {
     if (changes['value'] || changes['size']) {
       this.generateQr();
     }
+  }
+
+  async download(fileName: string): Promise<void> {
+    if (!this.qrSvgDataUrl) throw new Error('QR code is unavailable');
+    const response = await fetch(this.qrSvgDataUrl);
+    if (!response.ok) throw new Error('QR code download failed');
+    const blobUrl = URL.createObjectURL(await response.blob());
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = fileName;
+    link.click();
+    URL.revokeObjectURL(blobUrl);
   }
 
   private generateQr(): void {

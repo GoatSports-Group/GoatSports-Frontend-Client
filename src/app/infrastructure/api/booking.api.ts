@@ -8,7 +8,7 @@ import {
   CancelBookingRequest,
   CheckInRequest
 } from '@application/dto/booking/booking.dto';
-import { BaseResponse } from '@application/dto/base/base-response';
+import { BaseListResponse, BaseResponse } from '@application/dto/base/base-response';
 import { API_ENDPOINTS } from '@infrastructure/config/api-endpoints';
 
 @Injectable({
@@ -31,12 +31,16 @@ export class BookingApi {
     );
   }
 
-  getMyBookingHistory(status?: string, page: number = 0, size: number = 20): Observable<BaseResponse<Booking[]>> {
+  getMyBookingHistory(
+    status?: string,
+    page: number = 0,
+    size: number = 20
+  ): Observable<BaseResponse<BaseListResponse<Booking>>> {
     let params = new HttpParams().set('page', page.toString()).set('size', size.toString());
     if (status && status !== 'ALL') {
       params = params.set('status', status);
     }
-    return this.http.get<BaseResponse<Booking[]>>(
+    return this.http.get<BaseResponse<BaseListResponse<Booking>>>(
       `${this.apiBase}/bookings/my-history`,
       { params }
     );

@@ -1,4 +1,5 @@
 import { BookingStatus } from '@domain/enums/booking-status.enum';
+import { CancellationStatus } from '@domain/enums/cancellation-status.enum';
 import { PaymentMethod } from '@domain/enums/payment-method.enum';
 
 export interface Booking {
@@ -6,8 +7,8 @@ export interface Booking {
   userId?: string;
   playerId?: string;
   venueCourtId: string;
-  bookingDate: string;
-  playDate?: string;
+  venueId?: string;
+  playDate: string;
   startTime: string;
   endTime: string;
   status: BookingStatus;
@@ -27,17 +28,38 @@ export interface Booking {
   createdAt: string;
   venueName?: string;
   courtName?: string;
+  cancellationPolicy?: CancellationPolicy;
+  cancellation?: BookingCancellation;
+  review?: PlayerReview;
 }
 
 export interface BookingCancellation {
   cancellationId: string;
   bookingId: string;
-  requestedByUserId: string;
+  refundId?: string;
   reason: string;
   refundPercentage: number;
   refundAmount: number;
-  status: string;
-  processNote?: string;
-  requestedAt: string;
+  status: CancellationStatus;
+  processedBy?: string;
+  decisionReason?: string;
   processedAt?: string;
+  createdAt: string;
+}
+
+export interface CancellationPolicy {
+  fullRefundHoursBefore: number;
+  partialRefundHoursBefore: number;
+  partialRefundPercentage: number;
+  noRefundHoursBefore: number;
+}
+
+export interface PlayerReview {
+  reviewId: string;
+  venueId: string;
+  bookingId: string;
+  rating: number;
+  content?: string;
+  status: string;
+  createdAt: string;
 }

@@ -124,10 +124,6 @@
           <lucide-icon name="history" class="w-4 h-4 mr-2"></lucide-icon>
           <span>Vé đặt sân của tôi</span>
         </button>
-        <button mat-menu-item routerLink="/booking/check-in">
-          <lucide-icon name="qr-code" class="w-4 h-4 mr-2 text-emerald-600"></lucide-icon>
-          <span>Quét vé Check-in</span>
-        </button>
         @if (authService.currentUser?.role?.name === 'VENUE_OWNER' || authService.currentUser?.role?.name === 'ADMIN') {
         <a mat-menu-item [href]="adminUrl + '/admin/dashboard'">
           <lucide-icon name="layout-dashboard" class="w-4 h-4 mr-2 text-emerald-600"></lucide-icon>

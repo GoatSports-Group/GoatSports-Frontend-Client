@@ -1,17 +1,27 @@
 <div class="booking-history-page">
   <div class="container py-8">
     <div class="header-section mb-6">
-      <h1 class="page-title athletic-title">Vé Đặt Sân Của Tôi</h1>
-      <p class="page-subtitle">Quản lý các vé đặt sân, mã QR check-in và lịch sử thi đấu</p>
+      <div>
+        <p class="eyebrow">Lịch thi đấu cá nhân</p>
+        <h1 class="page-title athletic-title">Vé đặt sân của tôi</h1>
+        <p class="page-subtitle">Theo dõi vé điện tử, yêu cầu hủy và trạng thái hoàn tiền.</p>
+      </div>
+      @if (!loading()) {
+        <div class="booking-total">
+          <strong>{{ total() }}</strong>
+          <span>lượt đặt sân</span>
+        </div>
+      }
     </div>
 
-    <!-- Filter Tabs -->
-    <div class="status-tabs-bar mb-6">
+    <div class="status-tabs-bar mb-6" role="tablist" aria-label="Lọc lịch sử đặt sân">
       @for (tab of statusTabs; track tab.value) {
         <button
           type="button"
+          role="tab"
           class="status-tab"
-          [class.active]="selectedStatus === tab.value"
+          [attr.aria-selected]="selectedStatus() === tab.value"
+          [class.active]="selectedStatus() === tab.value"
           (click)="onTabChange(tab.value)"
         >
           {{ tab.label }}
@@ -19,22 +29,33 @@
       }
     </div>
 
-    <!-- Content -->
-    @if (loading) {
-      <div class="space-y-4">
-        @for (i of [1, 2, 3]; track i) {
+    @if (loading()) {
+      <div class="tickets-grid" aria-label="Đang tải lịch sử đặt sân">
+        @for (item of [1, 2, 3, 4, 5, 6]; track item) {
           <div class="p-6 bg-white rounded-2xl border border-slate-200">
-            <app-loading-skeleton height="24px" width="40%"></app-loading-skeleton>
-            <div class="mt-3">
-              <app-loading-skeleton height="16px" width="60%"></app-loading-skeleton>
-            </div>
+            <app-loading-skeleton height="24px" width="45%"></app-loading-skeleton>
+            <div class="mt-4"><app-loading-skeleton height="18px" width="75%"></app-loading-skeleton></div>
+            <div class="mt-3"><app-loading-skeleton height="16px" width="58%"></app-loading-skeleton></div>
           </div>
         }
       </div>
-    } @else if (bookings.length > 0) {
+    } @else if (error()) {
+      <div class="state-card state-card--error" role="alert">
+        <lucide-icon name="alert-triangle" class="w-10 h-10"></lucide-icon>
+        <h2>Chưa tải được lịch sử đặt sân</h2>
+        <p>{{ error() }}</p>
+        <button type="button" class="neo-btn" (click)="retry()">Thử lại</button>
+      </div>
+    } @else if (bookings().length > 0) {
       <div class="tickets-grid">
-        @for (booking of bookings; track booking.bookingId) {
-          <div class="ticket-card neo-card" (click)="viewDetail(booking.bookingId)">
+        @for (booking of bookings(); track booking.bookingId) {
+          <article
+            class="ticket-card neo-card"
+            tabindex="0"
+            role="button"
+            (click)="viewDetail(booking.bookingId)"
+            (keydown.enter)="viewDetail(booking.bookingId)"
+          >
             <div class="ticket-header">
               <div class="code-badge">
                 <lucide-icon name="receipt" class="w-4 h-4 mr-1 text-emerald-600"></lucide-icon>
@@ -46,39 +67,59 @@
             </div>
 
             <div class="ticket-body">
-              <h3 class="court-title">{{ booking.courtName || 'Sân thể thao' }}</h3>
+              <p class="venue-name">{{ booking.venueName || 'Cơ sở thể thao' }}</p>
+              <h2 class="court-title">{{ booking.courtName || 'Sân thể thao' }}</h2>
 
               <div class="info-row">
                 <lucide-icon name="calendar" class="w-4 h-4 text-slate-400 mr-2"></lucide-icon>
-                <span>Ngày: <strong>{{ booking.bookingDate }}</strong></span>
+                <span>Ngày: <strong>{{ booking.playDate | date:'dd/MM/yyyy' }}</strong></span>
               </div>
 
               <div class="info-row">
                 <lucide-icon name="clock" class="w-4 h-4 text-slate-400 mr-2"></lucide-icon>
-                <span>Giờ: <strong>{{ booking.startTime.slice(0, 5) }} - {{ booking.endTime.slice(0, 5) }}</strong></span>
+                <span>Giờ: <strong>{{ booking.startTime.slice(0, 5) }} – {{ booking.endTime.slice(0, 5) }}</strong></span>
               </div>
 
-              <div class="info-row price-row">
-                <span class="text-slate-500 text-xs">Cọc đã thanh toán:</span>
-                <span class="font-bold text-emerald-600">{{ formatPrice(booking.depositAmount) }}</span>
-              </div>
+              @if (booking.cancellation) {
+                <div class="cancellation-summary">
+                  <lucide-icon name="rotate-cw" class="w-4 h-4"></lucide-icon>
+                  <span>{{ cancellationStatusLabels[booking.cancellation.status] }}</span>
+                  <strong>{{ formatPrice(booking.cancellation.refundAmount) }}</strong>
+                </div>
+              } @else {
+                <div class="info-row price-row">
+                  <span class="text-slate-500 text-xs">Tiền cọc:</span>
+                  <span class="font-bold text-emerald-600">{{ formatPrice(booking.depositAmount) }}</span>
+                </div>
+              }
             </div>
 
             <div class="ticket-footer">
-              <span class="view-detail-text">Xem mã QR vé & Chi tiết</span>
+              <span class="view-detail-text">Xem vé và chi tiết</span>
               <lucide-icon name="arrow-right" class="w-4 h-4 text-emerald-600"></lucide-icon>
             </div>
-          </div>
+          </article>
         }
       </div>
+
+      @if (hasMore()) {
+        <div class="load-more-row">
+          <button type="button" class="load-more-button" [disabled]="loadingMore()" (click)="loadMore()">
+            @if (loadingMore()) {
+              <lucide-icon name="loader-2" class="w-4 h-4 animate-spin"></lucide-icon>
+              Đang tải
+            } @else {
+              Xem thêm
+            }
+          </button>
+        </div>
+      }
     } @else {
       <div class="empty-tickets neo-card text-center py-12">
         <lucide-icon name="receipt" class="w-12 h-12 text-slate-300 mx-auto mb-3"></lucide-icon>
-        <h3 class="text-lg font-bold text-slate-800">Chưa có vé đặt sân nào</h3>
-        <p class="text-sm text-slate-500 mt-1 mb-4">Khám phá ngay danh sách các cụm sân thể thao hàng đầu và đặt sân trực tuyến.</p>
-        <button mat-flat-button color="primary" routerLink="/venues" class="neo-btn">
-          Khám phá sân ngay
-        </button>
+        <h2 class="text-lg font-bold text-slate-800">Không có vé phù hợp</h2>
+        <p class="text-sm text-slate-500 mt-1 mb-4">Thử chọn trạng thái khác hoặc khám phá một sân mới.</p>
+        <button mat-flat-button color="primary" routerLink="/venues" class="neo-btn">Khám phá sân</button>
       </div>
     }
   </div>

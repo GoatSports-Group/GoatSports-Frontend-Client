@@ -10,7 +10,6 @@ import { VenueDetailComponent } from '@presentation/pages/client/venues/venue-de
 import { BookingCreateComponent } from '@presentation/pages/client/booking/booking-create.component';
 import { BookingHistoryComponent } from '@presentation/pages/client/booking/history/booking-history.component';
 import { BookingDetailComponent } from '@presentation/pages/client/booking/detail/booking-detail.component';
-import { QrCheckinComponent } from '@presentation/pages/client/booking/checkin/qr-checkin.component';
 import { PaymentResultComponent } from '@presentation/pages/client/payment/payment-result.component';
 import { ChatComponent } from '@presentation/pages/client/chat/chat.component';
 import { FriendsComponent } from '@presentation/pages/client/friends/friends.component';
@@ -32,7 +31,6 @@ const routes: Routes = [
       { path: 'booking/create', component: BookingCreateComponent, canActivate: [AuthGuard] },
       { path: 'booking/history', component: BookingHistoryComponent, canActivate: [AuthGuard] },
       { path: 'booking/detail/:id', component: BookingDetailComponent, canActivate: [AuthGuard] },
-      { path: 'booking/check-in', component: QrCheckinComponent, canActivate: [AuthGuard] },
       {
         path: 'payment/success',
         component: PaymentResultComponent,

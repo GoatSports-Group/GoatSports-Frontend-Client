@@ -10,6 +10,20 @@
   }
 
   .header-section {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+
+    .eyebrow {
+      margin: 0 0 4px;
+      color: #059669;
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
     .page-title {
       font-size: 1.75rem;
       font-weight: 800;
@@ -19,6 +33,21 @@
       color: #64748b;
       font-size: 0.9375rem;
     }
+  }
+
+  .booking-total {
+    display: flex;
+    flex-direction: column;
+    min-width: 116px;
+    padding: 12px 16px;
+    border: 1px solid #d1fae5;
+    border-radius: 16px;
+    background: #ecfdf5;
+    color: #047857;
+    text-align: right;
+
+    strong { font-size: 1.35rem; line-height: 1; }
+    span { margin-top: 4px; font-size: 0.75rem; }
   }
 
   .status-tabs-bar {
@@ -39,6 +68,7 @@
       font-weight: 600;
       color: #475569;
       cursor: pointer;
+      min-height: 44px;
       transition: all 0.2s ease;
 
       &.active {
@@ -69,6 +99,11 @@
       transform: translateY(-3px);
       box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.08);
       border-color: #10b981;
+    }
+
+    &:focus-visible {
+      outline: 3px solid rgba(16, 185, 129, 0.3);
+      outline-offset: 3px;
     }
 
     .ticket-header {
@@ -125,11 +160,31 @@
     .ticket-body {
       flex: 1;
 
+      .venue-name {
+        margin: 0 0 3px;
+        color: #64748b;
+        font-size: 0.75rem;
+        font-weight: 600;
+      }
+
       .court-title {
         font-size: 1.0625rem;
         font-weight: 700;
         color: #0f172a;
         margin-bottom: 10px;
+      }
+
+      .cancellation-summary {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 8px;
+        margin-top: 12px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: #faf5ff;
+        color: #7e22ce;
+        font-size: 0.75rem;
       }
 
       .info-row {
@@ -168,5 +223,51 @@
     background: #ffffff;
     border-radius: 20px;
     border: 1px solid #e2e8f0;
+  }
+
+  .state-card {
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+    padding: 48px 24px;
+    border: 1px solid #fecaca;
+    border-radius: 20px;
+    background: #fff;
+    color: #b91c1c;
+    text-align: center;
+
+    h2, p { margin: 0; }
+    p { color: #64748b; }
+    button { min-height: 44px; }
+  }
+
+  .load-more-row {
+    display: flex;
+    justify-content: center;
+    margin-top: 28px;
+  }
+
+  .load-more-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 46px;
+    padding: 0 24px;
+    border: 1px solid #a7f3d0;
+    border-radius: 12px;
+    background: #fff;
+    color: #047857;
+    font-weight: 700;
+    cursor: pointer;
+
+    &:disabled { cursor: wait; opacity: 0.65; }
+  }
+
+  @media (max-width: 640px) {
+    .header-section { align-items: flex-start; }
+    .booking-total { min-width: 92px; padding: 10px 12px; }
+    .status-tabs-bar { width: 100%; overflow-x: auto; flex-wrap: nowrap; }
+    .status-tab { white-space: nowrap; }
+    .tickets-grid { grid-template-columns: 1fr; }
   }
 }

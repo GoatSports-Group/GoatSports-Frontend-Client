@@ -19,6 +19,7 @@ import { BOOKING_REPOSITORY_TOKEN } from '@application/ports/persistence/booking
 import { PAYMENT_REPOSITORY_TOKEN } from '@application/ports/persistence/payment.repository';
 import { CHAT_REPOSITORY_TOKEN } from '@application/ports/persistence/chat.repository';
 import { FRIEND_REPOSITORY_TOKEN } from '@application/ports/persistence/friend.repository';
+import { REVIEW_REPOSITORY_TOKEN } from '@application/ports/persistence/review.repository';
 import { WEBSOCKET_SERVICE_TOKEN } from '@application/ports/websocket.service';
 import { CURRENT_USER_PROVIDER_TOKEN } from '@application/ports/current-user.provider';
 import { SessionStateService } from '@presentation/services/session-state.service';
@@ -33,6 +34,7 @@ import { BookingRepositoryImpl } from '@infrastructure/repositories/booking.repo
 import { PaymentRepositoryImpl } from '@infrastructure/repositories/payment.repository.impl';
 import { ChatRepositoryImpl } from '@infrastructure/repositories/chat.repository.impl';
 import { FriendRepositoryImpl } from '@infrastructure/repositories/friend.repository.impl';
+import { ReviewRepositoryImpl } from '@infrastructure/repositories/review.repository.impl';
 import { StompWebSocketService } from '@infrastructure/websocket/stomp-websocket.service';
 
 import { ClubRepositoryPort } from '@application/ports/club.repository.port';
@@ -134,7 +136,8 @@ import {
   LucideMessagesSquare,
   LucideUserX,
   LucideUserCheck,
-  LucideUserPlus
+  LucideUserPlus,
+  LucideDownload
 } from '@lucide/angular';
 
 @NgModule({
@@ -166,6 +169,7 @@ import {
     { provide: PAYMENT_REPOSITORY_TOKEN, useClass: PaymentRepositoryImpl },
     { provide: CHAT_REPOSITORY_TOKEN, useClass: ChatRepositoryImpl },
     { provide: FRIEND_REPOSITORY_TOKEN, useClass: FriendRepositoryImpl },
+    { provide: REVIEW_REPOSITORY_TOKEN, useClass: ReviewRepositoryImpl },
     { provide: WEBSOCKET_SERVICE_TOKEN, useClass: StompWebSocketService },
     { provide: CURRENT_USER_PROVIDER_TOKEN, useExisting: SessionStateService },
     { provide: ClubRepositoryPort, useClass: ClubRepository },
@@ -262,7 +266,8 @@ import {
       LucideMessagesSquare,
       LucideUserX,
       LucideUserCheck,
-      LucideUserPlus
+      LucideUserPlus,
+      LucideDownload
     )
   ],
   bootstrap: [AppComponent]

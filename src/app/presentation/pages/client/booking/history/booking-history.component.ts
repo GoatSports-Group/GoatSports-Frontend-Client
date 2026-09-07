@@ -1,61 +1,108 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { BOOKING_REPOSITORY_TOKEN } from '@application/ports/persistence/booking.repository';
-import { Booking, BookingStatus, BOOKING_STATUS_LABELS, BOOKING_STATUS_COLORS } from '@application/dto/booking/booking.dto';
+import {
+  Booking,
+  BookingStatus,
+  BOOKING_STATUS_COLORS,
+  BOOKING_STATUS_LABELS,
+  CANCELLATION_STATUS_LABELS
+} from '@application/dto/booking/booking.dto';
+
+type BookingStatusFilter = BookingStatus | 'ALL';
 
 @Component({
   selector: 'app-booking-history',
   templateUrl: './booking-history.component.html',
   styleUrls: ['./booking-history.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false
 })
-export class BookingHistoryComponent implements OnInit {
-  private bookingRepo = inject(BOOKING_REPOSITORY_TOKEN);
-  private router = inject(Router);
+export class BookingHistoryComponent {
+  private readonly bookingRepository = inject(BOOKING_REPOSITORY_TOKEN);
+  private readonly router = inject(Router);
+  private readonly pageSize = 12;
 
-  bookings: Booking[] = [];
-  loading = true;
-  selectedStatus = 'ALL';
+  readonly bookings = signal<Booking[]>([]);
+  readonly loading = signal(true);
+  readonly loadingMore = signal(false);
+  readonly error = signal<string | null>(null);
+  readonly selectedStatus = signal<BookingStatusFilter>('ALL');
+  readonly page = signal(0);
+  readonly totalPages = signal(0);
+  readonly total = signal(0);
+  readonly hasMore = computed(() => this.page() + 1 < this.totalPages());
 
-  statusTabs = [
-    { value: 'ALL', label: 'Tất cả vé' },
-    { value: 'CONFIRMED', label: 'Đã xác nhận' },
-    { value: 'CHECKED_IN', label: 'Đã nhận sân' },
-    { value: 'CANCELLED', label: 'Đã hủy / Hoàn tiền' }
+  readonly statusTabs: ReadonlyArray<{ value: BookingStatusFilter; label: string }> = [
+    { value: 'ALL', label: 'Tất cả' },
+    { value: BookingStatus.CONFIRMED, label: 'Sắp diễn ra' },
+    { value: BookingStatus.COMPLETED, label: 'Đã hoàn thành' },
+    { value: BookingStatus.REFUND_PENDING, label: 'Chờ hoàn tiền' },
+    { value: BookingStatus.REFUNDED, label: 'Đã hoàn tiền' },
+    { value: BookingStatus.CANCELLED, label: 'Đã hủy' }
   ];
 
-  statusLabels = BOOKING_STATUS_LABELS;
-  statusColors = BOOKING_STATUS_COLORS;
+  readonly statusLabels = BOOKING_STATUS_LABELS;
+  readonly statusColors = BOOKING_STATUS_COLORS;
+  readonly cancellationStatusLabels = CANCELLATION_STATUS_LABELS;
 
-  ngOnInit(): void {
-    this.loadBookings();
+  constructor() {
+    this.loadBookings(true);
   }
 
-  loadBookings(): void {
-    this.loading = true;
-    this.bookingRepo.getMyBookingHistory(this.selectedStatus).subscribe({
-      next: res => {
-        this.bookings = res?.data || [];
-        this.loading = false;
-      },
-      error: err => {
-        console.error('Error loading booking history:', err);
-        this.bookings = [];
-        this.loading = false;
-      }
-    });
+  onTabChange(status: BookingStatusFilter): void {
+    if (status === this.selectedStatus()) return;
+    this.selectedStatus.set(status);
+    this.loadBookings(true);
   }
 
-  onTabChange(status: string): void {
-    this.selectedStatus = status;
-    this.loadBookings();
+  loadMore(): void {
+    if (!this.hasMore() || this.loadingMore()) return;
+    this.loadBookings(false);
   }
 
-  formatPrice(price: number): string {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+  retry(): void {
+    this.loadBookings(true);
+  }
+
+  formatPrice(price: number | null | undefined): string {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' })
+      .format(price ?? 0);
   }
 
   viewDetail(bookingId: string): void {
-    this.router.navigate(['/booking/detail', bookingId]);
+    void this.router.navigate(['/booking/detail', bookingId]);
+  }
+
+  private loadBookings(reset: boolean): void {
+    const targetPage = reset ? 0 : this.page() + 1;
+    if (reset) {
+      this.loading.set(true);
+      this.bookings.set([]);
+      this.error.set(null);
+    } else {
+      this.loadingMore.set(true);
+    }
+
+    const status = this.selectedStatus() === 'ALL' ? undefined : this.selectedStatus();
+    this.bookingRepository.getMyBookingHistory(status, targetPage, this.pageSize).subscribe({
+      next: response => {
+        const pageData = response.data;
+        this.bookings.update(current => reset
+          ? pageData.result
+          : [...current, ...pageData.result]
+        );
+        this.page.set(pageData.meta.page);
+        this.totalPages.set(pageData.meta.pages);
+        this.total.set(pageData.meta.total);
+        this.loading.set(false);
+        this.loadingMore.set(false);
+      },
+      error: () => {
+        this.error.set('Không thể tải lịch sử đặt sân. Vui lòng thử lại.');
+        this.loading.set(false);
+        this.loadingMore.set(false);
+      }
+    });
   }
 }

@@ -1,155 +1,318 @@
 <div class="booking-detail-page">
   <div class="container py-8">
-    <!-- Back Button -->
     <div class="breadcrumb-row mb-6">
       <a routerLink="/booking/history" class="back-link">
         <lucide-icon name="arrow-left" class="w-4 h-4 mr-1"></lucide-icon>
-        Quay lại danh sách vé
+        Quay lại lịch sử đặt sân
       </a>
     </div>
 
-    @if (loading) {
-      <div class="max-w-md mx-auto p-6 bg-white rounded-2xl">
-        <app-loading-skeleton height="300px" borderRadius="16px"></app-loading-skeleton>
-        <div class="mt-4 space-y-3">
-          <app-loading-skeleton height="24px" width="60%"></app-loading-skeleton>
-          <app-loading-skeleton height="16px" width="80%"></app-loading-skeleton>
-        </div>
+    @if (loading()) {
+      <div class="detail-layout">
+        <div class="p-6 bg-white rounded-2xl"><app-loading-skeleton height="520px" borderRadius="16px"></app-loading-skeleton></div>
+        <div class="p-6 bg-white rounded-2xl"><app-loading-skeleton height="320px" borderRadius="16px"></app-loading-skeleton></div>
       </div>
-    } @else if (booking) {
-      <!-- Electronic Match Pass / Ticket -->
-      <div class="ticket-container">
-        <div class="ticket-pass neo-card">
-          <!-- Ticket Header -->
+    } @else if (error()) {
+      <div class="detail-state" role="alert">
+        <lucide-icon name="alert-triangle" class="w-12 h-12"></lucide-icon>
+        <h1>Không mở được vé đặt sân</h1>
+        <p>{{ error() }}</p>
+        <button type="button" class="neo-btn" (click)="loadBooking()">Thử lại</button>
+      </div>
+    } @else if (booking(); as currentBooking) {
+      <div class="detail-heading">
+        <div>
+          <p class="eyebrow">Mã đặt sân {{ currentBooking.bookingCode }}</p>
+          <h1>{{ currentBooking.venueName || 'Cơ sở thể thao' }}</h1>
+          <p>{{ currentBooking.courtName || 'Sân thể thao' }}</p>
+        </div>
+        <span class="pass-status" [class]="'status-' + (statusColors[currentBooking.status] || 'slate')">
+          {{ statusLabels[currentBooking.status] || currentBooking.status }}
+        </span>
+      </div>
+
+      <div class="detail-layout">
+        <section class="ticket-pass neo-card" aria-labelledby="ticket-title">
           <div class="pass-header">
             <div class="brand-row">
-              <div class="logo-box">
-                <lucide-icon name="trophy" class="w-6 h-6 text-white"></lucide-icon>
-              </div>
+              <div class="logo-box"><lucide-icon name="trophy" class="w-6 h-6 text-white"></lucide-icon></div>
               <div>
-                <span class="brand-title">GOAT SPORTS PASS</span>
-                <span class="ticket-type">Vé Điện Tử Xác Nhận Sân</span>
+                <span id="ticket-title" class="brand-title">GOAT SPORTS PASS</span>
+                <span class="ticket-type">Vé điện tử xác nhận sân</span>
               </div>
             </div>
-
-            <span class="pass-status" [class]="'status-' + (statusColors[booking.status] || 'slate')">
-              {{ statusLabels[booking.status] || booking.status }}
-            </span>
           </div>
 
-          <!-- Ticket QR Box -->
           <div class="pass-qr-section">
-            <app-qr-code
-              [value]="booking.qrCode || ('GOATSPORTS:BOOKING:' + booking.bookingCode)"
-              [size]="190"
-              title="Đưa mã này cho chủ sân quét khi nhận sân"
-            ></app-qr-code>
+            @if (hasValidTicket()) {
+              <app-qr-code
+                #ticketQr
+                [value]="currentBooking.qrCode!"
+                [size]="190"
+                title="Đưa mã này cho chủ sân quét khi nhận sân"
+              ></app-qr-code>
+              <button type="button" class="download-qr-button" (click)="downloadQr()">
+                <lucide-icon name="download" class="w-4 h-4"></lucide-icon>
+                Tải mã QR
+              </button>
+            } @else {
+              <div class="ticket-unavailable">
+                <lucide-icon name="qr-code" class="w-12 h-12"></lucide-icon>
+                @if (currentBooking.status === 'PENDING_PAYMENT') {
+                  <strong>Vé sẽ được phát hành sau khi xác nhận tiền cọc</strong>
+                  <span>Hệ thống không dùng kết quả chuyển hướng trình duyệt để xác nhận thanh toán.</span>
+                } @else {
+                  <strong>Mã QR không còn khả dụng</strong>
+                  <span>Trạng thái hiện tại của booking không cho phép sử dụng vé check-in.</span>
+                }
+              </div>
+            }
 
             <div class="booking-code-tag mt-3">
-              <span class="text-xs text-slate-500">MÃ VÉ ĐIỆN TỬ:</span>
-              <strong class="text-base font-mono ml-2 text-slate-900">{{ booking.bookingCode }}</strong>
+              <span>Mã vé điện tử</span>
+              <strong>{{ currentBooking.bookingCode }}</strong>
             </div>
           </div>
 
-          <!-- Perforated Tear Line -->
-          <div class="tear-line">
-            <div class="notch left"></div>
-            <div class="dashed-line"></div>
-            <div class="notch right"></div>
-          </div>
+          <div class="tear-line"><div class="notch left"></div><div class="dashed-line"></div><div class="notch right"></div></div>
 
-          <!-- Match Details Section -->
           <div class="pass-details-section">
-            <div class="detail-block">
-              <span class="block-label">SÂN THI ĐẤU</span>
-              <span class="block-value highlight">{{ booking.courtName || 'Sân tiêu chuẩn' }}</span>
+            <div class="detail-block detail-block--wide">
+              <span class="block-label">Cơ sở và sân</span>
+              <strong class="block-value highlight">{{ currentBooking.venueName }} · {{ currentBooking.courtName }}</strong>
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
+            <div class="detail-grid">
               <div class="detail-block">
-                <span class="block-label">NGÀY THI ĐẤU</span>
-                <span class="block-value">{{ booking.bookingDate }}</span>
+                <span class="block-label">Ngày thi đấu</span>
+                <strong class="block-value">{{ currentBooking.playDate | date:'dd/MM/yyyy' }}</strong>
               </div>
               <div class="detail-block">
-                <span class="block-label">KHUNG GIỜ</span>
-                <span class="block-value">{{ booking.startTime.slice(0, 5) }} - {{ booking.endTime.slice(0, 5) }}</span>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-              <div class="detail-block">
-                <span class="block-label">CỌC ĐÃ THANH TOÁN</span>
-                <span class="block-value text-emerald-600">{{ formatPrice(booking.depositAmount) }}</span>
+                <span class="block-label">Khung giờ</span>
+                <strong class="block-value">{{ currentBooking.startTime.slice(0, 5) }} – {{ currentBooking.endTime.slice(0, 5) }}</strong>
               </div>
               <div class="detail-block">
-                <span class="block-label">CÒN LẠI TẠI QUẦY</span>
-                <span class="block-value text-slate-700">{{ formatPrice(booking.remainingAmount || 0) }}</span>
+                <span class="block-label">Tiền cọc</span>
+                <strong class="block-value text-emerald-600">{{ formatPrice(currentBooking.depositAmount) }}</strong>
+              </div>
+              <div class="detail-block">
+                <span class="block-label">Còn lại</span>
+                <strong class="block-value">{{ formatPrice(currentBooking.remainingAmount) }}</strong>
               </div>
             </div>
 
-            @if (booking.checkedInAt) {
+            @if (currentBooking.checkedInAt) {
               <div class="checkin-notice">
-                <lucide-icon name="check-circle-2" class="w-5 h-5 text-emerald-600 mr-2"></lucide-icon>
-                <span class="text-xs text-emerald-800 font-semibold">Đã nhận sân vào lúc: {{ booking.checkedInAt }}</span>
+                <lucide-icon name="check-circle-2" class="w-5 h-5"></lucide-icon>
+                <span>Đã nhận sân lúc {{ currentBooking.checkedInAt | date:'HH:mm dd/MM/yyyy' }}</span>
               </div>
             }
           </div>
 
-          <!-- Pass Footer Action -->
           @if (canCancel()) {
             <div class="pass-footer">
-              <button mat-stroked-button color="warn" class="cancel-btn w-full" (click)="openCancelModal()">
-                <lucide-icon name="alert-triangle" class="w-4 h-4 mr-1"></lucide-icon>
-                Yêu cầu hủy sân & Hoàn cọc
+              <button type="button" class="cancel-btn" (click)="openCancelModal()">
+                <lucide-icon name="calendar-x" class="w-4 h-4"></lucide-icon>
+                Yêu cầu hủy sân
               </button>
             </div>
           }
-        </div>
+        </section>
+
+        <aside class="detail-sidebar">
+          @if (currentBooking.cancellation; as cancellation) {
+            <section class="side-card cancellation-card">
+              <div class="side-card-heading">
+                <div class="side-icon side-icon--purple"><lucide-icon name="rotate-cw" class="w-5 h-5"></lucide-icon></div>
+                <div>
+                  <span>Yêu cầu hủy sân</span>
+                  <strong>{{ cancellationStatusLabels[cancellation.status] }}</strong>
+                </div>
+              </div>
+
+              <div class="refund-amount">
+                <span>Số tiền dự kiến hoàn</span>
+                <strong>{{ formatPrice(cancellation.refundAmount) }}</strong>
+                <small>{{ cancellation.refundPercentage }}% tiền cọc</small>
+              </div>
+
+              <ol class="status-timeline">
+                <li class="complete">
+                  <span class="timeline-dot"></span>
+                  <div><strong>Đã gửi yêu cầu</strong><small>{{ cancellation.createdAt | date:'HH:mm dd/MM/yyyy' }}</small></div>
+                </li>
+                <li [class.complete]="cancellation.status !== cancellationStatus.PENDING" [class.rejected]="cancellation.status === cancellationStatus.REJECTED">
+                  <span class="timeline-dot"></span>
+                  <div>
+                    <strong>{{ cancellation.status === cancellationStatus.REJECTED ? 'Không được chấp thuận' : 'Chủ sân xử lý' }}</strong>
+                    @if (cancellation.processedAt) { <small>{{ cancellation.processedAt | date:'HH:mm dd/MM/yyyy' }}</small> }
+                  </div>
+                </li>
+                @if (cancellation.refundAmount > 0 && cancellation.status !== cancellationStatus.REJECTED) {
+                  <li [class.complete]="cancellation.status === cancellationStatus.REFUNDED" [class.rejected]="cancellation.status === cancellationStatus.REFUND_FAILED">
+                    <span class="timeline-dot"></span>
+                    <div>
+                      <strong>
+                        @if (cancellation.status === cancellationStatus.REFUNDED) { Đã hoàn tiền }
+                        @else if (cancellation.status === cancellationStatus.REFUND_FAILED) { Đối soát thủ công }
+                        @else { Đang hoàn tiền }
+                      </strong>
+                      <small>Refund {{ cancellation.refundId || 'đang chờ tạo' }}</small>
+                    </div>
+                  </li>
+                }
+              </ol>
+
+              <div class="reason-box">
+                <span>Lý do của bạn</span>
+                <p>{{ cancellation.reason }}</p>
+                @if (cancellation.decisionReason) {
+                  <span>Phản hồi của chủ sân</span>
+                  <p>{{ cancellation.decisionReason }}</p>
+                }
+              </div>
+
+              @if (cancellation.status === cancellationStatus.REFUND_FAILED) {
+                <div class="manual-review-note">
+                  <lucide-icon name="shield-alert" class="w-5 h-5"></lucide-icon>
+                  <span>Giao dịch chuyển khoản cần được đối soát và hoàn thủ công. Mã refund được giữ để tránh tạo trùng.</span>
+                </div>
+              }
+            </section>
+          } @else {
+            <section class="side-card policy-card">
+              <div class="side-card-heading">
+                <div class="side-icon"><lucide-icon name="shield-check" class="w-5 h-5"></lucide-icon></div>
+                <div><span>Chính sách hủy</span><strong>Theo cơ sở đã đặt</strong></div>
+              </div>
+              @if (currentBooking.cancellationPolicy; as policy) {
+                <ul class="policy-list">
+                  <li><span>Trước {{ policy.fullRefundHoursBefore }} giờ</span><strong>Hoàn 100%</strong></li>
+                  <li><span>Trước {{ policy.partialRefundHoursBefore }} giờ</span><strong>Hoàn {{ policy.partialRefundPercentage }}%</strong></li>
+                  <li><span>Muộn hơn</span><strong>Không hoàn</strong></li>
+                </ul>
+              } @else {
+                <p class="policy-empty">Cơ sở chưa cấu hình chính sách hoàn cọc.</p>
+              }
+            </section>
+          }
+
+          <section class="side-card review-card">
+            <div class="side-card-heading">
+              <div class="side-icon side-icon--amber"><lucide-icon name="star" class="w-5 h-5"></lucide-icon></div>
+              <div><span>Trải nghiệm tại sân</span><strong>Đánh giá booking</strong></div>
+            </div>
+
+            @if (currentBooking.review; as review) {
+              <div class="review-stars" [attr.aria-label]="review.rating + ' trên 5 sao'">
+                @for (star of [1, 2, 3, 4, 5]; track star) {
+                  <lucide-icon name="star" class="w-5 h-5" [class.active]="star <= review.rating"></lucide-icon>
+                }
+              </div>
+              <p class="review-content">{{ review.content || 'Bạn đã gửi đánh giá không kèm nội dung.' }}</p>
+              <small>Đã gửi {{ review.createdAt | date:'dd/MM/yyyy' }}</small>
+            } @else if (canReview()) {
+              <p>Chia sẻ đánh giá sau khi đã hoàn thành lượt chơi.</p>
+              <button type="button" class="review-button" (click)="openReviewModal()">Viết đánh giá</button>
+            } @else {
+              <p>Chức năng đánh giá mở khi booking chuyển sang trạng thái hoàn thành.</p>
+            }
+          </section>
+        </aside>
       </div>
     }
   </div>
 
-  <!-- Cancellation Modal -->
-  @if (showCancelModal) {
+  @if (showCancelModal() && booking(); as currentBooking) {
     <div class="modal-backdrop" (click)="closeCancelModal()">
-      <div class="modal-card neo-card" (click)="$event.stopPropagation()">
-        <h3 class="modal-title font-bold text-lg text-slate-900 mb-2">Yêu Cầu Hủy Sân & Hoàn Cọc</h3>
-
-        <div class="policy-notice mb-4">
-          <h4 class="font-bold text-xs text-amber-800 mb-1">CHÍNH SÁCH HOÀN TIỀN CỌC:</h4>
-          <ul class="text-xs text-amber-900 list-disc pl-4 space-y-1">
-            <li>Hủy trước 24 giờ: <strong>Hoàn 100% tiền cọc</strong></li>
-            <li>Hủy trước 12 - 24 giờ: <strong>Hoàn 50% tiền cọc</strong></li>
-            <li>Hủy dưới 12 giờ: <strong>Không hoàn cọc</strong></li>
-          </ul>
-        </div>
-
-        <div class="mb-4">
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Lý do hủy sân</label>
-          <textarea
-            [(ngModel)]="cancelReason"
-            rows="3"
-            placeholder="Vui lòng nhập lý do bạn muốn hủy đơn đặt sân..."
-            class="cancel-textarea"
-          ></textarea>
-        </div>
-
-        <div class="modal-actions flex justify-end gap-3">
-          <button mat-button (click)="closeCancelModal()" [disabled]="cancelling">Đóng</button>
-          <button
-            mat-flat-button
-            color="warn"
-            (click)="submitCancel()"
-            [disabled]="cancelling || !cancelReason.trim()"
-          >
-            @if (cancelling) {
-              <span>Đang xử lý...</span>
-            } @else {
-              <span>Xác Nhận Hủy</span>
-            }
+      <section class="modal-card neo-card" role="dialog" aria-modal="true" aria-labelledby="cancel-title" (click)="$event.stopPropagation()">
+        <div class="modal-heading">
+          <div><p class="eyebrow">Xác nhận thao tác</p><h2 id="cancel-title">Yêu cầu hủy sân</h2></div>
+          <button type="button" class="icon-button" aria-label="Đóng" [disabled]="cancelling()" (click)="closeCancelModal()">
+            <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
           </button>
         </div>
-      </div>
+
+        @if (currentBooking.cancellationPolicy; as policy) {
+          <div class="refund-preview">
+            <span>Số tiền dự kiến được hoàn theo thời điểm hiện tại</span>
+            <strong>{{ formatPrice(estimatedRefund()) }}</strong>
+            <small>Chính sách: {{ policy.fullRefundHoursBefore }} giờ hoàn đủ, {{ policy.partialRefundHoursBefore }} giờ hoàn {{ policy.partialRefundPercentage }}%.</small>
+          </div>
+        } @else {
+          <div class="refund-preview refund-preview--warning">
+            <span>Cơ sở chưa cấu hình chính sách hoàn cọc.</span>
+            <strong>{{ formatPrice(0) }}</strong>
+          </div>
+        }
+
+        <label class="field-label" for="cancel-reason">Lý do hủy sân</label>
+        <textarea
+          id="cancel-reason"
+          rows="4"
+          maxlength="1000"
+          [ngModel]="cancelReason()"
+          (ngModelChange)="cancelReason.set($event)"
+          placeholder="Cho chủ sân biết lý do bạn muốn hủy..."
+          class="cancel-textarea"
+        ></textarea>
+        <small class="character-count">{{ cancelReason().length }}/1000</small>
+
+        <div class="modal-actions">
+          <button type="button" class="secondary-button" [disabled]="cancelling()" (click)="closeCancelModal()">Quay lại</button>
+          <button type="button" class="danger-button" [disabled]="cancelling() || !cancelReason().trim()" (click)="submitCancel()">
+            @if (cancelling()) { <lucide-icon name="loader-2" class="w-4 h-4 animate-spin"></lucide-icon> Đang gửi }
+            @else { Gửi yêu cầu hủy }
+          </button>
+        </div>
+      </section>
+    </div>
+  }
+
+  @if (showReviewModal()) {
+    <div class="modal-backdrop" (click)="closeReviewModal()">
+      <section class="modal-card neo-card" role="dialog" aria-modal="true" aria-labelledby="review-title" (click)="$event.stopPropagation()">
+        <div class="modal-heading">
+          <div><p class="eyebrow">Booking đã hoàn thành</p><h2 id="review-title">Đánh giá sân</h2></div>
+          <button type="button" class="icon-button" aria-label="Đóng" [disabled]="reviewing()" (click)="closeReviewModal()">
+            <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+          </button>
+        </div>
+
+        <fieldset class="rating-fieldset">
+          <legend>Mức độ hài lòng</legend>
+          <div class="rating-options">
+            @for (star of [1, 2, 3, 4, 5]; track star) {
+              <button
+                type="button"
+                [class.active]="star <= reviewRating()"
+                [attr.aria-label]="star + ' sao'"
+                (click)="reviewRating.set(star)"
+              ><lucide-icon name="star" class="w-7 h-7"></lucide-icon></button>
+            }
+          </div>
+        </fieldset>
+
+        <label class="field-label" for="review-content">Chia sẻ thêm về trải nghiệm</label>
+        <textarea
+          id="review-content"
+          rows="5"
+          maxlength="2000"
+          [ngModel]="reviewContent()"
+          (ngModelChange)="reviewContent.set($event)"
+          placeholder="Chất lượng sân, dịch vụ, tiện ích..."
+          class="cancel-textarea"
+        ></textarea>
+        <small class="character-count">{{ reviewContent().length }}/2000</small>
+
+        <div class="modal-actions">
+          <button type="button" class="secondary-button" [disabled]="reviewing()" (click)="closeReviewModal()">Để sau</button>
+          <button type="button" class="primary-button" [disabled]="reviewing()" (click)="submitReview()">
+            @if (reviewing()) { <lucide-icon name="loader-2" class="w-4 h-4 animate-spin"></lucide-icon> Đang gửi }
+            @else { Gửi đánh giá }
+          </button>
+        </div>
+      </section>
     </div>
   }
 </div>

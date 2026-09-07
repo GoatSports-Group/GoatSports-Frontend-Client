@@ -1,4 +1,4 @@
-export { Booking, BookingCancellation } from '@domain/entities/booking';
+export { Booking, BookingCancellation, CancellationPolicy, PlayerReview } from '@domain/entities/booking';
 export { TimeSlot } from '@domain/entities/time-slot';
 export { BookingStatus, BOOKING_STATUS_LABELS, BOOKING_STATUS_COLORS } from '@domain/enums/booking-status.enum';
 export { TimeSlotStatus, TIME_SLOT_STATUS_LABELS } from '@domain/enums/time-slot-status.enum';
