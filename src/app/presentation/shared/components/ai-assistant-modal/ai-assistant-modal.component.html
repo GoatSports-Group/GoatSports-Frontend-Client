@@ -25,7 +25,10 @@
       <div class="venues-suggestions" *ngIf="m.venues && m.venues.length > 0">
         <div class="sugg-card" *ngFor="let v of m.venues" (click)="goToVenue(v.venueId)">
           <h5>{{ v.venueName }}</h5>
-          <span class="meta">{{ v.distanceKm }} km • {{ v.rating }} ⭐ • {{ v.priceRange }}</span>
+          <span class="meta">
+            {{ v.distanceKm }} km • {{ v.rating }}/5
+            @if (v.minPrice != null) { • từ {{ v.minPrice | number:'1.0-0' }}đ/giờ }
+          </span>
           <p class="reason">{{ v.matchReason }}</p>
         </div>
       </div>

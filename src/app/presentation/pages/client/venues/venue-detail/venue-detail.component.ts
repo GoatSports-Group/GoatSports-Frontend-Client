@@ -29,6 +29,7 @@ export class VenueDetailComponent implements OnInit {
   readonly TimeSlotStatus = TimeSlotStatus;
 
   venueId = '';
+  matchmakingSessionId = '';
   venue: Venue | null = null;
   venueImages: string[] = [VENUE_PLACEHOLDER_IMAGE];
   selectedCourt: VenueCourt | null = null;
@@ -55,6 +56,9 @@ export class VenueDetailComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(params => {
         this.venueId = params.get('id') || '';
+        this.matchmakingSessionId = this.route.snapshot.queryParamMap.get('matchmakingSessionId') || '';
+        const requestedDate = this.route.snapshot.queryParamMap.get('date');
+        if (requestedDate && requestedDate >= this.today) this.selectedDate = requestedDate;
         if (this.venueId) this.loadVenueDetails();
       });
   }
@@ -174,7 +178,8 @@ export class VenueDetailComponent implements OnInit {
         date: this.selectedDate,
         startTime: slot.startTime,
         endTime: slot.endTime,
-        pricePerHour: slot.pricePerHour
+        pricePerHour: slot.pricePerHour,
+        matchmakingSessionId: this.matchmakingSessionId || null
       }
     });
   }

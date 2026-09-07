@@ -11,6 +11,7 @@ import {
   PendingPaymentContext,
   PendingBookingPaymentService
 } from '@presentation/services/pending-booking-payment.service';
+import { AiRepositoryPort } from '@application/ports/ai.repository.port';
 
 type PaymentResultState = 'checking' | 'success' | 'cancelled' | 'failed' | 'pending' | 'missing';
 
@@ -24,12 +25,14 @@ export class PaymentResultComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly paymentRepository: PaymentRepository = inject(PAYMENT_REPOSITORY_TOKEN);
   private readonly pendingPayment = inject(PendingBookingPaymentService);
+  private readonly aiRepository = inject(AiRepositoryPort);
   private readonly destroyRef = inject(DestroyRef);
 
   context: PendingPaymentContext | null = null;
   payment: Payment | null = null;
   state: PaymentResultState = 'checking';
   checking = false;
+  private proposalSynced = false;
 
   ngOnInit(): void {
     this.context = this.pendingPayment.get();
@@ -65,6 +68,7 @@ export class PaymentResultComponent implements OnInit {
       this.payment = payment;
       if (payment.status === 'SUCCEEDED') {
         this.state = 'success';
+        this.syncMatchmakingProposal();
       } else if (!this.isProcessing(payment.status)) {
         this.state = 'failed';
       }
@@ -89,5 +93,13 @@ export class PaymentResultComponent implements OnInit {
 
   private isProcessing(status: PaymentStatus): boolean {
     return status === 'CREATED' || status === 'PENDING';
+  }
+
+  private syncMatchmakingProposal(): void {
+    if (this.proposalSynced || !this.context || !('matchmakingSessionId' in this.context) || !this.context.matchmakingSessionId) return;
+    this.proposalSynced = true;
+    this.aiRepository.updateMatchProposal(this.context.matchmakingSessionId, { status: 'BOOKED' })
+      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
+      .subscribe({ error: () => this.proposalSynced = false });
   }
 }

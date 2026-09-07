@@ -10,6 +10,7 @@ export interface CreateBookingRequest {
   playDate: string;
   startTime: string;
   endTime: string;
+  matchmakingSessionId?: string;
 }
 
 export interface CancelBookingRequest {

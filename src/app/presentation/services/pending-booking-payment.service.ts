@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 export type PendingPaymentContext =
-  | { kind?: 'BOOKING'; bookingId: string; paymentId: string; expiresAt?: string }
+  | { kind?: 'BOOKING'; bookingId: string; paymentId: string; expiresAt?: string; matchmakingSessionId?: string }
   | { kind: 'TOURNAMENT'; tournamentId: string; registrationId: string; paymentId: string };
 export type PendingBookingPayment = Extract<PendingPaymentContext, { bookingId: string }>;
 
@@ -18,7 +18,8 @@ export class PendingBookingPaymentService {
       }
       if (typeof value['bookingId'] === 'string') {
         return { kind: 'BOOKING', bookingId: value['bookingId'], paymentId: value['paymentId'],
-          expiresAt: typeof value['expiresAt'] === 'string' ? value['expiresAt'] : undefined };
+          expiresAt: typeof value['expiresAt'] === 'string' ? value['expiresAt'] : undefined,
+          matchmakingSessionId: typeof value['matchmakingSessionId'] === 'string' ? value['matchmakingSessionId'] : undefined };
       }
       return null;
     } catch { return null; }

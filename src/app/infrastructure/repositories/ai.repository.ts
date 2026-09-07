@@ -1,49 +1,72 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AiRepositoryPort } from '@application/ports/ai.repository.port';
-import { MatchmakingSessionModel, VenueRecommendationModel, ChatbotResponseModel } from '@domain/models/matchmaking.model';
+import {
+  AcceptanceDecision,
+  ChatbotResponseModel,
+  JoinMatchmakingQueueRequest,
+  MatchmakingActionResponse,
+  MatchmakingQueueResponse,
+  MatchmakingSessionModel,
+  MatchmakingStatusResponse,
+  VenueRecommendationModel
+} from '@domain/models/matchmaking.model';
 import { API_ENDPOINTS } from '@infrastructure/config/api-endpoints';
 
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class AiRepository extends AiRepositoryPort {
+  private readonly http = inject(HttpClient);
   private readonly baseUrl = API_ENDPOINTS.ai;
 
-  constructor(private readonly http: HttpClient) {
-    super();
+  override joinMatchmakingQueue(payload: JoinMatchmakingQueueRequest): Observable<MatchmakingQueueResponse> {
+    return this.http.post<MatchmakingQueueResponse>(`${this.baseUrl}/matchmaking/queue`, payload);
   }
 
-  override joinMatchmakingQueue(payload: any): Observable<{ status: string; message: string; session?: MatchmakingSessionModel }> {
-    return this.http.post<any>(`${this.baseUrl}/matchmaking/queue`, payload);
+  override checkMatchmakingStatus(): Observable<MatchmakingStatusResponse> {
+    return this.http.get<MatchmakingStatusResponse>(`${this.baseUrl}/matchmaking/status`);
   }
 
-  override checkMatchmakingStatus(playerId: string): Observable<{ status: string; queue_size?: number; session?: MatchmakingSessionModel }> {
-    return this.http.get<any>(`${this.baseUrl}/matchmaking/status/${playerId}`);
+  override leaveMatchmakingQueue(): Observable<MatchmakingActionResponse> {
+    return this.http.delete<MatchmakingActionResponse>(`${this.baseUrl}/matchmaking/queue`);
   }
 
-  override leaveMatchmakingQueue(playerId: string): Observable<{ success: boolean; message: string }> {
-    return this.http.delete<any>(`${this.baseUrl}/matchmaking/queue/${playerId}`);
+  override getMatchmakingSession(sessionId: string): Observable<MatchmakingSessionModel> {
+    return this.http.get<MatchmakingSessionModel>(`${this.baseUrl}/matchmaking/sessions/${sessionId}`);
+  }
+
+  override decideMatch(sessionId: string, decision: AcceptanceDecision): Observable<MatchmakingSessionModel> {
+    return this.http.post<MatchmakingSessionModel>(
+      `${this.baseUrl}/matchmaking/sessions/${sessionId}/acceptances`,
+      { decision }
+    );
+  }
+
+  override updateMatchProposal(
+    sessionId: string,
+    payload: { bookingId?: string; status?: 'BOOKING_PENDING' | 'BOOKED' | 'CANCELLED' }
+  ): Observable<MatchmakingSessionModel> {
+    return this.http.patch<MatchmakingSessionModel>(
+      `${this.baseUrl}/matchmaking/sessions/${sessionId}/proposal`,
+      payload
+    );
   }
 
   override getVenueRecommendations(lat?: number, lng?: number, sport?: string): Observable<VenueRecommendationModel[]> {
     let params = new HttpParams();
-    if (lat) params = params.set('user_lat', lat.toString());
-    if (lng) params = params.set('user_lng', lng.toString());
+    if (lat != null) params = params.set('user_lat', String(lat));
+    if (lng != null) params = params.set('user_lng', String(lng));
     if (sport) params = params.set('sport_type', sport);
-
     return this.http.get<VenueRecommendationModel[]>(`${this.baseUrl}/recommendations/venues`, { params });
   }
 
   override queryChatbot(message: string, lat?: number, lng?: number, sport?: string): Observable<ChatbotResponseModel> {
-    const payload = {
+    return this.http.post<ChatbotResponseModel>(`${this.baseUrl}/chatbot/query`, {
       message,
-      user_location_lat: lat,
-      user_location_lng: lng,
-      favorite_sport: sport
-    };
-    return this.http.post<ChatbotResponseModel>(`${this.baseUrl}/chatbot/query`, payload);
+      userLocationLat: lat,
+      userLocationLng: lng,
+      favoriteSport: sport
+    });
   }
 }

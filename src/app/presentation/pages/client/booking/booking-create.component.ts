@@ -9,6 +9,7 @@ import { VENUE_SEARCH_REPOSITORY_TOKEN } from '@application/ports/persistence/ve
 import { CreateBookingDepositCheckoutUseCase } from '@application/usecase/payment/create-booking-deposit-checkout.usecase';
 import { PendingBookingPaymentService } from '@presentation/services/pending-booking-payment.service';
 import { NotifyService } from '@shared/components/notify/notify.service';
+import { AiRepositoryPort } from '@application/ports/ai.repository.port';
 
 @Component({
   selector: 'app-booking-create',
@@ -23,6 +24,7 @@ export class BookingCreateComponent implements OnInit {
   private readonly createDepositCheckout = inject(CreateBookingDepositCheckoutUseCase);
   private readonly pendingPayment = inject(PendingBookingPaymentService);
   private readonly notifyService = inject(NotifyService);
+  private readonly aiRepository = inject(AiRepositoryPort);
   private readonly destroyRef = inject(DestroyRef);
 
   venueId = '';
@@ -31,6 +33,7 @@ export class BookingCreateComponent implements OnInit {
   date = '';
   startTime = '';
   endTime = '';
+  matchmakingSessionId = '';
 
   venue: Venue | null = null;
   court: VenueCourt | null = null;
@@ -51,6 +54,7 @@ export class BookingCreateComponent implements OnInit {
         this.date = params.get('date') ?? '';
         this.startTime = params.get('startTime') ?? '';
         this.endTime = params.get('endTime') ?? '';
+        this.matchmakingSessionId = params.get('matchmakingSessionId') ?? '';
         this.createdBooking = null;
         this.loadSelection();
       });
@@ -160,7 +164,8 @@ export class BookingCreateComponent implements OnInit {
       venueCourtId: this.courtId,
       playDate: this.date,
       startTime: this.startTime,
-      endTime: this.endTime
+      endTime: this.endTime,
+      matchmakingSessionId: this.matchmakingSessionId || undefined
     }).pipe(
       take(1),
       takeUntilDestroyed(this.destroyRef)
@@ -173,7 +178,7 @@ export class BookingCreateComponent implements OnInit {
           return;
         }
         this.createdBooking = booking;
-        this.startDepositCheckout(booking);
+        this.syncMatchmakingProposal(booking);
       },
       error: error => {
         this.submitting = false;
@@ -212,7 +217,8 @@ export class BookingCreateComponent implements OnInit {
         this.pendingPayment.save({
           bookingId: booking.bookingId,
           paymentId: payment.paymentId,
-          expiresAt: payment.expiresAt
+          expiresAt: payment.expiresAt,
+          matchmakingSessionId: this.matchmakingSessionId || undefined
         });
         window.location.assign(checkoutUrl);
       },
@@ -224,6 +230,23 @@ export class BookingCreateComponent implements OnInit {
         );
         this.notifyService.error(this.checkoutError);
       }
+    });
+  }
+
+  private syncMatchmakingProposal(booking: Booking): void {
+    if (!this.matchmakingSessionId) {
+      this.startDepositCheckout(booking);
+      return;
+    }
+    this.aiRepository.updateMatchProposal(this.matchmakingSessionId, {
+      bookingId: booking.bookingId,
+      status: 'BOOKING_PENDING'
+    }).pipe(
+      take(1),
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.startDepositCheckout(booking))
+    ).subscribe({
+      error: () => this.notifyService.warning('Đơn sân đã được tạo nhưng trạng thái kèo chưa kịp đồng bộ.')
     });
   }
 
