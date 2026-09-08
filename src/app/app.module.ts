@@ -145,7 +145,17 @@ import {
   LucideHeart,
   LucideShare2,
   LucidePencil,
-  LucideFlag
+  LucideFlag,
+  LucideLocateFixed,
+  LucideMap,
+  LucideMapPinOff,
+  LucideCircleParking,
+  LucideCupSoda,
+  LucideShirt,
+  LucideSparkles,
+  LucideCircleDot,
+  LucideCircleDotDashed,
+  LucideWifi
 } from '@lucide/angular';
 
 @NgModule({
@@ -281,7 +291,17 @@ import {
       LucideHeart,
       LucideShare2,
       LucidePencil,
-      LucideFlag
+      LucideFlag,
+      LucideLocateFixed,
+      LucideMap,
+      LucideMapPinOff,
+      LucideCircleParking,
+      LucideCupSoda,
+      LucideShirt,
+      LucideSparkles,
+      LucideCircleDot,
+      LucideCircleDotDashed,
+      LucideWifi
     )
   ],
   bootstrap: [AppComponent]
