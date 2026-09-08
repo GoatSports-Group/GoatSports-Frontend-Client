@@ -155,7 +155,10 @@ import {
   LucideSparkles,
   LucideCircleDot,
   LucideCircleDotDashed,
-  LucideWifi
+  LucideWifi,
+  LucideClock3,
+  LucideLayoutGrid,
+  LucideCircle
 } from '@lucide/angular';
 
 @NgModule({
@@ -301,7 +304,10 @@ import {
       LucideSparkles,
       LucideCircleDot,
       LucideCircleDotDashed,
-      LucideWifi
+      LucideWifi,
+      LucideClock3,
+      LucideLayoutGrid,
+      LucideCircle
     )
   ],
   bootstrap: [AppComponent]

@@ -1,145 +1,71 @@
 <main class="home-page-container">
   <section class="home-hero" aria-labelledby="home-title">
-    <img
-      class="home-hero__image"
-      src="https://images.unsplash.com/photo-1526232761682-d26e03ac148e?w=1800&q=88"
-      alt="Các cầu thủ thi đấu trên sân bóng dưới ánh đèn"
-    />
+    <img class="home-hero__image" src="assets/images/goat-night-football-hero.png" alt="Người chơi bóng đá trên sân dưới ánh đèn" />
     <div class="home-hero__shade" aria-hidden="true"></div>
     <div class="home-hero__content">
-      <p class="home-hero__kicker">Đặt sân · Kết nối · Thi đấu</p>
-      <h1 id="home-title" class="home-hero__title">Tìm sân. Gặp đội. <br /><span>Vào trận.</span></h1>
-      <p class="home-hero__description">
-        Một nơi để tìm sân trống, gặp đúng đối thủ và giữ nhịp chơi thể thao mỗi tuần.
-      </p>
-
-      <form class="hero-search" (ngSubmit)="onSearch()" aria-label="Tìm sân nhanh">
-        <label class="hero-search__field hero-search__field--sport">
-          <span>Môn thể thao</span>
-          <select [(ngModel)]="sportType" name="sportType" aria-label="Chọn môn thể thao">
-            <option value="all">Tất cả môn</option>
-            @for (type of sportTypes; track type) {
-              <option [value]="type">{{ type }}</option>
-            }
-          </select>
-        </label>
-        <label class="hero-search__field">
-          <span>Khu vực hoặc tên sân</span>
-          <input
-            type="search"
-            name="searchQuery"
-            [(ngModel)]="searchQuery"
-            placeholder="Ví dụ: Cầu Giấy, sân cầu lông..."
-          />
-        </label>
-        <button class="hero-search__submit" type="submit">
-          <lucide-icon name="search" class="w-5 h-5"></lucide-icon>
-          Tìm sân
-        </button>
-      </form>
-
-      <div class="home-hero__actions">
-        <a routerLink="/matchmaking" class="text-action">AI ghép đúng kèo <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a>
-        <span>Lịch trống được cập nhật trực tiếp từ chủ sân</span>
+      <p class="home-hero__kicker">More players. A stronger Vietnam.</p>
+      <h1 id="home-title" class="home-hero__title">Tìm sân. Gặp đội.<br /><span>Vào trận.</span></h1>
+      <p class="home-hero__description">Đặt sân, ghép kèo và tìm cộng đồng thể thao quanh bạn.</p>
+      <div class="home-hero__buttons">
+        <button type="button" class="hero-primary" (click)="onSearch()"><lucide-icon name="search" class="w-5 h-5"></lucide-icon>Tìm sân gần bạn<lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></button>
+        <a routerLink="/matchmaking" class="hero-secondary">Ghép kèo ngay <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a>
+      </div>
+      <div class="hero-benefits" aria-label="Lợi ích GoatSports">
+        <span><lucide-icon name="clock-3" class="w-5 h-5"></lucide-icon><b>Đặt sân nhanh</b><small>Chỉ vài phút</small></span>
+        <span><lucide-icon name="users" class="w-5 h-5"></lucide-icon><b>Kết nối cộng đồng</b><small>Câu lạc bộ, bạn bè</small></span>
+        <span><lucide-icon name="trophy" class="w-5 h-5"></lucide-icon><b>Tham gia giải đấu</b><small>Từ phong trào đến chuyên nghiệp</small></span>
+        <span><lucide-icon name="brain" class="w-5 h-5"></lucide-icon><b>AI ghép kèo</b><small>Tìm đúng đối thủ</small></span>
       </div>
     </div>
   </section>
 
-  <section class="sport-rail" aria-labelledby="sport-rail-title">
-    <div class="sport-rail__heading">
-      <p>Chọn cuộc chơi</p>
-      <h2 id="sport-rail-title">Bạn muốn chơi gì hôm nay?</h2>
-    </div>
-    <div class="sport-rail__items">
-      @for (type of sportTypes; track type; let index = $index) {
-        <button type="button" class="sport-link" (click)="selectSport(type)">
-          <span>{{ (index + 1).toString().padStart(2, '0') }}</span>
-          <lucide-icon [name]="getSportIcon(type)" class="w-5 h-5"></lucide-icon>
-          <strong>{{ type }}</strong>
-          <lucide-icon name="arrow-right" class="sport-link__arrow w-4 h-4"></lucide-icon>
-        </button>
+  <nav class="sport-rail" aria-label="Chọn môn thể thao">
+    <strong>Chọn môn thể thao</strong><i aria-hidden="true"></i>
+    @for (type of sportTypes; track type) {
+      <button type="button" class="sport-link" (click)="selectSport(type)"><lucide-icon [name]="getSportIcon(type)" class="w-5 h-5"></lucide-icon><span>{{ type }}</span></button>
+    }
+    <button type="button" class="sport-link sport-link--all" (click)="onSearch()"><lucide-icon name="layout-grid" class="w-5 h-5"></lucide-icon><span>Tất cả môn</span><lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></button>
+  </nav>
+
+  <section class="home-dashboard" aria-labelledby="featured-venues-title">
+    <div class="venue-discovery">
+      <header class="section-heading">
+        <div><h2 id="featured-venues-title">Sân đấu nổi bật gần bạn</h2><p>Khám phá các sân chất lượng được cộng đồng yêu thích</p></div>
+        <a routerLink="/venues">Xem tất cả <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a>
+      </header>
+
+      @if (loading) {
+        <div class="venue-grid" aria-live="polite" aria-label="Đang tải danh sách sân">
+          @for (item of [1, 2, 3, 4]; track item) { <div class="venue-skeleton"><app-loading-skeleton height="150px" borderRadius="14px"></app-loading-skeleton><app-loading-skeleton height="18px" width="65%"></app-loading-skeleton></div> }
+        </div>
+      } @else if (featuredVenues.length) {
+        <div class="venue-grid">@for (venue of featuredVenues.slice(0, 4); track venue.venueId) { <app-venue-card [venue]="venue"></app-venue-card> }</div>
+      } @else {
+        <div class="inline-state"><div><strong>Danh sách sân đang được cập nhật</strong><p>Bạn có thể mở trang tìm sân để xem toàn bộ địa điểm.</p></div><a routerLink="/venues">Khám phá sân</a></div>
       }
     </div>
-  </section>
 
-  <section class="home-section venue-discovery" aria-labelledby="featured-venues-title">
-    <header class="section-heading">
-      <div>
-        <p class="page-kicker">Sân được cộng đồng lựa chọn</p>
-        <h2 id="featured-venues-title">Bắt đầu từ một sân tốt</h2>
-      </div>
-      <a routerLink="/venues" class="section-link">Xem tất cả sân <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a>
-    </header>
-
-    @if (loading) {
-      <div class="venue-grid" aria-live="polite" aria-label="Đang tải danh sách sân">
-        @for (item of [1, 2, 3, 4]; track item) {
-          <div class="venue-skeleton">
-            <app-loading-skeleton height="220px" borderRadius="8px"></app-loading-skeleton>
-            <app-loading-skeleton height="20px" width="65%"></app-loading-skeleton>
-            <app-loading-skeleton height="14px" width="86%"></app-loading-skeleton>
-          </div>
+    <aside class="quick-rail" aria-labelledby="quick-booking-title">
+      <header><div><h2 id="quick-booking-title">Sân có thể đặt</h2><p>Chọn địa điểm và xem lịch trống</p></div><a routerLink="/venues">Xem tất cả</a></header>
+      @if (loading) {
+        @for (item of [1,2,3]; track item) { <div class="quick-skeleton"><app-loading-skeleton height="58px" borderRadius="12px"></app-loading-skeleton></div> }
+      } @else if (featuredVenues.length) {
+        @for (venue of featuredVenues.slice(0, 4); track venue.venueId; let index = $index) {
+          <a class="quick-match" [routerLink]="['/venues', venue.venueId]">
+            <time>{{ index === 0 ? 'Hôm nay' : 'Sắp tới' }}<b>{{ venue.openTime.slice(0, 5) || '06:00' }}</b></time>
+            <span class="quick-match__sport"><lucide-icon [name]="getSportIcon(venue.sportTypes?.[0])" class="w-5 h-5"></lucide-icon></span>
+            <span><strong>{{ venue.name }}</strong><small>{{ venue.district || venue.city || 'Xem địa chỉ' }} · {{ venue.sportTypes?.[0] || 'Thể thao' }}</small></span>
+            <b class="quick-match__action">Đặt sân</b>
+          </a>
         }
-      </div>
-    } @else if (featuredVenues.length) {
-      <div class="venue-grid">
-        @for (venue of featuredVenues.slice(0, 4); track venue.venueId) {
-          <app-venue-card [venue]="venue"></app-venue-card>
-        }
-      </div>
-    } @else {
-      <div class="inline-state">
-        <div>
-          <strong>Chưa có sân nổi bật</strong>
-          <p>Danh sách đang được cập nhật. Bạn vẫn có thể mở trang tìm sân để xem toàn bộ địa điểm.</p>
-        </div>
-        <a routerLink="/venues">Khám phá sân</a>
-      </div>
-    }
+      } @else {
+        <div class="quick-empty">Chưa có sân phù hợp. Hãy thử tìm theo khu vực của bạn.</div>
+      }
+    </aside>
   </section>
 
-  <section class="home-section play-network" aria-labelledby="play-network-title">
-    <div class="play-network__lead">
-      <p class="page-kicker">Không chỉ là một vé đặt sân</p>
-      <h2 id="play-network-title">Mạng lưới cho mọi cuộc chơi</h2>
-      <p>Từ một buổi tập ngẫu hứng đến giải đấu dài ngày, GOAT Sports giữ mọi người, địa điểm và lịch chơi trong cùng một nhịp.</p>
-      <a routerLink="/feed" class="solid-action">Mở bảng tin <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a>
-    </div>
-
-    <div class="play-network__grid">
-      <a routerLink="/clubs" class="network-card network-card--wide">
-        <span class="network-card__number">01</span>
-        <div>
-          <lucide-icon name="users" class="w-6 h-6"></lucide-icon>
-          <h3>Tìm câu lạc bộ</h3>
-          <p>Gặp cộng đồng cùng môn chơi, trình độ và khu vực.</p>
-        </div>
-        <lucide-icon name="arrow-right" class="network-card__arrow w-5 h-5"></lucide-icon>
-      </a>
-      <a routerLink="/tournaments" class="network-card">
-        <span class="network-card__number">02</span>
-        <div>
-          <lucide-icon name="trophy" class="w-6 h-6"></lucide-icon>
-          <h3>Vào giải đấu</h3>
-          <p>Đăng ký, theo dõi lịch và kết quả.</p>
-        </div>
-        <lucide-icon name="arrow-right" class="network-card__arrow w-5 h-5"></lucide-icon>
-      </a>
-      <a routerLink="/matchmaking" class="network-card network-card--ink">
-        <span class="network-card__number">03</span>
-        <div>
-          <lucide-icon name="brain" class="w-6 h-6"></lucide-icon>
-          <h3>AI ghép kèo</h3>
-          <p>Minh bạch theo ELO, thời gian và khoảng cách.</p>
-        </div>
-        <lucide-icon name="arrow-right" class="network-card__arrow w-5 h-5"></lucide-icon>
-      </a>
-    </div>
-  </section>
-
-  <section class="trust-strip" aria-label="Cam kết dịch vụ">
-    <div><lucide-icon name="calendar-check" class="w-5 h-5"></lucide-icon><span><strong>Lịch trống trực tiếp</strong>Chọn đúng giờ còn sân</span></div>
-    <div><lucide-icon name="shield-check" class="w-5 h-5"></lucide-icon><span><strong>Thanh toán rõ ràng</strong>Chi phí hiển thị trước khi đặt</span></div>
-    <div><lucide-icon name="messages-square" class="w-5 h-5"></lucide-icon><span><strong>Kết nối liền mạch</strong>Chat với đồng đội sau khi ghép</span></div>
+  <section class="community-banner">
+    <div><p>Thể thao kết nối con người</p><span>Nhiều hơn những trận đấu. Là những mối quan hệ thật.</span></div>
+    <a routerLink="/clubs">Tham gia cộng đồng GOAT Sports <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a>
   </section>
 </main>

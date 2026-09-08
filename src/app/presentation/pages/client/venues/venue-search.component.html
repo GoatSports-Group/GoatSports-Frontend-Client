@@ -75,7 +75,7 @@
 
     <aside class="map-rail" aria-label="Bản đồ sân thể thao">
       <div class="map-frame">
-        <iframe title="Bản đồ khu vực tìm sân" src="https://www.openstreetmap.org/export/embed.html?bbox=106.6600%2C10.7500%2C106.7300%2C10.8100&amp;layer=mapnik" loading="lazy"></iframe>
+        <iframe title="Bản đồ khu vực tìm sân" src="https://www.google.com/maps?q=Ho%20Chi%20Minh%20City&amp;z=13&amp;output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
         <button type="button" class="map-location" (click)="useCurrentLocation()"><lucide-icon name="locate-fixed" class="w-4 h-4"></lucide-icon>Tìm trong vùng hiện tại</button>
       </div>
       @if (!loading && venues.length) {
@@ -89,7 +89,7 @@
       } @else if (!loading) {
         <div class="map-empty"><lucide-icon name="map-pin" class="w-6 h-6"></lucide-icon><strong>Chưa có sân để hiển thị</strong><span>Điều chỉnh bộ lọc để cập nhật bản đồ.</span></div>
       }
-      <p class="map-credit">© OpenStreetMap contributors</p>
+      <p class="map-credit">Google Maps</p>
     </aside>
   </div>
 </main>

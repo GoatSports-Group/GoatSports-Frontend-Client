@@ -1,171 +1,47 @@
 <main class="matchmaking-page">
-  <header class="hero">
-    <div class="hero-icon"><lucide-icon name="sparkles" class="w-7 h-7"></lucide-icon></div>
-    <div>
-      <p class="eyebrow">Ghép kèo thông minh</p>
-      <h1>Tìm đối thủ vừa sức, đúng lịch và gần bạn</h1>
-      <p>GOAT SPORTS so khớp môn chơi, ELO, khung giờ và khoảng cách để đề xuất một kèo phù hợp.</p>
-    </div>
+  <header class="matchmaking-hero">
+    <div><p class="eyebrow">GOAT Sports AI</p><h1>Ghép đúng kèo.<br />Chơi đúng trình.</h1></div>
+    <p>AI tìm cho bạn đối thủ phù hợp về trình độ, thời gian, địa điểm và phong cách chơi. Thể thao luôn tốt hơn khi chơi cùng đúng người.</p>
+    <div class="hero-art"><span>Better players<br />A brighter you</span></div>
   </header>
 
-  @if (errorMessage()) {
-    <div class="alert" role="alert">
-      <lucide-icon name="triangle-alert" class="w-5 h-5"></lucide-icon>
-      <span>{{ errorMessage() }}</span>
-    </div>
-  }
+  @if (errorMessage()) { <div class="alert" role="alert"><lucide-icon name="triangle-alert" class="w-5 h-5"></lucide-icon><span>{{ errorMessage() }}</span></div> }
 
   <div class="matchmaking-workspace">
-  <section class="matchmaking-flow">
-  @if (restoring()) {
-    <section class="state-card" aria-live="polite">
-      <span class="spinner"></span>
-      <p>Đang kiểm tra phiên ghép kèo của bạn…</p>
+    <section class="setup-card" aria-labelledby="match-setup-title">
+      <h2 id="match-setup-title" class="sr-only">Thiết lập ghép kèo</h2>
+      <div class="form-section"><div class="section-title"><span>1</span><div><h3>Môn thể thao</h3></div></div><div class="sport-grid">@for (sport of sports; track sport.value) { <button type="button" class="choice-button" [class.selected]="selectedSport() === sport.value" (click)="selectSport(sport.value)"><lucide-icon [name]="sport.icon" class="w-5 h-5"></lucide-icon>{{ sport.label }}</button> }</div></div>
+      <div class="form-section"><div class="section-title"><span>2</span><div><h3>Bạn muốn tìm theo</h3></div></div><div class="type-grid"><button type="button" class="choice-button selected"><lucide-icon name="user" class="w-5 h-5"></lucide-icon><span><b>Cá nhân</b><small>Tìm đối thủ để thi đấu cá nhân</small></span></button><button type="button" class="choice-button" disabled><lucide-icon name="users" class="w-5 h-5"></lucide-icon><span><b>Câu lạc bộ / Nhóm</b><small>Sắp ra mắt</small></span></button></div></div>
+      <div class="form-section"><div class="section-title"><span>3</span><div><h3>Trình độ của bạn</h3></div></div><div class="skill-grid">@for (skill of skills; track skill.value) { <button type="button" class="choice-button" [class.selected]="selectedSkill() === skill.value" (click)="selectSkill(skill.value, skill.suggestedElo)">{{ skill.label }}<small>ELO {{ skill.suggestedElo }}</small></button> }</div><div class="field-grid"><label><span>ELO hiện tại</span><input type="number" min="0" max="5000" [ngModel]="eloRating()" (ngModelChange)="eloRating.set($event)" /></label><label><span>Chênh lệch tối đa</span><input type="number" min="0" max="2000" step="50" [ngModel]="maxEloDifference()" (ngModelChange)="maxEloDifference.set($event)" /></label></div></div>
+      <div class="form-section"><div class="section-title"><span>4</span><div><h3>Thời gian rảnh</h3></div></div><div class="field-grid three-columns"><label><span>Ngày chơi</span><input type="date" [min]="today" [ngModel]="playDate()" (ngModelChange)="playDate.set($event)" /></label><label><span>Bắt đầu</span><input type="time" [ngModel]="startTime()" (ngModelChange)="startTime.set($event)" /></label><label><span>Kết thúc</span><input type="time" [ngModel]="endTime()" (ngModelChange)="endTime.set($event)" /></label></div></div>
+      <div class="form-section"><div class="range-heading"><div class="section-title"><span>5</span><div><h3>Địa điểm & phạm vi</h3></div></div><strong>{{ maxDistance() }} km</strong></div><input class="range" type="range" min="2" max="50" step="1" [ngModel]="maxDistance()" (ngModelChange)="maxDistance.set($event)" aria-label="Bán kính tìm kiếm" /></div>
+      @if (isSearching()) { <button type="button" class="button button-danger full start-button" (click)="cancelSearch()"><lucide-icon name="x" class="w-4 h-4"></lucide-icon>Hủy tìm kiếm</button> }
+      @else { <button type="button" class="button button-primary full start-button" [disabled]="locating() || restoring()" (click)="startMatchmaking()">@if (locating()) { <span class="spinner small"></span>Đang lấy vị trí... } @else { <lucide-icon name="search" class="w-5 h-5"></lucide-icon>Tìm đối thủ }</button> }
+      <p class="setup-note"><lucide-icon name="shield-check" class="w-4 h-4"></lucide-icon>Vị trí chỉ dùng để tính khoảng cách ghép kèo.</p>
     </section>
-  } @else if (isSearching()) {
-    <section class="search-card" aria-live="polite">
-      <div class="radar" aria-hidden="true">
-        <span class="wave wave-one"></span><span class="wave wave-two"></span><span class="wave wave-three"></span>
-        <lucide-icon name="scan-search" class="w-9 h-9"></lucide-icon>
-      </div>
-      <p class="eyebrow">Đang ở trong hàng chờ</p>
-      <h2>Đang tìm đối thủ phù hợp…</h2>
-      <p>{{ selectedSportLabel() }} · {{ selectedPlayDateLabel() }} · {{ startTime() }}–{{ endTime() }}</p>
-      <div class="search-metrics">
-        <span><strong>{{ elapsedSeconds() }}</strong> giây</span>
-        @if (queueSize() !== null) { <span><strong>{{ queueSize() }}</strong> người đang chờ</span> }
-        <span><strong>{{ maxDistance() }}</strong> km</span>
-      </div>
-      <button type="button" class="button button-danger" (click)="cancelSearch()">
-        <lucide-icon name="x" class="w-4 h-4"></lucide-icon> Hủy tìm kiếm
-      </button>
-    </section>
-  } @else if (session(); as match) {
-    <section class="match-card">
-      <div class="match-heading">
-        <div>
-          <p class="eyebrow">{{ statusMessage() }}</p>
-          <h2>Độ tương thích {{ match.compatibilityScore }}%</h2>
-        </div>
-        <span class="status" [class.accepted]="match.status === 'ACCEPTED'">{{ statusLabel() }}</span>
-      </div>
 
-      <div class="players">
-        @if (currentParticipant(); as me) {
-          <article class="player">
-            @if (me.avatarUrl) { <img [src]="me.avatarUrl" [alt]="'Ảnh của ' + me.name" /> }
-            @else { <div class="avatar-fallback">{{ currentParticipantInitials() }}</div> }
-            <span>Bạn</span><h3>{{ me.name }}</h3><p>ELO {{ me.eloRating }}</p>
-          </article>
-        }
-        <div class="versus">VS</div>
-        @if (opponent(); as rival) {
-          <article class="player">
-            @if (rival.avatarUrl) { <img [src]="rival.avatarUrl" [alt]="'Ảnh của ' + rival.name" /> }
-            @else { <div class="avatar-fallback">{{ opponentInitials() }}</div> }
-            <span>Đối thủ</span><h3>{{ rival.name }}</h3><p>ELO {{ rival.eloRating }}</p>
-          </article>
-        }
-      </div>
-
-      <div class="match-info">
-        <div><lucide-icon name="calendar-days" class="w-5 h-5"></lucide-icon><span><strong>{{ matchDateLabel() }}</strong>{{ match.startTime }}–{{ match.endTime }}</span></div>
-        <div><lucide-icon name="map-pin" class="w-5 h-5"></lucide-icon><span><strong>{{ match.distanceKm }} km</strong>Khoảng cách giữa hai người</span></div>
-        <div><lucide-icon name="gauge" class="w-5 h-5"></lucide-icon><span><strong>{{ match.eloDifference }} ELO</strong>Chênh lệch trình độ</span></div>
-      </div>
-
-      @if (match.proposal?.venueId) {
-        <button type="button" class="venue-proposal" (click)="openVenue()">
-          <lucide-icon name="map-pinned" class="w-5 h-5"></lucide-icon>
-          <span><strong>Đã tìm thấy sân phù hợp</strong>Xem sân và các khung giờ còn trống</span>
-          <lucide-icon name="chevron-right" class="w-5 h-5"></lucide-icon>
-        </button>
+    <section class="match-result-column" aria-live="polite">
+      @if (restoring()) {
+        <div class="state-card"><span class="spinner"></span><p>Đang kiểm tra phiên ghép kèo của bạn...</p></div>
+      } @else if (isSearching()) {
+        <div class="result-status"><i></i><span>Đang tìm trận phù hợp...</span><small>AI đang quét người chơi trong khu vực của bạn</small></div>
+        <div class="search-card"><div class="radar"><span class="wave wave-one"></span><span class="wave wave-two"></span><span class="wave wave-three"></span><lucide-icon name="scan-search" class="w-9 h-9"></lucide-icon></div><h2>Đang tìm đối thủ</h2><p>{{ selectedSportLabel() }} · {{ selectedPlayDateLabel() }} · {{ startTime() }}–{{ endTime() }}</p><div class="search-metrics"><span><strong>{{ elapsedSeconds() }}</strong>giây</span>@if (queueSize() !== null) { <span><strong>{{ queueSize() }}</strong>đang chờ</span> }<span><strong>{{ maxDistance() }}</strong>km</span></div></div>
+      } @else if (session(); as match) {
+        <div class="result-status"><i></i><span>{{ statusMessage() }}</span><small>Đề xuất từ dữ liệu ghép kèo thực tế</small></div>
+        <article class="match-card">
+          <header class="match-heading"><span class="recommend-label">Đề xuất tốt nhất</span><strong>{{ match.compatibilityScore }}%<small>Phù hợp</small></strong></header>
+          <div class="players">@if (currentParticipant(); as me) { <div class="player">@if (me.avatarUrl) { <img [src]="me.avatarUrl" [alt]="me.name" /> } @else { <div class="avatar-fallback">{{ currentParticipantInitials() }}</div> }<span>Bạn</span><h3>{{ me.name }}</h3><p>ELO {{ me.eloRating }}</p></div> }<div class="versus">VS</div>@if (opponent(); as rival) { <div class="player">@if (rival.avatarUrl) { <img [src]="rival.avatarUrl" [alt]="rival.name" /> } @else { <div class="avatar-fallback">{{ opponentInitials() }}</div> }<span>Đối thủ</span><h3>{{ rival.name }}</h3><p>ELO {{ rival.eloRating }}</p></div> }</div>
+          <div class="match-info"><div><span>Trình độ tương đồng</span><strong>{{ match.eloDifference }} ELO</strong></div><div><span>Khung giờ chung</span><strong>{{ match.startTime }}–{{ match.endTime }}</strong></div><div><span>Khoảng cách</span><strong>{{ match.distanceKm }} km</strong></div></div>
+          @if (match.proposal?.venueId) { <button type="button" class="venue-proposal" (click)="openVenue()"><lucide-icon name="map-pinned" class="w-5 h-5"></lucide-icon><span><strong>Sân phù hợp đã sẵn sàng</strong><small>Xem sân và lịch trống</small></span><lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon></button> }
+          @if (canRespond()) { <div class="decision-actions"><button type="button" class="button button-secondary" [disabled]="responding()" (click)="respond('REJECTED')">Từ chối</button><button type="button" class="button button-primary" [disabled]="responding()" (click)="respond('ACCEPTED')"><lucide-icon name="check" class="w-4 h-4"></lucide-icon>Chấp nhận & tạo trận</button></div> }
+          @else if (match.status === 'ACCEPTED') { <div class="decision-actions"><button type="button" class="button button-secondary" [disabled]="!match.proposal?.venueId || !isDesignatedBooker()" (click)="openVenue()">Chọn lịch sân</button><button type="button" class="button button-primary" [disabled]="!canOpenChat()" (click)="openChat()">Mở trò chuyện</button></div> }
+          @else { <button type="button" class="button button-primary full" (click)="findAnotherMatch()">Tìm kèo khác</button> }
+        </article>
       } @else {
-        <div class="venue-empty"><lucide-icon name="map-pin-off" class="w-5 h-5"></lucide-icon>Chưa tìm thấy sân trống phù hợp. Bạn vẫn có thể xác nhận kèo trước.</div>
+        <div class="result-status"><i></i><span>Sẵn sàng tìm trận phù hợp</span><small>Thiết lập nhu cầu bên trái để bắt đầu</small></div>
+        <div class="matchmaking-guide"><div class="guide-visual"><lucide-icon name="sparkles" class="w-8 h-8"></lucide-icon><h2>GOAT AI tìm đúng người chơi</h2><p>Kết quả được tính minh bạch theo bốn nhóm tiêu chí.</p></div><ol><li><span>40%</span><div><strong>Trình độ</strong><small>ELO và mức kỹ năng tương đồng</small></div></li><li><span>30%</span><div><strong>Khung giờ</strong><small>Lịch chơi phải có phần giao nhau</small></div></li><li><span>20%</span><div><strong>Khoảng cách</strong><small>Ưu tiên đối thủ trong bán kính đã chọn</small></div></li><li><span>10%</span><div><strong>Phong cách</strong><small>Dựa trên lựa chọn và lịch sử của bạn</small></div></li></ol></div>
       }
-
-      @if (canRespond()) {
-        <div class="decision-actions">
-          <button type="button" class="button button-secondary" [disabled]="responding()" (click)="respond('REJECTED')">Từ chối</button>
-          <button type="button" class="button button-primary" [disabled]="responding()" (click)="respond('ACCEPTED')">
-            <lucide-icon name="check" class="w-4 h-4"></lucide-icon> Đồng ý tham gia
-          </button>
-        </div>
-      } @else if (match.status === 'ACCEPTED_BY_ONE') {
-        <div class="waiting"><span class="spinner small"></span>Đang chờ người còn lại xác nhận…</div>
-      } @else if (match.status === 'ACCEPTED') {
-        <div class="decision-actions">
-          <button type="button" class="button button-secondary" [disabled]="!match.proposal?.venueId || !isDesignatedBooker()" (click)="openVenue()">
-            <lucide-icon name="calendar-plus" class="w-4 h-4"></lucide-icon> Chọn lịch sân
-          </button>
-          <button type="button" class="button button-primary" [disabled]="!canOpenChat()" (click)="openChat()">
-            <lucide-icon name="message-circle" class="w-4 h-4"></lucide-icon> Mở trò chuyện
-          </button>
-        </div>
-        @if (!isDesignatedBooker()) { <p class="helper">Đối thủ được chỉ định sẽ thực hiện bước đặt sân cho kèo này.</p> }
-        @if (!canOpenChat()) { <p class="helper">Cuộc trò chuyện đang được khởi tạo. Vui lòng chờ trong giây lát.</p> }
-      } @else {
-        <button type="button" class="button button-primary full" (click)="findAnotherMatch()">Tìm kèo khác</button>
-      }
+      <section class="match-history"><header><h2>Lịch sử ghép kèo gần đây</h2><span>Dữ liệu xuất hiện sau khi bạn có trận</span></header><div class="history-empty"><lucide-icon name="history" class="w-5 h-5"></lucide-icon><p>Lịch sử các kèo đã hoàn thành sẽ được hiển thị tại đây.</p></div></section>
     </section>
-  } @else {
-    <section class="setup-card">
-      <div class="form-section">
-        <div class="section-title"><span>1</span><div><h2>Chọn môn thể thao</h2><p>Hệ thống chỉ ghép những người chơi cùng môn.</p></div></div>
-        <div class="sport-grid">
-          @for (sport of sports; track sport.value) {
-            <button type="button" class="choice-button" [class.selected]="selectedSport() === sport.value" (click)="selectSport(sport.value)">
-              <lucide-icon [name]="sport.icon" class="w-5 h-5"></lucide-icon>{{ sport.label }}
-            </button>
-          }
-        </div>
-      </div>
-
-      <div class="form-section">
-        <div class="section-title"><span>2</span><div><h2>Trình độ và ELO</h2><p>Nhập ELO hiện tại để kết quả chính xác hơn.</p></div></div>
-        <div class="skill-grid">
-          @for (skill of skills; track skill.value) {
-            <button type="button" class="choice-button" [class.selected]="selectedSkill() === skill.value" (click)="selectSkill(skill.value, skill.suggestedElo)">{{ skill.label }}</button>
-          }
-        </div>
-        <div class="field-grid">
-          <label><span>ELO hiện tại</span><input type="number" min="0" max="5000" [ngModel]="eloRating()" (ngModelChange)="eloRating.set($event)" /></label>
-          <label><span>Chênh lệch ELO tối đa</span><input type="number" min="0" max="2000" step="50" [ngModel]="maxEloDifference()" (ngModelChange)="maxEloDifference.set($event)" /></label>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <div class="section-title"><span>3</span><div><h2>Lịch có thể tham gia</h2><p>Hai người phải có ít nhất một khoảng giờ giao nhau.</p></div></div>
-        <div class="field-grid three-columns">
-          <label><span>Ngày chơi</span><input type="date" [min]="today" [ngModel]="playDate()" (ngModelChange)="playDate.set($event)" /></label>
-          <label><span>Bắt đầu</span><input type="time" [ngModel]="startTime()" (ngModelChange)="startTime.set($event)" /></label>
-          <label><span>Kết thúc</span><input type="time" [ngModel]="endTime()" (ngModelChange)="endTime.set($event)" /></label>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <div class="range-heading"><div class="section-title"><span>4</span><div><h2>Bán kính tìm kiếm</h2><p>Vị trí chỉ được dùng để tính khoảng cách ghép kèo.</p></div></div><strong>{{ maxDistance() }} km</strong></div>
-        <input class="range" type="range" min="2" max="50" step="1" [ngModel]="maxDistance()" (ngModelChange)="maxDistance.set($event)" aria-label="Bán kính tìm kiếm" />
-      </div>
-
-      <button type="button" class="button button-primary full start-button" [disabled]="locating()" (click)="startMatchmaking()">
-        @if (locating()) { <span class="spinner small"></span> Đang lấy vị trí… }
-        @else { <lucide-icon name="scan-search" class="w-5 h-5"></lucide-icon> Bắt đầu tìm đối thủ }
-      </button>
-    </section>
-  }
-  </section>
-  <aside class="matchmaking-guide" aria-label="Cách GOAT Sports ghép kèo">
-    <p class="eyebrow">Ghép kèo minh bạch</p>
-    <h2>Vì sao kết quả phù hợp?</h2>
-    <ol>
-      <li><span>40%</span><div><strong>Trình độ</strong><small>ELO và mức kỹ năng tương đồng</small></div></li>
-      <li><span>30%</span><div><strong>Khung giờ</strong><small>Chỉ ghép khi lịch có phần giao nhau</small></div></li>
-      <li><span>20%</span><div><strong>Khoảng cách</strong><small>Ưu tiên đối thủ trong bán kính đã chọn</small></div></li>
-      <li><span>10%</span><div><strong>Thói quen chơi</strong><small>Dựa trên lựa chọn và lịch sử của bạn</small></div></li>
-    </ol>
-    <div class="privacy-note"><lucide-icon name="shield-check" class="w-5 h-5"></lucide-icon><p><strong>Vị trí được bảo vệ</strong><span>Chỉ dùng để tính khoảng cách và không hiển thị địa chỉ chính xác cho đối thủ.</span></p></div>
-    <div class="assistant-note"><lucide-icon name="sparkles" class="w-5 h-5"></lucide-icon><p><strong>Cần tư vấn thêm?</strong><span>Mở Trợ lý AI ở góc màn hình để hỏi về sân, luật chơi hoặc lịch tập.</span></p></div>
-  </aside>
   </div>
 </main>

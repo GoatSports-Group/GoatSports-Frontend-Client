@@ -57,9 +57,19 @@
     </section>
 
     <aside class="community-rail">
-      <section><header><h2>Kết nối nhanh</h2><span>Từ kết quả thật</span></header>@if (clubs().length) { @for (club of clubs().slice(0, 3); track club.clubId) { <button type="button" class="compact-club" (click)="goToDetail(club.clubId)"><span class="compact-avatar">{{ initials(club.name) }}</span><span><strong>{{ club.name }}</strong><small>{{ club.sportType }} · {{ club.memberCount }} thành viên</small></span><lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon></button> } } @else { <p class="rail-empty">Các câu lạc bộ phù hợp sẽ xuất hiện tại đây.</p> }</section>
-      <section><header><h2>Bắt đầu cộng đồng</h2></header><div class="rail-callout"><lucide-icon name="users" class="w-6 h-6"></lucide-icon><h3>Chưa thấy đội phù hợp?</h3><p>Tạo câu lạc bộ riêng, đặt quy tắc duyệt và mời bạn bè cùng tham gia.</p><button type="button" (click)="openCreateModal()">Tạo câu lạc bộ</button></div></section>
-      <section><header><h2>Chơi nhiều hơn</h2></header><a class="open-match" routerLink="/matchmaking"><lucide-icon name="brain" class="w-5 h-5"></lucide-icon><span><strong>AI ghép đúng kèo</strong><small>Tìm đối thủ theo trình độ, thời gian và vị trí.</small></span><lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a></section>
+      <section><header><h2>CLB của bạn</h2><span>{{ myClubs().length }}</span></header>
+        @if (myClubs().length) { @for (club of myClubs().slice(0, 3); track club.clubId) { <button type="button" class="compact-club" (click)="goToDetail(club.clubId)"><span class="compact-avatar">{{ initials(club.name) }}</span><span><strong>{{ club.name }}</strong><small>{{ club.sportType }} · {{ club.memberCount }} thành viên</small></span><lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon></button> } }
+        @else { <p class="rail-empty">Bạn chưa tham gia câu lạc bộ nào trong danh sách này.</p> }
+      </section>
+      <section><header><h2>Lời mời & yêu cầu</h2><span>{{ pendingClubs().length }}</span></header>
+        @if (pendingClubs().length) { @for (club of pendingClubs(); track club.clubId) { <button type="button" class="compact-club" (click)="goToDetail(club.clubId)"><span class="compact-avatar">{{ initials(club.name) }}</span><span><strong>{{ club.name }}</strong><small>Đang chờ câu lạc bộ phê duyệt</small></span><b class="pending-label">Đang chờ</b></button> } }
+        @else { <p class="rail-empty">Không có yêu cầu nào đang chờ xử lý.</p> }
+      </section>
+      <section><header><h2>Hoạt động sắp tới</h2><span>{{ upcomingActivities().length }}</span></header>
+        @if (upcomingActivities().length) { @for (item of upcomingActivities(); track item.activity.activityId) { <button type="button" class="activity-row" (click)="goToDetail(item.club.clubId)"><time><b>{{ item.activity.startAt | date:'dd' }}</b>{{ item.activity.startAt | date:'MM' }}</time><span><strong>{{ item.activity.title }}</strong><small>{{ item.club.name }} · {{ item.activity.startAt | date:'HH:mm' }}</small></span><i></i></button> } }
+        @else { <p class="rail-empty">Chưa có hoạt động sắp tới từ các CLB của bạn.</p> }
+      </section>
+      <section><header><h2>Thử thách / Trận đấu mở</h2></header><a class="open-match" routerLink="/matchmaking"><lucide-icon name="brain" class="w-5 h-5"></lucide-icon><span><strong>AI ghép đúng kèo</strong><small>Tìm đối thủ theo trình độ, thời gian và vị trí.</small></span><lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a></section>
     </aside>
   </div>
 

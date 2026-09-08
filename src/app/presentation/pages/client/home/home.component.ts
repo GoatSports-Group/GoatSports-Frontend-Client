@@ -28,7 +28,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   sportType: string = 'all';
   loading = true;
 
-  getSportIcon(type: SportType): string {
+  getSportIcon(type?: string): string {
     switch (type) {
       case SportType.FOOTBALL: return 'trophy';
       case SportType.BADMINTON: return 'target';

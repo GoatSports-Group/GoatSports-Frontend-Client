@@ -1,16 +1,18 @@
 <div class="chat-layout-wrapper">
   <aside class="rooms-sidebar">
     <header class="sidebar-header">
+      <nav class="sidebar-tabs" aria-label="Kết nối"><a class="active" routerLink="/chat">Tin nhắn</a><a routerLink="/friends">Bạn bè</a></nav>
       <div class="title-row">
         <div><p class="eyebrow">Kết nối</p><h1>Tin nhắn</h1></div>
-        <button type="button" class="btn-icon" aria-label="Tạo nhóm trò chuyện" (click)="openGroupModal()" title="Tạo nhóm trò chuyện">
-          <lucide-icon name="plus" class="w-5 h-5"></lucide-icon>
+        <button type="button" class="new-message-btn" aria-label="Tạo nhóm trò chuyện" (click)="openGroupModal()" title="Tạo nhóm trò chuyện">
+          <lucide-icon name="plus" class="w-4 h-4"></lucide-icon><span>Tin nhắn mới</span>
         </button>
       </div>
       <label class="search-box">
         <lucide-icon name="search" class="w-4 h-4"></lucide-icon>
         <input type="search" placeholder="Tìm cuộc trò chuyện..." [(ngModel)]="searchRoomQuery" />
       </label>
+      <div class="room-filters"><button type="button" class="active">Tất cả</button><button type="button">Chưa đọc</button><button type="button">Nhóm</button></div>
     </header>
 
     <div class="rooms-list-container">
@@ -53,7 +55,7 @@
             <span>{{ getRoomMeta(room) }}</span>
           }
         </div>
-        <a class="btn-icon" routerLink="/venues" title="Tìm sân để cùng chơi"><lucide-icon name="map-pin" class="w-5 h-5"></lucide-icon></a>
+        <div class="chat-header-actions"><a class="btn-icon" routerLink="/venues" title="Tìm sân để cùng chơi"><lucide-icon name="phone" class="w-4 h-4"></lucide-icon></a><button type="button" class="btn-icon" title="Gọi video"><lucide-icon name="video" class="w-4 h-4"></lucide-icon></button><button type="button" class="btn-icon" title="Tùy chọn"><lucide-icon name="ellipsis" class="w-4 h-4"></lucide-icon></button></div>
       </header>
 
       <section class="messages-container" #messagesScroll aria-live="polite">

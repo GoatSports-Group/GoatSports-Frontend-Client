@@ -41,6 +41,18 @@ export class VenueDetailComponent implements OnInit {
   slotsError = '';
   selectedImageIndex = 0;
 
+  get galleryImages(): string[] {
+    return Array.from({ length: 5 }, (_, index) => this.venueImages[index % this.venueImages.length]);
+  }
+
+  get bookingDates(): string[] {
+    const start = new Date(`${this.selectedDate}T00:00:00`);
+    const today = new Date(`${this.today}T00:00:00`);
+    const offset = Math.min(2, Math.max(0, Math.floor((start.getTime() - today.getTime()) / 86400000)));
+    const base = new Date(start.getTime() - offset * 86400000);
+    return Array.from({ length: 5 }, (_, index) => this.toLocalDate(new Date(base.getTime() + index * 86400000)));
+  }
+
   readonly amenityIcons: Record<string, string> = {
     'Bãi đỗ xe': 'circle-parking',
     'Wifi': 'wifi',
@@ -101,6 +113,12 @@ export class VenueDetailComponent implements OnInit {
     const value = (event.target as HTMLInputElement).value;
     if (!value) return;
     this.selectedDate = value < this.today ? this.today : value;
+    this.loadSlots();
+  }
+
+  selectBookingDate(value: string): void {
+    if (value < this.today || value > this.maxBookingDate || value === this.selectedDate) return;
+    this.selectedDate = value;
     this.loadSlots();
   }
 

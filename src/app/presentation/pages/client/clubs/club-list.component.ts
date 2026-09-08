@@ -1,9 +1,15 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { ClubRepositoryPort } from '@application/ports/club.repository.port';
-import { Club as ClubModel, CreateClubPayload, SportType } from '@application/dto/club/club.dto';
+import { Club as ClubModel, ClubActivity, CreateClubPayload, SportType } from '@application/dto/club/club.dto';
 import { AuthService } from '@presentation/services/auth.service';
 import { NotifyService } from '@shared/components/notify/notify.service';
+import { catchError, forkJoin, map, of, switchMap } from 'rxjs';
+
+interface ClubActivityView {
+  club: ClubModel;
+  activity: ClubActivity;
+}
 
 @Component({
   selector: 'app-club-list',
@@ -25,6 +31,9 @@ export class ClubListComponent {
   readonly selectedSport = signal<SportType | 'ALL'>('ALL');
   readonly keyword = signal('');
   readonly showCreateModal = signal(false);
+  readonly myClubs = signal<ClubModel[]>([]);
+  readonly pendingClubs = signal<ClubModel[]>([]);
+  readonly upcomingActivities = signal<ClubActivityView[]>([]);
   readonly sports: ReadonlyArray<{ label: string; value: SportType | 'ALL' }> = [
     { label: 'Tất cả', value: 'ALL' }, { label: 'Cầu lông', value: 'BADMINTON' },
     { label: 'Bóng đá', value: 'FOOTBALL' }, { label: 'Pickleball', value: 'PICKLEBALL' },
@@ -42,7 +51,11 @@ export class ClubListComponent {
     const selected = this.selectedSport();
     const sport: SportType | undefined = selected === 'ALL' ? undefined : selected;
     this.repository.searchClubs(sport, this.keyword()).subscribe({
-      next: clubs => { this.clubs.set(clubs); this.loading.set(false); },
+      next: clubs => {
+        this.clubs.set(clubs);
+        this.loading.set(false);
+        this.loadCommunityContext(clubs);
+      },
       error: () => { this.error.set('Không thể tải danh sách câu lạc bộ.'); this.loading.set(false); }
     });
   }
@@ -66,4 +79,36 @@ export class ClubListComponent {
     });
   }
   initials(name: string): string { return name.split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase(); }
+
+  private loadCommunityContext(clubs: ClubModel[]): void {
+    if (!this.auth.currentUser || !clubs.length) {
+      this.myClubs.set([]);
+      this.pendingClubs.set([]);
+      this.upcomingActivities.set([]);
+      return;
+    }
+
+    forkJoin(clubs.map(club => this.repository.getMyMembership(club.clubId).pipe(
+      map(membership => ({ club, membership })),
+      catchError(() => of({ club, membership: null }))
+    ))).pipe(
+      switchMap(items => {
+        const activeClubs = items.filter(item => item.membership?.status === 'ACTIVE').map(item => item.club);
+        const pendingClubs = items.filter(item => item.membership?.status === 'PENDING').map(item => item.club);
+        this.myClubs.set(activeClubs);
+        this.pendingClubs.set(pendingClubs);
+        if (!activeClubs.length) return of([] as ClubActivityView[]);
+        return forkJoin(activeClubs.map(club => this.repository.getClubActivities(club.clubId).pipe(
+          map(activities => activities.map(activity => ({ club, activity }))),
+          catchError(() => of([] as ClubActivityView[]))
+        ))).pipe(map(groups => groups.flat()));
+      })
+    ).subscribe(items => {
+      const now = Date.now();
+      this.upcomingActivities.set(items
+        .filter(item => new Date(item.activity.endAt).getTime() >= now)
+        .sort((left, right) => new Date(left.activity.startAt).getTime() - new Date(right.activity.startAt).getTime())
+        .slice(0, 4));
+    });
+  }
 }
