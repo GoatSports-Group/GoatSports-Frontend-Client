@@ -26,7 +26,7 @@ export class AiAssistantModalComponent {
   messages: ChatMessage[] = [
     {
       sender: 'AI',
-      text: 'Xin chào! Tôi là trợ lý AI GoatSports 🤖. Tôi có thể hỗ trợ bạn tìm sân bãi, gợi ý đối thủ ghép kèo hoặc hướng dẫn quy trình check-in.',
+      text: 'Xin chào! Tôi là trợ lý AI GOAT Sports. Tôi có thể hỗ trợ bạn tìm sân bãi, gợi ý đối thủ ghép kèo hoặc hướng dẫn quy trình check-in.',
       actions: ['Sân cầu lông gần tôi', 'Tìm đối thủ AI', 'Quy định hủy sân']
     }
   ];

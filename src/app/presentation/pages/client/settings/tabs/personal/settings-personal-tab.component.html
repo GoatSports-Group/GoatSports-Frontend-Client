@@ -83,9 +83,9 @@
 <div class="modal-backdrop" (click)="closeModal()">
   <form
     class="modal-card"
-    role="dialog"
-    aria-modal="true"
+    appAccessibleDialog
     aria-labelledby="personal-modal-title"
+    (dialogClosed)="closeModal()"
     (click)="$event.stopPropagation()"
     (ngSubmit)="onSave()"
   >

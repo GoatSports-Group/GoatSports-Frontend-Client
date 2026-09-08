@@ -3,7 +3,7 @@
     <header class="sidebar-header">
       <div class="title-row">
         <div><p class="eyebrow">Kết nối</p><h1>Tin nhắn</h1></div>
-        <button class="btn-icon" (click)="openGroupModal()" title="Tạo nhóm trò chuyện">
+        <button type="button" class="btn-icon" aria-label="Tạo nhóm trò chuyện" (click)="openGroupModal()" title="Tạo nhóm trò chuyện">
           <lucide-icon name="plus" class="w-5 h-5"></lucide-icon>
         </button>
       </div>
@@ -80,8 +80,8 @@
       </section>
 
       <footer class="chat-input-bar">
-        <textarea rows="1" maxlength="2000" placeholder="Nhập tin nhắn..." [(ngModel)]="messageInput" (input)="onTyping()" (blur)="onTypingStop()" (keydown)="onInputKeyDown($event)"></textarea>
-        <button class="btn-send" [disabled]="!messageInput.trim() || sendingMessage()" (click)="sendMessage()" title="Gửi tin nhắn">
+        <textarea rows="1" maxlength="2000" aria-label="Nội dung tin nhắn" placeholder="Nhập tin nhắn..." [(ngModel)]="messageInput" (input)="onTyping()" (blur)="onTypingStop()" (keydown)="onInputKeyDown($event)"></textarea>
+        <button type="button" class="btn-send" aria-label="Gửi tin nhắn" [disabled]="!messageInput.trim() || sendingMessage()" (click)="sendMessage()" title="Gửi tin nhắn">
           <lucide-icon name="send" class="w-5 h-5"></lucide-icon>
         </button>
       </footer>
@@ -92,8 +92,8 @@
 
   @if (showNewGroupModal()) {
     <div class="modal-backdrop" (click)="closeGroupModal()">
-      <section class="group-modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
-        <header><div><p class="eyebrow">Nhóm mới</p><h2>Tạo nhóm trò chuyện</h2></div><button class="btn-icon" (click)="closeGroupModal()"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button></header>
+      <section class="group-modal" appAccessibleDialog aria-labelledby="group-modal-title" (dialogClosed)="closeGroupModal()" (click)="$event.stopPropagation()">
+        <header><div><p class="eyebrow">Nhóm mới</p><h2 id="group-modal-title">Tạo nhóm trò chuyện</h2></div><button type="button" class="btn-icon" aria-label="Đóng" (click)="closeGroupModal()"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button></header>
         <label class="field-label">Tên nhóm<input maxlength="80" placeholder="Ví dụ: Hội cầu lông cuối tuần" [(ngModel)]="newGroupName" /></label>
         <div class="member-heading"><strong>Chọn bạn bè</strong><span>{{ selectedMemberIds().size }} người đã chọn</span></div>
         <div class="member-list">

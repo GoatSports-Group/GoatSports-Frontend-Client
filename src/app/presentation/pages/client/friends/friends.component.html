@@ -176,9 +176,9 @@
 
   @if (confirmation(); as item) {
     <div class="modal-backdrop" (click)="confirmation.set(null)">
-      <section class="confirm-card" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+      <section class="confirm-card" appAccessibleDialog aria-labelledby="friend-confirm-title" (dialogClosed)="confirmation.set(null)" (click)="$event.stopPropagation()">
         <div class="confirm-icon"><lucide-icon [name]="item.action === 'BLOCK' ? 'shield-alert' : 'user-x'" class="w-6 h-6"></lucide-icon></div>
-        <h2>{{ item.action === 'BLOCK' ? 'Chặn người dùng?' : 'Hủy kết bạn?' }}</h2>
+        <h2 id="friend-confirm-title">{{ item.action === 'BLOCK' ? 'Chặn người dùng?' : 'Hủy kết bạn?' }}</h2>
         <p>
           @if (item.action === 'BLOCK') {
             {{ item.targetName }} sẽ không thể kết bạn hoặc nhắn tin với bạn.
@@ -187,8 +187,8 @@
           }
         </p>
         <div class="confirm-actions">
-          <button class="btn-secondary" (click)="confirmation.set(null)">Quay lại</button>
-          <button class="btn-danger" [disabled]="isPending(item.friendship.friendshipId)" (click)="confirmAction()">
+          <button type="button" class="btn-secondary" (click)="confirmation.set(null)">Quay lại</button>
+          <button type="button" class="btn-danger" [disabled]="isPending(item.friendship.friendshipId)" (click)="confirmAction()">
             {{ item.action === 'BLOCK' ? 'Chặn người dùng' : 'Hủy kết bạn' }}
           </button>
         </div>

@@ -66,13 +66,13 @@
     </section>
 
     @if (showActivityModal()) {
-      <div class="modal-overlay" (click)="showActivityModal.set(false)"><section class="modal-card" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
-        <h2>Tạo hoạt động</h2><div class="form-group"><label for="activity-title">Tiêu đề *</label><input id="activity-title" [(ngModel)]="activityForm.title" /></div>
+      <div class="modal-overlay" (click)="showActivityModal.set(false)"><section class="modal-card" appAccessibleDialog aria-labelledby="activity-modal-title" (dialogClosed)="showActivityModal.set(false)" (click)="$event.stopPropagation()">
+        <h2 id="activity-modal-title">Tạo hoạt động</h2><div class="form-group"><label for="activity-title">Tiêu đề *</label><input id="activity-title" [(ngModel)]="activityForm.title" /></div>
         <div class="form-group"><label for="activity-description">Mô tả</label><textarea id="activity-description" [(ngModel)]="activityForm.description"></textarea></div>
         <div class="form-row"><div class="form-group"><label for="activity-start">Bắt đầu *</label><input id="activity-start" type="datetime-local" [(ngModel)]="activityForm.startAt" /></div>
           <div class="form-group"><label for="activity-end">Kết thúc *</label><input id="activity-end" type="datetime-local" [(ngModel)]="activityForm.endAt" /></div></div>
-        <div class="modal-footer"><button class="btn-secondary" (click)="showActivityModal.set(false)">Hủy</button>
-          <button class="btn-join-main" [disabled]="mutating() || !activityForm.title || !activityForm.startAt || !activityForm.endAt" (click)="createActivity()">Tạo hoạt động</button></div>
+        <div class="modal-footer"><button type="button" class="btn-secondary" (click)="showActivityModal.set(false)">Hủy</button>
+          <button type="button" class="btn-join-main" [disabled]="mutating() || !activityForm.title || !activityForm.startAt || !activityForm.endAt" (click)="createActivity()">Tạo hoạt động</button></div>
       </section></div>
     }
   }

@@ -9,7 +9,7 @@
 .feed-hero { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 24px; padding: 8px 4px; }
 .feed-hero h1 { margin: 2px 0 6px; font-size: clamp(1.8rem, 4vw, 2.55rem); letter-spacing: -.04em; }
 .feed-hero p { margin: 0; color: #64726c; max-width: 680px; }
-.eyebrow { color: #078f5b !important; font-size: .78rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+.eyebrow { color: #047857 !important; font-size: .78rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
 .hero-mark { width: 58px; height: 58px; border-radius: 18px; display: grid; place-items: center; color: white; background: linear-gradient(135deg, #0ca86a, #087a50); box-shadow: 0 14px 32px rgba(8, 143, 91, .24); }
 .feed-layout { display: grid; grid-template-columns: minmax(0, 760px) 310px; gap: 24px; align-items: start; justify-content: center; }
 .feed-main { min-width: 0; display: grid; gap: 18px; }
@@ -20,7 +20,7 @@
 .composer-heading { margin-bottom: 14px; }
 .composer-heading img, .avatar, .comment img, .comment-composer img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; background: #edf3f0; }
 .composer-heading div { display: grid; }
-.composer-heading span, .post-author span { color: #718078; font-size: .82rem; }
+.composer-heading span, .post-author span { color: #64748b; font-size: .82rem; }
 textarea, .comment-composer input { width: 100%; border: 1px solid #dbe5e0; background: #f8faf9; color: inherit; outline: none; transition: border-color .2s, box-shadow .2s; }
 textarea { display: block; resize: vertical; border-radius: 13px; padding: 13px 14px; font: inherit; line-height: 1.55; }
 textarea:focus, .comment-composer input:focus { border-color: #0aa66a; box-shadow: 0 0 0 3px rgba(10, 166, 106, .11); }

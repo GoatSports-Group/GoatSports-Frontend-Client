@@ -23,6 +23,7 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { A11yModule } from '@angular/cdk/a11y';
 
 import { HeaderComponent } from '@shared/components/header/header.component';
 import { FooterComponent } from '@shared/components/footer/footer.component';
@@ -36,6 +37,7 @@ import { FileUploadComponent } from '@shared/components/file-upload/file-upload.
 import { PolicyLayoutComponent } from '@shared/layouts/policy/policy-layout.component';
 import { ScreenLoaderComponent } from '@shared/components/screen-loader/screen-loader.component';
 import { QrCodeComponent } from '@shared/components/qr-code/qr-code.component';
+import { AccessibleDialogDirective } from '@shared/directives/accessible-dialog.directive';
 
 const MATERIAL_MODULES = [
   MatToolbarModule,
@@ -56,7 +58,8 @@ const MATERIAL_MODULES = [
   MatRadioModule,
   MatProgressBarModule,
   MatDividerModule,
-  MatProgressSpinnerModule
+  MatProgressSpinnerModule,
+  A11yModule
 ];
 
 const COMPONENT_DECLARATIONS = [
@@ -69,7 +72,8 @@ const COMPONENT_DECLARATIONS = [
   FileUploadComponent,
   PolicyLayoutComponent,
   ScreenLoaderComponent,
-  QrCodeComponent
+  QrCodeComponent,
+  AccessibleDialogDirective
 ];
 
 @NgModule({

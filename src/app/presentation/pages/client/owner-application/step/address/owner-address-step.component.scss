@@ -27,6 +27,11 @@
   font-size: 14px;
   color: #334155;
   transition: background-color 0.2s;
+  width: 100%;
+  border: 0;
+  background: #ffffff;
+  font: inherit;
+  text-align: left;
   
   &:not(.info-item):hover {
     background-color: #f1f5f9;

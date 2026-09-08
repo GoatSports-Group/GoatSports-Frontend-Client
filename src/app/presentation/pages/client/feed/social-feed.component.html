@@ -67,7 +67,7 @@
           <div class="composer-actions">
             <div class="composer-tools">
               <label class="media-picker">
-                <input type="file" multiple accept="image/*,video/*,.pdf,.doc,.docx" (change)="onFilesSelected($event)" />
+                <input type="file" multiple accept="image/*,video/*,.pdf,.doc,.docx" aria-label="Chọn ảnh, video hoặc tệp đính kèm" (change)="onFilesSelected($event)" />
                 <lucide-icon name="image" class="w-5 h-5"></lucide-icon>
                 <span>Ảnh / video</span>
               </label>
@@ -242,10 +242,10 @@
 
 @if (shareTarget(); as post) {
   <div class="modal-backdrop" role="presentation" (click)="closeShare()">
-    <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="share-title" (click)="$event.stopPropagation()">
+    <section class="modal-card" appAccessibleDialog aria-labelledby="share-title" (dialogClosed)="closeShare()" (click)="$event.stopPropagation()">
       <header><h2 id="share-title">Chia sẻ bài viết</h2><button type="button" class="icon-button" (click)="closeShare()" aria-label="Đóng"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button></header>
       <p>Bài viết của <strong>{{ authorName(post.authorId) }}</strong> sẽ được chia sẻ tới cộng đồng.</p>
-      <textarea rows="4" maxlength="1000" placeholder="Viết thêm cảm nghĩ (không bắt buộc)..." [ngModel]="shareCaption()" (ngModelChange)="shareCaption.set($event)"></textarea>
+      <textarea cdkFocusInitial rows="4" maxlength="1000" aria-label="Cảm nghĩ khi chia sẻ" placeholder="Viết thêm cảm nghĩ (không bắt buộc)..." [ngModel]="shareCaption()" (ngModelChange)="shareCaption.set($event)"></textarea>
       <footer><button type="button" class="button ghost" [disabled]="sharing()" (click)="closeShare()">Hủy</button><button type="button" class="button primary" [disabled]="sharing()" (click)="submitShare()">{{ sharing() ? 'Đang chia sẻ...' : 'Chia sẻ' }}</button></footer>
     </section>
   </div>
@@ -253,10 +253,10 @@
 
 @if (reportTarget(); as target) {
   <div class="modal-backdrop" role="presentation" (click)="closeReport()">
-    <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="report-title" (click)="$event.stopPropagation()">
+    <section class="modal-card" appAccessibleDialog aria-labelledby="report-title" (dialogClosed)="closeReport()" (click)="$event.stopPropagation()">
       <header><h2 id="report-title">Báo cáo {{ target.type === 'POST' ? 'bài viết' : 'bình luận' }}</h2><button type="button" class="icon-button" (click)="closeReport()" aria-label="Đóng"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button></header>
       <p>Hãy mô tả rõ lý do để đội ngũ kiểm duyệt có đủ thông tin xử lý.</p>
-      <textarea rows="5" minlength="10" maxlength="2000" placeholder="Nội dung vi phạm điều gì?" [ngModel]="reportReason()" (ngModelChange)="reportReason.set($event)"></textarea>
+      <textarea cdkFocusInitial rows="5" minlength="10" maxlength="2000" aria-label="Lý do báo cáo" placeholder="Nội dung vi phạm điều gì?" [ngModel]="reportReason()" (ngModelChange)="reportReason.set($event)"></textarea>
       <small>{{ reportReason().trim().length }}/2000 ký tự · tối thiểu 10 ký tự</small>
       <footer><button type="button" class="button ghost" [disabled]="reporting()" (click)="closeReport()">Hủy</button><button type="button" class="button danger-button" [disabled]="reporting() || reportReason().trim().length < 10" (click)="submitReport()">{{ reporting() ? 'Đang gửi...' : 'Gửi báo cáo' }}</button></footer>
     </section>

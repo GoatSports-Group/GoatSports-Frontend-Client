@@ -1,20 +1,20 @@
 <!-- Floating Trigger Button -->
-<button class="floating-ai-btn" (click)="toggleChat()">
-  <i class="pi pi-bolt"></i>
-  <span class="ai-label">AI Assistant</span>
+<button type="button" class="floating-ai-btn" aria-label="Mở trợ lý GOAT Sports" [attr.aria-expanded]="isOpen" [attr.aria-controls]="isOpen ? 'ai-assistant-dialog' : null" (click)="toggleChat()">
+  <i class="pi pi-bolt" aria-hidden="true"></i>
+  <span class="ai-label">Trợ lý AI</span>
 </button>
 
 <!-- Chat Window -->
-<div class="ai-chat-window" *ngIf="isOpen">
+<div id="ai-assistant-dialog" class="ai-chat-window" *ngIf="isOpen" appAccessibleDialog aria-labelledby="ai-assistant-title" (dialogClosed)="toggleChat()">
   <div class="chat-header">
     <div class="bot-profile">
       <div class="bot-avatar"><i class="pi pi-bolt"></i></div>
       <div>
-        <h4>GoatSports AI</h4>
+        <h4 id="ai-assistant-title">GOAT Sports AI</h4>
         <span class="status-dot">Trực tuyến</span>
       </div>
     </div>
-    <button class="btn-close" (click)="toggleChat()"><i class="pi pi-times"></i></button>
+    <button type="button" class="btn-close" aria-label="Đóng trợ lý" (click)="toggleChat()"><i class="pi pi-times" aria-hidden="true"></i></button>
   </div>
 
   <div class="chat-messages">
@@ -23,20 +23,20 @@
 
       <!-- Suggested Venues -->
       <div class="venues-suggestions" *ngIf="m.venues && m.venues.length > 0">
-        <div class="sugg-card" *ngFor="let v of m.venues" (click)="goToVenue(v.venueId)">
+        <button type="button" class="sugg-card" *ngFor="let v of m.venues" (click)="goToVenue(v.venueId)">
           <h5>{{ v.venueName }}</h5>
           <span class="meta">
             {{ v.distanceKm }} km • {{ v.rating }}/5
             @if (v.minPrice != null) { • từ {{ v.minPrice | number:'1.0-0' }}đ/giờ }
           </span>
           <p class="reason">{{ v.matchReason }}</p>
-        </div>
+        </button>
       </div>
 
 
       <!-- Suggested Actions -->
       <div class="actions-chips" *ngIf="m.actions && m.actions.length > 0">
-        <button *ngFor="let act of m.actions" (click)="sendMessage(act)">
+        <button type="button" *ngFor="let act of m.actions" (click)="sendMessage(act)">
           {{ act }}
         </button>
       </div>
@@ -48,7 +48,7 @@
   </div>
 
   <div class="chat-footer">
-    <input type="text" [(ngModel)]="inputText" (keyup.enter)="sendMessage()" placeholder="Hỏi tìm sân, đối thủ ghép kèo..." />
-    <button class="btn-send" (click)="sendMessage()"><i class="pi pi-send"></i></button>
+    <input type="text" aria-label="Tin nhắn cho trợ lý GOAT Sports" [(ngModel)]="inputText" (keyup.enter)="sendMessage()" placeholder="Hỏi tìm sân, đối thủ ghép kèo..." />
+    <button type="button" class="btn-send" aria-label="Gửi tin nhắn" (click)="sendMessage()"><i class="pi pi-send" aria-hidden="true"></i></button>
   </div>
 </div>

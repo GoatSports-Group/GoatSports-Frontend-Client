@@ -2,7 +2,7 @@
   <div class="header-container">
 
     <!-- Mobile Menu Button -->
-    <button mat-icon-button class="mobile-menu-btn" (click)="menuToggle.emit()" aria-label="Toggle menu">
+    <button type="button" mat-icon-button class="mobile-menu-btn" (click)="menuToggle.emit()" aria-label="Mở menu điều hướng">
       <lucide-icon name="menu" class="w-5 h-5"></lucide-icon>
     </button>
 
@@ -30,7 +30,7 @@
       <form (submit)="onSearch()" class="search-form">
         <mat-form-field class="search-field">
           <lucide-icon matPrefix name="search" class="search-icon w-4 h-4 mr-2"></lucide-icon>
-          <input matInput type="text" placeholder="Tìm tên sân hoặc địa chỉ..." [(ngModel)]="searchQuery"
+          <input matInput type="text" aria-label="Tìm tên sân hoặc địa chỉ" placeholder="Tìm tên sân hoặc địa chỉ..." [(ngModel)]="searchQuery"
             name="searchQuery">
           @if (searchQuery) {
           <button mat-icon-button matSuffix (click)="searchQuery = ''" type="button" aria-label="Clear">
@@ -46,7 +46,7 @@
       <!-- Notification Dropdown Container -->
       @if (authService.isAuthenticated$ | async) {
       <div class="notif-dropdown-container relative">
-        <button (click)="toggleNotifDropdown($event)" class="notif-trigger-btn" aria-label="Thông báo">
+        <button type="button" (click)="toggleNotifDropdown($event)" class="notif-trigger-btn" aria-label="Thông báo" [attr.aria-expanded]="isNotifOpen" aria-controls="notification-panel">
           <lucide-icon name="bell" class="w-5 h-5"></lucide-icon>
           @if (((notificationService.unreadCount$ | async) ?? 0) > 0) {
           <span class="notif-count-badge">
@@ -57,7 +57,7 @@
 
         <!-- Custom Dropdown Panel -->
         @if (isNotifOpen) {
-        <div class="custom-notif-panel" (click)="$event.stopPropagation()">
+        <div id="notification-panel" class="custom-notif-panel" aria-label="Thông báo gần đây" (click)="$event.stopPropagation()">
           <div class="panel-header">
             <span class="panel-title">Thông báo</span>
             @if (((notificationService.unreadCount$ | async) ?? 0) > 0) {
@@ -75,7 +75,7 @@
             </div>
             } @else {
             @for (notif of notificationService.recentNotifications$ | async; track notif.notificationId) {
-            <div (click)="onNotificationClick(notif)" class="notif-card-item">
+            <div role="button" tabindex="0" (click)="onNotificationClick(notif)" (keydown.enter)="onNotificationClick(notif)" (keydown.space)="$event.preventDefault(); onNotificationClick(notif)" class="notif-card-item">
               <span class="status-dot" [class.status-dot--unread]="notif.status === 'UNREAD'"></span>
 
               <div class="notif-info-block">
@@ -107,7 +107,7 @@
 
       <!-- User Menu -->
       @if (authService.isAuthenticated$ | async) {
-      <button mat-icon-button [matMenuTriggerFor]="userMenu" class="user-avatar-btn" aria-label="User Profile">
+      <button type="button" mat-icon-button [matMenuTriggerFor]="userMenu" class="user-avatar-btn" aria-label="Mở menu tài khoản">
         <img [src]="fallbackAvatar" [alt]="authService.currentUser?.fullName || 'User Avatar'" class="user-avatar"
           (error)="onAvatarImgError($event)">
       </button>
@@ -120,7 +120,7 @@
           <p class="menu-email">{{ authService.currentUser?.email }}</p>
         </div>
         <mat-divider></mat-divider>
-        <button mat-menu-item routerLink="/booking/history">
+        <button type="button" mat-menu-item routerLink="/booking/history">
           <lucide-icon name="history" class="w-4 h-4 mr-2"></lucide-icon>
           <span>Vé đặt sân của tôi</span>
         </button>
@@ -136,21 +136,21 @@
           <span>Quản trị hệ thống</span>
         </a>
         }
-        <button mat-menu-item routerLink="/settings">
+        <button type="button" mat-menu-item routerLink="/settings">
           <lucide-icon name="settings" class="w-4 h-4 mr-2"></lucide-icon>
           <span>Cài đặt</span>
         </button>
-        <button mat-menu-item (click)="logout()" class="logout-btn-menu">
+        <button type="button" mat-menu-item (click)="logout()" class="logout-btn-menu">
           <lucide-icon name="log-out" class="w-4 h-4 mr-2"></lucide-icon>
           <span>Đăng xuất</span>
         </button>
       </mat-menu>
       } @else {
-      <button mat-stroked-button (click)="redirectToRegisterOwner()" class="partner-btn text-emerald-600 hidden md:inline-flex">
+      <button type="button" mat-stroked-button (click)="redirectToRegisterOwner()" class="partner-btn text-emerald-600 hidden md:inline-flex">
         <lucide-icon name="store" class="w-4 h-4 mr-1.5"></lucide-icon>
         Dành cho chủ sân
       </button>
-      <button mat-flat-button color="primary" (click)="redirectToLogin()" class="login-btn">
+      <button type="button" mat-flat-button color="primary" (click)="redirectToLogin()" class="login-btn">
         Đăng Nhập
       </button>
       }

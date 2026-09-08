@@ -67,7 +67,7 @@
 
   @if (showCreateModal()) {
     <div class="modal-overlay" role="presentation" (click)="closeCreateModal()">
-      <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="create-club-title" (click)="$event.stopPropagation()">
+      <section class="modal-card" appAccessibleDialog aria-labelledby="create-club-title" (dialogClosed)="closeCreateModal()" (click)="$event.stopPropagation()">
         <div class="modal-header"><h2 id="create-club-title">Tạo câu lạc bộ</h2>
           <button type="button" class="btn-close" aria-label="Đóng" (click)="closeCreateModal()"><lucide-icon name="x"></lucide-icon></button></div>
         <div class="modal-body">

@@ -71,6 +71,10 @@
       font-weight: 600;
       font-size: 0.95rem;
       text-decoration: none;
+      width: 100%;
+      border: 0;
+      background: transparent;
+      text-align: left;
       cursor: pointer;
       border-radius: var(--border-radius-sm);
       transition: var(--transition-spring);

@@ -6,10 +6,10 @@ import { CourtStandardsComponent } from '@presentation/pages/policy/court-standa
 import { ContactSupportComponent } from '@presentation/pages/policy/contact-support/contact-support.component';
 
 const routes: Routes = [
-  { path: 'booking-policy', component: BookingPolicyComponent },
-  { path: 'cancellation-policy', component: CancellationPolicyComponent },
-  { path: 'court-standards', component: CourtStandardsComponent },
-  { path: 'contact-support', component: ContactSupportComponent }
+  { path: 'booking-policy', component: BookingPolicyComponent, title: 'Chính sách đặt sân | GOAT Sports' },
+  { path: 'cancellation-policy', component: CancellationPolicyComponent, title: 'Chính sách hủy sân | GOAT Sports' },
+  { path: 'court-standards', component: CourtStandardsComponent, title: 'Tiêu chuẩn sân đấu | GOAT Sports' },
+  { path: 'contact-support', component: ContactSupportComponent, title: 'Liên hệ hỗ trợ | GOAT Sports' }
 ];
 
 @NgModule({

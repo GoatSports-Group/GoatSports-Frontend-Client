@@ -136,6 +136,10 @@
     border-radius: 8px;
     padding: 8px;
     cursor: pointer;
+    width: 100%;
+    color: inherit;
+    font: inherit;
+    text-align: left;
 
     h5 { color: #fff; margin: 0 0 2px; font-size: 12px; }
     .meta { font-size: 10px; color: #10b981; }

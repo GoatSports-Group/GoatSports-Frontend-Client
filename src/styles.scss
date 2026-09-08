@@ -154,11 +154,11 @@ lucide-icon, .lucide-icon {
 
 /* Global Design System & Variables */
 :root {
-  --primary: #059669;          /* Sporty grass green */
-  --primary-hover: #047857;    /* Deeper green for active states */
+  --primary: #047857;          /* Accessible emerald-700 */
+  --primary-hover: #065f46;    /* Deeper green for active states */
   --primary-light: #f0fdf4;    /* Mint background */
-  --accent: #0ea5e9;           /* Cyber energetic blue */
-  --accent-hover: #0284c7;     /* Deeper blue */
+  --accent: #0369a1;           /* Accessible sky-700 */
+  --accent-hover: #075985;     /* Deeper blue */
   --accent-light: #f0f9ff;     /* Sky blue tint */
   --success: #10b981;          /* Modern success mint-green */
   --warning: #f59e0b;          /* Amber warning */
@@ -200,6 +200,45 @@ body.dark {
   --shadow-md: 0 12px 30px -10px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
   --shadow-glow-primary: 0 0 25px 0 rgba(5, 150, 105, 0.35);
+}
+
+/* Accessibility baseline: visible keyboard focus, skip navigation and motion preferences. */
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 10000;
+  padding: 10px 14px;
+  border-radius: 8px;
+  color: #ffffff;
+  background: #065f46;
+  font-weight: 800;
+  transform: translateY(-150%);
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid #0284c7 !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 2px #ffffff !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (forced-colors: active) {
+  a, button, input, select, textarea, [role='button'] {
+    forced-color-adjust: auto;
+  }
 }
 
 /* Reset and base styles */

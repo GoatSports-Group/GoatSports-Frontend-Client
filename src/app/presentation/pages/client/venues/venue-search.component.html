@@ -88,11 +88,12 @@
           Tất cả môn
         </button>
 
-        @for (sport of sportTypes; track sport.value) {
-          <button type="button" class="sport-chip" [class.active]="filter.sportType === sport.value" (click)="selectSport(sport.value)">
-            {{ sport.label }}
-          </button>
-        }
+        <button type="button" class="sport-chip" [class.active]="filter.sportType === 'FOOTBALL'" (click)="selectSport('FOOTBALL')">Bóng đá</button>
+        <button type="button" class="sport-chip" [class.active]="filter.sportType === 'BADMINTON'" (click)="selectSport('BADMINTON')">Cầu lông</button>
+        <button type="button" class="sport-chip" [class.active]="filter.sportType === 'TENNIS'" (click)="selectSport('TENNIS')">Tennis</button>
+        <button type="button" class="sport-chip" [class.active]="filter.sportType === 'PICKLEBALL'" (click)="selectSport('PICKLEBALL')">Pickleball</button>
+        <button type="button" class="sport-chip" [class.active]="filter.sportType === 'BASKETBALL'" (click)="selectSport('BASKETBALL')">Bóng rổ</button>
+        <button type="button" class="sport-chip" [class.active]="filter.sportType === 'VOLLEYBALL'" (click)="selectSport('VOLLEYBALL')">Bóng chuyền</button>
       </div>
     </div>
   </section>

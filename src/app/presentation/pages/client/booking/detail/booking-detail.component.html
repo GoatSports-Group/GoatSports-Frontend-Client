@@ -225,7 +225,7 @@
 
   @if (showCancelModal() && booking(); as currentBooking) {
     <div class="modal-backdrop" (click)="closeCancelModal()">
-      <section class="modal-card neo-card" role="dialog" aria-modal="true" aria-labelledby="cancel-title" (click)="$event.stopPropagation()">
+      <section class="modal-card neo-card" appAccessibleDialog aria-labelledby="cancel-title" (dialogClosed)="closeCancelModal()" (click)="$event.stopPropagation()">
         <div class="modal-heading">
           <div><p class="eyebrow">Xác nhận thao tác</p><h2 id="cancel-title">Yêu cầu hủy sân</h2></div>
           <button type="button" class="icon-button" aria-label="Đóng" [disabled]="cancelling()" (click)="closeCancelModal()">
@@ -271,7 +271,7 @@
 
   @if (showReviewModal()) {
     <div class="modal-backdrop" (click)="closeReviewModal()">
-      <section class="modal-card neo-card" role="dialog" aria-modal="true" aria-labelledby="review-title" (click)="$event.stopPropagation()">
+      <section class="modal-card neo-card" appAccessibleDialog aria-labelledby="review-title" (dialogClosed)="closeReviewModal()" (click)="$event.stopPropagation()">
         <div class="modal-heading">
           <div><p class="eyebrow">Booking đã hoàn thành</p><h2 id="review-title">Đánh giá sân</h2></div>
           <button type="button" class="icon-button" aria-label="Đóng" [disabled]="reviewing()" (click)="closeReviewModal()">

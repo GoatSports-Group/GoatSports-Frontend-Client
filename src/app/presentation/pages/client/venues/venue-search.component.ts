@@ -2,7 +2,7 @@ import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { VENUE_SEARCH_REPOSITORY_TOKEN } from '@application/ports/persistence/venue-search.repository';
-import { Venue, VenueSearchFilter, SPORT_TYPE_OPTIONS } from '@application/dto/venue/venue.dto';
+import { Venue, VenueSearchFilter } from '@application/dto/venue/venue.dto';
 
 @Component({
   selector: 'app-venue-search',
@@ -16,7 +16,6 @@ export class VenueSearchComponent implements OnInit {
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
 
-  readonly sportTypes = SPORT_TYPE_OPTIONS;
   readonly pageSize = 12;
 
   venues: Venue[] = [];
@@ -25,6 +24,7 @@ export class VenueSearchComponent implements OnInit {
   errorMessage = '';
   totalVenues = 0;
   totalPages = 0;
+
   currentPage = 0;
 
   filter: VenueSearchFilter = this.emptyFilter();

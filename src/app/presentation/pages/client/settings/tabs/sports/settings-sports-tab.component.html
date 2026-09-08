@@ -131,9 +131,9 @@
   <div class="modal-backdrop" (click)="closeEditor()">
     <form
       class="profile-editor"
-      role="dialog"
-      aria-modal="true"
+      appAccessibleDialog
       aria-labelledby="sport-editor-title"
+      (dialogClosed)="closeEditor()"
       (click)="$event.stopPropagation()"
       (ngSubmit)="saveProfile()"
     >

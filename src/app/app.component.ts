@@ -15,4 +15,13 @@ export class AppComponent implements OnInit {
   ngOnInit() {
     this.sessionReady$ = this.authService.sessionReady$;
   }
+
+  skipToMainContent(event: Event): void {
+    event.preventDefault();
+    window.setTimeout(() => {
+      const mainContent = document.getElementById('main-content');
+      mainContent?.focus();
+      mainContent?.scrollIntoView({ block: 'start' });
+    });
+  }
 }

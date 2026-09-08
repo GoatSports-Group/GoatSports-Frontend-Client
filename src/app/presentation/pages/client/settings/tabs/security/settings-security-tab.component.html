@@ -61,9 +61,9 @@
 <div class="modal-backdrop" (click)="closePasswordModal()">
   <form
     class="modal-card"
-    role="dialog"
-    aria-modal="true"
+    appAccessibleDialog
     aria-labelledby="password-modal-title"
+    (dialogClosed)="closePasswordModal()"
     (click)="$event.stopPropagation()"
     (ngSubmit)="onSavePassword()"
   >

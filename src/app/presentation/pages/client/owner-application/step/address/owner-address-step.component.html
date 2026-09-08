@@ -26,9 +26,9 @@
 
         <!-- Results -->
         <ng-container *ngIf="!isLoading && suggestions.length > 0">
-          <div class="suggestion-item" *ngFor="let suggestion of suggestions" (click)="selectSuggestion(suggestion)">
+          <button type="button" class="suggestion-item" *ngFor="let suggestion of suggestions" (mousedown)="$event.preventDefault()" (click)="selectSuggestion(suggestion)">
             {{ suggestion.display_name }}
-          </div>
+          </button>
         </ng-container>
 
       </div>

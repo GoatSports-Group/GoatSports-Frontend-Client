@@ -4,7 +4,7 @@
     <button type="button" class="btn-primary" (click)="openCreateModal()"><lucide-icon name="plus" class="w-4 h-4"></lucide-icon>Tạo giải đấu</button>
   </section>
   <section class="filter-bar" aria-label="Bộ lọc giải đấu"><div class="search-box"><lucide-icon name="search" class="search-icon w-4 h-4"></lucide-icon>
-    <input type="search" [ngModel]="keyword()" (ngModelChange)="updateKeyword($event)" (keyup.enter)="load()" placeholder="Tìm giải đấu" /></div>
+    <input type="search" aria-label="Tìm giải đấu" [ngModel]="keyword()" (ngModelChange)="updateKeyword($event)" (keyup.enter)="load()" placeholder="Tìm giải đấu" /></div>
     <div class="sport-pills">@for (sport of sports; track sport.value) { <button type="button" class="sport-pill"
       [class.active]="selectedSport() === sport.value" (click)="selectSport(sport.value)">{{ sport.label }}</button> }</div>
   </section>
@@ -12,7 +12,7 @@
     <div class="tournament-grid">@for (item of [1,2,3,4,5,6]; track item) { <div class="tournament-card card-body"><app-loading-skeleton height="180px"></app-loading-skeleton></div> }</div>
   } @else if (error()) {
     <section class="empty-state" role="alert"><lucide-icon name="alert-triangle" class="empty-icon"></lucide-icon><h2>Chưa tải được giải đấu</h2>
-      <p>{{ error() }}</p><button class="btn-primary" (click)="load()">Thử lại</button></section>
+      <p>{{ error() }}</p><button type="button" class="btn-primary" (click)="load()">Thử lại</button></section>
   } @else if (tournaments().length) {
     <section class="tournament-grid">@for (tournament of tournaments(); track tournament.tournamentId) {
       <article class="tournament-card" tabindex="0" role="button" (click)="goToDetail(tournament.tournamentId)" (keydown.enter)="goToDetail(tournament.tournamentId)">
@@ -27,8 +27,8 @@
   } @else { <section class="empty-state"><lucide-icon name="trophy" class="empty-icon"></lucide-icon><h2>Chưa có giải đấu phù hợp</h2></section> }
 
   @if (showCreateModal()) {
-    <div class="modal-overlay" (click)="closeCreateModal()"><section class="modal-card" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
-      <div class="modal-header"><h2>Tạo giải đấu</h2><button class="btn-close" aria-label="Đóng" (click)="closeCreateModal()"><lucide-icon name="x"></lucide-icon></button></div>
+    <div class="modal-overlay" (click)="closeCreateModal()"><section class="modal-card" appAccessibleDialog aria-labelledby="tournament-modal-title" (dialogClosed)="closeCreateModal()" (click)="$event.stopPropagation()">
+      <div class="modal-header"><h2 id="tournament-modal-title">Tạo giải đấu</h2><button type="button" class="btn-close" aria-label="Đóng" (click)="closeCreateModal()"><lucide-icon name="x"></lucide-icon></button></div>
       <div class="modal-body"><div class="form-group"><label for="t-name">Tên giải đấu *</label><input id="t-name" [(ngModel)]="createForm.name" /></div>
         <div class="form-group"><label for="t-description">Mô tả</label><textarea id="t-description" rows="3" [(ngModel)]="createForm.description"></textarea></div>
         <div class="form-row"><div class="form-group"><label for="t-sport">Môn thể thao</label><select id="t-sport" [(ngModel)]="createForm.sportType">

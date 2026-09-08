@@ -15,7 +15,7 @@
         <div class="search-form-row neo-card">
           <mat-form-field appearance="outline" class="search-field select-field">
             <lucide-icon matPrefix name="activity" class="w-4 h-4 mr-2"></lucide-icon>
-            <mat-select [(ngModel)]="sportType" name="sportType">
+            <mat-select [(ngModel)]="sportType" name="sportType" aria-label="Chọn môn thể thao">
               <mat-option value="all">Môn thể thao</mat-option>
               @for (type of sportTypes; track type) {
                 <mat-option [value]="type">{{ type }}</mat-option>
@@ -25,7 +25,7 @@
 
           <mat-form-field appearance="outline" class="search-field text-field">
             <lucide-icon matPrefix name="map-pin" class="w-4 h-4 mr-2"></lucide-icon>
-            <input matInput placeholder="Tên sân, địa chỉ hoặc quận huyện..." [(ngModel)]="searchQuery"
+            <input matInput aria-label="Tên sân hoặc địa chỉ" placeholder="Tên sân, địa chỉ hoặc quận huyện..." [(ngModel)]="searchQuery"
               name="searchQuery">
           </mat-form-field>
 
@@ -64,13 +64,13 @@
 
     <div class="categories-grid">
       @for (type of sportTypes; track type) {
-      <div class="category-card hover-scale neo-card" (click)="selectSport(type)"
+      <button type="button" class="category-card hover-scale neo-card" (click)="selectSport(type)"
         [ngClass]="'sport-' + type.toLowerCase()">
         <div class="category-icon-box">
           <lucide-icon [name]="getSportIcon(type)" class="category-icon w-6 h-6"></lucide-icon>
         </div>
         <span class="category-name">{{ type }}</span>
-      </div>
+      </button>
       }
     </div>
   </section>

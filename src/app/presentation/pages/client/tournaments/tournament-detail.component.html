@@ -43,17 +43,17 @@
       }
     </section>
 
-    @if (showRegisterModal()) { <div class="modal-overlay" (click)="showRegisterModal.set(false)"><section class="modal-card" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
-      <h2>Đăng ký giải đấu</h2><div class="form-group"><label for="reg-type">Hình thức</label><select id="reg-type" [(ngModel)]="registrationForm.type"><option value="INDIVIDUAL">Cá nhân</option><option value="CLUB">Câu lạc bộ</option></select></div>
+    @if (showRegisterModal()) { <div class="modal-overlay" (click)="showRegisterModal.set(false)"><section class="modal-card" appAccessibleDialog aria-labelledby="registration-modal-title" (dialogClosed)="showRegisterModal.set(false)" (click)="$event.stopPropagation()">
+      <h2 id="registration-modal-title">Đăng ký giải đấu</h2><div class="form-group"><label for="reg-type">Hình thức</label><select id="reg-type" [(ngModel)]="registrationForm.type"><option value="INDIVIDUAL">Cá nhân</option><option value="CLUB">Câu lạc bộ</option></select></div>
       @if (registrationForm.type === 'CLUB') { <div class="form-group"><label for="reg-club">Mã câu lạc bộ *</label><input id="reg-club" [(ngModel)]="registrationForm.clubId" /></div> }
       <div class="form-group"><label for="reg-name">Tên thi đấu / tên đội</label><input id="reg-name" [(ngModel)]="registrationForm.teamName" /></div>
       <div class="form-group"><label for="reg-skill">Trình độ</label><select id="reg-skill" [(ngModel)]="registrationForm.skillLevel"><option value="BEGINNER">Mới chơi</option><option value="INTERMEDIATE">Trung bình</option><option value="ADVANCED">Nâng cao</option><option value="PRO">Chuyên nghiệp</option></select></div>
       <div class="modal-footer"><button class="btn-secondary" (click)="showRegisterModal.set(false)">Hủy</button><button class="btn-primary" [disabled]="mutating()" (click)="register()">Xác nhận đăng ký</button></div>
     </section></div> }
 
-    @if (showScoreModal() && selectedFixture(); as fixture) { <div class="modal-overlay" (click)="showScoreModal.set(false)"><section class="modal-card" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
-      <h2>Cập nhật kết quả</h2><div class="score-inputs"><div class="team-input"><label>{{ registrationName(fixture.registration1Id) }}</label><input type="number" min="0" [(ngModel)]="score1" /></div>
-        <div class="vs">VS</div><div class="team-input"><label>{{ registrationName(fixture.registration2Id) }}</label><input type="number" min="0" [(ngModel)]="score2" /></div></div>
+    @if (showScoreModal() && selectedFixture(); as fixture) { <div class="modal-overlay" (click)="showScoreModal.set(false)"><section class="modal-card" appAccessibleDialog aria-labelledby="score-modal-title" (dialogClosed)="showScoreModal.set(false)" (click)="$event.stopPropagation()">
+      <h2 id="score-modal-title">Cập nhật kết quả</h2><div class="score-inputs"><div class="team-input"><label for="score-team-one">{{ registrationName(fixture.registration1Id) }}</label><input id="score-team-one" type="number" min="0" [(ngModel)]="score1" /></div>
+        <div class="vs">VS</div><div class="team-input"><label for="score-team-two">{{ registrationName(fixture.registration2Id) }}</label><input id="score-team-two" type="number" min="0" [(ngModel)]="score2" /></div></div>
       <div class="modal-footer"><button class="btn-secondary" (click)="showScoreModal.set(false)">Hủy</button><button class="btn-primary" [disabled]="mutating()" (click)="saveScore()">Lưu tỷ số</button></div>
     </section></div> }
   }

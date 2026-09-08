@@ -40,7 +40,7 @@
 }
 
 .policy-hero__icon lucide-icon { width: 28px; height: 28px; }
-.policy-hero__eyebrow { margin: 0 0 5px; color: var(--primary); font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.policy-hero__eyebrow { margin: 0 0 5px; color: #047857; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .policy-hero h1 { margin: 0; color: #0f172a; font-size: clamp(28px, 3vw, 40px); font-weight: 800; letter-spacing: -.035em; line-height: 1.25; }
 .policy-hero__description { max-width: 900px; margin: 8px 0 0; color: #64748b; font-size: 15px; line-height: 1.7; }
 
@@ -86,12 +86,12 @@
   place-items: center;
   border-radius: 10px;
   background: #ecfdf5;
-  color: var(--primary);
+  color: #047857;
   font-size: 12px;
   font-weight: 800;
 }
 
-.policy-section h2 { margin: 0; color: var(--primary); font-size: 21px; font-weight: 800; line-height: 1.4; }
+.policy-section h2 { margin: 0; color: #047857; font-size: 21px; font-weight: 800; line-height: 1.4; }
 .policy-section__intro { margin: -10px 0 22px; color: #64748b; font-size: 14px; line-height: 1.7; }
 .policy-stack { display: grid; gap: 14px; }
 
@@ -109,7 +109,7 @@
 .policy-row__content { min-width: 0; }
 .policy-row h3, .policy-list-card h3, .policy-step h3 { margin: 0 0 6px; color: #0f172a; font-size: 15px; font-weight: 800; line-height: 1.5; }
 .policy-row p, .policy-step p { margin: 0; color: #64748b; font-size: 13px; line-height: 1.7; }
-.policy-pill { flex: 0 0 auto; padding: 8px 12px; border: 1px solid #d1fae5; border-radius: 99px; background: #fff; color: var(--primary); font-size: 12px; font-weight: 700; white-space: nowrap; }
+.policy-pill { flex: 0 0 auto; padding: 8px 12px; border: 1px solid #d1fae5; border-radius: 99px; background: #fff; color: #047857; font-size: 12px; font-weight: 700; white-space: nowrap; }
 
 .policy-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .policy-grid--three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -122,7 +122,7 @@
 .policy-table th, .policy-table td { padding: 15px 17px; border-bottom: 1px solid #e2e8f0; color: #475569; font-size: 13px; line-height: 1.55; }
 .policy-table th { background: #f8fafc; color: #334155; font-size: 12px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; }
 .policy-table tr:last-child td { border-bottom: 0; }
-.policy-table strong, .policy-table .is-primary { color: var(--primary); font-weight: 800; }
+.policy-table strong, .policy-table .is-primary { color: #047857; font-weight: 800; }
 
 .policy-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
 .policy-step { display: flex; gap: 13px; }
@@ -148,14 +148,14 @@
 
 .policy-feature { display: grid; grid-template-columns: 92px minmax(0, 1fr); align-items: center; gap: 22px; margin-bottom: 24px; padding: 26px; border-radius: 20px; }
 .policy-feature__icon { display: grid; width: 92px; height: 92px; place-items: center; border-radius: 20px; background: #ecfdf5; color: var(--primary); }
-.policy-feature h2 { margin: 0 0 8px; color: var(--primary); font-size: 21px; font-weight: 800; }
+.policy-feature h2 { margin: 0 0 8px; color: #047857; font-size: 21px; font-weight: 800; }
 .policy-feature p { margin: 0; color: #64748b; font-size: 14px; line-height: 1.7; }
 .policy-badges { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
-.policy-badges span { padding: 8px 13px; border: 1px solid #d1fae5; border-radius: 99px; background: #ecfdf5; color: var(--primary); font-size: 12px; font-weight: 700; }
+.policy-badges span { padding: 8px 13px; border: 1px solid #d1fae5; border-radius: 99px; background: #ecfdf5; color: #047857; font-size: 12px; font-weight: 700; }
 
 .contact-grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(340px, 2fr); align-items: stretch; gap: 24px; }
 .contact-card { padding: 28px; border-radius: 20px; }
-.contact-card h2 { margin: 0; color: var(--primary); font-size: 21px; font-weight: 800; }
+.contact-card h2 { margin: 0; color: #047857; font-size: 21px; font-weight: 800; }
 .contact-card__description { margin: 7px 0 22px; color: #64748b; font-size: 13px; line-height: 1.7; }
 .support-form { display: grid; gap: 17px; }
 .support-field { display: grid; gap: 7px; }
