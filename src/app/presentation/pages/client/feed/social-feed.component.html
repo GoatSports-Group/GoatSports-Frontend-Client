@@ -1,0 +1,264 @@
+<main class="feed-page">
+  <header class="feed-hero">
+    <div>
+      <p class="eyebrow">Cộng đồng GOAT Sports</p>
+      <h1>Bảng tin thể thao</h1>
+      <p>Chia sẻ khoảnh khắc tập luyện, kết nối bạn chơi và cập nhật câu chuyện mới nhất.</p>
+    </div>
+    <div class="hero-mark" aria-hidden="true">
+      <lucide-icon name="messages-square" class="w-8 h-8"></lucide-icon>
+    </div>
+  </header>
+
+  <div class="feed-layout">
+    <section class="feed-main">
+      @if (currentUser) {
+        <article class="composer card">
+          <div class="composer-heading">
+            <img [src]="currentUser.avatarUrl || avatar(currentUser.userId)" [alt]="currentUser.fullName" />
+            <div>
+              <strong>{{ editingPostId() ? 'Chỉnh sửa bài viết' : 'Bạn đang nghĩ gì?' }}</strong>
+              <span>{{ currentUser.fullName }}</span>
+            </div>
+          </div>
+
+          <label class="sr-only" for="post-content">Nội dung bài viết</label>
+          <textarea
+            id="post-content"
+            rows="4"
+            maxlength="5000"
+            placeholder="Chia sẻ câu chuyện thể thao của bạn..."
+            [ngModel]="composerContent()"
+            (ngModelChange)="composerContent.set($event)"></textarea>
+
+          @if (retainedAttachments().length || pendingAttachments().length) {
+            <div class="attachment-preview-grid">
+              @for (attachment of retainedAttachments(); track attachment.attachmentId) {
+                <div class="attachment-preview">
+                  @if (attachment.type === 'IMAGE' && mediaUrl(attachment.storageKey)) {
+                    <img [src]="mediaUrl(attachment.storageKey)" alt="Ảnh đã đính kèm" />
+                  } @else if (attachment.type === 'VIDEO' && mediaUrl(attachment.storageKey)) {
+                    <video [src]="mediaUrl(attachment.storageKey)" aria-label="Video đã đính kèm"></video>
+                  } @else {
+                    <div class="file-preview"><lucide-icon name="file-text" class="w-6 h-6"></lucide-icon></div>
+                  }
+                  <button type="button" class="remove-media" (click)="removeRetainedAttachment(attachment.attachmentId)" aria-label="Gỡ tệp">
+                    <lucide-icon name="x" class="w-4 h-4"></lucide-icon>
+                  </button>
+                </div>
+              }
+              @for (attachment of pendingAttachments(); track attachment.previewUrl; let index = $index) {
+                <div class="attachment-preview">
+                  @if (attachment.type === 'IMAGE') {
+                    <img [src]="attachment.previewUrl" [alt]="attachment.file.name" />
+                  } @else if (attachment.type === 'VIDEO') {
+                    <video [src]="attachment.previewUrl" [attr.aria-label]="attachment.file.name"></video>
+                  } @else {
+                    <div class="file-preview"><lucide-icon name="file-text" class="w-6 h-6"></lucide-icon><span>{{ attachment.file.name }}</span></div>
+                  }
+                  <button type="button" class="remove-media" (click)="removePendingAttachment(index)" aria-label="Gỡ tệp">
+                    <lucide-icon name="x" class="w-4 h-4"></lucide-icon>
+                  </button>
+                </div>
+              }
+            </div>
+          }
+
+          <div class="composer-actions">
+            <div class="composer-tools">
+              <label class="media-picker">
+                <input type="file" multiple accept="image/*,video/*,.pdf,.doc,.docx" (change)="onFilesSelected($event)" />
+                <lucide-icon name="image" class="w-5 h-5"></lucide-icon>
+                <span>Ảnh / video</span>
+              </label>
+              <label class="visibility-picker">
+                <lucide-icon [name]="visibilityIcon(composerVisibility())" class="w-4 h-4"></lucide-icon>
+                <select [ngModel]="composerVisibility()" (ngModelChange)="composerVisibility.set($event)" aria-label="Quyền riêng tư">
+                  @for (option of visibilityOptions; track option.value) {
+                    <option [value]="option.value">{{ option.label }}</option>
+                  }
+                </select>
+              </label>
+            </div>
+            <div class="composer-submit">
+              @if (editingPostId()) {
+                <button type="button" class="button ghost" [disabled]="publishing()" (click)="cancelEdit()">Hủy</button>
+              }
+              <button type="button" class="button primary" [disabled]="!canPublish()" (click)="publish()">
+                @if (publishing()) { <span class="spinner"></span> }
+                @else { <lucide-icon name="send" class="w-4 h-4"></lucide-icon> }
+                {{ editingPostId() ? 'Lưu thay đổi' : 'Đăng bài' }}
+              </button>
+            </div>
+          </div>
+        </article>
+      } @else {
+        <article class="login-card card">
+          <lucide-icon name="log-in" class="w-6 h-6"></lucide-icon>
+          <div><strong>Đăng nhập để tham gia cộng đồng</strong><p>Bạn vẫn có thể xem các bài viết công khai.</p></div>
+          <button type="button" class="button primary" (click)="authService.redirectToLogin()">Đăng nhập</button>
+        </article>
+      }
+
+      @if (loading()) {
+        <div class="loading-state card" aria-live="polite"><span class="spinner large"></span><p>Đang tải bảng tin...</p></div>
+      } @else if (!posts().length) {
+        <div class="empty-state card">
+          <lucide-icon name="inbox" class="w-10 h-10"></lucide-icon>
+          <h2>Chưa có bài viết nào</h2>
+          <p>Hãy là người đầu tiên chia sẻ một khoảnh khắc thể thao.</p>
+        </div>
+      } @else {
+        @for (post of posts(); track post.postId) {
+          <article class="post-card card">
+            <header class="post-header">
+              <img class="avatar" [src]="avatar(post.authorId)" [alt]="authorName(post.authorId)" />
+              <div class="post-author">
+                <strong>{{ authorName(post.authorId) }}</strong>
+                <span>
+                  {{ relativeTime(post.publishedAt || post.createdAt) }}
+                  <span aria-hidden="true">·</span>
+                  <lucide-icon [name]="visibilityIcon(post.visibility)" class="w-3.5 h-3.5"></lucide-icon>
+                  {{ visibilityLabel(post.visibility) }}
+                </span>
+              </div>
+              <div class="post-menu">
+                @if (isOwner(post.authorId)) {
+                  <button type="button" class="icon-button" (click)="editPost(post)" aria-label="Sửa bài viết">
+                    <lucide-icon name="pencil" class="w-4 h-4"></lucide-icon>
+                  </button>
+                  <button type="button" class="icon-button danger" [disabled]="actionPostIds().has(post.postId)" (click)="deletePost(post)" aria-label="Xóa bài viết">
+                    <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon>
+                  </button>
+                } @else if (currentUser) {
+                  <button type="button" class="icon-button" (click)="openReport('POST', post.postId)" aria-label="Báo cáo bài viết">
+                    <lucide-icon name="flag" class="w-4 h-4"></lucide-icon>
+                  </button>
+                }
+              </div>
+            </header>
+
+            @if (post.content) { <p class="post-content">{{ post.content }}</p> }
+
+            @if (post.attachments.length) {
+              <div class="post-media" [class.post-media-single]="post.attachments.length === 1">
+                @for (attachment of post.attachments; track attachment.attachmentId) {
+                  @if (mediaUrl(attachment.storageKey); as url) {
+                    @if (attachment.type === 'IMAGE') {
+                      <a [href]="url" target="_blank" rel="noopener noreferrer"><img [src]="url" alt="Ảnh trong bài viết" loading="lazy" /></a>
+                    } @else if (attachment.type === 'VIDEO') {
+                      <video [src]="url" controls preload="metadata">Trình duyệt không hỗ trợ video.</video>
+                    } @else {
+                      <a class="file-link" [href]="url" target="_blank" rel="noopener noreferrer">
+                        <lucide-icon name="file-text" class="w-6 h-6"></lucide-icon><span>Xem tệp đính kèm</span>
+                      </a>
+                    }
+                  } @else {
+                    <div class="media-loading"><span class="spinner"></span></div>
+                  }
+                }
+              </div>
+            }
+
+            <div class="engagement-summary" aria-label="Tương tác bài viết">
+              <span>{{ post.likeCount }} lượt thích</span>
+              <span>{{ post.commentCount }} bình luận · {{ post.shareCount }} lượt chia sẻ</span>
+            </div>
+            <div class="post-actions">
+              <button type="button" [class.active]="post.likedByCurrentUser" [disabled]="actionPostIds().has(post.postId)" (click)="toggleLike(post)">
+                <lucide-icon name="heart" class="w-5 h-5"></lucide-icon> Thích
+              </button>
+              <button type="button" (click)="toggleComments(post)">
+                <lucide-icon name="message-circle" class="w-5 h-5"></lucide-icon> Bình luận
+              </button>
+              <button type="button" (click)="openShare(post)">
+                <lucide-icon name="share-2" class="w-5 h-5"></lucide-icon> Chia sẻ
+              </button>
+            </div>
+
+            @if (expandedComments().has(post.postId)) {
+              <section class="comments-section">
+                @for (comment of comments().get(post.postId) ?? []; track comment.commentId) {
+                  <article class="comment" [class.reply]="comment.parentCommentId">
+                    <img [src]="avatar(comment.authorId)" [alt]="authorName(comment.authorId)" />
+                    <div class="comment-body">
+                      <div class="comment-bubble"><strong>{{ authorName(comment.authorId) }}</strong><p>{{ comment.content }}</p></div>
+                      <div class="comment-actions">
+                        <span>{{ relativeTime(comment.createdAt) }}</span>
+                        @if (currentUser) { <button type="button" (click)="setReply(post.postId, comment)">Trả lời</button> }
+                        @if (isOwner(comment.authorId)) {
+                          <button type="button" (click)="editComment(comment)">Sửa</button>
+                          <button type="button" [disabled]="deletingCommentIds().has(comment.commentId)" (click)="deleteComment(comment)">Xóa</button>
+                        } @else if (currentUser) {
+                          <button type="button" (click)="openReport('COMMENT', comment.commentId)">Báo cáo</button>
+                        }
+                      </div>
+                    </div>
+                  </article>
+                }
+
+                @if (currentUser) {
+                  @if (replyTo().get(post.postId); as reply) {
+                    <div class="reply-notice">Đang trả lời {{ authorName(reply.authorId) }} <button type="button" (click)="clearReply(post.postId)">Hủy</button></div>
+                  }
+                  <div class="comment-composer">
+                    <img [src]="currentUser.avatarUrl || avatar(currentUser.userId)" [alt]="currentUser.fullName" />
+                    <input
+                      type="text"
+                      maxlength="1000"
+                      placeholder="Viết bình luận..."
+                      [ngModel]="commentDrafts().get(post.postId) ?? ''"
+                      (ngModelChange)="updateCommentDraft(post.postId, $event)"
+                      (keyup.enter)="submitComment(post)" />
+                    <button type="button" [disabled]="actionPostIds().has(post.postId)" (click)="submitComment(post)" aria-label="Gửi bình luận">
+                      <lucide-icon name="send" class="w-4 h-4"></lucide-icon>
+                    </button>
+                  </div>
+                }
+              </section>
+            }
+          </article>
+        }
+
+        @if (hasMore()) {
+          <button type="button" class="load-more" [disabled]="loadingMore()" (click)="loadMore()">
+            @if (loadingMore()) { <span class="spinner"></span> }
+            {{ loadingMore() ? 'Đang tải...' : 'Xem thêm bài viết' }}
+          </button>
+        }
+      }
+    </section>
+
+    <aside class="feed-sidebar">
+      <div class="card community-card">
+        <lucide-icon name="shield-check" class="w-6 h-6"></lucide-icon>
+        <h2>Cộng đồng văn minh</h2>
+        <p>Tôn trọng người chơi khác, không đăng nội dung sai lệch hoặc gây tổn hại.</p>
+        <ul><li>Chia sẻ nội dung thể thao hữu ích</li><li>Bảo vệ thông tin cá nhân</li><li>Báo cáo nội dung vi phạm</li></ul>
+      </div>
+    </aside>
+  </div>
+</main>
+
+@if (shareTarget(); as post) {
+  <div class="modal-backdrop" role="presentation" (click)="closeShare()">
+    <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="share-title" (click)="$event.stopPropagation()">
+      <header><h2 id="share-title">Chia sẻ bài viết</h2><button type="button" class="icon-button" (click)="closeShare()" aria-label="Đóng"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button></header>
+      <p>Bài viết của <strong>{{ authorName(post.authorId) }}</strong> sẽ được chia sẻ tới cộng đồng.</p>
+      <textarea rows="4" maxlength="1000" placeholder="Viết thêm cảm nghĩ (không bắt buộc)..." [ngModel]="shareCaption()" (ngModelChange)="shareCaption.set($event)"></textarea>
+      <footer><button type="button" class="button ghost" [disabled]="sharing()" (click)="closeShare()">Hủy</button><button type="button" class="button primary" [disabled]="sharing()" (click)="submitShare()">{{ sharing() ? 'Đang chia sẻ...' : 'Chia sẻ' }}</button></footer>
+    </section>
+  </div>
+}
+
+@if (reportTarget(); as target) {
+  <div class="modal-backdrop" role="presentation" (click)="closeReport()">
+    <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="report-title" (click)="$event.stopPropagation()">
+      <header><h2 id="report-title">Báo cáo {{ target.type === 'POST' ? 'bài viết' : 'bình luận' }}</h2><button type="button" class="icon-button" (click)="closeReport()" aria-label="Đóng"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button></header>
+      <p>Hãy mô tả rõ lý do để đội ngũ kiểm duyệt có đủ thông tin xử lý.</p>
+      <textarea rows="5" minlength="10" maxlength="2000" placeholder="Nội dung vi phạm điều gì?" [ngModel]="reportReason()" (ngModelChange)="reportReason.set($event)"></textarea>
+      <small>{{ reportReason().trim().length }}/2000 ký tự · tối thiểu 10 ký tự</small>
+      <footer><button type="button" class="button ghost" [disabled]="reporting()" (click)="closeReport()">Hủy</button><button type="button" class="button danger-button" [disabled]="reporting() || reportReason().trim().length < 10" (click)="submitReport()">{{ reporting() ? 'Đang gửi...' : 'Gửi báo cáo' }}</button></footer>
+    </section>
+  </div>
+}

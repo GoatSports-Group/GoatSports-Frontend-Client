@@ -231,6 +231,12 @@
       font-size: 0.9rem;
       color: var(--text-dark);
 
+      &.community-link {
+        color: var(--primary);
+        text-decoration: none;
+        cursor: pointer;
+      }
+
       mat-icon {
         font-size: 20px;
         width: 20px;

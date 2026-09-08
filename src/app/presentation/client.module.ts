@@ -33,6 +33,7 @@ import { ClubDetailComponent } from '@presentation/pages/client/clubs/club-detai
 import { TournamentListComponent } from '@presentation/pages/client/tournaments/tournament-list.component';
 import { TournamentDetailComponent } from '@presentation/pages/client/tournaments/tournament-detail.component';
 import { MatchmakingComponent } from '@presentation/pages/client/matchmaking/matchmaking.component';
+import { SocialFeedComponent } from '@presentation/pages/client/feed/social-feed.component';
 import { AiAssistantModalComponent } from '@presentation/shared/components/ai-assistant-modal/ai-assistant-modal.component';
 
 @NgModule({
@@ -67,6 +68,7 @@ import { AiAssistantModalComponent } from '@presentation/shared/components/ai-as
     TournamentListComponent,
     TournamentDetailComponent,
     MatchmakingComponent,
+    SocialFeedComponent,
     AiAssistantModalComponent
   ],
   imports: [

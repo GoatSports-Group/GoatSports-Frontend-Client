@@ -18,6 +18,7 @@ import { ClubDetailComponent } from '@presentation/pages/client/clubs/club-detai
 import { TournamentListComponent } from '@presentation/pages/client/tournaments/tournament-list.component';
 import { TournamentDetailComponent } from '@presentation/pages/client/tournaments/tournament-detail.component';
 import { MatchmakingComponent } from '@presentation/pages/client/matchmaking/matchmaking.component';
+import { SocialFeedComponent } from '@presentation/pages/client/feed/social-feed.component';
 import { AuthGuard } from '@presentation/guards/auth.guard';
 
 const routes: Routes = [
@@ -49,6 +50,7 @@ const routes: Routes = [
       { path: 'tournaments', component: TournamentListComponent },
       { path: 'tournaments/:id', component: TournamentDetailComponent },
       { path: 'matchmaking', component: MatchmakingComponent, canActivate: [AuthGuard] },
+      { path: 'feed', component: SocialFeedComponent, canActivate: [AuthGuard] },
       { path: 'ai-recommendation', redirectTo: 'matchmaking', pathMatch: 'full' },
       { path: 'chat', component: ChatComponent, canActivate: [AuthGuard] },
       { path: 'chat/:roomId', component: ChatComponent, canActivate: [AuthGuard] },

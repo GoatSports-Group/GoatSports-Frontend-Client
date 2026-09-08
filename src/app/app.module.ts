@@ -21,6 +21,7 @@ import { CHAT_REPOSITORY_TOKEN } from '@application/ports/persistence/chat.repos
 import { FRIEND_REPOSITORY_TOKEN } from '@application/ports/persistence/friend.repository';
 import { REVIEW_REPOSITORY_TOKEN } from '@application/ports/persistence/review.repository';
 import { PLAYER_SPORT_PROFILE_REPOSITORY_TOKEN } from '@application/ports/persistence/player-sport-profile.repository';
+import { SOCIAL_FEED_REPOSITORY_TOKEN } from '@application/ports/persistence/social-feed.repository';
 import { WEBSOCKET_SERVICE_TOKEN } from '@application/ports/websocket.service';
 import { CURRENT_USER_PROVIDER_TOKEN } from '@application/ports/current-user.provider';
 import { SessionStateService } from '@presentation/services/session-state.service';
@@ -37,6 +38,7 @@ import { ChatRepositoryImpl } from '@infrastructure/repositories/chat.repository
 import { FriendRepositoryImpl } from '@infrastructure/repositories/friend.repository.impl';
 import { ReviewRepositoryImpl } from '@infrastructure/repositories/review.repository.impl';
 import { PlayerSportProfileRepositoryImpl } from '@infrastructure/repositories/player-sport-profile.repository.impl';
+import { SocialFeedRepositoryImpl } from '@infrastructure/repositories/social-feed.repository.impl';
 import { StompWebSocketService } from '@infrastructure/websocket/stomp-websocket.service';
 
 import { ClubRepositoryPort } from '@application/ports/club.repository.port';
@@ -139,7 +141,11 @@ import {
   LucideUserX,
   LucideUserCheck,
   LucideUserPlus,
-  LucideDownload
+  LucideDownload,
+  LucideHeart,
+  LucideShare2,
+  LucidePencil,
+  LucideFlag
 } from '@lucide/angular';
 
 @NgModule({
@@ -173,6 +179,7 @@ import {
     { provide: FRIEND_REPOSITORY_TOKEN, useClass: FriendRepositoryImpl },
     { provide: REVIEW_REPOSITORY_TOKEN, useClass: ReviewRepositoryImpl },
     { provide: PLAYER_SPORT_PROFILE_REPOSITORY_TOKEN, useClass: PlayerSportProfileRepositoryImpl },
+    { provide: SOCIAL_FEED_REPOSITORY_TOKEN, useClass: SocialFeedRepositoryImpl },
     { provide: WEBSOCKET_SERVICE_TOKEN, useClass: StompWebSocketService },
     { provide: CURRENT_USER_PROVIDER_TOKEN, useExisting: SessionStateService },
     { provide: ClubRepositoryPort, useClass: ClubRepository },
@@ -270,7 +277,11 @@ import {
       LucideUserX,
       LucideUserCheck,
       LucideUserPlus,
-      LucideDownload
+      LucideDownload,
+      LucideHeart,
+      LucideShare2,
+      LucidePencil,
+      LucideFlag
     )
   ],
   bootstrap: [AppComponent]
