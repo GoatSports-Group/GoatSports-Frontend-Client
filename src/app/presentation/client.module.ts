@@ -9,6 +9,7 @@ import { SettingsComponent } from '@presentation/pages/client/settings/settings.
 import { NotificationsComponent } from '@presentation/pages/client/notifications/notifications.component';
 import { SettingsPersonalTabComponent } from '@presentation/pages/client/settings/tabs/personal/settings-personal-tab.component';
 import { SettingsSecurityTabComponent } from '@presentation/pages/client/settings/tabs/security/settings-security-tab.component';
+import { SettingsSportsTabComponent } from '@presentation/pages/client/settings/tabs/sports/settings-sports-tab.component';
 import { OwnerApplicationComponent } from '@presentation/pages/client/owner-application/owner-application.component';
 import { OwnerApplicationHistoryComponent } from '@presentation/pages/client/owner-application/history/owner-application-history.component';
 import { OwnerApplicationFormComponent } from '@presentation/pages/client/owner-application/form/owner-application-form.component';
@@ -42,6 +43,7 @@ import { AiAssistantModalComponent } from '@presentation/shared/components/ai-as
     NotificationsComponent,
     SettingsPersonalTabComponent,
     SettingsSecurityTabComponent,
+    SettingsSportsTabComponent,
     OwnerApplicationComponent,
     OwnerApplicationHistoryComponent,
     OwnerApplicationFormComponent,

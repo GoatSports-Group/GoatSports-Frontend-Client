@@ -1,0 +1,287 @@
+<section class="sports-tab" aria-labelledby="sports-tab-title">
+  <header class="sports-tab__header">
+    <div>
+      <h2 id="sports-tab-title">Hồ sơ thể thao</h2>
+      <p>Lưu trình độ, khu vực chơi và lịch rảnh để GoatSports ghép trận phù hợp hơn.</p>
+    </div>
+    <button type="button" class="primary-button" (click)="openCreate()">
+      <lucide-icon name="plus" class="w-4 h-4"></lucide-icon>
+      Thêm môn thể thao
+    </button>
+  </header>
+
+  @if (isLoading) {
+    <div class="state-panel" aria-live="polite">
+      <lucide-icon name="loader-2" class="w-5 h-5 animate-spin"></lucide-icon>
+      <span>Đang tải hồ sơ thể thao...</span>
+    </div>
+  } @else if (loadFailed) {
+    <div class="state-panel state-panel--error" role="alert">
+      <div>
+        <strong>Chưa thể tải hồ sơ thể thao</strong>
+        <span>Kiểm tra kết nối rồi thử lại.</span>
+      </div>
+      <button type="button" class="secondary-button" (click)="loadProfiles()">Thử lại</button>
+    </div>
+  } @else if (profiles.length === 0) {
+    <div class="empty-state">
+      <span class="empty-state__icon">
+        <lucide-icon name="activity" class="w-6 h-6"></lucide-icon>
+      </span>
+      <h3>Chưa có hồ sơ thể thao</h3>
+      <p>Thêm môn bạn đang chơi và lịch rảnh để bắt đầu ghép trận thông minh.</p>
+      <button type="button" class="primary-button" (click)="openCreate()">Tạo hồ sơ đầu tiên</button>
+    </div>
+  } @else {
+    <div class="profile-grid">
+      @for (profile of profiles; track profile.profileId) {
+        <article class="sport-card">
+          <div class="sport-card__top">
+            <div class="sport-card__identity">
+              <span class="sport-card__icon">
+                <lucide-icon name="trophy" class="w-5 h-5"></lucide-icon>
+              </span>
+              <div>
+                <h3>{{ sportLabel(profile.sportType) }}</h3>
+                <span>{{ skillLabel(profile.skillLevel) }} · ELO {{ profile.eloRating }}</span>
+              </div>
+            </div>
+            <button type="button" class="text-button" (click)="openEdit(profile)">Chỉnh sửa</button>
+          </div>
+
+          <div class="stat-strip" aria-label="Thống kê thi đấu">
+            <div><strong>{{ profile.matchCount }}</strong><span>Trận</span></div>
+            <div><strong>{{ profile.winCount }}</strong><span>Thắng</span></div>
+            <div><strong>{{ formatWinRate(profile.winRate) }}</strong><span>Tỷ lệ thắng</span></div>
+          </div>
+
+          @if (profile.preferredPositions.length || profile.playStyle) {
+            <div class="sport-card__details">
+              @if (profile.preferredPositions.length) {
+                <div>
+                  <span class="detail-label">Vị trí yêu thích</span>
+                  <div class="tag-list">
+                    @for (position of profile.preferredPositions; track position) {
+                      <span>{{ position }}</span>
+                    }
+                  </div>
+                </div>
+              }
+              @if (profile.playStyle) {
+                <p><span class="detail-label">Phong cách chơi</span>{{ profile.playStyle }}</p>
+              }
+            </div>
+          }
+
+          <div class="availability-summary">
+            <div class="section-heading">
+              <span>Lịch rảnh</span>
+              <small>{{ profile.availabilities.length }} khung giờ</small>
+            </div>
+            @if (profile.availabilities.length) {
+              <div class="availability-list">
+                @for (slot of profile.availabilities; track slot.availabilityId) {
+                  <div class="availability-chip" [class.availability-chip--inactive]="!slot.active">
+                    <span>{{ dayLabel(slot.dayOfWeek) }}</span>
+                    <strong>{{ slot.startTime.slice(0, 5) }}–{{ slot.endTime.slice(0, 5) }}</strong>
+                    @if (!slot.active) { <small>Tạm tắt</small> }
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="muted-copy">Chưa thiết lập lịch rảnh.</p>
+            }
+          </div>
+
+          @if (profile.latitude != null && profile.longitude != null) {
+            <div class="location-line">
+              <lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>
+              <span>Ưu tiên trong bán kính {{ profile.playRadiusKm || 10 }} km</span>
+            </div>
+          }
+
+          <footer class="sport-card__footer">
+            @if (pendingDeleteId === profile.profileId) {
+              <span>Bạn chắc chắn muốn xóa?</span>
+              <div>
+                <button type="button" class="text-button" (click)="cancelDelete()">Giữ lại</button>
+                <button
+                  type="button"
+                  class="danger-button"
+                  [disabled]="deletingProfileId === profile.profileId"
+                  (click)="confirmDelete(profile.profileId)"
+                >
+                  {{ deletingProfileId === profile.profileId ? 'Đang xóa...' : 'Xóa hồ sơ' }}
+                </button>
+              </div>
+            } @else {
+              <button type="button" class="delete-link" (click)="requestDelete(profile.profileId)">
+                <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon>
+                Xóa hồ sơ
+              </button>
+            }
+          </footer>
+        </article>
+      }
+    </div>
+  }
+</section>
+
+@if (isEditorOpen) {
+  <div class="modal-backdrop" (click)="closeEditor()">
+    <form
+      class="profile-editor"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="sport-editor-title"
+      (click)="$event.stopPropagation()"
+      (ngSubmit)="saveProfile()"
+    >
+      <header class="profile-editor__header">
+        <div>
+          <h2 id="sport-editor-title">{{ editingProfileId ? 'Chỉnh sửa hồ sơ thể thao' : 'Thêm hồ sơ thể thao' }}</h2>
+          <p>Thông tin này được dùng cho ghép trận và đề xuất sân.</p>
+        </div>
+        <button type="button" aria-label="Đóng" (click)="closeEditor()">
+          <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+        </button>
+      </header>
+
+      <div class="profile-editor__body">
+        <div class="form-grid form-grid--two">
+          <label class="form-field">
+            <span>Môn thể thao <b>*</b></span>
+            <select name="sportType" [(ngModel)]="draft.sportType" required>
+              @for (sport of sportOptions; track sport.value) {
+                <option [ngValue]="sport.value" [disabled]="isSportUnavailable(sport.value)">
+                  {{ sport.label }}
+                </option>
+              }
+            </select>
+          </label>
+          <label class="form-field">
+            <span>Trình độ <b>*</b></span>
+            <select name="skillLevel" [(ngModel)]="draft.skillLevel" required>
+              @for (skill of skillOptions; track skill.value) {
+                <option [ngValue]="skill.value">{{ skill.label }}</option>
+              }
+            </select>
+          </label>
+        </div>
+
+        <label class="form-field">
+          <span>Vị trí yêu thích</span>
+          <input
+            type="text"
+            name="preferredPositions"
+            maxlength="509"
+            [(ngModel)]="draft.preferredPositions"
+            placeholder="Ví dụ: Tiền đạo, Hậu vệ (ngăn cách bằng dấu phẩy)"
+          />
+          <small>Tối đa 10 vị trí, phân tách bằng dấu phẩy.</small>
+        </label>
+
+        <label class="form-field">
+          <span>Phong cách chơi</span>
+          <textarea
+            name="playStyle"
+            rows="3"
+            maxlength="255"
+            [(ngModel)]="draft.playStyle"
+            placeholder="Mô tả ngắn cách bạn thường thi đấu"
+          ></textarea>
+        </label>
+
+        <section class="editor-section" aria-labelledby="location-title">
+          <div class="section-heading section-heading--editor">
+            <div>
+              <h3 id="location-title">Khu vực chơi ưu tiên</h3>
+              <p>Giúp hệ thống ưu tiên đối thủ và sân ở gần bạn.</p>
+            </div>
+            <button type="button" class="secondary-button" [disabled]="isLocating" (click)="useCurrentLocation()">
+              <lucide-icon [name]="isLocating ? 'loader-2' : 'map-pin'" class="w-4 h-4" [class.animate-spin]="isLocating"></lucide-icon>
+              {{ isLocating ? 'Đang lấy vị trí...' : 'Dùng vị trí hiện tại' }}
+            </button>
+          </div>
+          <div class="form-grid form-grid--three">
+            <label class="form-field">
+              <span>Vĩ độ</span>
+              <input type="number" name="latitude" step="0.000001" min="-90" max="90" [(ngModel)]="draft.latitude" />
+            </label>
+            <label class="form-field">
+              <span>Kinh độ</span>
+              <input type="number" name="longitude" step="0.000001" min="-180" max="180" [(ngModel)]="draft.longitude" />
+            </label>
+            <label class="form-field">
+              <span>Bán kính (km)</span>
+              <input type="number" name="playRadiusKm" step="0.5" min="0.1" max="200" [(ngModel)]="draft.playRadiusKm" />
+            </label>
+          </div>
+          @if (draft.latitude != null || draft.longitude != null) {
+            <button type="button" class="text-button clear-location" (click)="clearLocation()">Xóa vị trí đã chọn</button>
+          }
+        </section>
+
+        <section class="editor-section" aria-labelledby="availability-title">
+          <div class="section-heading section-heading--editor">
+            <div>
+              <h3 id="availability-title">Lịch rảnh hàng tuần</h3>
+              <p>Có thể thêm nhiều khung giờ và tạm tắt khi chưa sử dụng.</p>
+            </div>
+            <button type="button" class="secondary-button" (click)="addAvailability()">
+              <lucide-icon name="plus" class="w-4 h-4"></lucide-icon>
+              Thêm khung giờ
+            </button>
+          </div>
+
+          @if (draft.availabilities.length === 0) {
+            <p class="availability-empty">Chưa có khung giờ. Bạn vẫn có thể lưu hồ sơ và bổ sung sau.</p>
+          } @else {
+            <div class="availability-editor-list">
+              @for (slot of draft.availabilities; track slot.clientId; let index = $index) {
+                <div class="availability-row">
+                  <label class="form-field">
+                    <span>Ngày</span>
+                    <select [name]="'day-' + slot.clientId" [(ngModel)]="slot.dayOfWeek">
+                      @for (day of dayOptions; track day.value) {
+                        <option [ngValue]="day.value">{{ day.label }}</option>
+                      }
+                    </select>
+                  </label>
+                  <label class="form-field">
+                    <span>Bắt đầu</span>
+                    <input type="time" [name]="'start-' + slot.clientId" [(ngModel)]="slot.startTime" required />
+                  </label>
+                  <label class="form-field">
+                    <span>Kết thúc</span>
+                    <input type="time" [name]="'end-' + slot.clientId" [(ngModel)]="slot.endTime" required />
+                  </label>
+                  <label class="active-toggle">
+                    <input type="checkbox" [name]="'active-' + slot.clientId" [(ngModel)]="slot.active" />
+                    <span>Đang dùng</span>
+                  </label>
+                  <button type="button" class="icon-button" aria-label="Xóa khung giờ" (click)="removeAvailability(index)">
+                    <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon>
+                  </button>
+                </div>
+              }
+            </div>
+          }
+        </section>
+      </div>
+
+      <footer class="profile-editor__footer">
+        <button type="button" class="secondary-button" [disabled]="isSaving" (click)="closeEditor()">Hủy</button>
+        <button type="submit" class="primary-button" [disabled]="isSaving">
+          @if (isSaving) {
+            <lucide-icon name="loader-2" class="w-4 h-4 animate-spin"></lucide-icon>
+            Đang lưu...
+          } @else {
+            <lucide-icon name="save" class="w-4 h-4"></lucide-icon>
+            Lưu hồ sơ
+          }
+        </button>
+      </footer>
+    </form>
+  </div>
+}
