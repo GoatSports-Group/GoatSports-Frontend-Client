@@ -1,172 +1,95 @@
-<div class="venue-search-page">
-  <section class="search-hero" aria-labelledby="venue-search-title">
-    <div class="container">
-      <div class="hero-header-content">
-        <h1 id="venue-search-title" class="page-title athletic-title">Khám Phá Sân Thể Thao</h1>
-        <p class="page-subtitle">Tìm sân theo môn chơi, khu vực, giá và khoảng cách với lịch trống cập nhật trực tiếp.</p>
-      </div>
-
-      <form class="search-panel neo-card" (ngSubmit)="applyFilters()">
-        <div class="search-primary-row">
-          <label class="search-input-group">
-            <lucide-icon name="search" class="w-5 h-5 text-slate-400 shrink-0"></lucide-icon>
-            <span class="sr-only">Tên sân hoặc địa chỉ</span>
-            <input
-              type="search"
-              name="keyword"
-              placeholder="Tìm theo tên sân hoặc địa chỉ..."
-              [(ngModel)]="filter.keyword"
-              class="main-search-input"
-            />
-          </label>
-
-          <button mat-flat-button color="primary" type="submit" class="search-submit-btn neo-btn">
-            <lucide-icon name="search" class="w-4 h-4 mr-1"></lucide-icon>
-            Tìm kiếm
-          </button>
-        </div>
-
-        <div class="advanced-filters">
-          <label class="filter-field">
-            <span>Thành phố</span>
-            <input name="city" type="text" [(ngModel)]="filter.city" placeholder="Ví dụ: Hà Nội" />
-          </label>
-
-          <label class="filter-field">
-            <span>Quận/Huyện</span>
-            <input name="district" type="text" [(ngModel)]="filter.district" placeholder="Ví dụ: Bắc Từ Liêm" />
-          </label>
-
-          <label class="filter-field">
-            <span>Giá từ</span>
-            <input name="minPrice" type="number" min="0" step="10000" [(ngModel)]="filter.minPrice" placeholder="0" />
-          </label>
-
-          <label class="filter-field">
-            <span>Giá tối đa</span>
-            <input name="maxPrice" type="number" min="0" step="10000" [(ngModel)]="filter.maxPrice" placeholder="Không giới hạn" />
-          </label>
-
-          <label class="filter-field">
-            <span>Đánh giá</span>
-            <select name="minRating" [(ngModel)]="filter.minRating">
-              <option [ngValue]="undefined">Tất cả</option>
-              <option [ngValue]="3">Từ 3 sao</option>
-              <option [ngValue]="4">Từ 4 sao</option>
-              <option [ngValue]="4.5">Từ 4,5 sao</option>
-            </select>
-          </label>
-
-          <label class="filter-field" [class.filter-field--disabled]="!locationActive">
-            <span>Bán kính</span>
-            <select name="radiusKm" [(ngModel)]="filter.radiusKm" [disabled]="!locationActive" (change)="applyFilters()">
-              <option [ngValue]="3">3 km</option>
-              <option [ngValue]="5">5 km</option>
-              <option [ngValue]="10">10 km</option>
-              <option [ngValue]="20">20 km</option>
-              <option [ngValue]="50">50 km</option>
-            </select>
-          </label>
-
-          @if (locationActive) {
-            <button type="button" class="location-btn location-btn--active" (click)="clearLocation()">
-              <lucide-icon name="map-pin-off" class="w-4 h-4"></lucide-icon>
-              Bỏ vị trí
-            </button>
-          } @else {
-            <button type="button" class="location-btn" [disabled]="locating" (click)="useCurrentLocation()">
-              <lucide-icon [name]="locating ? 'loader-2' : 'locate-fixed'" class="w-4 h-4" [class.animate-spin]="locating"></lucide-icon>
-              {{ locating ? 'Đang định vị...' : 'Sân gần tôi' }}
-            </button>
-          }
-        </div>
-      </form>
-
-      <div class="sport-chips-bar" aria-label="Lọc theo môn thể thao">
-        <button type="button" class="sport-chip" [class.active]="filter.sportType === 'all'" (click)="selectSport('all')">
-          <lucide-icon name="activity" class="w-4 h-4 mr-1.5"></lucide-icon>
-          Tất cả môn
-        </button>
-
-        <button type="button" class="sport-chip" [class.active]="filter.sportType === 'FOOTBALL'" (click)="selectSport('FOOTBALL')">Bóng đá</button>
-        <button type="button" class="sport-chip" [class.active]="filter.sportType === 'BADMINTON'" (click)="selectSport('BADMINTON')">Cầu lông</button>
-        <button type="button" class="sport-chip" [class.active]="filter.sportType === 'TENNIS'" (click)="selectSport('TENNIS')">Tennis</button>
-        <button type="button" class="sport-chip" [class.active]="filter.sportType === 'PICKLEBALL'" (click)="selectSport('PICKLEBALL')">Pickleball</button>
-        <button type="button" class="sport-chip" [class.active]="filter.sportType === 'BASKETBALL'" (click)="selectSport('BASKETBALL')">Bóng rổ</button>
-        <button type="button" class="sport-chip" [class.active]="filter.sportType === 'VOLLEYBALL'" (click)="selectSport('VOLLEYBALL')">Bóng chuyền</button>
-      </div>
+<main class="venue-search-page">
+  <header class="search-heading">
+    <div>
+      <p class="page-kicker">Lịch trống theo thời gian thực</p>
+      <h1>Tìm sân phù hợp</h1>
+      <p>Lọc theo môn chơi, khu vực, giá và khoảng cách để vào sân nhanh hơn.</p>
     </div>
+    <div class="search-heading__art" aria-hidden="true">
+      <strong>Sân tốt<br />Trải nghiệm thật</strong>
+    </div>
+  </header>
+
+  <section class="search-workspace" aria-labelledby="venue-filter-title">
+    <h2 id="venue-filter-title" class="sr-only">Bộ lọc tìm sân</h2>
+    <form class="search-panel" (ngSubmit)="applyFilters()">
+      <div class="search-primary-row">
+        <label class="search-input-group">
+          <lucide-icon name="search" class="w-5 h-5"></lucide-icon>
+          <span class="sr-only">Tên sân hoặc địa chỉ</span>
+          <input type="search" name="keyword" [(ngModel)]="filter.keyword" placeholder="Tìm theo tên sân, khu vực hoặc môn chơi..." />
+        </label>
+        <button type="submit" class="search-submit-btn">
+          <lucide-icon name="search" class="w-4 h-4"></lucide-icon>Tìm kiếm
+        </button>
+      </div>
+
+      <div class="advanced-filters">
+        <label class="filter-field"><span>Thành phố</span><input name="city" [(ngModel)]="filter.city" placeholder="TP. Hồ Chí Minh" /></label>
+        <label class="filter-field"><span>Quận / Huyện</span><input name="district" [(ngModel)]="filter.district" placeholder="Quận 1" /></label>
+        <label class="filter-field"><span>Giá từ</span><input name="minPrice" type="number" min="0" step="10000" [(ngModel)]="filter.minPrice" placeholder="0" /></label>
+        <label class="filter-field"><span>Giá tối đa</span><input name="maxPrice" type="number" min="0" step="10000" [(ngModel)]="filter.maxPrice" placeholder="Không giới hạn" /></label>
+        <label class="filter-field"><span>Đánh giá tối thiểu</span><select name="minRating" [(ngModel)]="filter.minRating"><option [ngValue]="undefined">Tất cả</option><option [ngValue]="3">Từ 3 sao</option><option [ngValue]="4">Từ 4 sao</option><option [ngValue]="4.5">Từ 4,5 sao</option></select></label>
+        <label class="filter-field" [class.filter-field--disabled]="!locationActive"><span>Bán kính tìm kiếm</span><select name="radiusKm" [(ngModel)]="filter.radiusKm" [disabled]="!locationActive" (change)="applyFilters()"><option [ngValue]="3">3 km</option><option [ngValue]="5">5 km</option><option [ngValue]="10">10 km</option><option [ngValue]="20">20 km</option><option [ngValue]="50">50 km</option></select></label>
+        @if (locationActive) {
+          <button type="button" class="location-btn active" (click)="clearLocation()"><lucide-icon name="map-pin-off" class="w-4 h-4"></lucide-icon>Bỏ vị trí</button>
+        } @else {
+          <button type="button" class="location-btn" [disabled]="locating" (click)="useCurrentLocation()"><lucide-icon [name]="locating ? 'loader-2' : 'locate-fixed'" class="w-4 h-4" [class.animate-spin]="locating"></lucide-icon>{{ locating ? 'Đang định vị...' : 'Sân gần tôi' }}</button>
+        }
+      </div>
+    </form>
+
+    <nav class="sport-chips-bar" aria-label="Lọc theo môn thể thao">
+      <button type="button" class="sport-chip" [class.active]="filter.sportType === 'all'" (click)="selectSport('all')"><lucide-icon name="activity" class="w-4 h-4"></lucide-icon>Tất cả</button>
+      <button type="button" class="sport-chip" [class.active]="filter.sportType === 'FOOTBALL'" (click)="selectSport('FOOTBALL')">Bóng đá</button>
+      <button type="button" class="sport-chip" [class.active]="filter.sportType === 'BADMINTON'" (click)="selectSport('BADMINTON')">Cầu lông</button>
+      <button type="button" class="sport-chip" [class.active]="filter.sportType === 'TENNIS'" (click)="selectSport('TENNIS')">Tennis</button>
+      <button type="button" class="sport-chip" [class.active]="filter.sportType === 'PICKLEBALL'" (click)="selectSport('PICKLEBALL')">Pickleball</button>
+      <button type="button" class="sport-chip" [class.active]="filter.sportType === 'BASKETBALL'" (click)="selectSport('BASKETBALL')">Bóng rổ</button>
+      <button type="button" class="sport-chip" [class.active]="filter.sportType === 'VOLLEYBALL'" (click)="selectSport('VOLLEYBALL')">Bóng chuyền</button>
+    </nav>
   </section>
 
-  <main class="container main-content">
-    <div class="results-header">
-      <div class="results-count" aria-live="polite">
-        <span class="font-semibold text-slate-800">{{ totalVenues }}</span> cụm sân phù hợp
-        @if (locationActive) {
-          <span class="location-summary">trong {{ filter.radiusKm }} km</span>
-        }
-      </div>
+  <div class="results-layout">
+    <section class="results-column" aria-labelledby="venue-results-title">
+      <header class="results-header">
+        <p id="venue-results-title"><strong>{{ totalVenues }}</strong> sân phù hợp @if (locationActive) { <span>trong {{ filter.radiusKm }} km</span> }</p>
+        @if (hasFilters) { <button type="button" class="clear-btn" (click)="resetFilters()">Xóa bộ lọc <lucide-icon name="x" class="w-4 h-4"></lucide-icon></button> }
+      </header>
 
-      @if (hasFilters) {
-        <button mat-button color="warn" type="button" (click)="resetFilters()" class="clear-btn text-xs">
-          <lucide-icon name="x" class="w-3.5 h-3.5 mr-1"></lucide-icon>
-          Xóa bộ lọc
-        </button>
+      @if (loading) {
+        <div class="venues-grid" aria-label="Đang tải danh sách sân">
+          @for (item of [1,2,3,4,5,6]; track item) { <div class="skeleton-card"><app-loading-skeleton height="190px" borderRadius="8px"></app-loading-skeleton><div class="skeleton-lines"><app-loading-skeleton height="20px" width="70%"></app-loading-skeleton><app-loading-skeleton height="14px" width="92%"></app-loading-skeleton></div></div> }
+        </div>
+      } @else if (errorMessage) {
+        <section class="empty-state error-state" role="alert"><lucide-icon name="wifi-off" class="w-10 h-10"></lucide-icon><div><h2>Chưa tải được danh sách sân</h2><p>{{ errorMessage }}</p></div><button type="button" (click)="loadVenues()">Thử lại</button></section>
+      } @else if (venues.length) {
+        <div class="venues-grid">@for (venue of venues; track venue.venueId) { <app-venue-card [venue]="venue"></app-venue-card> }</div>
+        @if (totalPages > 1) {
+          <nav class="pagination" aria-label="Phân trang danh sách sân"><button type="button" class="page-btn" [disabled]="currentPage === 0" (click)="onPageChange(currentPage - 1)" aria-label="Trang trước"><lucide-icon name="chevron-left" class="w-4 h-4"></lucide-icon></button>@for (page of visiblePages; track page) { <button type="button" class="page-btn" [class.active]="page === currentPage" [attr.aria-current]="page === currentPage ? 'page' : null" (click)="onPageChange(page)">{{ page + 1 }}</button> }<button type="button" class="page-btn" [disabled]="currentPage + 1 >= totalPages" (click)="onPageChange(currentPage + 1)" aria-label="Trang sau"><lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon></button></nav>
+        }
+      } @else {
+        <section class="empty-state"><lucide-icon name="search" class="w-10 h-10"></lucide-icon><div><h2>Không tìm thấy sân phù hợp</h2><p>Hãy thay đổi khu vực, khoảng giá hoặc mở rộng bán kính tìm kiếm.</p></div><button type="button" (click)="resetFilters()">Đặt lại bộ lọc</button></section>
       }
-    </div>
+    </section>
 
-    @if (loading) {
-      <div class="venues-grid" aria-label="Đang tải danh sách sân">
-        @for (i of [1, 2, 3, 4, 5, 6]; track i) {
-          <div class="skeleton-card neo-card">
-            <app-loading-skeleton height="200px" borderRadius="16px 16px 0 0"></app-loading-skeleton>
-            <div class="p-4 space-y-3">
-              <app-loading-skeleton height="20px" width="70%"></app-loading-skeleton>
-              <app-loading-skeleton height="16px" width="90%"></app-loading-skeleton>
-              <app-loading-skeleton height="24px" width="40%"></app-loading-skeleton>
-            </div>
-          </div>
-        }
+    <aside class="map-rail" aria-label="Bản đồ sân thể thao">
+      <div class="map-frame">
+        <iframe title="Bản đồ khu vực tìm sân" src="https://www.openstreetmap.org/export/embed.html?bbox=106.6600%2C10.7500%2C106.7300%2C10.8100&amp;layer=mapnik" loading="lazy"></iframe>
+        <button type="button" class="map-location" (click)="useCurrentLocation()"><lucide-icon name="locate-fixed" class="w-4 h-4"></lucide-icon>Tìm trong vùng hiện tại</button>
       </div>
-    } @else if (errorMessage) {
-      <section class="empty-state error-state neo-card" role="alert">
-        <div class="empty-icon-box"><lucide-icon name="wifi-off" class="w-12 h-12 text-red-400"></lucide-icon></div>
-        <h2>Không tải được danh sách sân</h2>
-        <p>{{ errorMessage }}</p>
-        <button mat-flat-button color="primary" type="button" (click)="loadVenues()" class="neo-btn mt-4">
-          <lucide-icon name="refresh-cw" class="w-4 h-4 mr-1"></lucide-icon>
-          Thử lại
-        </button>
-      </section>
-    } @else if (venues.length > 0) {
-      <div class="venues-grid">
-        @for (venue of venues; track venue.venueId) {
-          <app-venue-card [venue]="venue"></app-venue-card>
-        }
-      </div>
-
-      @if (totalPages > 1) {
-        <nav class="pagination" aria-label="Phân trang danh sách sân">
-          <button type="button" class="page-btn" [disabled]="currentPage === 0" (click)="onPageChange(currentPage - 1)" aria-label="Trang trước">
-            <lucide-icon name="chevron-left" class="w-4 h-4"></lucide-icon>
-          </button>
-          @for (page of visiblePages; track page) {
-            <button type="button" class="page-btn" [class.active]="page === currentPage" [attr.aria-current]="page === currentPage ? 'page' : null" (click)="onPageChange(page)">
-              {{ page + 1 }}
-            </button>
-          }
-          <button type="button" class="page-btn" [disabled]="currentPage + 1 >= totalPages" (click)="onPageChange(currentPage + 1)" aria-label="Trang sau">
-            <lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon>
-          </button>
-        </nav>
+      @if (!loading && venues.length) {
+        <article class="map-selection">
+          <p class="page-kicker">Sân gần nhất trong kết quả</p>
+          <h2>{{ venues[0].name }}</h2>
+          <p>{{ venues[0].address || (venues[0].district + ', ' + venues[0].city) }}</p>
+          <div><span>@if (venues[0].averageRating) { ★ {{ venues[0].averageRating | number:'1.1-1' }} } @else { Chưa có đánh giá }</span>@if (venues[0].distanceKm != null) { <span>{{ venues[0].distanceKm }} km</span> }</div>
+          <a [routerLink]="['/venues', venues[0].venueId]">Xem lịch trống <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a>
+        </article>
+      } @else if (!loading) {
+        <div class="map-empty"><lucide-icon name="map-pin" class="w-6 h-6"></lucide-icon><strong>Chưa có sân để hiển thị</strong><span>Điều chỉnh bộ lọc để cập nhật bản đồ.</span></div>
       }
-    } @else {
-      <section class="empty-state neo-card">
-        <div class="empty-icon-box"><lucide-icon name="search" class="w-12 h-12 text-slate-300"></lucide-icon></div>
-        <h2>Không tìm thấy sân phù hợp</h2>
-        <p>Hãy thử thay đổi từ khóa, khu vực, mức giá hoặc mở rộng bán kính tìm kiếm.</p>
-        <button mat-flat-button color="primary" type="button" (click)="resetFilters()" class="neo-btn mt-4">Xem tất cả sân</button>
-      </section>
-    }
-  </main>
-</div>
+      <p class="map-credit">© OpenStreetMap contributors</p>
+    </aside>
+  </div>
+</main>

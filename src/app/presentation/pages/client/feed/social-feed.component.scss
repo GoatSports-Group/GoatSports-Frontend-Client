@@ -135,3 +135,22 @@ textarea:focus, .comment-composer input:focus { border-color: #0aa66a; box-shado
   .login-card { align-items: flex-start; flex-wrap: wrap; }
   .login-card .button { width: 100%; }
 }
+
+/* Community feed aligned with the editorial product reference */
+:host { background: var(--bg-body); }
+.feed-page { max-width: var(--page-max); padding: clamp(2rem, 5vw, 4rem) var(--page-gutter) 5rem; }
+.feed-hero { min-height: 150px; align-items: flex-end; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); }
+.feed-hero h1 { max-width: 13ch; margin: 0; font-size: clamp(2.8rem, 6vw, 5.6rem); font-style: italic; line-height: .9; letter-spacing: -.075em; text-transform: uppercase; }
+.feed-hero p:not(.eyebrow) { max-width: 600px; margin-top: .75rem; font-size: .84rem; }
+.hero-mark { width: 70px; height: 70px; border: 1px solid var(--border-color); border-radius: var(--border-radius); background: #fff; color: var(--primary); box-shadow: none; }
+.feed-layout { grid-template-columns: minmax(0, 8fr) minmax(270px, 3fr); gap: 1rem; }
+.feed-main { gap: 1rem; }
+.card { border-color: var(--border-color); border-radius: var(--border-radius); box-shadow: none; }
+.composer { padding: 1.2rem; }
+.button,.icon-button,textarea,.attachment-preview,.load-more,.modal-card { border-radius: var(--border-radius-sm); }
+.button.primary,.comment-composer button { background: var(--primary); }
+.post-card { border-radius: var(--border-radius); }
+.post-media { gap: 1px; }
+.comment-bubble { border-radius: 3px 10px 10px; }
+.community-card > lucide-icon { border-radius: var(--border-radius-sm); background: var(--primary-light); color: var(--primary); }
+@media(max-width:640px){.feed-page{padding-inline:.7rem}.feed-hero h1{font-size:clamp(2.7rem,14vw,4.4rem)}}

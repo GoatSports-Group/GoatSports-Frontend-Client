@@ -1,0 +1,166 @@
+@mixin client-surfaces {
+  body :is(
+    .booking-history-page,
+    .booking-detail-page,
+    .qr-checkin-page,
+    .notifications-page,
+    .settings-page,
+    .owner-page,
+    .payment-result-page,
+    .club-detail-page,
+    .tournament-detail-page
+  ) {
+    min-height: calc(100vh - 70px);
+    background: var(--bg-body) !important;
+    color: var(--text-dark);
+  }
+
+  body :is(
+    .booking-history-page,
+    .booking-detail-page,
+    .qr-checkin-page
+  ) > .container {
+    width: min(100%, var(--page-max));
+    max-width: var(--page-max) !important;
+    padding-inline: var(--page-gutter) !important;
+  }
+
+  body :is(
+    .booking-card,
+    .booking-detail-card,
+    .detail-card,
+    .qr-card,
+    .notification-skeleton,
+    .notif-card,
+    .info-card,
+    .info-box,
+    .activity-card,
+    .member-card,
+    .fixture-card,
+    .bracket-match,
+    .team-card,
+    .stat-box,
+    .result-card
+  ) {
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--border-radius) !important;
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+
+  body :is(
+    .booking-history-page,
+    .booking-detail-page,
+    .notifications-page,
+    .settings-page,
+    .club-detail-page,
+    .tournament-detail-page
+  ) h1 {
+    font-style: italic;
+    font-weight: 900;
+    letter-spacing: -.055em;
+    text-transform: uppercase;
+  }
+
+  body .notifications-layout,
+  body .settings-layout {
+    width: min(100%, var(--page-max));
+    max-width: var(--page-max);
+    margin-inline: auto;
+    padding-inline: var(--page-gutter);
+  }
+
+  body :is(.notifications-page, .settings-page) .settings-sidebar {
+    width: 250px;
+    border-right-color: var(--border-color);
+    background: #fff;
+  }
+
+  body :is(.notifications-page, .settings-page) .sidebar-nav-item {
+    min-height: 44px;
+    border-radius: var(--border-radius-sm) !important;
+  }
+
+  body .settings-title,
+  body .notifications-header h1 {
+    color: var(--text-dark) !important;
+    font-size: clamp(2.4rem, 5vw, 4.4rem) !important;
+    line-height: .95 !important;
+  }
+
+  body :is(.settings-tabs, .filter-tabs-row, .tabs-nav) .tab-btn,
+  body .notifications-page .filter-pill {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  body .owner-page__container {
+    width: min(100%, 1040px);
+  }
+
+  body .owner-page__header {
+    min-height: 180px;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  body .owner-page__title {
+    max-width: 14ch;
+    font-size: clamp(2.8rem, 6vw, 5rem) !important;
+    font-style: italic;
+    line-height: .92 !important;
+    letter-spacing: -.07em !important;
+    text-transform: uppercase;
+  }
+
+  body .owner-page__button,
+  body .payment-result-page button,
+  body .payment-result-page a,
+  body :is(.club-detail-page, .tournament-detail-page) button {
+    min-height: 44px;
+    border-radius: var(--border-radius-sm) !important;
+    box-shadow: none !important;
+  }
+
+  body .payment-result-page {
+    background: var(--bg-body) !important;
+  }
+
+  body .result-card {
+    width: min(100%, 560px);
+  }
+
+  body .club-detail-page,
+  body .tournament-detail-page {
+    width: min(100%, var(--page-max));
+    margin-inline: auto;
+    padding-inline: var(--page-gutter);
+  }
+
+  body :is(.club-detail-page, .tournament-detail-page) .detail-cover,
+  body .tournament-detail-page .header-card {
+    overflow: hidden;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--border-radius) !important;
+    box-shadow: none !important;
+  }
+
+  body .tournament-detail-page :is(.sport-pill, .status-pill, .format-pill),
+  body .club-detail-page :is(.sport-tag, .privacy-tag) {
+    border-radius: 4px !important;
+  }
+
+  body :is(.club-detail-page, .tournament-detail-page) .tabs-nav {
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 0 !important;
+    background: transparent !important;
+  }
+
+  @media (max-width: 860px) {
+    body :is(.notifications-page, .settings-page) .settings-sidebar {
+      width: 100%;
+      border-right: 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+  }
+}

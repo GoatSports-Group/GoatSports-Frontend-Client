@@ -15,6 +15,8 @@
     </div>
   }
 
+  <div class="matchmaking-workspace">
+  <section class="matchmaking-flow">
   @if (restoring()) {
     <section class="state-card" aria-live="polite">
       <span class="spinner"></span>
@@ -152,4 +154,18 @@
       </button>
     </section>
   }
+  </section>
+  <aside class="matchmaking-guide" aria-label="Cách GOAT Sports ghép kèo">
+    <p class="eyebrow">Ghép kèo minh bạch</p>
+    <h2>Vì sao kết quả phù hợp?</h2>
+    <ol>
+      <li><span>40%</span><div><strong>Trình độ</strong><small>ELO và mức kỹ năng tương đồng</small></div></li>
+      <li><span>30%</span><div><strong>Khung giờ</strong><small>Chỉ ghép khi lịch có phần giao nhau</small></div></li>
+      <li><span>20%</span><div><strong>Khoảng cách</strong><small>Ưu tiên đối thủ trong bán kính đã chọn</small></div></li>
+      <li><span>10%</span><div><strong>Thói quen chơi</strong><small>Dựa trên lựa chọn và lịch sử của bạn</small></div></li>
+    </ol>
+    <div class="privacy-note"><lucide-icon name="shield-check" class="w-5 h-5"></lucide-icon><p><strong>Vị trí được bảo vệ</strong><span>Chỉ dùng để tính khoảng cách và không hiển thị địa chỉ chính xác cho đối thủ.</span></p></div>
+    <div class="assistant-note"><lucide-icon name="sparkles" class="w-5 h-5"></lucide-icon><p><strong>Cần tư vấn thêm?</strong><span>Mở Trợ lý AI ở góc màn hình để hỏi về sân, luật chơi hoặc lịch tập.</span></p></div>
+  </aside>
+  </div>
 </main>

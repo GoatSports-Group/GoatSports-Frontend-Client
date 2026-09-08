@@ -1,5 +1,7 @@
 @use 'material-icons/iconfont/material-icons.scss';
 @use "tailwindcss";
+@use 'styles/goat-product-system' as goat;
+@use 'styles/goat-surfaces' as surfaces;
 
 /* Import Fonts */
 @font-face {
@@ -201,6 +203,7 @@ body.dark {
   --shadow-lg: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
   --shadow-glow-primary: 0 0 25px 0 rgba(5, 150, 105, 0.35);
 }
+
 
 /* Accessibility baseline: visible keyboard focus, skip navigation and motion preferences. */
 .skip-link {
@@ -1125,3 +1128,7 @@ body.dark {
     }
   }
 }
+
+/* GOAT Sports 2026 product design system. Kept last so it normalizes legacy page styles. */
+@include goat.product-system;
+@include surfaces.client-surfaces;

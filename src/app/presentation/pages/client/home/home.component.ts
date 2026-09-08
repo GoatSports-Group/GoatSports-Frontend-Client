@@ -1,5 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { AfterViewInit, Component, ElementRef, NgZone, OnDestroy, OnInit, PLATFORM_ID, inject } from '@angular/core';
 import { Router } from '@angular/router';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { VENUE_SEARCH_REPOSITORY_TOKEN } from '@application/ports/persistence/venue-search.repository';
 import { Venue, SportType, SPORT_TYPE_OPTIONS } from '@application/dto/venue/venue.dto';
 
@@ -9,9 +12,13 @@ import { Venue, SportType, SPORT_TYPE_OPTIONS } from '@application/dto/venue/ven
   styleUrls: ['./home.component.scss'],
   standalone: false
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private router = inject(Router);
   private venueSearchRepo = inject(VENUE_SEARCH_REPOSITORY_TOKEN);
+  private host = inject(ElementRef<HTMLElement>);
+  private zone = inject(NgZone);
+  private platformId = inject(PLATFORM_ID);
+  private animationContext?: ReturnType<typeof gsap.context>;
 
   readonly SportType = SportType;
   sportTypes = Object.values(SportType);
@@ -47,6 +54,49 @@ export class HomeComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadHomeData();
+  }
+
+  ngAfterViewInit(): void {
+    if (!isPlatformBrowser(this.platformId) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
+
+    this.zone.runOutsideAngular(() => {
+      gsap.registerPlugin(ScrollTrigger);
+      this.animationContext = gsap.context(() => {
+        gsap.from('.home-hero__content > *', {
+          autoAlpha: 0,
+          y: 24,
+          duration: .7,
+          stagger: .08,
+          ease: 'power3.out'
+        });
+
+        gsap.to('.home-hero__image', {
+          yPercent: 9,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: '.home-hero',
+            start: 'top top',
+            end: 'bottom top',
+            scrub: .6
+          }
+        });
+
+        gsap.utils.toArray<HTMLElement>('.section-heading, .play-network__lead, .network-card').forEach(element => {
+          gsap.from(element, {
+            y: 28,
+            duration: .65,
+            ease: 'power3.out',
+            scrollTrigger: { trigger: element, start: 'top 88%', once: true }
+          });
+        });
+      }, this.host.nativeElement);
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.animationContext?.revert();
   }
 
   loadHomeData(): void {

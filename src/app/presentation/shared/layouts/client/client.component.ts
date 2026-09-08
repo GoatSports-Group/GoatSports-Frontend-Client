@@ -46,4 +46,8 @@ export class ClientComponent implements OnInit {
   redirectToLogin() {
     window.location.href = `${this.authApiBase}/login?redirect=${encodeURIComponent(window.location.origin + this.router.url)}`;
   }
+
+  get showFooter(): boolean {
+    return !this.router.url.startsWith('/chat');
+  }
 }

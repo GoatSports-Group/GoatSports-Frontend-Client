@@ -90,6 +90,32 @@
     }
   </main>
 
+  @if (activeRoom(); as room) {
+    <aside class="chat-context" aria-label="Thông tin cuộc trò chuyện">
+      <div class="context-cover">
+        <img [src]="room.avatarUrl || 'assets/images/default-avatar.png'" [alt]="room.name || 'Cuộc trò chuyện'" (error)="useDefaultAvatar($event)" />
+      </div>
+      <section class="context-profile">
+        <p class="eyebrow">Đang trò chuyện</p>
+        <h2>{{ room.name || 'Người chơi GoatSports' }}</h2>
+        <p>{{ getRoomMeta(room) }}</p>
+      </section>
+      <section class="context-section">
+        <header><h3>Thành viên</h3><span>{{ room.participants.length }}</span></header>
+        @for (participant of room.participants; track participant.userId) {
+          <div class="context-member">
+            <img [src]="participant.userAvatar || 'assets/images/default-avatar.png'" [alt]="participant.userName || 'Thành viên'" (error)="useDefaultAvatar($event)" />
+            <span><strong>{{ participant.userName || 'Thành viên' }}</strong><small>{{ participant.userId === currentUserId ? 'Bạn' : 'Đồng đội' }}</small></span>
+          </div>
+        }
+      </section>
+      <section class="context-actions">
+        <a routerLink="/venues"><lucide-icon name="map-pin" class="w-5 h-5"></lucide-icon><span><strong>Tìm sân cùng chơi</strong><small>Xem sân và lịch trống gần bạn</small></span><lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon></a>
+        <a routerLink="/friends"><lucide-icon name="users" class="w-5 h-5"></lucide-icon><span><strong>Quản lý bạn bè</strong><small>Lời mời, kết nối và danh sách chặn</small></span><lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon></a>
+      </section>
+    </aside>
+  }
+
   @if (showNewGroupModal()) {
     <div class="modal-backdrop" (click)="closeGroupModal()">
       <section class="group-modal" appAccessibleDialog aria-labelledby="group-modal-title" (dialogClosed)="closeGroupModal()" (click)="$event.stopPropagation()">

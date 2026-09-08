@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { NavigationEnd, Router } from '@angular/router';
+import { Subscription, filter } from 'rxjs';
 import { AiRepositoryPort } from '@application/ports/ai.repository.port';
 import { VenueRecommendation } from '@application/dto/matchmaking/matchmaking.dto';
 
@@ -17,9 +18,10 @@ interface ChatMessage {
   styleUrls: ['./ai-assistant-modal.component.scss'],
   standalone: false
 })
-export class AiAssistantModalComponent {
+export class AiAssistantModalComponent implements OnInit, OnDestroy {
 
   isOpen = false;
+  isDocked = false;
   inputText = '';
   loading = false;
 
@@ -35,6 +37,19 @@ export class AiAssistantModalComponent {
     private readonly aiRepo: AiRepositoryPort,
     private readonly router: Router
   ) {}
+
+  private navigationSubscription?: Subscription;
+
+  ngOnInit(): void {
+    this.syncWithRoute(this.router.url);
+    this.navigationSubscription = this.router.events
+      .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+      .subscribe(event => this.syncWithRoute(event.urlAfterRedirects));
+  }
+
+  ngOnDestroy(): void {
+    this.navigationSubscription?.unsubscribe();
+  }
 
   toggleChat(): void {
     this.isOpen = !this.isOpen;
@@ -71,5 +86,10 @@ export class AiAssistantModalComponent {
   goToVenue(id: string): void {
     this.isOpen = false;
     this.router.navigate(['/venues', id]);
+  }
+
+  private syncWithRoute(url: string): void {
+    this.isDocked = url.startsWith('/matchmaking');
+    if (this.isDocked) this.isOpen = true;
   }
 }

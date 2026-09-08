@@ -166,3 +166,24 @@
   .card-actions { width: 100%; justify-content: flex-end; }
   .player-search { flex-wrap: wrap; input { flex-basis: calc(100% - 2rem); } .btn-primary { width: 100%; } }
 }
+
+/* Editorial community directory */
+.friends-page-wrapper {
+  min-height: calc(100vh - 70px);
+  padding: clamp(2rem, 5vw, 4.5rem) var(--page-gutter) 5rem;
+  background: var(--bg-body);
+}
+
+.friends-container { max-width: var(--page-max); }
+.page-header { min-height: 150px; align-items: flex-end; padding-bottom: 1.6rem; border-bottom: 1px solid var(--border-color); }
+.page-title { font-size: clamp(2.8rem, 6vw, 5.7rem); font-style: italic; line-height: .9; letter-spacing: -.075em; text-transform: uppercase; }
+.page-subtitle { max-width: 620px; font-size: .85rem; }
+.btn-chat-shortcut,.btn-primary,.btn-secondary,.btn-danger { border-radius: var(--border-radius-sm); box-shadow: none; }
+.tabs-nav { gap: 0; padding: 0; margin: 0 0 1.5rem; border-bottom: 1px solid var(--border-color); border-radius: 0; background: transparent; }
+.tabs-nav .tab-btn { min-height: 54px; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; }
+.tabs-nav .tab-btn.active { border-bottom-color: var(--primary); background: #fff; box-shadow: none; }
+.friend-card { min-height: 86px; border-radius: var(--border-radius); box-shadow: none; transition: var(--transition-smooth); }
+.friend-card:hover { border-color: #a4cfbf; transform: translateY(-2px); }
+.icon-action,.player-search,.loading-box,.empty-state,.confirm-card { border-radius: var(--border-radius); }
+.player-search { border-color: var(--border-color); }
+.loading-box,.empty-state { min-height: 230px; }

@@ -282,3 +282,13 @@
     gap: 8px;
   }
 }
+
+/* Calm editorial footer: no decorative gradients or glass effects. */
+.app-footer { padding-top: 48px; border-top-color: var(--border-color); background: #fff; }
+.app-footer::before { display: none; }
+.footer-container { max-width: var(--page-max); padding-inline: var(--page-gutter); }
+.footer-grid { gap: clamp(2rem, 4vw, 4rem); }
+.footer-logo img { filter: none; }
+.social-links a,.social-links span { border-radius: var(--border-radius-sm); box-shadow: none; }
+.newsletter-card { border-color: var(--border-color); border-radius: var(--border-radius); background: var(--primary-light); box-shadow: none; }
+.newsletter-input input,.newsletter-form button { border-radius: var(--border-radius-sm); }

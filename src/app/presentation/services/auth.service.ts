@@ -84,9 +84,17 @@ export class AuthService {
       return;
     }
 
+    const shouldRedirectHome = this.isAuthenticated;
     this.isLoggingOut = true;
     console.log('Performing logout...');
     this.clearSession();
+
+    // Anonymous session probes can fail with 401. Preserve the requested
+    // public route instead of treating that as an explicit logout.
+    if (!shouldRedirectHome) {
+      this.isLoggingOut = false;
+      return;
+    }
 
     this.router.navigate(['/home']).then(() => {
       setTimeout(() => {

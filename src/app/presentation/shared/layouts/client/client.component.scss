@@ -10,6 +10,35 @@
   padding-top: 70px;
 }
 
+@media (max-width: 680px) {
+  .client-content-wrapper { padding-top: 64px; }
+}
+
+.client-main-outlet {
+  min-width: 0;
+  outline: none;
+}
+
+.mobile-drawer {
+  width: min(88vw, 320px);
+
+  .drawer-header {
+    background: #fff;
+
+    .logo-img { filter: none; }
+    .logo-text { color: var(--text-dark); }
+  }
+
+  .drawer-menu .drawer-item {
+    min-height: 46px;
+    border-radius: var(--border-radius-sm);
+    transition: background-color var(--transition-smooth), color var(--transition-smooth);
+
+    &:hover { transform: none; }
+    &.active { box-shadow: none; }
+  }
+}
+
 .client-main-outlet {
   flex-grow: 1;
   display: flex;

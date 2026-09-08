@@ -63,7 +63,9 @@
       <router-outlet></router-outlet>
     </main>
 
-    <app-footer></app-footer>
+    @if (showFooter) {
+      <app-footer></app-footer>
+    }
     <app-ai-assistant-modal></app-ai-assistant-modal>
   </mat-sidenav-content>
 

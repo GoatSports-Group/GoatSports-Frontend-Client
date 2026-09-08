@@ -1,54 +1,43 @@
-<!-- Floating Trigger Button -->
-<button type="button" class="floating-ai-btn" aria-label="Mở trợ lý GOAT Sports" [attr.aria-expanded]="isOpen" [attr.aria-controls]="isOpen ? 'ai-assistant-dialog' : null" (click)="toggleChat()">
-  <i class="pi pi-bolt" aria-hidden="true"></i>
-  <span class="ai-label">Trợ lý AI</span>
+<button type="button" class="floating-ai-btn" [class.is-hidden]="isOpen && isDocked" aria-label="Mở trợ lý GOAT Sports" [attr.aria-expanded]="isOpen" [attr.aria-controls]="isOpen ? 'ai-assistant-dialog' : null" (click)="toggleChat()">
+  <lucide-icon name="sparkles" class="w-5 h-5"></lucide-icon>
+  <span>Trợ lý AI</span>
 </button>
 
-<!-- Chat Window -->
-<div id="ai-assistant-dialog" class="ai-chat-window" *ngIf="isOpen" appAccessibleDialog aria-labelledby="ai-assistant-title" (dialogClosed)="toggleChat()">
-  <div class="chat-header">
+<section id="ai-assistant-dialog" class="ai-chat-window" [class.ai-chat-window--docked]="isDocked" *ngIf="isOpen" appAccessibleDialog aria-labelledby="ai-assistant-title" (dialogClosed)="toggleChat()">
+  <header class="chat-header">
     <div class="bot-profile">
-      <div class="bot-avatar"><i class="pi pi-bolt"></i></div>
-      <div>
-        <h4 id="ai-assistant-title">GOAT Sports AI</h4>
-        <span class="status-dot">Trực tuyến</span>
-      </div>
+      <span class="bot-avatar"><lucide-icon name="sparkles" class="w-4 h-4"></lucide-icon></span>
+      <span><strong id="ai-assistant-title">GOAT AI</strong><small><i></i> Trực tuyến</small></span>
     </div>
-    <button type="button" class="btn-close" aria-label="Đóng trợ lý" (click)="toggleChat()"><i class="pi pi-times" aria-hidden="true"></i></button>
+    <button type="button" class="btn-close" aria-label="Đóng trợ lý" (click)="toggleChat()"><lucide-icon name="x" class="w-4 h-4"></lucide-icon></button>
+  </header>
+
+  <div class="ai-disclosure"><lucide-icon name="shield-check" class="w-4 h-4"></lucide-icon><span>Trả lời từ dữ liệu và dịch vụ của GOAT Sports</span></div>
+
+  <div class="chat-messages" aria-live="polite">
+    @for (message of messages; track $index) {
+      <article class="msg-row" [class.user]="message.sender === 'USER'">
+        @if (message.sender === 'AI') { <span class="mini-avatar">GS</span> }
+        <div class="msg-bubble">
+          <p>{{ message.text }}</p>
+          @if (message.venues?.length) {
+            <div class="venues-suggestions">
+              @for (venue of message.venues; track venue.venueId) {
+                <button type="button" class="sugg-card" (click)="goToVenue(venue.venueId)"><span><strong>{{ venue.venueName }}</strong><small>{{ venue.distanceKm }} km · {{ venue.rating }}/5 @if (venue.minPrice != null) { · từ {{ venue.minPrice | number:'1.0-0' }}đ/giờ }</small></span><lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon><p>{{ venue.matchReason }}</p></button>
+              }
+            </div>
+          }
+          @if (message.actions?.length) {
+            <div class="actions-chips">@for (action of message.actions; track action) { <button type="button" (click)="sendMessage(action)">{{ action }}</button> }</div>
+          }
+        </div>
+      </article>
+    }
+    @if (loading) { <div class="msg-row"><span class="mini-avatar">GS</span><div class="msg-bubble typing"><span></span><span></span><span></span><em>Đang tìm câu trả lời...</em></div></div> }
   </div>
 
-  <div class="chat-messages">
-    <div class="msg-bubble" *ngFor="let m of messages" [class.user]="m.sender === 'USER'" [class.ai]="m.sender === 'AI'">
-      <p class="text">{{ m.text }}</p>
-
-      <!-- Suggested Venues -->
-      <div class="venues-suggestions" *ngIf="m.venues && m.venues.length > 0">
-        <button type="button" class="sugg-card" *ngFor="let v of m.venues" (click)="goToVenue(v.venueId)">
-          <h5>{{ v.venueName }}</h5>
-          <span class="meta">
-            {{ v.distanceKm }} km • {{ v.rating }}/5
-            @if (v.minPrice != null) { • từ {{ v.minPrice | number:'1.0-0' }}đ/giờ }
-          </span>
-          <p class="reason">{{ v.matchReason }}</p>
-        </button>
-      </div>
-
-
-      <!-- Suggested Actions -->
-      <div class="actions-chips" *ngIf="m.actions && m.actions.length > 0">
-        <button type="button" *ngFor="let act of m.actions" (click)="sendMessage(act)">
-          {{ act }}
-        </button>
-      </div>
-    </div>
-
-    <div class="msg-bubble ai typing" *ngIf="loading">
-      <span>AI đang suy nghĩ...</span>
-    </div>
-  </div>
-
-  <div class="chat-footer">
-    <input type="text" aria-label="Tin nhắn cho trợ lý GOAT Sports" [(ngModel)]="inputText" (keyup.enter)="sendMessage()" placeholder="Hỏi tìm sân, đối thủ ghép kèo..." />
-    <button type="button" class="btn-send" aria-label="Gửi tin nhắn" (click)="sendMessage()"><i class="pi pi-send" aria-hidden="true"></i></button>
-  </div>
-</div>
+  <footer class="chat-footer">
+    <label><span class="sr-only">Tin nhắn cho trợ lý GOAT Sports</span><input type="text" [(ngModel)]="inputText" (keyup.enter)="sendMessage()" placeholder="Hỏi GOAT AI bất kỳ điều gì..." /></label>
+    <button type="button" aria-label="Gửi tin nhắn" [disabled]="!inputText.trim() || loading" (click)="sendMessage()"><lucide-icon name="send" class="w-4 h-4"></lucide-icon></button>
+  </footer>
+</section>
