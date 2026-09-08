@@ -36,11 +36,13 @@ export interface Booking {
 export interface BookingCancellation {
   cancellationId: string;
   bookingId: string;
+  requestedByUserId: string;
   refundId?: string;
   reason: string;
   refundPercentage: number;
   refundAmount: number;
   status: CancellationStatus;
+  reviewMode: 'AUTOMATIC' | 'OWNER_REVIEW';
   processedBy?: string;
   decisionReason?: string;
   processedAt?: string;

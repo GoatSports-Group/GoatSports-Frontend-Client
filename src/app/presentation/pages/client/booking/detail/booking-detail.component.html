@@ -144,7 +144,11 @@
                 <li [class.complete]="cancellation.status !== cancellationStatus.PENDING" [class.rejected]="cancellation.status === cancellationStatus.REJECTED">
                   <span class="timeline-dot"></span>
                   <div>
-                    <strong>{{ cancellation.status === cancellationStatus.REJECTED ? 'Không được chấp thuận' : 'Chủ sân xử lý' }}</strong>
+                    <strong>
+                      {{ cancellation.status === cancellationStatus.REJECTED
+                        ? 'Không được chấp thuận'
+                        : cancellation.reviewMode === 'AUTOMATIC' ? 'Hệ thống tự động duyệt' : 'Chủ sân xử lý' }}
+                    </strong>
                     @if (cancellation.processedAt) { <small>{{ cancellation.processedAt | date:'HH:mm dd/MM/yyyy' }}</small> }
                   </div>
                 </li>
@@ -154,7 +158,8 @@
                     <div>
                       <strong>
                         @if (cancellation.status === cancellationStatus.REFUNDED) { Đã hoàn tiền }
-                        @else if (cancellation.status === cancellationStatus.REFUND_FAILED) { Đối soát thủ công }
+                        @else if (cancellation.status === cancellationStatus.REFUND_MANUAL_REVIEW) { Chủ sân đang hoàn tiền thủ công }
+                        @else if (cancellation.status === cancellationStatus.REFUND_FAILED) { Hoàn tiền gặp lỗi }
                         @else { Đang hoàn tiền }
                       </strong>
                       <small>Refund {{ cancellation.refundId || 'đang chờ tạo' }}</small>
@@ -172,10 +177,10 @@
                 }
               </div>
 
-              @if (cancellation.status === cancellationStatus.REFUND_FAILED) {
+              @if (cancellation.status === cancellationStatus.REFUND_MANUAL_REVIEW) {
                 <div class="manual-review-note">
                   <lucide-icon name="shield-alert" class="w-5 h-5"></lucide-icon>
-                  <span>Giao dịch chuyển khoản cần được đối soát và hoàn thủ công. Mã refund được giữ để tránh tạo trùng.</span>
+                  <span>payOS chưa hỗ trợ hoàn tiền qua API. Chủ sân đang chuyển hoàn và sẽ xác nhận mã giao dịch trên hệ thống.</span>
                 </div>
               }
             </section>
@@ -233,11 +238,17 @@
           </button>
         </div>
 
-        @if (currentBooking.cancellationPolicy; as policy) {
+        @if (automaticCancellation()) {
+          <div class="refund-preview">
+            <span>Yêu cầu này thuộc thời gian tự động chấp thuận</span>
+            <strong>{{ formatPrice(estimatedRefund()) }}</strong>
+            <small>Trong vòng 60 phút kể từ lúc đặt: hoàn 100% tiền cọc đã thanh toán. Booking chưa thanh toán sẽ được hủy ngay.</small>
+          </div>
+        } @else if (currentBooking.cancellationPolicy; as policy) {
           <div class="refund-preview">
             <span>Số tiền dự kiến được hoàn theo thời điểm hiện tại</span>
             <strong>{{ formatPrice(estimatedRefund()) }}</strong>
-            <small>Chính sách: {{ policy.fullRefundHoursBefore }} giờ hoàn đủ, {{ policy.partialRefundHoursBefore }} giờ hoàn {{ policy.partialRefundPercentage }}%.</small>
+            <small>Yêu cầu sẽ được chủ sân duyệt. Chính sách: {{ policy.fullRefundHoursBefore }} giờ hoàn đủ, {{ policy.partialRefundHoursBefore }} giờ hoàn {{ policy.partialRefundPercentage }}%.</small>
           </div>
         } @else {
           <div class="refund-preview refund-preview--warning">
@@ -262,7 +273,7 @@
           <button type="button" class="secondary-button" [disabled]="cancelling()" (click)="closeCancelModal()">Quay lại</button>
           <button type="button" class="danger-button" [disabled]="cancelling() || !cancelReason().trim()" (click)="submitCancel()">
             @if (cancelling()) { <lucide-icon name="loader-2" class="w-4 h-4 animate-spin"></lucide-icon> Đang gửi }
-            @else { Gửi yêu cầu hủy }
+            @else { {{ automaticCancellation() ? 'Hủy sân và hoàn tiền' : 'Gửi chủ sân xét duyệt' }} }
           </button>
         </div>
       </section>

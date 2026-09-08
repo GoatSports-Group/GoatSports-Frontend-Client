@@ -61,7 +61,18 @@ export class BookingDetailComponent {
     const booking = this.booking();
     return !!booking
       && !booking.cancellation
-      && [BookingStatus.CONFIRMED, BookingStatus.PENDING_PAYMENT].includes(booking.status);
+      && [BookingStatus.CONFIRMED, BookingStatus.PENDING_PAYMENT].includes(booking.status)
+      && new Date(`${booking.playDate}T${booking.startTime}`).getTime() > Date.now();
+  });
+
+  readonly automaticCancellation = computed(() => {
+    const booking = this.booking();
+    if (!booking) return false;
+    if (booking.status === BookingStatus.PENDING_PAYMENT && !booking.depositPaymentId) return true;
+    const createdAt = new Date(booking.createdAt).getTime();
+    return Number.isFinite(createdAt)
+      && Date.now() >= createdAt
+      && Date.now() <= createdAt + 60 * 60 * 1000;
   });
 
   readonly canReview = computed(() => {
@@ -81,7 +92,9 @@ export class BookingDetailComponent {
   readonly estimatedRefund = computed(() => {
     const booking = this.booking();
     const policy = booking?.cancellationPolicy;
-    if (!booking?.depositPaymentId || !policy) return 0;
+    if (!booking?.depositPaymentId) return 0;
+    if (this.automaticCancellation()) return booking.depositAmount;
+    if (!policy) return 0;
     const startAt = new Date(`${booking.playDate}T${booking.startTime}`);
     const hoursBefore = Math.floor((startAt.getTime() - Date.now()) / 3_600_000);
     if (hoursBefore >= policy.fullRefundHoursBefore) return booking.depositAmount;
@@ -138,10 +151,13 @@ export class BookingDetailComponent {
     this.cancelling.set(true);
     this.bookingRepository.cancelBooking(this.bookingId(), { reason }).subscribe({
       next: response => {
-        this.booking.update(booking => booking ? { ...booking, cancellation: response.data } : booking);
         this.cancelling.set(false);
         this.showCancelModal.set(false);
-        this.notifyService.success('Đã gửi yêu cầu hủy sân. Bạn có thể theo dõi tiến trình ngay trên vé.');
+        const automatic = response.data.reviewMode === 'AUTOMATIC';
+        this.notifyService.success(automatic
+          ? 'Yêu cầu đã được tự động chấp thuận. Hệ thống đang xử lý hoàn tiền nếu có.'
+          : 'Đã gửi yêu cầu hủy sân đến chủ sân. Bạn có thể theo dõi tiến trình ngay trên vé.');
+        this.loadBooking();
       },
       error: error => {
         this.cancelling.set(false);

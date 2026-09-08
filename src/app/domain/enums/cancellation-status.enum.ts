@@ -3,6 +3,7 @@ export enum CancellationStatus {
   APPROVED = 'APPROVED',
   REJECTED = 'REJECTED',
   REFUND_PROCESSING = 'REFUND_PROCESSING',
+  REFUND_MANUAL_REVIEW = 'REFUND_MANUAL_REVIEW',
   REFUNDED = 'REFUNDED',
   REFUND_FAILED = 'REFUND_FAILED',
 }
@@ -12,6 +13,7 @@ export const CANCELLATION_STATUS_LABELS: Record<CancellationStatus, string> = {
   [CancellationStatus.APPROVED]: 'Đã chấp thuận',
   [CancellationStatus.REJECTED]: 'Bị từ chối',
   [CancellationStatus.REFUND_PROCESSING]: 'Đang hoàn tiền',
+  [CancellationStatus.REFUND_MANUAL_REVIEW]: 'Chờ hoàn tiền thủ công',
   [CancellationStatus.REFUNDED]: 'Đã hoàn tiền',
   [CancellationStatus.REFUND_FAILED]: 'Cần xử lý thủ công',
 };
