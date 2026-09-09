@@ -237,6 +237,26 @@
   }
 }
 
+.refund-action {
+  width: 100%; min-height: 46px; margin-top: 1rem; border: 0; border-radius: 13px;
+  display: flex; align-items: center; justify-content: center; gap: .5rem;
+  color: #fff; background: #047857; font-weight: 800; cursor: pointer;
+  box-shadow: 0 10px 24px rgba(4, 120, 87, .18);
+  &:disabled { opacity: .65; cursor: wait; }
+}
+
+.refund-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+}
+
+.refund-action--secondary {
+  color: #0f766e;
+  background: #f0fdfa;
+  border: 1px solid #99f6e4;
+}
+
 .booking-detail-page {
   color: #0f172a;
 

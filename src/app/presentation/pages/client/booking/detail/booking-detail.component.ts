@@ -8,7 +8,7 @@ import {
   signal
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { BOOKING_REPOSITORY_TOKEN } from '@application/ports/persistence/booking.repository';
 import { REVIEW_REPOSITORY_TOKEN } from '@application/ports/persistence/review.repository';
@@ -22,6 +22,7 @@ import {
 } from '@application/dto/booking/booking.dto';
 import { NotifyService } from '@shared/components/notify/notify.service';
 import { QrCodeComponent } from '@shared/components/qr-code/qr-code.component';
+import { BANK_ACCOUNT_REPOSITORY_TOKEN } from '@application/ports/persistence/bank-account.repository';
 
 @Component({
   selector: 'app-booking-detail',
@@ -32,6 +33,8 @@ import { QrCodeComponent } from '@shared/components/qr-code/qr-code.component';
 })
 export class BookingDetailComponent {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly bankAccountRepository = inject(BANK_ACCOUNT_REPOSITORY_TOKEN);
   private readonly bookingRepository = inject(BOOKING_REPOSITORY_TOKEN);
   private readonly reviewRepository = inject(REVIEW_REPOSITORY_TOKEN);
   private readonly notifyService = inject(NotifyService);
@@ -47,6 +50,7 @@ export class BookingDetailComponent {
   readonly showCancelModal = signal(false);
   readonly cancelReason = signal('');
   readonly cancelling = signal(false);
+  readonly claimingRefund = signal(false);
   readonly showReviewModal = signal(false);
   readonly reviewRating = signal(5);
   readonly reviewContent = signal('');
@@ -155,13 +159,46 @@ export class BookingDetailComponent {
         this.showCancelModal.set(false);
         const automatic = response.data.reviewMode === 'AUTOMATIC';
         this.notifyService.success(automatic
-          ? 'Yêu cầu đã được tự động chấp thuận. Hệ thống đang xử lý hoàn tiền nếu có.'
+          ? 'Yêu cầu đã được tự động chấp thuận. Bạn có thể liên kết ngân hàng và nhận hoàn tiền ngay.'
           : 'Đã gửi yêu cầu hủy sân đến chủ sân. Bạn có thể theo dõi tiến trình ngay trên vé.');
         this.loadBooking();
       },
       error: error => {
         this.cancelling.set(false);
         this.notifyService.error(error?.error?.message || 'Không thể gửi yêu cầu hủy sân.');
+      }
+    });
+  }
+
+  claimRefund(): void {
+    const cancellation = this.booking()?.cancellation;
+    if (!cancellation?.refundId || this.claimingRefund()) return;
+    this.claimingRefund.set(true);
+    this.bankAccountRepository.claimRefund(cancellation.refundId).subscribe({
+      next: refund => {
+        this.claimingRefund.set(false);
+        this.notifyService.success(refund.status === 'SUCCEEDED'
+          ? 'Tiền hoàn đã được chuyển về tài khoản ngân hàng.'
+          : 'Lệnh hoàn tiền đang được payOS xử lý.');
+        this.loadBooking();
+      },
+      error: error => {
+        this.claimingRefund.set(false);
+        if (error?.error?.error === 'BANK_ACCOUNT_REQUIRED' || error?.error?.code === 'BANK_ACCOUNT_REQUIRED') {
+          void this.openBankLinking();
+          return;
+        }
+        this.notifyService.error(error?.error?.message || 'Không thể nhận hoàn tiền lúc này.');
+      }
+    });
+  }
+
+  openBankLinking(): Promise<boolean> {
+    return this.router.navigate(['/settings'], {
+      queryParams: {
+        tab: 'banking',
+        reason: 'refund',
+        returnUrl: `/booking/detail/${this.bookingId()}`
       }
     });
   }

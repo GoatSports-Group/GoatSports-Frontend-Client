@@ -17,6 +17,7 @@ import { STORAGE_REPOSITORY_TOKEN } from '@application/ports/persistence/storage
 import { VENUE_SEARCH_REPOSITORY_TOKEN } from '@application/ports/persistence/venue-search.repository';
 import { BOOKING_REPOSITORY_TOKEN } from '@application/ports/persistence/booking.repository';
 import { PAYMENT_REPOSITORY_TOKEN } from '@application/ports/persistence/payment.repository';
+import { BANK_ACCOUNT_REPOSITORY_TOKEN } from '@application/ports/persistence/bank-account.repository';
 import { CHAT_REPOSITORY_TOKEN } from '@application/ports/persistence/chat.repository';
 import { FRIEND_REPOSITORY_TOKEN } from '@application/ports/persistence/friend.repository';
 import { REVIEW_REPOSITORY_TOKEN } from '@application/ports/persistence/review.repository';
@@ -34,6 +35,7 @@ import { StorageRepositoryImpl } from '@infrastructure/repositories/storage.repo
 import { VenueSearchRepositoryImpl } from '@infrastructure/repositories/venue-search.repository.impl';
 import { BookingRepositoryImpl } from '@infrastructure/repositories/booking.repository.impl';
 import { PaymentRepositoryImpl } from '@infrastructure/repositories/payment.repository.impl';
+import { BankAccountRepositoryImpl } from '@infrastructure/repositories/bank-account.repository.impl';
 import { ChatRepositoryImpl } from '@infrastructure/repositories/chat.repository.impl';
 import { FriendRepositoryImpl } from '@infrastructure/repositories/friend.repository.impl';
 import { ReviewRepositoryImpl } from '@infrastructure/repositories/review.repository.impl';
@@ -188,6 +190,7 @@ import {
     { provide: VENUE_SEARCH_REPOSITORY_TOKEN, useClass: VenueSearchRepositoryImpl },
     { provide: BOOKING_REPOSITORY_TOKEN, useClass: BookingRepositoryImpl },
     { provide: PAYMENT_REPOSITORY_TOKEN, useClass: PaymentRepositoryImpl },
+    { provide: BANK_ACCOUNT_REPOSITORY_TOKEN, useClass: BankAccountRepositoryImpl },
     { provide: CHAT_REPOSITORY_TOKEN, useClass: ChatRepositoryImpl },
     { provide: FRIEND_REPOSITORY_TOKEN, useClass: FriendRepositoryImpl },
     { provide: REVIEW_REPOSITORY_TOKEN, useClass: ReviewRepositoryImpl },

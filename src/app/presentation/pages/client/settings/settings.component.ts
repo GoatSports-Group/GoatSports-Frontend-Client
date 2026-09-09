@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { Subject } from 'rxjs';
+import { ActivatedRoute, Router } from '@angular/router';
 import { finalize, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { User } from '@application/dto/user/user.dto';
 import { AuthService } from '@presentation/services/auth.service';
@@ -21,6 +22,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
   private storageService = inject(StorageService);
   private userService = inject(UserService);
   private notifyService = inject(NotifyService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   private readonly destroy$ = new Subject<void>();
 
@@ -34,6 +37,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
   public avatarLoadFailed = false;
 
   ngOnInit(): void {
+    const requestedTab = this.route.snapshot.queryParamMap.get('tab') as SettingsTabKey | null;
+    if (requestedTab && this.tabs.some(tab => tab.key === requestedTab)) this.activeTab = requestedTab;
     this.user = this.authService.currentUser;
     this.authService.currentUser$
       .pipe(takeUntil(this.destroy$))
@@ -71,6 +76,12 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   setActiveTab(key: SettingsTabKey): void {
     this.activeTab = key;
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { tab: key },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
   }
 
   get avatarUrl(): string | null {

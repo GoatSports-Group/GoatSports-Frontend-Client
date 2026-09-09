@@ -158,6 +158,8 @@
                     <div>
                       <strong>
                         @if (cancellation.status === cancellationStatus.REFUNDED) { Đã hoàn tiền }
+                        @else if (cancellation.status === cancellationStatus.REFUND_AWAITING_CLAIM) { Chờ bạn nhận hoàn tiền }
+                        @else if (cancellation.status === cancellationStatus.REFUND_AWAITING_BANK_ACCOUNT) { Chờ liên kết tài khoản ngân hàng }
                         @else if (cancellation.status === cancellationStatus.REFUND_MANUAL_REVIEW) { Chủ sân đang hoàn tiền thủ công }
                         @else if (cancellation.status === cancellationStatus.REFUND_FAILED) { Hoàn tiền gặp lỗi }
                         @else { Đang hoàn tiền }
@@ -176,6 +178,24 @@
                   <p>{{ cancellation.decisionReason }}</p>
                 }
               </div>
+
+              @if (cancellation.status === cancellationStatus.REFUND_AWAITING_CLAIM) {
+                <button type="button" class="refund-action" [disabled]="claimingRefund()" (click)="claimRefund()">
+                  @if (claimingRefund()) { <lucide-icon name="loader-2" class="w-4 h-4 animate-spin"></lucide-icon> Đang xử lý }
+                  @else { <lucide-icon name="wallet" class="w-4 h-4"></lucide-icon> Nhận hoàn tiền }
+                </button>
+              }
+              @if (cancellation.status === cancellationStatus.REFUND_AWAITING_BANK_ACCOUNT) {
+                <div class="refund-actions">
+                  <button type="button" class="refund-action refund-action--secondary" (click)="openBankLinking()">
+                    <lucide-icon name="credit-card" class="w-4 h-4"></lucide-icon> Liên kết / cập nhật ngân hàng
+                  </button>
+                  <button type="button" class="refund-action" [disabled]="claimingRefund()" (click)="claimRefund()">
+                    @if (claimingRefund()) { <lucide-icon name="loader-2" class="w-4 h-4 animate-spin"></lucide-icon> Đang xử lý }
+                    @else { <lucide-icon name="wallet" class="w-4 h-4"></lucide-icon> Đã liên kết, nhận hoàn tiền }
+                  </button>
+                </div>
+              }
 
               @if (cancellation.status === cancellationStatus.REFUND_MANUAL_REVIEW) {
                 <div class="manual-review-note">
