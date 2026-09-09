@@ -33,13 +33,11 @@ export class PaymentResultComponent implements OnInit {
   state: PaymentResultState = 'checking';
   checking = false;
   private proposalSynced = false;
+  private returnedFromCancelledUrl = false;
 
   ngOnInit(): void {
     this.context = this.pendingPayment.get();
-    if (this.route.snapshot.data['paymentResult'] === 'cancelled') {
-      this.state = 'cancelled';
-      return;
-    }
+    this.returnedFromCancelledUrl = this.route.snapshot.data['paymentResult'] === 'cancelled';
     if (!this.context) {
       this.state = 'missing';
       return;
@@ -61,7 +59,9 @@ export class PaymentResultComponent implements OnInit {
       takeUntilDestroyed(this.destroyRef),
       finalize(() => {
         this.checking = false;
-        if (this.state === 'checking') this.state = 'pending';
+        if (this.state === 'checking') {
+          this.state = this.returnedFromCancelledUrl ? 'cancelled' : 'pending';
+        }
       })
     ).subscribe(payment => {
       if (!payment) return;
@@ -69,6 +69,8 @@ export class PaymentResultComponent implements OnInit {
       if (payment.status === 'SUCCEEDED') {
         this.state = 'success';
         this.syncMatchmakingProposal();
+      } else if (payment.status === 'CANCELLED') {
+        this.state = 'cancelled';
       } else if (!this.isProcessing(payment.status)) {
         this.state = 'failed';
       }
@@ -89,6 +91,13 @@ export class PaymentResultComponent implements OnInit {
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency', currency: 'VND', maximumFractionDigits: 0
     }).format(value);
+  }
+
+  get failureReason(): string {
+    if (this.payment?.failureReason) return this.payment.failureReason;
+    if (this.payment?.status === 'EXPIRED') return 'Đã hết thời gian giữ chỗ thanh toán.';
+    if (this.payment?.status === 'CANCELLED') return 'Bạn đã hủy thanh toán trên payOS.';
+    return 'Giao dịch đã thất bại hoặc không thể được payOS xác nhận.';
   }
 
   private isProcessing(status: PaymentStatus): boolean {

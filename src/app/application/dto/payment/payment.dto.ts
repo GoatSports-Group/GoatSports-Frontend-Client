@@ -18,6 +18,8 @@ export interface Payment {
   currency: string;
   description?: string;
   status: PaymentStatus;
+  failureCode?: string;
+  failureReason?: string;
   expiresAt?: string;
   paidAt?: string;
   createdAt: string;

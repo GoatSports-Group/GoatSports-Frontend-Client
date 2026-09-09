@@ -13,11 +13,11 @@
     } @else if (state === 'cancelled') {
       <div class="result-icon result-icon--cancelled"><lucide-icon name="x-circle"></lucide-icon></div>
       <span class="eyebrow">Đã dừng thanh toán</span><h1>Bạn chưa hoàn tất giao dịch</h1>
-      <p>Bạn có thể quay lại nội dung đang thanh toán để thử lại.</p>
+      <p>{{ failureReason }}</p>
     } @else if (state === 'failed') {
       <div class="result-icon result-icon--failed"><lucide-icon name="shield-alert"></lucide-icon></div>
       <span class="eyebrow">Giao dịch chưa thành công</span><h1>Không thể xác nhận khoản thanh toán</h1>
-      <p>Giao dịch đã thất bại, bị hủy hoặc hết hạn.</p>
+      <p>{{ failureReason }}</p>
     } @else if (state === 'pending') {
       <div class="result-icon result-icon--pending"><lucide-icon name="hourglass"></lucide-icon></div>
       <span class="eyebrow">Đang chờ ngân hàng</span><h1>Giao dịch vẫn đang được xử lý</h1>
