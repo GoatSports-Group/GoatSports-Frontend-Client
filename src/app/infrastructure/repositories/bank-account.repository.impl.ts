@@ -3,9 +3,9 @@ import { map, Observable } from 'rxjs';
 import {
   BankAccount,
   BankDirectoryEntry,
-  LinkBankAccountRequest,
   RefundResult
 } from '@application/dto/payment/bank-account.dto';
+import { EncryptedPayload } from '@application/dto/security/encrypted-payload.dto';
 import { BankAccountRepository } from '@application/ports/persistence/bank-account.repository';
 import { BankAccountApi } from '@infrastructure/api/bank-account.api';
 
@@ -21,16 +21,20 @@ export class BankAccountRepositoryImpl implements BankAccountRepository {
     return this.api.getMyAccounts().pipe(map(response => response.data ?? []));
   }
 
-  link(request: LinkBankAccountRequest): Observable<BankAccount> {
+  getEncryptionPublicKey(): Observable<string> {
+    return this.api.getEncryptionPublicKey().pipe(map(response => this.requireData(response.data).publicKey));
+  }
+
+  link(request: EncryptedPayload): Observable<BankAccount> {
     return this.api.link(request).pipe(map(response => this.requireData(response.data)));
   }
 
-  makeDefault(bankAccountId: string): Observable<BankAccount> {
-    return this.api.makeDefault(bankAccountId).pipe(map(response => this.requireData(response.data)));
+  makeDefault(request: EncryptedPayload): Observable<BankAccount> {
+    return this.api.makeDefault(request).pipe(map(response => this.requireData(response.data)));
   }
 
-  disable(bankAccountId: string): Observable<void> {
-    return this.api.disable(bankAccountId);
+  disable(request: EncryptedPayload): Observable<void> {
+    return this.api.disable(request);
   }
 
   claimRefund(refundId: string): Observable<RefundResult> {

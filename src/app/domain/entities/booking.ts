@@ -45,6 +45,7 @@ export interface BookingCancellation {
   reviewMode: 'AUTOMATIC' | 'OWNER_REVIEW';
   processedBy?: string;
   decisionReason?: string;
+  refundFailureReason?: string;
   processedAt?: string;
   createdAt: string;
 }

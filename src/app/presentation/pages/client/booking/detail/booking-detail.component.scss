@@ -549,7 +549,8 @@
   }
 
   .reason-box,
-  .manual-review-note {
+  .manual-review-note,
+  .refund-failure-note {
     padding: 12px;
     border-radius: 12px;
     background: #f8fafc;
@@ -569,6 +570,20 @@
     background: #fff7ed;
     color: #9a3412;
     line-height: 1.45;
+  }
+
+  .refund-failure-note {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    border: 1px solid #fecaca;
+    background: #fef2f2;
+    color: #b91c1c;
+    line-height: 1.45;
+
+    strong,
+    span { display: block; }
+    strong { margin-bottom: 2px; }
   }
 
   .review-stars,

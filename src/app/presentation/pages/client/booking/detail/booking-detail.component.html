@@ -179,6 +179,18 @@
                 }
               </div>
 
+              @if (cancellation.refundFailureReason
+                && (cancellation.status === cancellationStatus.REFUND_FAILED
+                  || cancellation.status === cancellationStatus.REFUND_AWAITING_BANK_ACCOUNT)) {
+                <div class="refund-failure-note" role="alert">
+                  <lucide-icon name="circle-alert" class="w-5 h-5"></lucide-icon>
+                  <div>
+                    <strong>Lý do chưa thể hoàn tiền</strong>
+                    <span>{{ cancellation.refundFailureReason }}</span>
+                  </div>
+                </div>
+              }
+
               @if (cancellation.status === cancellationStatus.REFUND_AWAITING_CLAIM) {
                 <button type="button" class="refund-action" [disabled]="claimingRefund()" (click)="claimRefund()">
                   @if (claimingRefund()) { <lucide-icon name="loader-2" class="w-4 h-4 animate-spin"></lucide-icon> Đang xử lý }
@@ -195,6 +207,13 @@
                     @else { <lucide-icon name="wallet" class="w-4 h-4"></lucide-icon> Đã liên kết, nhận hoàn tiền }
                   </button>
                 </div>
+              }
+
+              @if (cancellation.status === cancellationStatus.REFUND_FAILED) {
+                <button type="button" class="refund-action" [disabled]="claimingRefund()" (click)="claimRefund()">
+                  @if (claimingRefund()) { <lucide-icon name="loader-2" class="w-4 h-4 animate-spin"></lucide-icon> Đang xử lý }
+                  @else { <lucide-icon name="refresh-cw" class="w-4 h-4"></lucide-icon> Thử hoàn tiền lại }
+                </button>
               }
 
               @if (cancellation.status === cancellationStatus.REFUND_MANUAL_REVIEW) {

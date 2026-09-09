@@ -3,16 +3,17 @@ import { Observable } from 'rxjs';
 import {
   BankAccount,
   BankDirectoryEntry,
-  LinkBankAccountRequest,
   RefundResult
 } from '@application/dto/payment/bank-account.dto';
+import { EncryptedPayload } from '@application/dto/security/encrypted-payload.dto';
 
 export interface BankAccountRepository {
   getBanks(): Observable<BankDirectoryEntry[]>;
   getMyAccounts(): Observable<BankAccount[]>;
-  link(request: LinkBankAccountRequest): Observable<BankAccount>;
-  makeDefault(bankAccountId: string): Observable<BankAccount>;
-  disable(bankAccountId: string): Observable<void>;
+  getEncryptionPublicKey(): Observable<string>;
+  link(request: EncryptedPayload): Observable<BankAccount>;
+  makeDefault(request: EncryptedPayload): Observable<BankAccount>;
+  disable(request: EncryptedPayload): Observable<void>;
   claimRefund(refundId: string): Observable<RefundResult>;
 }
 

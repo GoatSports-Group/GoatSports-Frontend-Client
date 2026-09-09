@@ -9,7 +9,8 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { distinctUntilChanged, filter, map } from 'rxjs/operators';
+import { EMPTY, timer } from 'rxjs';
+import { catchError, distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators';
 import { BOOKING_REPOSITORY_TOKEN } from '@application/ports/persistence/booking.repository';
 import { REVIEW_REPOSITORY_TOKEN } from '@application/ports/persistence/review.repository';
 import {
@@ -118,6 +119,14 @@ export class BookingDetailComponent {
       this.bookingId.set(bookingId);
       this.loadBooking();
     });
+
+    timer(5000, 5000).pipe(
+      filter(() => this.booking()?.cancellation?.status === CancellationStatus.REFUND_PROCESSING),
+      switchMap(() => this.bookingRepository.getBookingById(this.bookingId()).pipe(
+        catchError(() => EMPTY)
+      )),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(response => this.applyBookingUpdate(response.data));
   }
 
   loadBooking(): void {
@@ -125,7 +134,7 @@ export class BookingDetailComponent {
     this.error.set(null);
     this.bookingRepository.getBookingById(this.bookingId()).subscribe({
       next: response => {
-        this.booking.set(response.data);
+        this.applyBookingUpdate(response.data);
         this.loading.set(false);
       },
       error: () => {
@@ -134,6 +143,25 @@ export class BookingDetailComponent {
         this.loading.set(false);
       }
     });
+  }
+
+  private applyBookingUpdate(nextBooking: Booking): void {
+    const previousStatus = this.booking()?.cancellation?.status;
+    const cancellation = nextBooking.cancellation;
+    this.booking.set(nextBooking);
+
+    if (previousStatus !== CancellationStatus.REFUND_PROCESSING || !cancellation) return;
+    if (cancellation.status === CancellationStatus.REFUNDED) {
+      this.notifyService.success('Tiền hoàn đã được chuyển về tài khoản ngân hàng.');
+    } else if (
+      cancellation.status === CancellationStatus.REFUND_FAILED
+      || cancellation.status === CancellationStatus.REFUND_AWAITING_BANK_ACCOUNT
+    ) {
+      this.notifyService.error(
+        cancellation.refundFailureReason
+          || 'Lệnh hoàn tiền thất bại. Vui lòng kiểm tra và liên kết lại tài khoản ngân hàng.'
+      );
+    }
   }
 
   openCancelModal(): void {
@@ -177,9 +205,15 @@ export class BookingDetailComponent {
     this.bankAccountRepository.claimRefund(cancellation.refundId).subscribe({
       next: refund => {
         this.claimingRefund.set(false);
-        this.notifyService.success(refund.status === 'SUCCEEDED'
-          ? 'Tiền hoàn đã được chuyển về tài khoản ngân hàng.'
-          : 'Lệnh hoàn tiền đang được payOS xử lý.');
+        if (refund.status === 'SUCCEEDED') {
+          this.notifyService.success('Tiền hoàn đã được chuyển về tài khoản ngân hàng.');
+        } else if (refund.status === 'PROCESSING') {
+          this.notifyService.info('Lệnh hoàn tiền đã được payOS tiếp nhận và đang xử lý.');
+        } else if (refund.status === 'AWAITING_BANK_ACCOUNT') {
+          this.notifyService.warning(refund.failureReason || 'Vui lòng liên kết tài khoản ngân hàng để nhận hoàn tiền.');
+        } else {
+          this.notifyService.error(refund.failureReason || 'Lệnh hoàn tiền chưa thể thực hiện. Vui lòng thử lại sau.');
+        }
         this.loadBooking();
       },
       error: error => {

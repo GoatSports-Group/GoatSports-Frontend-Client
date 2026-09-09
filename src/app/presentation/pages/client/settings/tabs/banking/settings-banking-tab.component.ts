@@ -1,16 +1,19 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { forkJoin } from 'rxjs';
-import { finalize } from 'rxjs/operators';
+import { forkJoin, from, Observable } from 'rxjs';
+import { finalize, switchMap } from 'rxjs/operators';
 import { BankAccount, BankDirectoryEntry, LinkBankAccountRequest } from '@application/dto/payment/bank-account.dto';
+import { EncryptedPayload } from '@application/dto/security/encrypted-payload.dto';
 import { BANK_ACCOUNT_REPOSITORY_TOKEN, BankAccountRepository } from '@application/ports/persistence/bank-account.repository';
 import { NotifyService } from '@shared/components/notify/notify.service';
+import { CryptoService } from '@presentation/services/crypto.service';
 
 @Component({ selector: 'app-settings-banking-tab', templateUrl: './settings-banking-tab.component.html', styleUrls: ['./settings-banking-tab.component.scss'], changeDetection: ChangeDetectionStrategy.OnPush, standalone: false })
 export class SettingsBankingTabComponent {
   private readonly repository: BankAccountRepository = inject(BANK_ACCOUNT_REPOSITORY_TOKEN);
   private readonly notify = inject(NotifyService);
+  private readonly cryptoService = inject(CryptoService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -45,28 +48,43 @@ export class SettingsBankingTabComponent {
     const request: LinkBankAccountRequest = { bankBin: this.bankBin, accountNumber: this.accountNumber.replace(/\s/g, ''), accountName: this.accountName.trim() };
     if (!/^\d{6,19}$/.test(request.accountNumber) || !request.bankBin || !request.accountName) { this.notify.error('Vui lòng chọn ngân hàng và nhập đúng thông tin tài khoản.'); return; }
     this.saving.set(true);
-    this.repository.link(request).pipe(finalize(() => this.saving.set(false)), takeUntilDestroyed(this.destroyRef)).subscribe({
+    this.encryptBankingPayload(request).pipe(
+      switchMap(encryptedPayload => this.repository.link(encryptedPayload)),
+      finalize(() => this.saving.set(false)),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
       next: account => { this.accounts.update(accounts => [account, ...accounts]); this.resetForm(); this.notify.success(this.refundContext ? 'Đã liên kết. Khoản hoàn tự động sẽ được chuyển khi payOS xác minh tài khoản.' : 'Đã liên kết tài khoản. payOS sẽ xác minh ở giao dịch đầu tiên.'); },
       error: error => this.notify.error(error?.error?.message || 'Không thể liên kết tài khoản ngân hàng.')
     });
   }
   makeDefault(account: BankAccount): void {
     if (account.isDefault) return;
-    this.repository.makeDefault(account.bankAccountId).subscribe({
+    this.encryptBankingPayload({ bankAccountId: account.bankAccountId }).pipe(
+      switchMap(encryptedPayload => this.repository.makeDefault(encryptedPayload)),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
       next: updated => this.accounts.update(accounts => accounts.map(item => ({ ...item, isDefault: item.bankAccountId === updated.bankAccountId }))),
       error: error => this.notify.error(error?.error?.message || 'Không thể đổi tài khoản mặc định.')
     });
   }
   disable(account: BankAccount): void {
     if (!window.confirm(`Ngừng sử dụng tài khoản ****${account.accountNumberLast4}?`)) return;
-    this.repository.disable(account.bankAccountId).subscribe({
+    this.encryptBankingPayload({ bankAccountId: account.bankAccountId }).pipe(
+      switchMap(encryptedPayload => this.repository.disable(encryptedPayload)),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
       next: () => { this.accounts.update(accounts => accounts.filter(item => item.bankAccountId !== account.bankAccountId)); this.notify.success('Đã ngừng sử dụng tài khoản ngân hàng.'); },
       error: error => this.notify.error(error?.error?.message || 'Không thể gỡ tài khoản ngân hàng.')
     });
   }
   continueFlow(): void { if (this.returnUrl) void this.router.navigateByUrl(this.returnUrl); }
   statusLabel(status: BankAccount['status']): string {
-    return { PENDING_VERIFICATION: 'Chờ giao dịch xác minh', VERIFIED: 'Đã xác minh bởi payOS', REJECTED: 'Thông tin không hợp lệ', DISABLED: 'Đã ngừng sử dụng' }[status];
+    return { PENDING_VERIFICATION: 'Chờ giao dịch xác minh', VERIFIED: 'Đã xác minh bởi payOS', REJECTED: 'Xác minh thất bại', DISABLED: 'Đã ngừng sử dụng' }[status];
+  }
+  private encryptBankingPayload(payload: object): Observable<EncryptedPayload> {
+    return this.repository.getEncryptionPublicKey().pipe(
+      switchMap(publicKey => from(this.cryptoService.encryptPayload(payload, publicKey)))
+    );
   }
   private resetForm(): void { this.bankBin = ''; this.accountNumber = ''; this.accountName = ''; this.search.set(''); this.showForm.set(false); }
 }
