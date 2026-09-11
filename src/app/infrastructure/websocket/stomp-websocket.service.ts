@@ -8,7 +8,7 @@ import {
   CurrentUserProvider
 } from '@application/ports/current-user.provider';
 import { environment } from '@environments/environment';
-import { OwnerApplicationProgressChangedEvent } from '@application/dto/workflow/owner-application-progress.dto';
+import { OwnerApplicationProgressChangedEvent } from '@application/dto/owner-application/owner-application-progress.dto';
 
 class StompFrame {
   constructor(

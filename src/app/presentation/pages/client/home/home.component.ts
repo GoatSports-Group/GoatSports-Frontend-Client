@@ -1,10 +1,23 @@
 import { isPlatformBrowser } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, NgZone, OnDestroy, OnInit, PLATFORM_ID, inject } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  DestroyRef,
+  ElementRef,
+  NgZone,
+  OnDestroy,
+  OnInit,
+  PLATFORM_ID,
+  inject
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { VENUE_SEARCH_REPOSITORY_TOKEN } from '@application/ports/persistence/venue-search.repository';
-import { Venue, SportType, SPORT_TYPE_OPTIONS } from '@application/dto/venue/venue.dto';
+import { SportType, SPORT_TYPE_OPTIONS, Venue } from '@application/dto/venue/venue.dto';
+
+type LocationState = 'locating' | 'ready' | 'error' | 'unsupported';
 
 @Component({
   selector: 'app-home',
@@ -18,42 +31,35 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private host = inject(ElementRef<HTMLElement>);
   private zone = inject(NgZone);
   private platformId = inject(PLATFORM_ID);
+  private destroyRef = inject(DestroyRef);
   private animationContext?: ReturnType<typeof gsap.context>;
 
   readonly SportType = SportType;
-  sportTypes = Object.values(SportType);
+  readonly sportOptions = [
+    SPORT_TYPE_OPTIONS.find(option => option.value === SportType.FOOTBALL)!,
+    SPORT_TYPE_OPTIONS.find(option => option.value === SportType.BADMINTON)!,
+    SPORT_TYPE_OPTIONS.find(option => option.value === SportType.PICKLEBALL)!,
+    SPORT_TYPE_OPTIONS.find(option => option.value === SportType.TENNIS)!,
+    SPORT_TYPE_OPTIONS.find(option => option.value === SportType.BASKETBALL)!,
+    SPORT_TYPE_OPTIONS.find(option => option.value === SportType.VOLLEYBALL)!
+  ];
 
   featuredVenues: Venue[] = [];
-  searchQuery: string = '';
-  sportType: string = 'all';
   loading = true;
+  locationState: LocationState = 'locating';
+  locationMessage = 'Đang xác định vị trí hiện tại...';
+  radiusKm = 10;
+  appliedRadiusKm = 10;
+  radiusError = '';
+  latitude?: number;
+  longitude?: number;
 
-  getSportIcon(type?: string): string {
-    switch (type) {
-      case SportType.FOOTBALL: return 'trophy';
-      case SportType.BADMINTON: return 'target';
-      case SportType.TENNIS: return 'activity';
-      case SportType.PICKLEBALL: return 'swords';
-      case SportType.BASKETBALL: return 'flame';
-      case SportType.VOLLEYBALL: return 'award';
-      default: return 'activity';
-    }
-  }
-
-  getSportColor(type: SportType): string {
-    switch (type) {
-      case SportType.FOOTBALL: return '#ecfdf5';
-      case SportType.BADMINTON: return '#f0f9ff';
-      case SportType.TENNIS: return '#fef3c7';
-      case SportType.PICKLEBALL: return '#ecfdf5';
-      case SportType.BASKETBALL: return '#fff1f2';
-      case SportType.VOLLEYBALL: return '#faf5ff';
-      default: return '#f7fafc';
-    }
+  get hasCurrentLocation(): boolean {
+    return this.latitude != null && this.longitude != null;
   }
 
   ngOnInit(): void {
-    this.loadHomeData();
+    this.requestCurrentLocation();
   }
 
   ngAfterViewInit(): void {
@@ -83,7 +89,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
           }
         });
 
-        gsap.utils.toArray<HTMLElement>('.section-heading, .play-network__lead, .network-card').forEach(element => {
+        gsap.utils.toArray<HTMLElement>('.section-heading, .venue-grid, .development-state').forEach(element => {
           gsap.from(element, {
             y: 28,
             duration: .65,
@@ -99,11 +105,57 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.animationContext?.revert();
   }
 
-  loadHomeData(): void {
+  requestCurrentLocation(): void {
+    if (!isPlatformBrowser(this.platformId) || !navigator.geolocation) {
+      this.locationState = 'unsupported';
+      this.locationMessage = 'Trình duyệt không hỗ trợ định vị.';
+      this.loading = false;
+      return;
+    }
+
+    this.locationState = 'locating';
+    this.locationMessage = 'Đang xác định vị trí hiện tại...';
     this.loading = true;
-    this.venueSearchRepo.searchVenues({ page: 0, size: 6 }).subscribe({
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        this.latitude = Number(position.coords.latitude.toFixed(6));
+        this.longitude = Number(position.coords.longitude.toFixed(6));
+        this.locationState = 'ready';
+        this.locationMessage = 'Vị trí hiện tại';
+        this.loadNearbyVenues();
+      },
+      error => {
+        this.featuredVenues = [];
+        this.loading = false;
+        this.locationState = 'error';
+        this.locationMessage = error.code === error.PERMISSION_DENIED
+          ? 'Bạn chưa cấp quyền truy cập vị trí.'
+          : 'Không thể xác định vị trí hiện tại.';
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+    );
+  }
+
+  loadNearbyVenues(): void {
+    if (!this.hasCurrentLocation) {
+      this.featuredVenues = [];
+      this.loading = false;
+      return;
+    }
+
+    this.loading = true;
+    this.venueSearchRepo.searchVenues({
+      latitude: this.latitude,
+      longitude: this.longitude,
+      radiusKm: this.appliedRadiusKm,
+      page: 0,
+      size: 8
+    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: res => {
-        this.featuredVenues = res?.data?.items || [];
+        this.featuredVenues = (res?.data?.items || [])
+          .filter(venue => venue.distanceKm != null && venue.distanceKm <= this.appliedRadiusKm)
+          .sort((left, right) => (left.distanceKm ?? Infinity) - (right.distanceKm ?? Infinity))
+          .slice(0, 4);
         this.loading = false;
       },
       error: err => {
@@ -114,18 +166,35 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  onSearch(): void {
-    const queryParams: any = {};
-    if (this.searchQuery) queryParams.keyword = this.searchQuery;
-    if (this.sportType && this.sportType !== 'all') queryParams.sportType = this.sportType;
-    this.router.navigate(['/venues'], { queryParams });
+  applyRadius(): void {
+    const requestedRadius = Number(this.radiusKm);
+    if (!Number.isFinite(requestedRadius) || requestedRadius < 1 || requestedRadius > 100) {
+      this.radiusError = 'Bán kính phải từ 1 đến 100 km.';
+      return;
+    }
+
+    this.radiusError = '';
+    this.radiusKm = requestedRadius;
+    this.appliedRadiusKm = requestedRadius;
+    this.loadNearbyVenues();
   }
 
-  viewVenue(venueId: string): void {
-    this.router.navigate(['/venues', venueId]);
+  onSearch(): void {
+    this.openVenueSearch();
   }
 
   selectSport(sportId: string): void {
-    this.router.navigate(['/venues'], { queryParams: { sportType: sportId } });
+    this.openVenueSearch(sportId);
+  }
+
+  openVenueSearch(sportType?: string): void {
+    this.router.navigate(['/venues'], {
+      queryParams: {
+        sportType: sportType || null,
+        latitude: this.latitude ?? null,
+        longitude: this.longitude ?? null,
+        radiusKm: this.hasCurrentLocation ? this.appliedRadiusKm : null
+      }
+    });
   }
 }

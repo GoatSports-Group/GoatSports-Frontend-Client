@@ -20,6 +20,7 @@ export class VenueCardComponent implements OnChanges {
   private readonly destroyRef = inject(DestroyRef);
 
   @Input() venue!: Venue;
+  @Input() homeStyle = false;
   primaryImage = VENUE_PLACEHOLDER_IMAGE;
   private currentImageKey = '';
 
@@ -41,6 +42,16 @@ export class VenueCardComponent implements OnChanges {
   formatPrice(price: number | null | undefined): string {
     if (price == null) return 'Liên hệ';
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+  }
+
+  formatCompactPrice(price: number | null | undefined): string {
+    if (price == null) return 'Liên hệ';
+    return `${new Intl.NumberFormat('vi-VN').format(price)} đ`;
+  }
+
+  onFavoriteClick(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
   }
 
   private resolvePrimaryImage(value?: string | null): void {

@@ -1,8 +1,8 @@
+import { HttpBackend, HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpBackend } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { OwnerApplication } from '@domain/entities/owner-application';
 import { BaseResponse } from '@application/dto/base/base-response';
+import { OwnerApplication } from '@domain/entities/owner-application';
 import { environment } from '@environments/environment';
 
 export interface OwnerApplicationListResponse {
@@ -15,15 +15,49 @@ export interface OwnerApplicationListResponse {
   result: OwnerApplication[];
 }
 
-export interface PresignedUrlRequest {
-  fileName: string;
-  contentType: string;
-  folder: string;
+export type OwnerApplicationDocumentSlot =
+  | 'IDENTITY_FRONT'
+  | 'IDENTITY_BACK'
+  | 'BUSINESS_LICENSE'
+  | 'VENUE_PHOTO';
+
+export interface PrepareOwnerApplicationUploadRequest {
+  documents: Array<{
+    slot: OwnerApplicationDocumentSlot;
+    fileName: string;
+    contentType: string;
+  }>;
 }
 
-export interface PresignedUrlResponse {
-  uploadUrl: string;
-  objectKey: string;
+export interface PreparedOwnerApplicationUploadResponse {
+  ownerApplicationId: string;
+  documents: Array<{
+    slot: OwnerApplicationDocumentSlot;
+    uploadUrl: string;
+    objectKey: string;
+  }>;
+}
+
+export interface SubmitOwnerApplicationRequest {
+  ownerApplicationId: string;
+  fullName: string;
+  phone: string;
+  email: string;
+  identityNumber: string;
+  businessName: string;
+  businessType: string;
+  taxCode: string;
+  address: string;
+  province: string;
+  district?: string;
+  ward: string;
+  city: string;
+  latitude?: number;
+  longitude?: number;
+  documents: Array<{
+    slot: OwnerApplicationDocumentSlot;
+    objectKey: string;
+  }>;
 }
 
 @Injectable({
@@ -35,36 +69,39 @@ export class OwnerApplicationApi {
   private bypassHttp = new HttpClient(this.httpBackend);
   private apiBase = environment.apiUrl;
 
-  submit(request: any): Observable<BaseResponse<OwnerApplication>> {
+  prepareUploads(
+    request: PrepareOwnerApplicationUploadRequest,
+    idempotencyKey: string
+  ): Observable<BaseResponse<PreparedOwnerApplicationUploadResponse>> {
+    return this.http.post<BaseResponse<PreparedOwnerApplicationUploadResponse>>(
+      `${this.apiBase}/venue-service/api/v1/owner-applications/uploads`,
+      request,
+      { headers: { 'Idempotency-Key': idempotencyKey } }
+    );
+  }
+
+  submitApplication(
+    request: SubmitOwnerApplicationRequest
+  ): Observable<BaseResponse<OwnerApplication>> {
     return this.http.post<BaseResponse<OwnerApplication>>(
       `${this.apiBase}/venue-service/api/v1/owner-applications`,
       request
     );
   }
 
-  getPresignedUrls(requests: PresignedUrlRequest[]): Observable<BaseResponse<PresignedUrlResponse[]>> {
-    return this.http.post<BaseResponse<PresignedUrlResponse[]>>(
-      `${this.apiBase}/storage-service/api/v1/files/presigned-url`,
-      requests
+  cleanupUploads(ownerApplicationId: string, objectKeys: string[]): Observable<void> {
+    return this.http.post<void>(
+      `${this.apiBase}/venue-service/api/v1/owner-applications/uploads/cleanup`,
+      { ownerApplicationId, objectKeys }
     );
   }
 
-  uploadToPresignedUrl(uploadUrl: string, file: File): Observable<any> {
+  uploadToPresignedUrl(uploadUrl: string, file: File): Observable<unknown> {
     return this.bypassHttp.put(uploadUrl, file, {
       headers: {
-        'Content-Type': file.type
+        'Content-Type': file.type || 'application/octet-stream'
       }
     });
-  }
-
-  createDocuments(ownerApplicationId: string, documentKeys: string[]): Observable<void> {
-    return this.http.post<void>(
-      `${this.apiBase}/venue-service/api/v1/documents`,
-      {
-        ownerApplicationId,
-        documentKeys
-      }
-    );
   }
 
   getMyApplications(): Observable<BaseResponse<OwnerApplicationListResponse>> {

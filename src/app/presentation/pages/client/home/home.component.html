@@ -1,71 +1,209 @@
 <main class="home-page-container">
   <section class="home-hero" aria-labelledby="home-title">
-    <img class="home-hero__image" src="assets/images/goat-night-football-hero.png" alt="Người chơi bóng đá trên sân dưới ánh đèn" />
+    <img class="home-hero__image" src="assets/images/goat-night-football-hero.png"
+      alt="Hai cầu thủ bắt tay trên sân bóng dưới ánh đèn" />
     <div class="home-hero__shade" aria-hidden="true"></div>
+
     <div class="home-hero__content">
-      <p class="home-hero__kicker">More players. A stronger Vietnam.</p>
-      <h1 id="home-title" class="home-hero__title">Tìm sân. Gặp đội.<br /><span>Vào trận.</span></h1>
-      <p class="home-hero__description">Đặt sân, ghép kèo và tìm cộng đồng thể thao quanh bạn.</p>
+      <h1 id="home-title" class="home-hero__title">
+        Tìm sân. Gặp đội.<br />
+        <span>Vào trận.</span>
+      </h1>
+      <p class="home-hero__description">Đặt sân, ghép trận và tìm cộng đồng thể thao quanh bạn.</p>
+
       <div class="home-hero__buttons">
-        <button type="button" class="hero-primary" (click)="onSearch()"><lucide-icon name="search" class="w-5 h-5"></lucide-icon>Tìm sân gần bạn<lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></button>
-        <a routerLink="/matchmaking" class="hero-secondary">Ghép kèo ngay <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a>
+        <button type="button" class="hero-primary" (click)="onSearch()">
+          <lucide-icon name="search" class="w-5 h-5"></lucide-icon>
+          Tìm sân gần bạn
+          <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon>
+        </button>
+        <a routerLink="/matchmaking" class="hero-secondary">
+          Ghép trận ngay
+          <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon>
+        </a>
       </div>
+
       <div class="hero-benefits" aria-label="Lợi ích GoatSports">
-        <span><lucide-icon name="clock-3" class="w-5 h-5"></lucide-icon><b>Đặt sân nhanh</b><small>Chỉ vài phút</small></span>
-        <span><lucide-icon name="users" class="w-5 h-5"></lucide-icon><b>Kết nối cộng đồng</b><small>Câu lạc bộ, bạn bè</small></span>
-        <span><lucide-icon name="trophy" class="w-5 h-5"></lucide-icon><b>Tham gia giải đấu</b><small>Từ phong trào đến chuyên nghiệp</small></span>
-        <span><lucide-icon name="brain" class="w-5 h-5"></lucide-icon><b>AI ghép kèo</b><small>Tìm đúng đối thủ</small></span>
+        <span>
+          <lucide-icon name="clock-3" class="w-6 h-6"></lucide-icon>
+          <b>Đặt sân nhanh</b>
+          <small>Chỉ vài phút</small>
+        </span>
+        <span>
+          <lucide-icon name="users" class="w-6 h-6"></lucide-icon>
+          <b>Kết nối cộng đồng</b>
+          <small>Câu lạc bộ, bạn bè</small>
+        </span>
+        <span>
+          <lucide-icon name="trophy" class="w-6 h-6"></lucide-icon>
+          <b>Tham gia giải đấu</b>
+          <small>Từ phong trào đến chuyên nghiệp</small>
+        </span>
+        <span>
+          <lucide-icon name="brain" class="w-6 h-6"></lucide-icon>
+          <b>AI ghép trận</b>
+          <small>Tìm đúng đối thủ</small>
+        </span>
       </div>
     </div>
   </section>
 
   <nav class="sport-rail" aria-label="Chọn môn thể thao">
-    <strong>Chọn môn thể thao</strong><i aria-hidden="true"></i>
-    @for (type of sportTypes; track type) {
-      <button type="button" class="sport-link" (click)="selectSport(type)"><lucide-icon [name]="getSportIcon(type)" class="w-5 h-5"></lucide-icon><span>{{ type }}</span></button>
+    <strong>Chọn môn thể thao</strong>
+    <i aria-hidden="true"></i>
+    @for (option of sportOptions; track option.value) {
+    <button type="button" class="sport-link" [class.sport-link--active]="option.value === SportType.FOOTBALL"
+      (click)="selectSport(option.value)">
+      <span class="sport-ball-icon" aria-hidden="true">
+        @switch (option.value) {
+        @case (SportType.FOOTBALL) {
+        <svg viewBox="0 0 28 28" focusable="false">
+          <circle cx="14" cy="14" r="11.25"></circle>
+          <path d="m14 7.7 4.1 3-1.55 4.8h-5.1L9.9 10.7 14 7.7Z"></path>
+          <path
+            d="m9.9 10.7-4.2-1.3m12.4 1.3 4.2-1.3m-10.85 6.1L8 19.2m8.55-3.7 3.45 3.7M8 19.2l.65 3.35M20 19.2l-.65 3.35">
+          </path>
+        </svg>
+        }
+        @case (SportType.BADMINTON) {
+        <svg viewBox="0 0 28 28" focusable="false">
+          <path d="m5 3.6 9.2 2.7 5.4 8.6-5 5L6 14.5 5 3.6Z"></path>
+          <path d="M5 3.6 14.6 20M9.45 4.9l7.7 12.55M14.2 6.3l5.4 8.6M15.8 18.8l5.8 5.8M19.4 20.7l2.25-2.25"></path>
+        </svg>
+        }
+        @case (SportType.PICKLEBALL) {
+        <svg viewBox="0 0 28 28" focusable="false">
+          <circle cx="14" cy="14" r="11.25"></circle>
+          <circle class="sport-ball-icon__dot" cx="10" cy="8.5" r="1.15"></circle>
+          <circle class="sport-ball-icon__dot" cx="17.5" cy="9.5" r="1.15"></circle>
+          <circle class="sport-ball-icon__dot" cx="8.5" cy="15" r="1.15"></circle>
+          <circle class="sport-ball-icon__dot" cx="15" cy="14" r="1.15"></circle>
+          <circle class="sport-ball-icon__dot" cx="20" cy="16.5" r="1.15"></circle>
+          <circle class="sport-ball-icon__dot" cx="12" cy="20" r="1.15"></circle>
+        </svg>
+        }
+        @case (SportType.TENNIS) {
+        <svg viewBox="0 0 28 28" focusable="false">
+          <circle cx="14" cy="14" r="11.25"></circle>
+          <path d="M7.3 5c4.35 3.7 4.35 14.3 0 18M20.7 5c-4.35 3.7-4.35 14.3 0 18"></path>
+        </svg>
+        }
+        @case (SportType.BASKETBALL) {
+        <svg viewBox="0 0 28 28" focusable="false">
+          <circle cx="14" cy="14" r="11.25"></circle>
+          <path d="M2.75 14h22.5M14 2.75v22.5M5.7 7c4.4 2.1 6.55 5.8 6.8 11.2M22.3 7c-4.4 2.1-6.55 5.8-6.8 11.2"></path>
+        </svg>
+        }
+        @case (SportType.VOLLEYBALL) {
+        <svg viewBox="0 0 28 28" focusable="false">
+          <circle cx="14" cy="14" r="11.25"></circle>
+          <path
+            d="M14.2 2.8c-1 4.3.15 7.45 3.35 9.35M4.2 8.7c4.15-.35 7.1 1.15 8.85 4.4M6.7 22.2c2.65-3.2 5.8-4.15 9.45-2.85M22.5 6.65c-2.25 3.45-5.25 5-9 4.75M23.7 18c-4.1-.15-7-1.7-8.55-4.8">
+          </path>
+        </svg>
+        }
+        }
+      </span>
+      <span>{{ option.label }}</span>
+    </button>
     }
-    <button type="button" class="sport-link sport-link--all" (click)="onSearch()"><lucide-icon name="layout-grid" class="w-5 h-5"></lucide-icon><span>Tất cả môn</span><lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></button>
+    <button type="button" class="sport-link sport-link--all" (click)="onSearch()">
+      <lucide-icon name="layout-grid" class="w-5 h-5"></lucide-icon>
+      <span>Tất cả môn</span>
+      <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon>
+    </button>
   </nav>
 
   <section class="home-dashboard" aria-labelledby="featured-venues-title">
     <div class="venue-discovery">
       <header class="section-heading">
-        <div><h2 id="featured-venues-title">Sân đấu nổi bật gần bạn</h2><p>Khám phá các sân chất lượng được cộng đồng yêu thích</p></div>
-        <a routerLink="/venues">Xem tất cả <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a>
+        <div class="section-heading__copy">
+          <h2 id="featured-venues-title">Sân đấu nổi bật gần bạn</h2>
+          <p>Khám phá các sân chất lượng, được cộng đồng yêu thích</p>
+        </div>
+
+        <div class="nearby-tools">
+          <span class="current-location" [class.current-location--error]="locationState === 'error'">
+            <lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>
+            {{ locationMessage }}
+          </span>
+
+          <form class="radius-filter" (ngSubmit)="applyRadius()" novalidate>
+            <label for="home-radius">Bán kính</label>
+            <span class="radius-input">
+              <input id="home-radius" name="radiusKm" type="number" min="1" max="100" step="1" inputmode="decimal"
+                [(ngModel)]="radiusKm" [disabled]="locationState === 'locating'" aria-describedby="radius-help" />
+              <b>km</b>
+            </span>
+            <button type="submit" [disabled]="locationState === 'locating'">Áp dụng</button>
+          </form>
+
+          <button type="button" class="nearby-all" (click)="openVenueSearch()">
+            Xem tất cả
+            <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon>
+          </button>
+        </div>
       </header>
 
+      @if (radiusError) {
+      <p id="radius-help" class="radius-error">{{ radiusError }}</p>
+      }
+
       @if (loading) {
-        <div class="venue-grid" aria-live="polite" aria-label="Đang tải danh sách sân">
-          @for (item of [1, 2, 3, 4]; track item) { <div class="venue-skeleton"><app-loading-skeleton height="150px" borderRadius="14px"></app-loading-skeleton><app-loading-skeleton height="18px" width="65%"></app-loading-skeleton></div> }
+      <div class="venue-grid" aria-live="polite" aria-label="Đang tìm sân gần bạn">
+        @for (item of [1, 2, 3, 4]; track item) {
+        <div class="venue-skeleton">
+          <app-loading-skeleton height="164px" borderRadius="10px"></app-loading-skeleton>
+          <app-loading-skeleton height="20px" width="68%"></app-loading-skeleton>
+          <app-loading-skeleton height="16px" width="88%"></app-loading-skeleton>
         </div>
+        }
+      </div>
       } @else if (featuredVenues.length) {
-        <div class="venue-grid">@for (venue of featuredVenues.slice(0, 4); track venue.venueId) { <app-venue-card [venue]="venue"></app-venue-card> }</div>
+      <div class="venue-grid">
+        @for (venue of featuredVenues; track venue.venueId) {
+        <app-venue-card [venue]="venue" [homeStyle]="true"></app-venue-card>
+        }
+      </div>
+      } @else if (!hasCurrentLocation) {
+      <div class="inline-state inline-state--location">
+        <lucide-icon name="map-pin" class="w-8 h-8"></lucide-icon>
+        <div>
+          <strong>Cần vị trí của bạn để tìm sân trong {{ appliedRadiusKm }} km</strong>
+          <p>Bật quyền vị trí cho trang này, sau đó thử lại.</p>
+        </div>
+        <button type="button" (click)="requestCurrentLocation()">Thử lại</button>
+      </div>
       } @else {
-        <div class="inline-state"><div><strong>Danh sách sân đang được cập nhật</strong><p>Bạn có thể mở trang tìm sân để xem toàn bộ địa điểm.</p></div><a routerLink="/venues">Khám phá sân</a></div>
+      <div class="inline-state">
+        <lucide-icon name="search" class="w-8 h-8"></lucide-icon>
+        <div>
+          <strong>Chưa tìm thấy sân trong {{ appliedRadiusKm }} km</strong>
+          <p>Hãy tăng bán kính để xem thêm địa điểm phù hợp.</p>
+        </div>
+      </div>
       }
     </div>
 
-    <aside class="quick-rail" aria-labelledby="quick-booking-title">
-      <header><div><h2 id="quick-booking-title">Sân có thể đặt</h2><p>Chọn địa điểm và xem lịch trống</p></div><a routerLink="/venues">Xem tất cả</a></header>
-      @if (loading) {
-        @for (item of [1,2,3]; track item) { <div class="quick-skeleton"><app-loading-skeleton height="58px" borderRadius="12px"></app-loading-skeleton></div> }
-      } @else if (featuredVenues.length) {
-        @for (venue of featuredVenues.slice(0, 4); track venue.venueId; let index = $index) {
-          <a class="quick-match" [routerLink]="['/venues', venue.venueId]">
-            <time>{{ index === 0 ? 'Hôm nay' : 'Sắp tới' }}<b>{{ venue.openTime.slice(0, 5) || '06:00' }}</b></time>
-            <span class="quick-match__sport"><lucide-icon [name]="getSportIcon(venue.sportTypes?.[0])" class="w-5 h-5"></lucide-icon></span>
-            <span><strong>{{ venue.name }}</strong><small>{{ venue.district || venue.city || 'Xem địa chỉ' }} · {{ venue.sportTypes?.[0] || 'Thể thao' }}</small></span>
-            <b class="quick-match__action">Đặt sân</b>
-          </a>
-        }
-      } @else {
-        <div class="quick-empty">Chưa có sân phù hợp. Hãy thử tìm theo khu vực của bạn.</div>
-      }
-    </aside>
-  </section>
+    <aside class="quick-rail" aria-labelledby="open-match-title">
+      <header>
+        <div>
+          <h2 id="open-match-title">Trận đấu đang mở</h2>
+          <p><span aria-hidden="true"></span>Tính năng đang được hoàn thiện</p>
+        </div>
+      </header>
 
-  <section class="community-banner">
-    <div><p>Thể thao kết nối con người</p><span>Nhiều hơn những trận đấu. Là những mối quan hệ thật.</span></div>
-    <a routerLink="/clubs">Tham gia cộng đồng GOAT Sports <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a>
+      <div class="development-state">
+        <span class="development-state__icon" aria-hidden="true">
+          <lucide-icon name="settings" class="w-12 h-12"></lucide-icon>
+        </span>
+        <strong>Đang phát triển</strong>
+        <p>Tính năng Trận đấu đang mở sẽ sớm ra mắt, giúp bạn tìm và tham gia các trận đấu phù hợp trong khu vực.</p>
+        <button type="button" disabled>
+          <lucide-icon name="bell" class="w-5 h-5"></lucide-icon>
+          Sắp ra mắt
+        </button>
+      </div>
+    </aside>
   </section>
 </main>

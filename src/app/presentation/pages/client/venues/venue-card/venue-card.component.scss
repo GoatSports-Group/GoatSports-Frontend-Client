@@ -13,3 +13,195 @@
 .card-footer { display: flex; align-items: end; justify-content: space-between; gap: .65rem; margin-top: auto; padding-top: .75rem; border-top: 1px solid #edf0f3; }
 .price-box { display: flex; flex-wrap: wrap; align-items: baseline; gap: .2rem; }.price-label { width: 100%; color: var(--text-soft); font-size: .59rem; }.price-value { color: var(--text-dark); font-size: 1rem; font-weight: 900; }.price-unit { color: var(--text-muted); font-size: .62rem; }
 .book-btn { min-height: 38px !important; padding-inline: .7rem !important; border-radius: var(--border-radius-sm) !important; background: var(--primary) !important; color: #fff !important; font-size: .68rem !important; font-weight: 800 !important; white-space: nowrap; }
+
+.venue-card--home {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #d8e2dd;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(18 42 32 / 4%);
+  cursor: pointer;
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.venue-card--home:hover {
+  border-color: #91bfad;
+  box-shadow: 0 10px 24px rgb(16 67 49 / 10%);
+  transform: translateY(-2px);
+}
+
+.home-card__media {
+  position: relative;
+  aspect-ratio: 1.62 / 1;
+  overflow: hidden;
+  background: #e9efec;
+}
+
+.home-card__media > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 300ms ease;
+}
+
+.venue-card--home:hover .home-card__media > img {
+  transform: scale(1.025);
+}
+
+.home-card__favorite {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  width: 31px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgb(255 255 255 / 42%);
+  border-radius: 50%;
+  background: rgb(7 19 29 / 72%);
+  color: #fff;
+  cursor: pointer;
+  transition: color 180ms ease, background-color 180ms ease;
+}
+
+.home-card__favorite:hover {
+  background: #fff;
+  color: #d92d20;
+}
+
+.home-card__distance {
+  position: absolute;
+  bottom: 8px;
+  left: 9px;
+  min-height: 25px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px;
+  border: 1px solid rgb(255 255 255 / 22%);
+  border-radius: 8px;
+  background: rgb(7 19 29 / 86%);
+  color: #fff;
+  font-size: .64rem;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+}
+
+.home-card__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 9px 10px 10px;
+}
+
+.home-card__body h3 {
+  margin: 0;
+  overflow: hidden;
+  color: #152234;
+  font-size: .79rem;
+  font-weight: 850;
+  letter-spacing: -.025em;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-card__meta {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 4px;
+  color: #697789;
+  font-size: .62rem;
+}
+
+.home-card__rating,
+.home-card__place {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.home-card__rating {
+  flex: 0 0 auto;
+  color: #e98208;
+}
+
+.home-card__rating b {
+  color: #bd6500;
+}
+
+.home-card__rating small,
+.home-card__place {
+  color: #6f7c8d;
+}
+
+.home-card__place {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  min-height: 23px;
+  margin-top: 7px;
+}
+
+.home-card__tags span {
+  max-width: 92px;
+  overflow: hidden;
+  padding: 3px 7px;
+  border-radius: 7px;
+  background: #f0f4f2;
+  color: #536458;
+  font-size: .57rem;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-card__body footer {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 7px;
+  margin-top: 8px;
+}
+
+.home-card__body footer > strong {
+  color: #007a55;
+  font-size: .9rem;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.home-card__body footer > strong small {
+  margin-left: 2px;
+  font-size: .55rem;
+  font-weight: 650;
+}
+
+.home-card__body footer > span {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 13px;
+  border-radius: 8px;
+  background: #087f5b;
+  color: #fff;
+  font-size: .63rem;
+  font-weight: 800;
+  white-space: nowrap;
+}

@@ -34,7 +34,6 @@
   grid-template-columns: 1.35fr .75fr 1fr 1.3fr;
   align-items: start;
   gap: 48px;
-  padding-bottom: 42px;
 }
 
 .footer-brand {
@@ -69,7 +68,7 @@
   font-weight: 900;
 }
 
-.footer-brand > p {
+.footer-brand>p {
   max-width: 340px;
   margin: 18px 0 20px;
   color: #64748b;
@@ -138,6 +137,8 @@
 }
 
 .newsletter-card {
+  align-self: start;
+  margin-top: -25px;
   padding: 24px;
   border: 1px solid #d1fae5;
   border-radius: 20px;
@@ -256,6 +257,10 @@
   .footer-brand {
     max-width: none;
   }
+
+  .newsletter-card {
+    margin-top: 0;
+  }
 }
 
 @media (max-width: 640px) {
@@ -284,11 +289,43 @@
 }
 
 /* Calm editorial footer: no decorative gradients or glass effects. */
-.app-footer { padding-top: 48px; border-top-color: var(--border-color); background: #fff; }
-.app-footer::before { display: none; }
-.footer-container { max-width: var(--page-max); padding-inline: var(--page-gutter); }
-.footer-grid { gap: clamp(2rem, 4vw, 4rem); }
-.footer-logo img { filter: none; }
-.social-links a,.social-links span { border-radius: var(--border-radius-sm); box-shadow: none; }
-.newsletter-card { border-color: var(--border-color); border-radius: var(--border-radius); background: var(--primary-light); box-shadow: none; }
-.newsletter-input input,.newsletter-form button { border-radius: var(--border-radius-sm); }
+.app-footer {
+  padding-top: 48px;
+  border-top-color: var(--border-color);
+  background: #fff;
+}
+
+.app-footer::before {
+  display: none;
+}
+
+.footer-container {
+  max-width: var(--page-max);
+  padding-inline: var(--page-gutter);
+}
+
+.footer-grid {
+  gap: clamp(2rem, 4vw, 4rem);
+}
+
+.footer-logo img {
+  filter: none;
+}
+
+.social-links a,
+.social-links span {
+  border-radius: var(--border-radius-sm);
+  box-shadow: none;
+}
+
+.newsletter-card {
+  border-color: var(--border-color);
+  border-radius: var(--border-radius);
+  background: var(--primary-light);
+  box-shadow: none;
+}
+
+.newsletter-input input,
+.newsletter-form button {
+  border-radius: var(--border-radius-sm);
+}
