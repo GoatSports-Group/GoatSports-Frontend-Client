@@ -35,6 +35,9 @@ export class OwnerAddressStepComponent implements OnInit, OnDestroy {
   }
 
   onAddressChange(value: string) {
+    this.form.latitude = null;
+    this.form.longitude = null;
+
     if (value && value.length >= 3) {
       this.isLoading = true;
       this.isSuggestionsVisible = true;
@@ -222,6 +225,8 @@ export class OwnerAddressStepComponent implements OnInit, OnDestroy {
     this.form.district = district;
     this.form.province = province;
     this.form.city = city;
+    this.form.latitude = this.toCoordinate(suggestion.lat);
+    this.form.longitude = this.toCoordinate(suggestion.lon);
 
     this.suggestions = [];
     this.isSuggestionsVisible = false;
@@ -232,5 +237,10 @@ export class OwnerAddressStepComponent implements OnInit, OnDestroy {
     setTimeout(() => {
       this.isSuggestionsVisible = false;
     }, 200);
+  }
+
+  private toCoordinate(value: unknown): number | null {
+    const coordinate = Number(value);
+    return Number.isFinite(coordinate) ? coordinate : null;
   }
 }

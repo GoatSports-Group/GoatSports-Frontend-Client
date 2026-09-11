@@ -132,6 +132,13 @@ body.dark .main-header {
   }
 }
 
+.connection-nav-item {
+  gap: 0.25rem;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
 // Search container
 .search-container {
   flex: 1 1 280px;
@@ -278,10 +285,6 @@ body.dark .main-header {
 }
 
 @media (max-width: 1500px) {
-  .partner-btn {
-    display: none !important;
-  }
-
   .desktop-nav {
     gap: 0.75rem;
     margin-left: 0.5rem;
@@ -773,8 +776,7 @@ body.dark .main-header {
 .actions-container {
   gap: .65rem;
 
-  .login-btn,
-  .partner-btn {
+  .login-btn {
     min-height: 42px;
     border-radius: var(--border-radius-sm) !important;
   }

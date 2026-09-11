@@ -13,6 +13,8 @@ export interface OwnerApplicationFormValue {
   district: string;
   ward: string;
   city: string;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 export type OwnerFileKey = 'idCardFront' | 'idCardBack' | 'businessLicense' | 'venueImage';
@@ -28,7 +30,8 @@ export function createOwnerApplicationForm(): OwnerApplicationFormValue {
   return {
     fullName: '', phone: '', email: '', identityNumber: '',
     businessName: '', businessType: BusinessType.INDIVIDUAL, taxCode: '',
-    address: '', province: '', district: '', ward: '', city: ''
+    address: '', province: '', district: '', ward: '', city: '',
+    latitude: null, longitude: null
   };
 }
 

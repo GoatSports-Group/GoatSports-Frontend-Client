@@ -31,6 +31,10 @@ export class HeaderComponent implements OnInit {
   adminUrl = environment.adminApiUrl;
   isNotifOpen = false;
 
+  get isConnectionRoute(): boolean {
+    return this.router.url.startsWith('/friends') || this.router.url.startsWith('/chat');
+  }
+
   ngOnInit() {
     this.authService.isAuthenticated$;
   }
@@ -49,10 +53,6 @@ export class HeaderComponent implements OnInit {
 
   redirectToLogin() {
     window.location.href = `${this.authApiBase}/login?redirect=${encodeURIComponent(window.location.origin + this.router.url)}`;
-  }
-
-  redirectToRegisterOwner() {
-    window.location.href = `${this.authApiBase}/sign-up?role=venue_owner`;
   }
 
   toggleNotifDropdown(event: Event): void {

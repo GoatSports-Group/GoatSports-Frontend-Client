@@ -64,7 +64,10 @@ export class TournamentDetailComponent {
   }
   setTab(tab: TournamentTab): void { this.activeTab.set(tab); }
   register(): void {
-    if (!this.auth.currentUser) { this.auth.redirectToLogin(); return; }
+    if (!this.auth.currentUser) {
+      this.auth.notifyAuthenticationRequired('Vui lòng đăng nhập để đăng ký giải đấu.');
+      return;
+    }
     if (this.registrationForm.type === 'CLUB' && !this.registrationForm.clubId) {
       this.notify.warning('Vui lòng nhập mã câu lạc bộ.'); return;
     }

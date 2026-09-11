@@ -15,6 +15,7 @@ import { NOTIFICATION_REPOSITORY_TOKEN } from '@application/ports/persistence/no
 import { USER_REPOSITORY_TOKEN } from '@application/ports/persistence/user.repository';
 import { STORAGE_REPOSITORY_TOKEN } from '@application/ports/persistence/storage.repository';
 import { VENUE_SEARCH_REPOSITORY_TOKEN } from '@application/ports/persistence/venue-search.repository';
+import { VENUE_FAVORITE_REPOSITORY_TOKEN } from '@application/ports/persistence/venue-favorite.repository';
 import { BOOKING_REPOSITORY_TOKEN } from '@application/ports/persistence/booking.repository';
 import { PAYMENT_REPOSITORY_TOKEN } from '@application/ports/persistence/payment.repository';
 import { BANK_ACCOUNT_REPOSITORY_TOKEN } from '@application/ports/persistence/bank-account.repository';
@@ -33,6 +34,7 @@ import { NotificationRepositoryImpl } from '@infrastructure/repositories/notific
 import { UserRepositoryImpl } from '@infrastructure/repositories/user.repository.impl';
 import { StorageRepositoryImpl } from '@infrastructure/repositories/storage.repository.impl';
 import { VenueSearchRepositoryImpl } from '@infrastructure/repositories/venue-search.repository.impl';
+import { VenueFavoriteRepositoryImpl } from '@infrastructure/repositories/venue-favorite.repository.impl';
 import { BookingRepositoryImpl } from '@infrastructure/repositories/booking.repository.impl';
 import { PaymentRepositoryImpl } from '@infrastructure/repositories/payment.repository.impl';
 import { BankAccountRepositoryImpl } from '@infrastructure/repositories/bank-account.repository.impl';
@@ -160,6 +162,9 @@ import {
   LucideWifi,
   LucideClock3,
   LucideLayoutGrid,
+  LucideChevronLeft,
+  LucideChevronRight,
+  LucideChevronDown,
   LucideCircle
 } from '@lucide/angular';
 
@@ -188,6 +193,7 @@ import {
     { provide: USER_REPOSITORY_TOKEN, useClass: UserRepositoryImpl },
     { provide: STORAGE_REPOSITORY_TOKEN, useClass: StorageRepositoryImpl },
     { provide: VENUE_SEARCH_REPOSITORY_TOKEN, useClass: VenueSearchRepositoryImpl },
+    { provide: VENUE_FAVORITE_REPOSITORY_TOKEN, useClass: VenueFavoriteRepositoryImpl },
     { provide: BOOKING_REPOSITORY_TOKEN, useClass: BookingRepositoryImpl },
     { provide: PAYMENT_REPOSITORY_TOKEN, useClass: PaymentRepositoryImpl },
     { provide: BANK_ACCOUNT_REPOSITORY_TOKEN, useClass: BankAccountRepositoryImpl },
@@ -310,6 +316,9 @@ import {
       LucideWifi,
       LucideClock3,
       LucideLayoutGrid,
+      LucideChevronLeft,
+      LucideChevronRight,
+      LucideChevronDown,
       LucideCircle
     )
   ],

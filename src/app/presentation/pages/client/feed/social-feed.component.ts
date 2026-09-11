@@ -555,8 +555,7 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
 
   private requireLogin(): boolean {
     if (this.authService.currentUser) return true;
-    this.notify.info('Vui lòng đăng nhập để sử dụng chức năng này.');
-    this.authService.redirectToLogin();
+    this.authService.notifyAuthenticationRequired();
     return false;
   }
 

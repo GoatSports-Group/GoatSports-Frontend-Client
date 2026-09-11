@@ -76,6 +76,9 @@ export class OwnerApplicationValidator {
     if (!form.district.trim()) errors.district = 'Vui lòng nhập quận / huyện.';
     if (!form.province.trim()) errors.province = 'Vui lòng nhập tỉnh / thành phố.';
     if (!form.city.trim()) errors.city = 'Vui lòng nhập thành phố.';
+    if (form.latitude == null || form.longitude == null) {
+      errors.address = 'Vui lòng chọn một địa chỉ trong danh sách gợi ý để xác định vị trí sân.';
+    }
     return errors;
   }
 

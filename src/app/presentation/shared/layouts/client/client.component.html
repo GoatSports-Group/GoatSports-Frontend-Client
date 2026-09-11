@@ -33,12 +33,18 @@
       <a routerLink="/matchmaking" (click)="closeSidenav()" routerLinkActive="active" class="drawer-item">
         <lucide-icon name="brain" class="w-4 h-4 mr-2"></lucide-icon> AI ghép kèo
       </a>
-      <a routerLink="/friends" (click)="closeSidenav()" routerLinkActive="active" class="drawer-item">
-        <lucide-icon name="user-check" class="w-4 h-4 mr-2"></lucide-icon> Bạn bè
-      </a>
-      <a routerLink="/chat" (click)="closeSidenav()" routerLinkActive="active" class="drawer-item">
-        <lucide-icon name="message-circle" class="w-4 h-4 mr-2"></lucide-icon> Tin nhắn
-      </a>
+      <button type="button" class="drawer-item" [matMenuTriggerFor]="mobileConnectionMenu">
+        <lucide-icon name="messages-square" class="w-4 h-4 mr-2"></lucide-icon> Kết nối
+        <lucide-icon name="chevron-down" class="w-4 h-4 ml-auto"></lucide-icon>
+      </button>
+      <mat-menu #mobileConnectionMenu="matMenu" class="custom-menu connection-menu">
+        <button type="button" mat-menu-item routerLink="/friends" (click)="closeSidenav()">
+          <lucide-icon name="users" class="w-4 h-4 mr-2"></lucide-icon> Bạn bè
+        </button>
+        <button type="button" mat-menu-item routerLink="/chat" (click)="closeSidenav()">
+          <lucide-icon name="message-circle" class="w-4 h-4 mr-2"></lucide-icon> Tin nhắn
+        </button>
+      </mat-menu>
       @if (currentUser?.role?.name === 'ADMIN' || currentUser?.role?.name === 'Người quản trị') {
       <a [href]="adminUrl + '/admin'" (click)="closeSidenav()" class="drawer-item admin-link">
         <lucide-icon name="shield-check" class="w-4 h-4 mr-2 text-primary"></lucide-icon> Quản Trị Admin

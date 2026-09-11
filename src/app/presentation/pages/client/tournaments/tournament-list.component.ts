@@ -44,7 +44,13 @@ export class TournamentListComponent {
   selectSport(value: SportType | 'ALL'): void { this.selectedSport.set(value); this.load(); }
   updateKeyword(value: string): void { this.keyword.set(value); }
   goToDetail(id: string): void { void this.router.navigate(['/tournaments', id]); }
-  openCreateModal(): void { if (!this.auth.currentUser) { this.auth.redirectToLogin(); return; } this.showCreateModal.set(true); }
+  openCreateModal(): void {
+    if (!this.auth.currentUser) {
+      this.auth.notifyAuthenticationRequired('Vui lòng đăng nhập để tạo giải đấu.');
+      return;
+    }
+    this.showCreateModal.set(true);
+  }
   closeCreateModal(): void { if (!this.saving()) this.showCreateModal.set(false); }
   createTournament(): void {
     if (!this.createForm.name.trim() || this.saving()) return;

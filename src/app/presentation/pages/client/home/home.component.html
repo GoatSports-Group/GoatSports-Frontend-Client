@@ -52,7 +52,7 @@
     <strong>Chọn môn thể thao</strong>
     <i aria-hidden="true"></i>
     @for (option of sportOptions; track option.value) {
-    <button type="button" class="sport-link" [class.sport-link--active]="option.value === SportType.FOOTBALL"
+    <button type="button" class="sport-link" [class.sport-link--active]="option.value === selectedSport"
       (click)="selectSport(option.value)">
       <span class="sport-ball-icon" aria-hidden="true">
         @switch (option.value) {
@@ -107,7 +107,8 @@
       <span>{{ option.label }}</span>
     </button>
     }
-    <button type="button" class="sport-link sport-link--all" (click)="onSearch()">
+    <button type="button" class="sport-link sport-link--all" [class.sport-link--active]="selectedSport === null"
+      (click)="selectSport(null)">
       <lucide-icon name="layout-grid" class="w-5 h-5"></lucide-icon>
       <span>Tất cả môn</span>
       <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon>
@@ -118,26 +119,31 @@
     <div class="venue-discovery">
       <header class="section-heading">
         <div class="section-heading__copy">
-          <h2 id="featured-venues-title">Sân đấu nổi bật gần bạn</h2>
+          <h2 id="featured-venues-title">
+            <span>Sân</span><span>đấu</span><span>nổi</span><span>bật</span><span>gần</span><span>bạn</span>
+          </h2>
           <p>Khám phá các sân chất lượng, được cộng đồng yêu thích</p>
         </div>
 
         <div class="nearby-tools">
-          <span class="current-location" [class.current-location--error]="locationState === 'error'">
+          <span class="current-location" [class.current-location--error]="locationState === 'error'"
+            [title]="locationMessage">
             <lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>
-            {{ locationMessage }}
+            <span>{{ locationMessage }}</span>
           </span>
-
-          <form class="radius-filter" (ngSubmit)="applyRadius()" novalidate>
+          <button type="button" class="change-location" (click)="openLocationPicker()"
+            [attr.aria-expanded]="locationPickerOpen">
+            Đổi vị trí
+          </button>
+          <form class="radius-filter radius-filter--inline" (ngSubmit)="applyRadius()" novalidate>
             <label for="home-radius">Bán kính</label>
             <span class="radius-input">
-              <input id="home-radius" name="radiusKm" type="number" min="1" max="100" step="1" inputmode="decimal"
+              <input id="home-radius" name="radiusKm" type="number" min="0.1" step="0.1" inputmode="decimal"
                 [(ngModel)]="radiusKm" [disabled]="locationState === 'locating'" aria-describedby="radius-help" />
               <b>km</b>
             </span>
             <button type="submit" [disabled]="locationState === 'locating'">Áp dụng</button>
           </form>
-
           <button type="button" class="nearby-all" (click)="openVenueSearch()">
             Xem tất cả
             <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon>
@@ -161,7 +167,7 @@
       </div>
       } @else if (featuredVenues.length) {
       <div class="venue-grid">
-        @for (venue of featuredVenues; track venue.venueId) {
+        @for (venue of visibleFeaturedVenues; track venue.venueId) {
         <app-venue-card [venue]="venue" [homeStyle]="true"></app-venue-card>
         }
       </div>
@@ -206,4 +212,62 @@
       </div>
     </aside>
   </section>
+
+  @if (locationPickerOpen) {
+  <div class="location-picker-backdrop" role="presentation" (click)="closeLocationPicker()">
+    <section class="location-picker" role="dialog" aria-modal="true" aria-labelledby="location-picker-title"
+      (click)="$event.stopPropagation()">
+      <header>
+        <div>
+          <span>Vị trí tìm sân</span>
+          <h2 id="location-picker-title">Chọn vị trí trên bản đồ</h2>
+        </div>
+        <button type="button" aria-label="Đóng bản đồ" (click)="closeLocationPicker()">
+          <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+        </button>
+      </header>
+
+      <form class="location-picker__search" (ngSubmit)="searchPickerLocation()">
+        <lucide-icon name="search" class="w-5 h-5"></lucide-icon>
+        <input name="locationSearch" [(ngModel)]="locationSearchQuery"
+          placeholder="Tìm địa chỉ, phường/xã hoặc thành phố..." autocomplete="off" />
+        <button type="submit" [disabled]="locationSearchLoading || locationSearchQuery.trim().length < 3">
+          {{ locationSearchLoading ? 'Đang tìm...' : 'Tìm kiếm' }}
+        </button>
+        @if (locationSuggestions.length) {
+        <div class="location-picker__suggestions">
+          @for (suggestion of locationSuggestions; track suggestion.refId) {
+          <button type="button" (click)="selectPickerSuggestion(suggestion)">
+            <lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>
+            <span><strong>{{ suggestion.title }}</strong><small>{{ suggestion.displayName }}</small></span>
+          </button>
+          }
+        </div>
+        }
+      </form>
+      @if (locationSearchError) {
+      <p class="location-picker__search-error" role="alert">{{ locationSearchError }}</p>
+      }
+
+      <div class="location-picker__map-wrap">
+        <div #locationPickerMap class="location-picker__map" aria-label="Bản đồ chọn vị trí"></div>
+        <button type="button" class="location-picker__device" (click)="useDeviceLocationInPicker()">
+          <lucide-icon name="locate-fixed" class="w-4 h-4"></lucide-icon>
+          Vị trí của tôi
+        </button>
+        <span class="location-picker__hint">Nhấn vào bản đồ để đặt ghim</span>
+      </div>
+
+      <footer>
+        <div>
+          <lucide-icon name="map-pin" class="w-5 h-5"></lucide-icon>
+          <span><small>Vị trí đã chọn</small><strong>{{ pendingLocationMessage }}</strong></span>
+        </div>
+        <button type="button" class="location-picker__confirm" (click)="confirmPickerLocation()">
+          Xác nhận vị trí
+        </button>
+      </footer>
+    </section>
+  </div>
+  }
 </main>

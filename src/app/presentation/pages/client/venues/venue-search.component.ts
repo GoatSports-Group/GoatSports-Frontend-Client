@@ -151,6 +151,10 @@ export class VenueSearchComponent implements OnInit {
   }
 
   private navigateWithFilters(page: number): Promise<boolean> {
+    const requestedRadius = Number(this.filter.radiusKm);
+    const radiusKm = Number.isFinite(requestedRadius) && requestedRadius > 0
+      ? requestedRadius
+      : 10;
     const queryParams = {
       keyword: this.cleanText(this.filter.keyword),
       sportType: this.filter.sportType && this.filter.sportType !== 'all' ? this.filter.sportType : null,
@@ -158,7 +162,7 @@ export class VenueSearchComponent implements OnInit {
       city: this.cleanText(this.filter.city),
       latitude: this.filter.latitude ?? null,
       longitude: this.filter.longitude ?? null,
-      radiusKm: this.locationActive ? (this.filter.radiusKm ?? 10) : null,
+      radiusKm: this.locationActive ? radiusKm : null,
       minPrice: this.filter.minPrice ?? null,
       maxPrice: this.filter.maxPrice ?? null,
       minRating: this.filter.minRating ?? null,

@@ -63,7 +63,10 @@ export class ClubListComponent {
   updateKeyword(value: string): void { this.keyword.set(value); }
   goToDetail(clubId: string): void { void this.router.navigate(['/clubs', clubId]); }
   openCreateModal(): void {
-    if (!this.auth.currentUser) { this.auth.redirectToLogin(); return; }
+    if (!this.auth.currentUser) {
+      this.auth.notifyAuthenticationRequired('Vui lòng đăng nhập để tạo câu lạc bộ.');
+      return;
+    }
     this.showCreateModal.set(true);
   }
   closeCreateModal(): void { if (!this.saving()) this.showCreateModal.set(false); }

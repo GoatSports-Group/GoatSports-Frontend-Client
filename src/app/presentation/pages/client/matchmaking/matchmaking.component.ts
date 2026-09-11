@@ -138,7 +138,7 @@ export class MatchmakingComponent implements OnInit {
   startMatchmaking(): void {
     const user = this.authService.currentUser;
     if (!user) {
-      this.authService.redirectToLogin();
+      this.authService.notifyAuthenticationRequired('Vui lòng đăng nhập để sử dụng AI ghép kèo.');
       return;
     }
     if (!this.validSchedule()) return;

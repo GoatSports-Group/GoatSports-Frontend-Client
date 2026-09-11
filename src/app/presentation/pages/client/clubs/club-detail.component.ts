@@ -60,7 +60,10 @@ export class ClubDetailComponent {
   }
   setTab(tab: ClubTab): void { this.activeTab.set(tab); }
   join(): void {
-    if (!this.auth.currentUser) { this.auth.redirectToLogin(); return; }
+    if (!this.auth.currentUser) {
+      this.auth.notifyAuthenticationRequired('Vui lòng đăng nhập để tham gia câu lạc bộ.');
+      return;
+    }
     this.mutating.set(true);
     this.repository.joinClub(this.clubId).subscribe({
       next: membership => { this.membership.set(membership); this.mutating.set(false);

@@ -6,4 +6,6 @@ export const environment = {
     clientApiUrl: process.env['NG_APP_CLIENT_API_URL'] || "http://localhost:4200",
 
     apiUrl: process.env['NG_APP_API_URL'] || "http://localhost:7070",
+    vietMapApiUrl: process.env['NG_APP_VIETMAP_API_URL'] || "",
+    vietMapApiKey: process.env['NG_APP_VIETMAP_API_KEY'] || "",
 };

@@ -30,7 +30,7 @@
         <label class="filter-field"><span>Giá từ</span><input name="minPrice" type="number" min="0" step="10000" [(ngModel)]="filter.minPrice" placeholder="0" /></label>
         <label class="filter-field"><span>Giá tối đa</span><input name="maxPrice" type="number" min="0" step="10000" [(ngModel)]="filter.maxPrice" placeholder="Không giới hạn" /></label>
         <label class="filter-field"><span>Đánh giá tối thiểu</span><select name="minRating" [(ngModel)]="filter.minRating"><option [ngValue]="undefined">Tất cả</option><option [ngValue]="3">Từ 3 sao</option><option [ngValue]="4">Từ 4 sao</option><option [ngValue]="4.5">Từ 4,5 sao</option></select></label>
-        <label class="filter-field" [class.filter-field--disabled]="!locationActive"><span>Bán kính tìm kiếm</span><select name="radiusKm" [(ngModel)]="filter.radiusKm" [disabled]="!locationActive" (change)="applyFilters()"><option [ngValue]="3">3 km</option><option [ngValue]="5">5 km</option><option [ngValue]="10">10 km</option><option [ngValue]="20">20 km</option><option [ngValue]="50">50 km</option></select></label>
+        <label class="filter-field" [class.filter-field--disabled]="!locationActive"><span>Bán kính tìm kiếm (km)</span><input name="radiusKm" type="number" min="0.1" step="0.1" [(ngModel)]="filter.radiusKm" [disabled]="!locationActive" (change)="applyFilters()" placeholder="10" /></label>
         @if (locationActive) {
           <button type="button" class="location-btn active" (click)="clearLocation()"><lucide-icon name="map-pin-off" class="w-4 h-4"></lucide-icon>Bỏ vị trí</button>
         } @else {

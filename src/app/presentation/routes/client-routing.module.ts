@@ -51,7 +51,7 @@ const routes: Routes = [
       { path: 'clubs/:id', component: ClubDetailComponent, title: 'Chi tiết câu lạc bộ | GOAT Sports' },
       { path: 'tournaments', component: TournamentListComponent, title: 'Giải đấu | GOAT Sports' },
       { path: 'tournaments/:id', component: TournamentDetailComponent, title: 'Chi tiết giải đấu | GOAT Sports' },
-      { path: 'matchmaking', component: MatchmakingComponent, canActivate: [AuthGuard], title: 'AI ghép kèo | GOAT Sports' },
+      { path: 'matchmaking', component: MatchmakingComponent, canActivate: [AuthGuard], title: 'AI ghép trận | GOAT Sports' },
       { path: 'feed', component: SocialFeedComponent, canActivate: [AuthGuard], title: 'Bảng tin | GOAT Sports' },
       { path: 'ai-recommendation', redirectTo: 'matchmaking', pathMatch: 'full' },
       { path: 'chat', component: ChatComponent, canActivate: [AuthGuard], title: 'Tin nhắn | GOAT Sports' },

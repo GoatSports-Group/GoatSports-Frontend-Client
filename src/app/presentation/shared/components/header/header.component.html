@@ -20,8 +20,21 @@
       <a routerLink="/clubs" routerLinkActive="active-link" class="nav-item">Câu Lạc Bộ</a>
       <a routerLink="/tournaments" routerLinkActive="active-link" class="nav-item">Giải Đấu</a>
       <a routerLink="/matchmaking" routerLinkActive="active-link" class="nav-item">AI Ghép Kèo</a>
-      <a routerLink="/friends" routerLinkActive="active-link" class="nav-item">Bạn Bè</a>
-      <a routerLink="/chat" routerLinkActive="active-link" class="nav-item">Tin Nhắn</a>
+      <button type="button" class="nav-item connection-nav-item" [class.active-link]="isConnectionRoute"
+        [matMenuTriggerFor]="connectionMenu" aria-label="Mở menu Bạn bè và Tin nhắn">
+        Kết Nối
+        <lucide-icon name="chevron-down" class="w-3.5 h-3.5"></lucide-icon>
+      </button>
+      <mat-menu #connectionMenu="matMenu" class="custom-menu connection-menu">
+        <button type="button" mat-menu-item routerLink="/friends">
+          <lucide-icon name="users" class="w-4 h-4 mr-2"></lucide-icon>
+          <span>Bạn bè</span>
+        </button>
+        <button type="button" mat-menu-item routerLink="/chat">
+          <lucide-icon name="message-circle" class="w-4 h-4 mr-2"></lucide-icon>
+          <span>Tin nhắn</span>
+        </button>
+      </mat-menu>
     </nav>
 
 
@@ -146,10 +159,6 @@
         </button>
       </mat-menu>
       } @else {
-      <button type="button" mat-stroked-button (click)="redirectToRegisterOwner()" class="partner-btn text-emerald-600 hidden md:inline-flex">
-        <lucide-icon name="store" class="w-4 h-4 mr-1.5"></lucide-icon>
-        Dành cho chủ sân
-      </button>
       <button type="button" mat-flat-button color="primary" (click)="redirectToLogin()" class="login-btn">
         Đăng Nhập
       </button>

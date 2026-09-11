@@ -2,8 +2,12 @@
   <article class="venue-card venue-card--home" [routerLink]="['/venues', venue.venueId]" tabindex="0">
     <div class="home-card__media">
       <img [src]="primaryImage" [alt]="venue.name" loading="lazy" (error)="onImageError($event)" />
-      <button type="button" class="home-card__favorite" aria-label="Lưu sân" (click)="onFavoriteClick($event)">
-        <lucide-icon name="heart" class="w-5 h-5"></lucide-icon>
+      <button type="button" class="home-card__favorite" [class.home-card__favorite--active]="isFavorite"
+        [class.home-card__favorite--loading]="favoriteLoading" [disabled]="favoriteLoading"
+        [attr.aria-label]="isFavorite ? 'Bỏ lưu sân' : 'Lưu sân yêu thích'"
+        [attr.aria-pressed]="isFavorite" [title]="isFavorite ? 'Bỏ lưu sân' : 'Lưu sân yêu thích'"
+        (click)="onFavoriteClick($event)">
+        <lucide-icon name="heart" class="w-5 h-5" [class.fill-current]="isFavorite"></lucide-icon>
       </button>
       @if (venue.distanceKm != null) {
         <span class="home-card__distance">
@@ -32,14 +36,15 @@
       </div>
 
       <div class="home-card__tags">
-        @if (venue.sportTypes?.length) {
-          <span>{{ getSportLabel(venue.sportTypes![0]) }}</span>
-        }
         @if (venue.totalCourts) {
           <span>{{ venue.totalCourts }} sân</span>
         }
-        @for (amenity of venue.amenities.slice(0, 1); track amenity) {
-          <span>{{ amenity }}</span>
+        @if (venue.amenities.length) {
+          @for (amenity of venue.amenities.slice(0, 3); track amenity) {
+            <span [title]="amenity">{{ amenity }}</span>
+          }
+        } @else {
+          <span class="home-card__tag--empty">Không có dịch vụ</span>
         }
       </div>
 

@@ -229,7 +229,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  padding-top: 22px;
+  margin-top: 28px;
+  padding: 22px 0 10px;
   border-top: 1px solid #e2e8f0;
 }
 
@@ -290,7 +291,7 @@
 
 /* Calm editorial footer: no decorative gradients or glass effects. */
 .app-footer {
-  padding-top: 48px;
+  padding: 48px 0 32px;
   border-top-color: var(--border-color);
   background: #fff;
 }

@@ -7,6 +7,7 @@ import { LogoutUseCase } from '@application/usecase/auth/logout.usecase';
 import { RefreshTokenUseCase } from '@application/usecase/auth/refresh-token.usecase';
 import { GetCurrentUserUseCase } from '@application/usecase/auth/get-current-user.usecase';
 import { environment } from '@environments/environment';
+import { NotifyService } from '@shared/components/notify/notify.service';
 
 @Injectable({
   providedIn: 'root'
@@ -14,6 +15,7 @@ import { environment } from '@environments/environment';
 export class AuthService {
   private sessionStateService = inject(SessionStateService);
   private router = inject(Router);
+  private notify = inject(NotifyService);
 
   private logoutUseCase = inject(LogoutUseCase);
   private refreshTokenUseCase = inject(RefreshTokenUseCase);
@@ -76,6 +78,12 @@ export class AuthService {
 
   public redirectToLogin(returnUrl: string = window.location.href): void {
     window.location.href = `${environment.authApiUrl}/login?redirect=${encodeURIComponent(returnUrl)}`;
+  }
+
+  public notifyAuthenticationRequired(
+    message = 'Vui lòng đăng nhập để sử dụng chức năng.'
+  ): void {
+    this.notify.warning(message, 'Yêu cầu đăng nhập');
   }
 
   public performLogout() {
