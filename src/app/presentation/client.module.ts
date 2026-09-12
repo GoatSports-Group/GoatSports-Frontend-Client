@@ -11,14 +11,6 @@ import { SettingsPersonalTabComponent } from '@presentation/pages/client/setting
 import { SettingsSecurityTabComponent } from '@presentation/pages/client/settings/tabs/security/settings-security-tab.component';
 import { SettingsSportsTabComponent } from '@presentation/pages/client/settings/tabs/sports/settings-sports-tab.component';
 import { SettingsBankingTabComponent } from '@presentation/pages/client/settings/tabs/banking/settings-banking-tab.component';
-import { OwnerApplicationComponent } from '@presentation/pages/client/owner-application/owner-application.component';
-import { OwnerApplicationHistoryComponent } from '@presentation/pages/client/owner-application/history/owner-application-history.component';
-import { OwnerApplicationFormComponent } from '@presentation/pages/client/owner-application/form/owner-application-form.component';
-import { OwnerApplicationStepperComponent } from '@presentation/pages/client/owner-application/step/stepper/owner-application-stepper.component';
-import { OwnerRepresentativeStepComponent } from '@presentation/pages/client/owner-application/step/representative/owner-representative-step.component';
-import { OwnerBusinessStepComponent } from '@presentation/pages/client/owner-application/step/business/owner-business-step.component';
-import { OwnerAddressStepComponent } from '@presentation/pages/client/owner-application/step/address/owner-address-step.component';
-import { OwnerDocumentsStepComponent } from '@presentation/pages/client/owner-application/step/documents/owner-documents-step.component';
 import { VenueSearchComponent } from '@presentation/pages/client/venues/venue-search.component';
 import { VenueCardComponent } from '@presentation/pages/client/venues/venue-card/venue-card.component';
 import { VenueDetailComponent } from '@presentation/pages/client/venues/venue-detail/venue-detail.component';
@@ -48,14 +40,6 @@ import { AiAssistantModalComponent } from '@presentation/shared/components/ai-as
     SettingsSecurityTabComponent,
     SettingsSportsTabComponent,
     SettingsBankingTabComponent,
-    OwnerApplicationComponent,
-    OwnerApplicationHistoryComponent,
-    OwnerApplicationFormComponent,
-    OwnerApplicationStepperComponent,
-    OwnerRepresentativeStepComponent,
-    OwnerBusinessStepComponent,
-    OwnerAddressStepComponent,
-    OwnerDocumentsStepComponent,
     VenueSearchComponent,
     VenueCardComponent,
     VenueDetailComponent,

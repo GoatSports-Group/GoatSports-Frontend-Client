@@ -10,7 +10,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NotifyComponent } from '@shared/components/notify/notify.component';
 
 import { AUTH_REPOSITORY_TOKEN } from '@application/ports/persistence/auth.repository';
-import { OWNER_APPLICATION_REPOSITORY_TOKEN } from '@application/ports/persistence/owner-application.repository';
 import { NOTIFICATION_REPOSITORY_TOKEN } from '@application/ports/persistence/notification.repository';
 import { USER_REPOSITORY_TOKEN } from '@application/ports/persistence/user.repository';
 import { STORAGE_REPOSITORY_TOKEN } from '@application/ports/persistence/storage.repository';
@@ -29,7 +28,6 @@ import { CURRENT_USER_PROVIDER_TOKEN } from '@application/ports/current-user.pro
 import { SessionStateService } from '@presentation/services/session-state.service';
 
 import { AuthRepositoryImpl } from '@infrastructure/repositories/auth.repository.impl';
-import { OwnerApplicationRepositoryImpl } from '@infrastructure/repositories/owner-application.repository.impl';
 import { NotificationRepositoryImpl } from '@infrastructure/repositories/notification.repository.impl';
 import { UserRepositoryImpl } from '@infrastructure/repositories/user.repository.impl';
 import { StorageRepositoryImpl } from '@infrastructure/repositories/storage.repository.impl';
@@ -194,7 +192,6 @@ import {
       multi: true
     },
     { provide: AUTH_REPOSITORY_TOKEN, useClass: AuthRepositoryImpl },
-    { provide: OWNER_APPLICATION_REPOSITORY_TOKEN, useClass: OwnerApplicationRepositoryImpl },
     { provide: NOTIFICATION_REPOSITORY_TOKEN, useClass: NotificationRepositoryImpl },
     { provide: USER_REPOSITORY_TOKEN, useClass: UserRepositoryImpl },
     { provide: STORAGE_REPOSITORY_TOKEN, useClass: StorageRepositoryImpl },

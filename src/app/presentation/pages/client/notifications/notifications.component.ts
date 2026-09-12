@@ -151,8 +151,6 @@ export class NotificationsComponent implements OnInit {
 
   getNotificationIcon(type?: NotificationType): string {
     switch (type) {
-      case NotificationType.OWNER_APPLICATION:
-        return 'store';
       case NotificationType.BOOKING:
         return 'calendar';
       case NotificationType.CHECK_IN:
@@ -185,7 +183,6 @@ export class NotificationsComponent implements OnInit {
 
   getNotificationTypeLabel(type?: NotificationType): string {
     switch (type) {
-      case NotificationType.OWNER_APPLICATION: return 'Đăng ký chủ sân';
       case NotificationType.BOOKING: return 'Đặt sân';
       case NotificationType.CHECK_IN: return 'Nhận sân';
       case NotificationType.REVIEW: return 'Đánh giá';
@@ -282,7 +279,6 @@ export class NotificationsComponent implements OnInit {
   private getNotificationRoute(notification: Notification): string[] | null {
     const id = notification.referenceId;
     switch ((notification.referenceType || '').toUpperCase()) {
-      case 'OWNER_APPLICATION': return ['/owner-application'];
       case 'BOOKING': return id ? ['/booking/detail', id] : ['/booking/history'];
       case 'FRIENDSHIP': return ['/friends'];
       case 'MESSAGE': return ['/chat'];

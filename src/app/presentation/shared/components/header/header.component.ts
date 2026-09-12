@@ -121,9 +121,6 @@ export class HeaderComponent implements OnInit {
   private navigateFromNotification(notification: Notification): void {
     const referenceId = notification.referenceId;
     switch ((notification.referenceType || '').toUpperCase()) {
-      case 'OWNER_APPLICATION':
-        void this.router.navigate(['/owner-application']);
-        break;
       case 'BOOKING':
         void this.router.navigate(referenceId ? ['/booking/detail', referenceId] : ['/booking/history']);
         break;
@@ -143,9 +140,7 @@ export class HeaderComponent implements OnInit {
         void this.router.navigate(['/matchmaking']);
         break;
       default:
-        if (notification.type === NotificationType.OWNER_APPLICATION) {
-          void this.router.navigate(['/owner-application']);
-        } else if (notification.type === NotificationType.BOOKING) {
+        if (notification.type === NotificationType.BOOKING) {
           void this.router.navigate(['/booking/history']);
         }
     }

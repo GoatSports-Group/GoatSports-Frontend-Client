@@ -8,7 +8,6 @@ import {
   CurrentUserProvider
 } from '@application/ports/current-user.provider';
 import { environment } from '@environments/environment';
-import { OwnerApplicationProgressChangedEvent } from '@application/dto/owner-application/owner-application-progress.dto';
 
 class StompFrame {
   constructor(
@@ -67,14 +66,11 @@ export class StompWebSocketService implements WebSocketService {
   private shouldReconnect = false;
   private apiBase = environment.apiUrl;
   private notificationSubscriptionId = 'sub-user-notifications';
-  private progressSubscriptionId = 'sub-owner-application-progress';
   private activeRoomSubscriptions = new Set<string>();
   private currentUserProvider = inject<CurrentUserProvider>(CURRENT_USER_PROVIDER_TOKEN);
 
   private notificationSubject = new Subject<Notification>();
   public notifications$: Observable<Notification> = this.notificationSubject.asObservable();
-  private progressSubject = new Subject<OwnerApplicationProgressChangedEvent>();
-  public ownerApplicationProgress$ = this.progressSubject.asObservable();
   private chatMessageSubject = new Subject<ChatMessage>();
   public chatMessages$: Observable<ChatMessage> = this.chatMessageSubject.asObservable();
   private typingEventSubject = new Subject<ChatTypingEvent>();
@@ -231,7 +227,6 @@ export class StompWebSocketService implements WebSocketService {
     }
 
     this.subscribe(this.notificationSubscriptionId, `/topic/user/notifications/${currentUserId}`);
-    this.subscribe(this.progressSubscriptionId, `/topic/user/owner-application-progress/${currentUserId}`);
   }
 
   private sendUnsubscribeFrame(): void {
@@ -239,7 +234,6 @@ export class StompWebSocketService implements WebSocketService {
 
     try {
       this.unsubscribe(this.notificationSubscriptionId);
-      this.unsubscribe(this.progressSubscriptionId);
       console.log('STOMP UNSUBSCRIBE sent');
     } catch (e) {
       console.error('Error sending unsubscribe frame:', e);
@@ -270,12 +264,6 @@ export class StompWebSocketService implements WebSocketService {
               this.notificationSubject.next(notification);
             } catch (jsonErr) {
               console.error('Failed to parse STOMP notification:', jsonErr);
-            }
-          } else if (destination === `/topic/user/owner-application-progress/${currentUserId}`) {
-            try {
-              this.progressSubject.next(JSON.parse(frame.body));
-            } catch (jsonErr) {
-              console.error('Failed to parse progress event:', jsonErr);
             }
           }
           break;

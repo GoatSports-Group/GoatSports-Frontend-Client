@@ -1,5 +1,4 @@
 export enum NotificationType {
-  OWNER_APPLICATION = 'OWNER_APPLICATION',
   BOOKING = 'BOOKING',
   CHECK_IN = 'CHECK_IN',
   REVIEW = 'REVIEW',
@@ -16,10 +15,6 @@ export enum NotificationType {
 }
 
 export const NOTIFICATION_TYPE_OPTIONS = [
-  {
-    value: NotificationType.OWNER_APPLICATION,
-    label: 'Đơn đăng ký làm chủ sân',
-  },
   {
     value: NotificationType.BOOKING,
     label: 'Đặt sân',
