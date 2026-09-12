@@ -408,7 +408,8 @@
 
 .refund-policy-section ol {
   margin: 0;
-  padding-left: 18px;
+  padding-left: 0;
+  list-style-position: inside;
   color: #4e5e70;
   font-size: .82rem;
   line-height: 1.75;
