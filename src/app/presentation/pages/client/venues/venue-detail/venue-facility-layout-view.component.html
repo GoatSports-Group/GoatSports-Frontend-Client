@@ -1,0 +1,44 @@
+<div class="facility-layout-viewport">
+  <div class="facility-layout-canvas" role="img" aria-label="Sơ đồ tiện ích và sân thi đấu của cơ sở">
+    @for (zone of layout().zones; track zone.id; let zoneIndex = $index) {
+      <section class="facility-zone" [class.facility-zone--secondary]="zoneIndex % 2 === 1"
+        [style.left.%]="itemPercent(zone.x, 'x')" [style.top.%]="itemPercent(zone.y, 'y')"
+        [style.width.%]="itemPercent(zone.width, 'x')" [style.height.%]="itemPercent(zone.height, 'y')">
+        <strong>{{ zone.name }}</strong>
+      </section>
+    }
+
+    @for (item of facilityItems(); track item.id) {
+      <div class="facility-object" [attr.data-type]="item.type" [attr.aria-label]="item.label"
+        [style.left.%]="itemPercent(item.x, 'x')" [style.top.%]="itemPercent(item.y, 'y')"
+        [style.width.%]="itemPercent(item.width, 'x')" [style.height.%]="itemPercent(item.height, 'y')"
+        [style.transform]="'rotate(' + item.rotation + 'deg)'">
+        @if (item.type === 'PARKING') {
+          <span class="parking-slots" aria-hidden="true">
+            @for (slot of parkingSlots; track slot) {
+              <i><lucide-icon name="car" /></i>
+            }
+          </span>
+        } @else {
+          <lucide-icon [name]="facilityIcon(item)" />
+          <strong>{{ item.label }}</strong>
+        }
+      </div>
+    }
+
+    @for (item of courtItems(); track item.id) {
+      @let court = courtForItem(item);
+      <div class="court-object" [class.court-object--inactive]="!court?.active"
+        [attr.aria-label]="item.label + ', ' + courtStatus(court)"
+        [style.left.%]="itemPercent(item.x, 'x')" [style.top.%]="itemPercent(item.y, 'y')"
+        [style.width.%]="itemPercent(item.width, 'x')" [style.height.%]="itemPercent(item.height, 'y')"
+        [style.transform]="'rotate(' + item.rotation + 'deg)'">
+        <span class="court-object__surface">
+          <app-court-floor-marking [sportType]="court?.sportType || ''" />
+        </span>
+        <strong>{{ court?.name || item.label }}</strong>
+        <span class="court-object__status"><i></i>{{ courtStatus(court) }}</span>
+      </div>
+    }
+  </div>
+</div>

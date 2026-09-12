@@ -22,6 +22,7 @@ import { OwnerDocumentsStepComponent } from '@presentation/pages/client/owner-ap
 import { VenueSearchComponent } from '@presentation/pages/client/venues/venue-search.component';
 import { VenueCardComponent } from '@presentation/pages/client/venues/venue-card/venue-card.component';
 import { VenueDetailComponent } from '@presentation/pages/client/venues/venue-detail/venue-detail.component';
+import { VenueFacilityLayoutViewComponent } from '@presentation/pages/client/venues/venue-detail/venue-facility-layout-view.component';
 import { BookingCreateComponent } from '@presentation/pages/client/booking/booking-create.component';
 import { BookingHistoryComponent } from '@presentation/pages/client/booking/history/booking-history.component';
 import { BookingDetailComponent } from '@presentation/pages/client/booking/detail/booking-detail.component';
@@ -76,6 +77,7 @@ import { AiAssistantModalComponent } from '@presentation/shared/components/ai-as
   imports: [
     CommonModule,
     SharedModule,
+    VenueFacilityLayoutViewComponent,
     ClientRoutingModule
   ]
 })

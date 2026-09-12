@@ -35,7 +35,7 @@ body.dark .main-header {
   width: 100%;
   max-width: 1600px;
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: 0;
   height: 100%;
   box-sizing: border-box;
 }
@@ -541,6 +541,7 @@ body.dark .main-header {
       &::-webkit-scrollbar {
         width: 4px;
       }
+
       &::-webkit-scrollbar-thumb {
         background: #e2e8f0;
         border-radius: 4px;
@@ -682,6 +683,7 @@ body.dark .main-header {
     opacity: 0;
     transform: translateY(-4px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -689,7 +691,9 @@ body.dark .main-header {
 }
 
 /* 2026 editorial product header */
-:host { height: 70px; }
+:host {
+  height: 70px;
+}
 
 .main-header {
   height: 70px;
@@ -702,7 +706,7 @@ body.dark .main-header {
 .header-container {
   max-width: 1500px;
   gap: clamp(.65rem, 1.25vw, 1.35rem);
-  padding-inline: clamp(1rem, 2vw, 2rem);
+  padding-inline: 0;
 }
 
 .logo-wrapper {
@@ -714,7 +718,9 @@ body.dark .main-header {
     filter: none;
   }
 
-  &:hover .logo-img { transform: none; }
+  &:hover .logo-img {
+    transform: none;
+  }
 
   .logo-text {
     color: var(--text-dark) !important;
@@ -760,7 +766,9 @@ body.dark .main-header {
   max-width: 280px;
   margin: 0;
 
-  ::ng-deep .mat-mdc-form-field { border-radius: var(--border-radius-sm) !important; }
+  ::ng-deep .mat-mdc-form-field {
+    border-radius: var(--border-radius-sm) !important;
+  }
 
   .search-field {
     ::ng-deep .mat-mdc-text-field-wrapper {
@@ -811,16 +819,36 @@ body.dark .main-header {
 }
 
 @media (max-width: 1360px) {
-  .desktop-nav { display: none; }
-  .mobile-menu-btn { display: inline-flex; }
-  .search-container { max-width: 360px; margin-left: auto; }
+  .desktop-nav {
+    display: none;
+  }
+
+  .mobile-menu-btn {
+    display: inline-flex;
+  }
+
+  .search-container {
+    max-width: 360px;
+    margin-left: auto;
+  }
 }
 
 @media (max-width: 680px) {
-  .main-header,
-  :host { height: 64px; }
 
-  .logo-wrapper .logo-text { display: none; }
-  .search-container { display: none; }
-  .actions-container { margin-left: auto; }
+  .main-header,
+  :host {
+    height: 64px;
+  }
+
+  .logo-wrapper .logo-text {
+    display: none;
+  }
+
+  .search-container {
+    display: none;
+  }
+
+  .actions-container {
+    margin-left: auto;
+  }
 }

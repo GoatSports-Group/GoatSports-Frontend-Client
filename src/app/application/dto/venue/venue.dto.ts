@@ -1,5 +1,11 @@
 export { SportType, SPORT_TYPE_OPTIONS } from '@domain/enums/sport-type.enum';
-export { Venue, VenueCourt } from '@domain/entities/venue';
+export {
+  Venue,
+  VenueCourt,
+  VenueFacilityLayout,
+  VenueFacilityLayoutItem,
+  VenueFacilityLayoutZone
+} from '@domain/entities/venue';
 
 export interface VenueSearchFilter {
   keyword?: string;

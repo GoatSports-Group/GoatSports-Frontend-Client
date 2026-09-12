@@ -1,58 +1,360 @@
 <div class="venue-detail-page">
   @if (loading) {
-    <div class="container py-8" aria-label="Đang tải thông tin sân"><app-loading-skeleton height="380px" borderRadius="16px"></app-loading-skeleton></div>
+  <div class="venue-detail-shell venue-detail-loading" aria-label="Đang tải thông tin sân">
+    <app-loading-skeleton height="680px" borderRadius="12px"></app-loading-skeleton>
+  </div>
   } @else if (detailError) {
-    <section class="detail-error neo-card" role="alert"><lucide-icon name="circle-alert" class="w-12 h-12 text-red-400"></lucide-icon><h1>Không tải được thông tin sân</h1><p>{{ detailError }}</p><div class="error-actions"><a mat-stroked-button routerLink="/venues">Quay lại danh sách</a><button mat-flat-button color="primary" type="button" (click)="loadVenueDetails()">Thử lại</button></div></section>
+  <section class="detail-error neo-card" role="alert">
+    <lucide-icon name="circle-alert" class="w-12 h-12 text-red-400"></lucide-icon>
+    <h1>Không tải được thông tin sân</h1>
+    <p>{{ detailError }}</p>
+    <div class="error-actions">
+      <a mat-stroked-button routerLink="/venues">Quay lại danh sách</a>
+      <button mat-flat-button color="primary" type="button" (click)="loadVenueDetails()">Thử lại</button>
+    </div>
+  </section>
   } @else if (venue) {
-    <main class="container py-4">
-      <nav class="breadcrumb-row"><a routerLink="/home">Trang chủ</a><span>/</span><a routerLink="/venues">Tìm sân đấu</a><span>/</span><strong>{{ venue.name }}</strong></nav>
-      <div class="detail-grid">
-        <div class="left-col">
-          <section class="gallery-card" aria-label="Hình ảnh sân">
-            <div class="gallery-mosaic">
-              @for (image of galleryImages; track $index) {
-                <button type="button" class="gallery-tile" [class.gallery-tile--main]="$index === 0" (click)="selectedImageIndex = $index % venueImages.length" [attr.aria-label]="'Xem ảnh ' + ($index + 1)">
-                  <img [src]="image" [alt]="venue.name + ' - ảnh ' + ($index + 1)" (error)="onImageError($event)" />
-                  @if ($index === 4 && venueImages.length > 5) { <span class="more-images">+{{ venueImages.length - 5 }}<small>Xem thêm ảnh</small></span> }
-                </button>
+  <main class="venue-detail-shell">
+    <div class="venue-detail-grid">
+      <div class="venue-content">
+        <section class="venue-gallery" aria-label="Hình ảnh sân">
+          <div class="gallery-mosaic" [class.gallery-mosaic--single]="galleryImages.length === 1"
+            [class.gallery-mosaic--two]="galleryImages.length === 2"
+            [class.gallery-mosaic--three]="galleryImages.length === 3"
+            [class.gallery-mosaic--four]="galleryImages.length === 4">
+            @for (image of galleryImages; track $index) {
+            <button type="button" class="gallery-tile" [class.gallery-tile--main]="$index === 0"
+              (click)="selectedImageIndex = $index % venueImages.length" [attr.aria-label]="'Xem ảnh ' + ($index + 1)">
+              <img [src]="image" [alt]="venue.name + ' - ảnh ' + ($index + 1)" (error)="onImageError($event)" />
+              @if ($index === 0) {
+              <span class="gallery-count">{{ selectedImageIndex + 1 }}/{{ venueImages.length }}</span>
               }
-              <div class="rating-chip">@if (venue.totalReviews > 0) { <span>★ {{ venue.averageRating | number:'1.1-1' }} ({{ venue.totalReviews }} đánh giá)</span> } @else { <span>Chưa có đánh giá</span> }</div>
-            </div>
-          </section>
+              @if ($index === 4 && venueImages.length > 5) {
+              <span class="more-images">
+                <b>+{{ venueImages.length - 5 }}</b>
+                <small>Xem thêm ảnh</small>
+              </span>
+              }
+            </button>
+            }
+          </div>
+        </section>
 
-          <section class="info-card">
-            <div class="venue-heading-row"><div><h1 class="venue-title">{{ venue.name }}</h1><div class="venue-rating">@if (venue.totalReviews > 0) { <b>★ {{ venue.averageRating | number:'1.1-1' }}</b><span>({{ venue.totalReviews }} đánh giá)</span> } @else { <span>Chưa có đánh giá</span> }</div></div><div class="heading-actions"><button type="button"><lucide-icon name="heart" class="w-4 h-4"></lucide-icon>Lưu sân</button><button type="button"><lucide-icon name="share-2" class="w-4 h-4"></lucide-icon>Chia sẻ</button></div></div>
-            <div class="address-line"><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon><span>{{ fullAddress }}</span>@if (mapUrl) { <a [href]="mapUrl" target="_blank" rel="noopener noreferrer">Xem bản đồ</a> }</div>
-            <div class="sports-tags">@for (sport of venue.sportTypes; track sport) { <span>{{ getSportLabel(sport) }}</span> }</div>
-            <nav class="detail-tabs" aria-label="Thông tin sân"><a href="#overview">Tổng quan</a><a href="#amenities">Tiện ích</a><a href="#description">Mô tả</a><a href="#rules">Nội quy</a><a href="#reviews">Đánh giá ({{ venue.totalReviews || 0 }})</a></nav>
-            <section id="overview" class="overview-grid">
-              <div><lucide-icon name="layout-grid" class="w-6 h-6"></lucide-icon><strong>{{ venue.totalCourts || venue.courts?.length || 0 }} sân</strong><span>Sân con đang hoạt động</span></div>
-              <div><lucide-icon name="clock" class="w-6 h-6"></lucide-icon><strong>{{ formatTime(venue.openTime) }} – {{ formatTime(venue.closeTime) }}</strong><span>Giờ hoạt động</span></div>
-              @if (venue.phone) { <a [href]="'tel:' + venue.phone"><lucide-icon name="phone" class="w-6 h-6"></lucide-icon><strong>{{ venue.phone }}</strong><span>Liên hệ chủ sân</span></a> }
-              @if (venue.email) { <a [href]="'mailto:' + venue.email"><lucide-icon name="mail" class="w-6 h-6"></lucide-icon><strong>Email</strong><span>{{ venue.email }}</span></a> }
-            </section>
-            <section id="description" class="content-section"><h2>Mô tả sân</h2><p>{{ venue.description || 'Chủ sân chưa cập nhật mô tả.' }}</p></section>
-            <section id="amenities" class="content-section"><h2>Tiện ích sân</h2>@if (venue.amenities.length) { <div class="amenities-grid">@for (amenity of venue.amenities; track amenity) { <div class="amenity-badge"><lucide-icon [name]="amenityIcons[amenity] || 'circle-check'" class="w-4 h-4"></lucide-icon><span>{{ amenity }}</span></div> }</div> } @else { <p>Chủ sân chưa cập nhật thông tin tiện ích.</p> }</section>
-          </section>
-        </div>
-
-        <aside class="right-col">
-          <section class="booking-card" aria-labelledby="booking-schedule-title">
-            <div class="booking-title-row"><div><h2 id="booking-schedule-title" class="card-title">Đặt sân ngay</h2><p>Chọn thời gian, sân và thanh toán để giữ chỗ</p></div><span class="live-badge"><i></i>Dữ liệu trực tiếp</span></div>
-            <div class="date-selector-row"><span class="field-label">Chọn ngày thi đấu</span><div class="date-strip">@for (date of bookingDates; track date) { <button type="button" [class.active]="selectedDate === date" [disabled]="date < today" (click)="selectBookingDate(date)"><span>{{ date === today ? 'Hôm nay' : (date | date:'EEE') }}</span><strong>{{ date | date:'dd/MM' }}</strong></button> }</div><label class="other-date"><span>Ngày khác</span><input type="date" [value]="selectedDate" [min]="today" [max]="maxBookingDate" (change)="onDateChange($event)" /></label></div>
-            @if (venue.courts?.length) {
-              <div class="courts-selector"><span class="field-label">Chọn sân</span><div class="courts-pills">@for (court of venue.courts; track court.venueCourtId) { <button type="button" class="court-pill" [class.active]="selectedCourt?.venueCourtId === court.venueCourtId" [disabled]="!court.active" (click)="selectCourt(court)"><strong>{{ court.name }}</strong><small>{{ court.capacity }} người · {{ getSportLabel(court.sportType) }}</small></button> }</div></div>
-              <div class="slots-matrix-box"><div class="matrix-header"><span>Khung giờ</span><span class="legend"><i></i>Còn trống <i></i>Đã đặt</span></div>
-                @if (loadingSlots) { <div class="slot-feedback"><mat-progress-spinner mode="indeterminate" diameter="28"></mat-progress-spinner><span>Đang tải lịch trống...</span></div> }
-                @else if (slotsError) { <div class="slot-feedback slot-feedback--error" role="alert"><lucide-icon name="wifi-off" class="w-6 h-6"></lucide-icon><span>{{ slotsError }}</span><button type="button" (click)="loadSlots()">Thử lại</button></div> }
-                @else if (courtSlots.length) { <div class="slots-grid">@for (slot of courtSlots; track slot.timeSlotId) { <button type="button" class="slot-btn" [class.slot-btn--locked]="slot.status === TimeSlotStatus.LOCKED" [class.slot-btn--booked]="slot.status === TimeSlotStatus.BOOKED" [disabled]="!isSlotAvailable(slot)" (click)="goToBooking(selectedCourt!, slot)"><span class="slot-time">{{ formatTime(slot.startTime) }}</span><span class="slot-price">{{ formatPrice(slot.pricePerHour) }}</span></button> }</div> }
-                @else { <div class="slot-feedback"><lucide-icon name="calendar-x" class="w-7 h-7"></lucide-icon><span>Ngày này chưa có khung giờ khả dụng.</span></div> }
+        <section class="venue-summary">
+          <div class="venue-heading-row">
+            <div class="venue-heading-copy">
+              <h1>{{ venue.name }}</h1>
+              <div class="venue-meta-row">
+                <span class="venue-rating">
+                  <lucide-icon name="star" class="w-4 h-4"></lucide-icon>
+                  @if (venue.totalReviews > 0) {
+                  <b>{{ venue.averageRating | number:'1.1-1' }}</b>
+                  <span>({{ venue.totalReviews }} đánh giá)</span>
+                  } @else {
+                  <span>Chưa có đánh giá</span>
+                  }
+                </span>
+                <i></i>
+                <span class="venue-address">
+                  <lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>
+                  {{ fullAddress }}
+                </span>
+                @if (mapUrl) {
+                <a [href]="mapUrl" target="_blank" rel="noopener noreferrer">Xem bản đồ</a>
+                }
               </div>
-            } @else { <div class="empty-courts-notice"><lucide-icon name="circle-alert" class="w-6 h-6"></lucide-icon><p>Chủ sân chưa cấu hình sân con đang hoạt động.</p></div> }
-            <div class="booking-security"><lucide-icon name="lock" class="w-4 h-4"></lucide-icon>Thanh toán an toàn và minh bạch qua GOAT Sports</div>
+            </div>
+            <div class="heading-actions">
+              <button type="button" [class.active]="isFavorite" [disabled]="favoriteLoading" (click)="toggleFavorite()">
+                <lucide-icon name="heart" class="w-5 h-5" [class.fill-current]="isFavorite"></lucide-icon>
+                {{ isFavorite ? 'Đã lưu' : 'Lưu sân' }}
+              </button>
+              <button type="button" (click)="shareVenue()">
+                <lucide-icon name="share-2" class="w-5 h-5"></lucide-icon>
+                Chia sẻ
+              </button>
+            </div>
+          </div>
+
+          <div class="sports-tags">
+            @for (sport of venue.sportTypes; track sport) {
+            <span class="sport-tag sport-tag--primary">{{ getSportLabel(sport) }}</span>
+            }
+            @for (court of (venue.courts || []).slice(0, 4); track court.venueCourtId) {
+            <span class="sport-tag">{{ court.name }}</span>
+            }
+            @for (amenity of venue.amenities.slice(0, 4); track amenity) {
+            <span class="sport-tag">{{ amenity }}</span>
+            }
+          </div>
+        </section>
+
+        <section class="venue-information">
+          <nav class="detail-tabs" aria-label="Thông tin sân">
+            <button type="button" [class.active]="activeTab === 'overview'" (click)="showTab('overview')">
+              Tổng quan
+            </button>
+            <button type="button" [class.active]="activeTab === 'facility-layout'" (click)="showTab('facility-layout')">
+              Sơ đồ tiện ích
+            </button>
+            <button type="button" [class.active]="activeTab === 'reviews'" (click)="showTab('reviews')">
+              Đánh giá ({{ venue.totalReviews || 0 }})
+            </button>
+          </nav>
+
+          @if (activeTab === 'overview') {
+          <div id="overview" class="tab-panel">
+            <div class="overview-grid">
+              <div>
+                <lucide-icon name="layout-grid" class="w-7 h-7"></lucide-icon>
+                <strong>{{ venue.totalCourts || venue.courts?.length || 0 }} sân</strong>
+              </div>
+              <div>
+                <lucide-icon name="clock" class="w-7 h-7"></lucide-icon>
+                <strong>{{ formatTime(venue.openTime) }} – {{ formatTime(venue.closeTime) }}</strong>
+              </div>
+              @for (facility of facilityItems; track facility.id) {
+              <div>
+                <lucide-icon [name]="facilityIcon(facility)" class="w-7 h-7"></lucide-icon>
+                <strong>{{ facility.label }}</strong>
+              </div>
+              }
+            </div>
+
+            <section class="content-section description-section">
+              <h2>Mô tả sân</h2>
+              <p>{{ venue.description || 'Chủ sân chưa cập nhật mô tả chi tiết.' }}</p>
+              <blockquote>“Mỗi sân đấu không chỉ là nơi thi đấu, mà còn là nơi kết nối những người cùng đam mê.”
+              </blockquote>
+            </section>
+
+            <section class="content-section refund-policy-section">
+              <h2>Quy tắc hoàn tiền</h2>
+              @if (venue.cancellationPolicy; as policy) {
+              <ol>
+                <li>Hủy trước giờ chơi từ <strong>{{ policy.fullRefundHoursBefore }} giờ</strong>: hoàn 100% số tiền đủ
+                  điều kiện.</li>
+                <li>Hủy trước giờ chơi từ <strong>{{ policy.partialRefundHoursBefore }} giờ</strong>: hoàn {{
+                  policy.partialRefundPercentage | number:'1.0-2' }}%.</li>
+                <li>Hủy trong vòng <strong>{{ policy.noRefundHoursBefore }} giờ</strong> trước giờ chơi: không hoàn
+                  tiền.</li>
+              </ol>
+              <p class="policy-note">Yêu cầu gửi trong 60 phút kể từ lúc đặt được hệ thống xét duyệt tự động; sau thời
+                gian này chủ sân sẽ xác nhận.</p>
+              } @else {
+              <div class="empty-policy"><lucide-icon name="circle-alert" class="w-5 h-5"></lucide-icon>Chủ sân chưa
+                thiết lập quy tắc hoàn tiền.</div>
+              }
+            </section>
+          </div>
+          } @else if (activeTab === 'facility-layout') {
+          <section id="facility-layout" class="tab-panel facility-layout-panel">
+            <header class="facility-layout-heading">
+              <div>
+                <h2>Sơ đồ tiện ích cơ sở</h2>
+                <p>Sơ đồ được cập nhật trực tiếp từ bố trí của chủ sân.</p>
+              </div>
+            </header>
+            @if (venue.facilityLayout && venue.facilityLayout.items.length) {
+            <app-venue-facility-layout-view [layout]="venue.facilityLayout" [courts]="venue.courts || []" />
+            } @else {
+            <div class="facility-layout-empty">
+              <lucide-icon name="layout-grid" class="w-8 h-8"></lucide-icon>
+              <span>Chủ sân chưa thiết lập sơ đồ tiện ích cho cơ sở.</span>
+            </div>
+            }
           </section>
-        </aside>
+          } @else {
+          <section id="reviews" class="tab-panel reviews-panel">
+            <header class="reviews-heading">
+              <div>
+                <h2>Đánh giá từ người chơi</h2>
+                <p>Nhận xét từ các người chơi đã từng chơi tại cơ sở.</p>
+              </div>
+              <div class="rating-summary"><strong>{{ venue.averageRating | number:'1.1-1'
+                  }}</strong><span>★</span><small>{{ venue.totalReviews || 0 }} đánh giá</small></div>
+            </header>
+            @if (reviewsLoading) {
+            <div class="reviews-state"><mat-progress-spinner mode="indeterminate"
+                diameter="32"></mat-progress-spinner><span>Đang tải đánh giá...</span></div>
+            } @else if (reviewsError) {
+            <div class="reviews-state reviews-state--error"><lucide-icon name="circle-alert"
+                class="w-6 h-6"></lucide-icon><span>{{ reviewsError }}</span><button type="button"
+                (click)="showTab('reviews')">Thử lại</button></div>
+            } @else if (reviews.length) {
+            <div class="review-list">
+              @for (review of reviews; track review.reviewId) {
+              <article class="review-card">
+                <div class="review-avatar">GS</div>
+                <div>
+                  <header><strong>Người chơi GOAT Sports</strong><time>{{ reviewDate(review.createdAt) }}</time>
+                  </header>
+                  <div class="review-stars" [attr.aria-label]="review.rating + ' trên 5 sao'">
+                    @for (star of reviewStars; track star) { <span [class.muted]="star > review.rating">★</span> }
+                  </div>
+                  <p>{{ review.content || 'Người chơi không để lại nhận xét.' }}</p>
+                </div>
+              </article>
+              }
+            </div>
+            } @else {
+            <div class="reviews-state"><lucide-icon name="star" class="w-7 h-7"></lucide-icon><span>Chưa có đánh giá cho
+                sân này.</span></div>
+            }
+          </section>
+          }
+        </section>
       </div>
-    </main>
+
+      <aside class="booking-column">
+        <section class="booking-card" aria-labelledby="booking-schedule-title">
+          <header class="booking-header">
+            <h2 id="booking-schedule-title">Đặt sân ngay</h2>
+            <p>Chọn thời gian, sân và thanh toán để giữ chỗ</p>
+          </header>
+
+          <div class="booking-section date-section">
+            <span class="field-label">Chọn ngày thi đấu</span>
+            <div class="date-selector">
+              <button type="button" class="date-arrow" [disabled]="selectedDate === today"
+                (click)="selectBookingDate(today)">
+                <lucide-icon name="chevron-left" class="w-4 h-4"></lucide-icon>
+              </button>
+              @for (date of bookingDates; track date) {
+              <button type="button" class="date-option" [class.active]="selectedDate === date"
+                [disabled]="date < today || date > maxBookingDate" (click)="selectBookingDate(date)">
+                <span>{{ isToday(date) ? 'Hôm nay' : getWeekdayLabel(date) }}</span>
+                <strong>{{ date | date:'dd/MM' }}</strong>
+              </button>
+              }
+              <label class="date-arrow date-picker" title="Chọn ngày khác">
+                <lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon>
+                <input type="date" [value]="selectedDate" [min]="today" [max]="maxBookingDate"
+                  (change)="onDateChange($event)" />
+              </label>
+            </div>
+          </div>
+
+          @if (venue.courts?.length) {
+          <div class="booking-section courts-section">
+            <span class="field-label">Chọn sân</span>
+            <div class="court-options">
+              @for (court of venue.courts; track court.venueCourtId) {
+              <button type="button" class="court-option"
+                [class.active]="selectedCourt?.venueCourtId === court.venueCourtId" [disabled]="!court.active"
+                (click)="selectCourt(court)">
+                <strong>{{ court.name }}</strong>
+                <small>{{ court.capacity }} người</small>
+              </button>
+              }
+            </div>
+          </div>
+
+          <div class="booking-section slots-section">
+            <div class="slot-heading">
+              <span class="field-label">Khung giờ</span>
+              <div class="slot-legend"><span><i></i>Còn trống</span><span><i></i>Đã đặt</span></div>
+              <button type="button" (click)="loadSlots()"><lucide-icon name="rotate-cw"
+                  class="w-4 h-4"></lucide-icon>Làm mới</button>
+            </div>
+
+            @if (loadingSlots) {
+            <div class="slot-feedback"><mat-progress-spinner mode="indeterminate"
+                diameter="28"></mat-progress-spinner><span>Đang tải lịch trống...</span></div>
+            } @else if (slotsError) {
+            <div class="slot-feedback slot-feedback--error" role="alert"><lucide-icon name="wifi-off"
+                class="w-6 h-6"></lucide-icon><span>{{ slotsError }}</span><button type="button"
+                (click)="loadSlots()">Thử lại</button></div>
+            } @else if (courtSlots.length) {
+            @if (morningSlots.length) {
+            <div class="slot-period"><strong>Sáng <small>(06:00 - 12:00)</small></strong>
+              <div class="slots-grid">
+                @for (slot of morningSlots; track slot.timeSlotId) {
+                <button type="button" class="slot-option" [class.active]="selectedSlot?.timeSlotId === slot.timeSlotId"
+                  [class.booked]="!isSlotAvailable(slot)" [disabled]="!isSlotAvailable(slot)"
+                  (click)="selectSlot(slot)">
+                  <b>{{ formatTime(slot.startTime) }}</b><span>{{ isSlotAvailable(slot) ? (slot.pricePerHour |
+                    number:'1.0-0') + 'đ' : getSlotStatus(slot) }}</span>
+                </button>
+                }
+              </div>
+            </div>
+            }
+            @if (afternoonSlots.length) {
+            <div class="slot-period"><strong>Chiều <small>(12:00 - 18:00)</small></strong>
+              <div class="slots-grid">
+                @for (slot of afternoonSlots; track slot.timeSlotId) {
+                <button type="button" class="slot-option" [class.active]="selectedSlot?.timeSlotId === slot.timeSlotId"
+                  [class.booked]="!isSlotAvailable(slot)" [disabled]="!isSlotAvailable(slot)"
+                  (click)="selectSlot(slot)">
+                  <b>{{ formatTime(slot.startTime) }}</b><span>{{ isSlotAvailable(slot) ? (slot.pricePerHour |
+                    number:'1.0-0') + 'đ' : getSlotStatus(slot) }}</span>
+                </button>
+                }
+              </div>
+            </div>
+            }
+            @if (eveningSlots.length) {
+            <div class="slot-period"><strong>Tối <small>(18:00 - 24:00)</small></strong>
+              <div class="slots-grid">
+                @for (slot of eveningSlots; track slot.timeSlotId) {
+                <button type="button" class="slot-option" [class.active]="selectedSlot?.timeSlotId === slot.timeSlotId"
+                  [class.booked]="!isSlotAvailable(slot)" [disabled]="!isSlotAvailable(slot)"
+                  (click)="selectSlot(slot)">
+                  <b>{{ formatTime(slot.startTime) }}</b><span>{{ isSlotAvailable(slot) ? (slot.pricePerHour |
+                    number:'1.0-0') + 'đ' : getSlotStatus(slot) }}</span>
+                </button>
+                }
+              </div>
+            </div>
+            }
+            } @else {
+            <div class="slot-feedback"><lucide-icon name="calendar-x" class="w-7 h-7"></lucide-icon><span>Ngày này chưa
+                có khung giờ khả dụng.</span></div>
+            }
+          </div>
+          } @else {
+          <div class="empty-courts-notice"><lucide-icon name="circle-alert" class="w-6 h-6"></lucide-icon>
+            <p>Chủ sân chưa cấu hình sân con đang hoạt động.</p>
+          </div>
+          }
+
+          <div class="booking-summary">
+            <h3>Thông tin đặt sân</h3>
+            <dl>
+              <div>
+                <dt>Sân</dt>
+                <dd>{{ selectedCourt?.name || 'Chưa chọn' }}</dd>
+              </div>
+              <div>
+                <dt>Ngày</dt>
+                <dd>{{ selectedDate | date:'dd/MM/yyyy' }}</dd>
+              </div>
+              <div>
+                <dt>Giờ</dt>
+                <dd>{{ selectedSlot ? formatTime(selectedSlot.startTime) + ' - ' + formatTime(selectedSlot.endTime) :
+                  'Chưa chọn' }}</dd>
+              </div>
+              <div>
+                <dt>Đơn giá</dt>
+                <dd>{{ selectedSlot ? formatPrice(selectedSlot.pricePerHour) + ' / giờ' : '—' }}</dd>
+              </div>
+              <div class="booking-total">
+                <dt>Tạm tính</dt>
+                <dd>{{ selectedSlot ? formatPrice(selectedSubtotal) : '—' }}</dd>
+              </div>
+            </dl>
+            <button type="button" class="book-now" [disabled]="!selectedCourt || !selectedSlot"
+              (click)="goToSelectedBooking()">
+              <lucide-icon name="calendar-check" class="w-5 h-5"></lucide-icon>
+              Đặt sân ngay
+            </button>
+            <p class="booking-security"><lucide-icon name="lock" class="w-4 h-4"></lucide-icon>Thanh toán an toàn qua
+              GOAT Sports</p>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </main>
   }
 </div>

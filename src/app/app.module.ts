@@ -165,7 +165,13 @@ import {
   LucideChevronLeft,
   LucideChevronRight,
   LucideChevronDown,
-  LucideCircle
+  LucideCircle,
+  LucideCircleAlert,
+  LucideCircleCheck,
+  LucideWifiOff,
+  LucideCar,
+  LucideDroplets,
+  LucideFolderOpen
 } from '@lucide/angular';
 
 @NgModule({
@@ -319,7 +325,13 @@ import {
       LucideChevronLeft,
       LucideChevronRight,
       LucideChevronDown,
-      LucideCircle
+      LucideCircle,
+      LucideCircleAlert,
+      LucideCircleCheck,
+      LucideWifiOff,
+      LucideCar,
+      LucideDroplets,
+      LucideFolderOpen
     )
   ],
   bootstrap: [AppComponent]

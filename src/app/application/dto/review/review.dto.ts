@@ -7,3 +7,10 @@ export interface CreatePlayerReviewRequest {
 }
 
 export type PlayerReviewResponse = PlayerReview;
+
+export interface PublicVenueReview {
+  reviewId: string;
+  rating: number;
+  content?: string;
+  createdAt: string;
+}
