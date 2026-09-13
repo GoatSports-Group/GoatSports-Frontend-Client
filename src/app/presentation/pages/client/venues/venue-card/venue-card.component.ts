@@ -1,4 +1,14 @@
-import { Component, DestroyRef, Input, OnChanges, OnInit, inject } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnInit,
+  Output,
+  SimpleChanges,
+  inject
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, distinctUntilChanged, of, take } from 'rxjs';
 import { Venue } from '@application/dto/venue/venue.dto';
@@ -27,6 +37,9 @@ export class VenueCardComponent implements OnInit, OnChanges {
 
   @Input() venue!: Venue;
   @Input() homeStyle = false;
+  @Input() selectable = false;
+  @Input() selected = false;
+  @Output() venueSelected = new EventEmitter<Venue>();
   primaryImage = VENUE_PLACEHOLDER_IMAGE;
   isFavorite = false;
   favoriteLoading = false;
@@ -43,7 +56,8 @@ export class VenueCardComponent implements OnInit, OnChanges {
     });
   }
 
-  ngOnChanges(): void {
+  ngOnChanges(changes: SimpleChanges): void {
+    if (!changes['venue']) return;
     this.resolvePrimaryImage(this.venue?.imageUrls?.[0]);
     this.loadFavoriteStatus();
   }
@@ -67,6 +81,12 @@ export class VenueCardComponent implements OnInit, OnChanges {
   formatCompactPrice(price: number | null | undefined): string {
     if (price == null) return 'Liên hệ';
     return `${new Intl.NumberFormat('vi-VN').format(price)} đ`;
+  }
+
+  displayRegion(): string {
+    const region = this.venue.city?.trim() || this.venue.district?.trim();
+    if (!region) return 'Xem địa chỉ';
+    return region.replace(/^(?:tỉnh|thành phố|tp\.?)\s+/iu, '').trim();
   }
 
   onFavoriteClick(event: Event): void {
@@ -94,6 +114,20 @@ export class VenueCardComponent implements OnInit, OnChanges {
         this.notify.error('Không thể cập nhật sân yêu thích. Vui lòng thử lại.');
       }
     });
+  }
+
+  onCardClick(): void {
+    if (this.selectable) this.venueSelected.emit(this.venue);
+  }
+
+  onCardKeydown(event: Event): void {
+    if (!this.selectable) return;
+    event.preventDefault();
+    this.venueSelected.emit(this.venue);
+  }
+
+  onBookClick(event: Event): void {
+    event.stopPropagation();
   }
 
   private loadFavoriteStatus(): void {

@@ -15,6 +15,10 @@ export interface VenueSearchFilter {
   latitude?: number;
   longitude?: number;
   radiusKm?: number;
+  northLatitude?: number;
+  southLatitude?: number;
+  eastLongitude?: number;
+  westLongitude?: number;
   minPrice?: number;
   maxPrice?: number;
   minRating?: number;

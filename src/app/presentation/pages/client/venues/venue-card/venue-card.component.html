@@ -1,5 +1,9 @@
 @if (homeStyle) {
-  <article class="venue-card venue-card--home" [routerLink]="['/venues', venue.venueId]" tabindex="0">
+  <article class="venue-card venue-card--home" [class.venue-card--selectable]="selectable"
+    [class.venue-card--selected]="selected"
+    [routerLink]="selectable ? null : ['/venues', venue.venueId]" tabindex="0"
+    [attr.aria-pressed]="selectable ? selected : null"
+    (click)="onCardClick()" (keydown.enter)="onCardKeydown($event)" (keydown.space)="onCardKeydown($event)">
     <div class="home-card__media">
       <img [src]="primaryImage" [alt]="venue.name" loading="lazy" (error)="onImageError($event)" />
       <button type="button" class="home-card__favorite" [class.home-card__favorite--active]="isFavorite"
@@ -31,7 +35,7 @@
         </span>
         <span class="home-card__place">
           <lucide-icon name="map-pin" class="w-3 h-3"></lucide-icon>
-          {{ venue.district || venue.city || 'Xem địa chỉ' }}
+          {{ displayRegion() }}
         </span>
       </div>
 
@@ -50,7 +54,7 @@
 
       <footer>
         <strong>{{ formatCompactPrice(venue.minPrice) }}<small>/giờ</small></strong>
-        <span>Đặt sân</span>
+        <a [routerLink]="['/venues', venue.venueId]" (click)="onBookClick($event)">Đặt sân</a>
       </footer>
     </div>
   </article>

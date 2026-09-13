@@ -22,6 +22,10 @@ export class VenueSearchApi {
     if (filter.latitude != null) params = params.set('latitude', filter.latitude.toString());
     if (filter.longitude != null) params = params.set('longitude', filter.longitude.toString());
     if (filter.radiusKm != null) params = params.set('radiusKm', filter.radiusKm.toString());
+    if (filter.northLatitude != null) params = params.set('northLatitude', filter.northLatitude.toString());
+    if (filter.southLatitude != null) params = params.set('southLatitude', filter.southLatitude.toString());
+    if (filter.eastLongitude != null) params = params.set('eastLongitude', filter.eastLongitude.toString());
+    if (filter.westLongitude != null) params = params.set('westLongitude', filter.westLongitude.toString());
     if (filter.minPrice != null) params = params.set('minPrice', filter.minPrice.toString());
     if (filter.maxPrice != null) params = params.set('maxPrice', filter.maxPrice.toString());
     if (filter.minRating != null) params = params.set('minRating', filter.minRating.toString());

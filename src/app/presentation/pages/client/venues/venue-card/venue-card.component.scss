@@ -24,13 +24,30 @@
   background: #fff;
   box-shadow: 0 1px 3px rgb(18 42 32 / 4%);
   cursor: pointer;
-  transition: none;
+  transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
 }
 
 .venue-card--home:hover {
   border-color: #d8e2dd;
   box-shadow: 0 1px 3px rgb(18 42 32 / 4%);
   transform: none;
+}
+
+.venue-card--selectable:hover {
+  border-color: #91cdb9;
+  box-shadow: 0 12px 28px rgb(20 74 56 / 12%);
+  transform: none;
+}
+
+.venue-card--home:focus-visible {
+  outline: 3px solid rgb(0 134 95 / 22%);
+  outline-offset: 3px;
+}
+
+.venue-card--selected,
+.venue-card--selected:hover {
+  border-color: #00865f;
+  box-shadow: 0 0 0 2px rgb(0 134 95 / 14%), 0 14px 30px rgb(20 74 56 / 14%);
 }
 
 .home-card__media {
@@ -114,7 +131,7 @@
   margin: 0;
   overflow: hidden;
   color: #152234;
-  font-size: .98rem;
+  font-size: var(--venue-card-title-size, .98rem);
   font-weight: 850;
   letter-spacing: -.025em;
   line-height: 1.35;
@@ -129,7 +146,7 @@
   gap: 7px;
   margin-top: 0;
   color: #697789;
-  font-size: .82rem;
+  font-size: var(--venue-card-meta-size, .82rem);
   line-height: 1.35;
 }
 
@@ -205,7 +222,7 @@
 
 .home-card__body footer > strong {
   color: #007a55;
-  font-size: 1.08rem;
+  font-size: var(--venue-card-price-size, 1.08rem);
   font-weight: 900;
   line-height: 1;
   white-space: nowrap;
@@ -218,7 +235,7 @@
   font-weight: 650;
 }
 
-.home-card__body footer > span {
+.home-card__body footer > a {
   min-height: 30px;
   display: inline-flex;
   align-items: center;
@@ -227,7 +244,19 @@
   border-radius: 8px;
   background: #087f5b;
   color: #fff;
-  font-size: .75rem;
+  font-size: var(--venue-card-cta-size, .75rem);
   font-weight: 800;
+  text-decoration: none;
   white-space: nowrap;
+  transition: background-color 180ms ease, transform 180ms ease;
+}
+
+.home-card__body footer > a:hover {
+  background: #006f4e;
+  transform: translateY(-1px);
+}
+
+.home-card__body footer > a:focus-visible {
+  outline: 3px solid rgb(0 134 95 / 22%);
+  outline-offset: 2px;
 }
