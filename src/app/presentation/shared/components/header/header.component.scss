@@ -9,6 +9,352 @@
   z-index: 1000;
 }
 
+/* GOAT Sports editorial navigation — aligned with the approved client references. */
+:host {
+  --header-ink: #071426;
+  --header-green: #007a57;
+  display: block;
+}
+
+.main-header {
+  position: fixed !important;
+  inset: 0 0 auto !important;
+  z-index: 1000 !important;
+  height: 64px !important;
+  min-height: 64px !important;
+  padding: 0 !important;
+  border-bottom: 1px solid #dce4e1 !important;
+  background: rgba(255, 255, 255, 0.97) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(10px);
+}
+
+.header-container {
+  width: min(100%, 1480px) !important;
+  height: 100% !important;
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) minmax(220px, 300px) auto !important;
+  align-items: stretch !important;
+  gap: clamp(14px, 1.6vw, 28px) !important;
+  margin: 0 auto !important;
+  padding: 0;
+}
+
+.logo-wrapper {
+  min-width: max-content;
+  display: flex !important;
+  align-items: center !important;
+  gap: 9px !important;
+  color: var(--header-ink) !important;
+  text-decoration: none !important;
+  cursor: pointer;
+}
+
+.logo-img {
+  width: 30px !important;
+  height: 30px !important;
+  object-fit: contain !important;
+  filter: none !important;
+}
+
+.logo-lockup {
+  display: grid;
+  gap: 0;
+  line-height: 1;
+
+  strong {
+    font-family: 'Arial Narrow', 'Be Vietnam Pro', sans-serif !important;
+    font-size: 16px;
+    font-weight: 900;
+    font-style: italic;
+    letter-spacing: -0.05em;
+  }
+
+  small {
+    margin-top: 3px;
+    color: #69768a;
+    font-size: 6px;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+  }
+}
+
+.desktop-nav {
+  min-width: 0;
+  height: 100%;
+  display: flex !important;
+  align-items: stretch !important;
+  justify-content: center !important;
+  gap: clamp(10px, 1.25vw, 22px) !important;
+}
+
+.nav-item {
+  position: relative;
+  min-width: max-content;
+  min-height: 44px;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #243145 !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.015em !important;
+  text-transform: uppercase !important;
+  text-decoration: none !important;
+  cursor: pointer;
+  transition: color 180ms ease !important;
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: var(--header-green);
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 220ms cubic-bezier(.2, .8, .2, 1);
+  }
+
+  &:hover,
+  &.active-link {
+    color: var(--header-green) !important;
+  }
+
+  &.active-link::after {
+    transform: scaleX(1);
+  }
+}
+
+.search-container {
+  align-self: center;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+.search-form,
+.search-field {
+  width: 100% !important;
+}
+
+:host ::ng-deep .search-field {
+  .mat-mdc-form-field-subscript-wrapper {
+    display: none !important;
+  }
+
+  .mat-mdc-text-field-wrapper {
+    height: 38px !important;
+    padding: 0 12px !important;
+    border: 1px solid #d8e0de !important;
+    border-radius: 5px !important;
+    background: #f7f9f8 !important;
+  }
+
+  .mat-mdc-form-field-flex {
+    height: 36px !important;
+    align-items: center !important;
+  }
+
+  .mat-mdc-form-field-infix {
+    min-height: 36px !important;
+    padding: 7px 0 !important;
+  }
+
+  .mdc-notched-outline {
+    display: none !important;
+  }
+
+  input {
+    color: var(--header-ink) !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+  }
+
+  input::placeholder {
+    color: #7b8798 !important;
+    font-size: 10px !important;
+  }
+}
+
+.actions-container {
+  min-width: max-content;
+  display: flex !important;
+  align-items: center !important;
+  gap: 9px !important;
+}
+
+.notif-trigger-btn {
+  width: 40px !important;
+  height: 40px !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 5px !important;
+  background: transparent !important;
+  color: var(--header-ink) !important;
+  cursor: pointer;
+
+  &:hover {
+    background: #eef4f1 !important;
+  }
+}
+
+.user-avatar-btn {
+  min-height: 44px !important;
+  display: grid !important;
+  grid-template-columns: 34px minmax(0, auto) 16px;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 5px !important;
+  border: 0 !important;
+  border-radius: 5px !important;
+  background: transparent !important;
+  color: var(--header-ink) !important;
+  cursor: pointer;
+
+  &:hover {
+    background: #eef4f1 !important;
+  }
+}
+
+.user-avatar {
+  width: 34px !important;
+  height: 34px !important;
+  border: 2px solid #9fd4c1 !important;
+  border-radius: 50% !important;
+  object-fit: cover;
+}
+
+.user-trigger-copy {
+  max-width: 112px;
+  display: grid;
+  gap: 2px;
+  text-align: left;
+  line-height: 1.15;
+
+  strong {
+    overflow: hidden;
+    font-size: 10px;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  small {
+    color: #748093;
+    font-size: 8px;
+    font-weight: 600;
+  }
+}
+
+.login-btn {
+  min-width: 112px !important;
+  min-height: 40px !important;
+  border-radius: 5px !important;
+  background: var(--header-green) !important;
+  color: #fff !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  box-shadow: none !important;
+}
+
+.mobile-menu-btn {
+  align-self: center;
+}
+
+@media (max-width: 1260px) {
+  .header-container {
+    grid-template-columns: auto minmax(0, 1fr) 230px auto !important;
+    gap: 14px !important;
+  }
+
+  .desktop-nav {
+    gap: 12px !important;
+  }
+
+  .nav-item {
+    font-size: 9px !important;
+  }
+
+  .connection-nav-item {
+    display: none !important;
+  }
+
+  .user-trigger-copy {
+    display: none;
+  }
+
+  .user-avatar-btn {
+    grid-template-columns: 34px 14px;
+  }
+}
+
+@media (max-width: 1040px) {
+  .header-container {
+    grid-template-columns: auto 1fr auto !important;
+  }
+
+  .desktop-nav {
+    display: none !important;
+  }
+
+  .mobile-menu-btn {
+    display: inline-flex !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .main-header {
+    height: 58px !important;
+    min-height: 58px !important;
+  }
+
+  .header-container {
+    grid-template-columns: 44px auto 1fr auto !important;
+    padding: 0 12px !important;
+  }
+
+  .search-container {
+    display: none !important;
+  }
+
+  .logo-img {
+    width: 27px !important;
+    height: 27px !important;
+  }
+
+  .logo-lockup strong {
+    font-size: 14px;
+  }
+
+  .logo-lockup small {
+    display: none;
+  }
+
+  .user-avatar-btn lucide-icon {
+    display: none;
+  }
+
+  .user-avatar-btn {
+    grid-template-columns: 32px;
+  }
+
+  .user-avatar {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  .login-btn {
+    min-width: auto !important;
+    padding: 0 12px !important;
+  }
+}
+
 .main-header {
   width: 100%;
   height: 70px;
@@ -850,5 +1196,47 @@ body.dark .main-header {
 
   .actions-container {
     margin-left: auto;
+  }
+}
+
+/* The messaging workspace uses the dark navigation treatment from its reference. */
+.main-header.main-header--chat {
+  border-bottom-color: #203145 !important;
+  background: #071827 !important;
+  color: #f8fbfa !important;
+
+  .logo-lockup strong,
+  .desktop-nav .nav-item,
+  .mobile-menu-btn,
+  .actions-container lucide-icon,
+  .user-trigger-copy strong,
+  .user-trigger-copy small {
+    color: #f8fbfa !important;
+  }
+
+  .logo-lockup small {
+    color: #a8bac5 !important;
+  }
+
+  .desktop-nav .nav-item:hover,
+  .desktop-nav .nav-item.active-link {
+    color: #35d6a3 !important;
+  }
+
+  .search-field ::ng-deep .mat-mdc-text-field-wrapper {
+    border-color: #425365 !important;
+    background: #122536 !important;
+  }
+
+  .search-field ::ng-deep input,
+  .search-field ::ng-deep input::placeholder,
+  .search-icon {
+    color: #d4dee3 !important;
+  }
+
+  .user-avatar-btn,
+  .notif-trigger-btn {
+    border-color: #425365 !important;
+    background: #122536 !important;
   }
 }

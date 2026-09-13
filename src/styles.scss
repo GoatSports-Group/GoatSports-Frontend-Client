@@ -182,37 +182,37 @@ lucide-icon, .lucide-icon {
 
 /* Global Design System & Variables */
 :root {
-  --primary: #047857;          /* Accessible emerald-700 */
-  --primary-hover: #065f46;    /* Deeper green for active states */
-  --primary-light: #f0fdf4;    /* Mint background */
-  --accent: #0369a1;           /* Accessible sky-700 */
-  --accent-hover: #075985;     /* Deeper blue */
-  --accent-light: #f0f9ff;     /* Sky blue tint */
+  --primary: #007a57;
+  --primary-hover: #006448;
+  --primary-light: #eaf7f2;
+  --accent: #007a57;
+  --accent-hover: #006448;
+  --accent-light: #eaf7f2;
   --success: #10b981;          /* Modern success mint-green */
   --warning: #f59e0b;          /* Amber warning */
   --danger: #ef4444;           /* Neon-ish danger red */
   --info: #06b6d4;             /* Electric cyan info */
-  --text-dark: #0f172a;        /* Slate-900 */
-  --text-muted: #64748b;       /* Slate-500 secondary labels */
+  --text-dark: #071426;
+  --text-muted: #617086;
   --text-light: #ffffff;       /* High-contrast white */
-  --bg-body: #f8fafc;          /* Slate-50 ultra-clean premium canvas */
+  --bg-body: #f6f8f7;
   --bg-card: #ffffff;          /* Pure white container card */
-  --border-color: #cbd5e1;     /* Slate-300 sharp, thin boundary line */
+  --border-color: #d8e1de;
 
   --font-heading: 'Be Vietnam Pro', sans-serif;
   --font-body: 'Be Vietnam Pro', sans-serif;
 
-  --border-radius: 14px;       /* radius_md */
-  --border-radius-sm: 6px;     /* radius_sm */
-  --border-radius-lg: 24px;    /* radius_lg */
+  --border-radius: 8px;
+  --border-radius-sm: 5px;
+  --border-radius-lg: 12px;
 
-  --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
-  --shadow-md: 0 12px 30px -10px rgba(15, 23, 42, 0.08);
-  --shadow-lg: 0 30px 60px -15px rgba(15, 23, 42, 0.12);
-  --shadow-glow-primary: 0 0 20px 0 rgba(5, 150, 105, 0.25);
+  --shadow-sm: 0 1px 2px rgba(7, 20, 38, 0.04);
+  --shadow-md: 0 8px 24px -14px rgba(7, 20, 38, 0.16);
+  --shadow-lg: 0 22px 50px -26px rgba(7, 20, 38, 0.24);
+  --shadow-glow-primary: none;
 
-  --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); /* ease_out_expo */
-  --transition-spring: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); /* spring_snappy */
+  --transition-smooth: all 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  --transition-spring: all 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 /* Dark Mode Variables Override */

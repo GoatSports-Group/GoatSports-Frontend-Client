@@ -1,4 +1,4 @@
-<mat-toolbar color="default" class="main-header">
+<mat-toolbar color="default" class="main-header" [class.main-header--chat]="isChatRoute">
   <div class="header-container">
 
     <!-- Mobile Menu Button -->
@@ -7,10 +7,13 @@
     </button>
 
     <!-- Logo -->
-    <div class="logo-wrapper" routerLink="/home">
+    <a class="logo-wrapper" routerLink="/home" aria-label="GOAT Sports - Trang chủ">
       <img src="assets/images/goat.png" alt="Goat Sports Logo" class="logo-img">
-      <span class="logo-text athletic-title text-slate-800">GOAT <span class="logo-text-accent">Sports</span></span>
-    </div>
+      <span class="logo-lockup">
+        <strong>GOAT SPORTS</strong>
+        <small>PLAY MORE TOGETHER</small>
+      </span>
+    </a>
 
     <!-- Nav Links (Desktop) -->
     <nav class="desktop-nav">
@@ -20,9 +23,10 @@
       <a routerLink="/clubs" routerLinkActive="active-link" class="nav-item">Câu Lạc Bộ</a>
       <a routerLink="/tournaments" routerLinkActive="active-link" class="nav-item">Giải Đấu</a>
       <a routerLink="/matchmaking" routerLinkActive="active-link" class="nav-item">AI Ghép Kèo</a>
+      <a routerLink="/feed" routerLinkActive="active-link" class="nav-item">Cộng Đồng</a>
       <button type="button" class="nav-item connection-nav-item" [class.active-link]="isConnectionRoute"
         [matMenuTriggerFor]="connectionMenu" aria-label="Mở menu Bạn bè và Tin nhắn">
-        Kết Nối
+        {{ connectionLabel }}
         <lucide-icon name="chevron-down" class="w-3.5 h-3.5"></lucide-icon>
       </button>
       <mat-menu #connectionMenu="matMenu" class="custom-menu connection-menu">
@@ -43,7 +47,7 @@
       <form (submit)="onSearch()" class="search-form">
         <mat-form-field class="search-field">
           <lucide-icon matPrefix name="search" class="search-icon w-4 h-4 mr-2"></lucide-icon>
-          <input matInput type="text" aria-label="Tìm tên sân hoặc địa chỉ" placeholder="Tìm tên sân hoặc địa chỉ..." [(ngModel)]="searchQuery"
+          <input matInput type="text" aria-label="Tìm sân, câu lạc bộ hoặc giải đấu" placeholder="Tìm sân, câu lạc bộ, giải đấu..." [(ngModel)]="searchQuery"
             name="searchQuery">
           @if (searchQuery) {
           <button mat-icon-button matSuffix (click)="searchQuery = ''" type="button" aria-label="Clear">
@@ -120,9 +124,14 @@
 
       <!-- User Menu -->
       @if (authService.isAuthenticated$ | async) {
-      <button type="button" mat-icon-button [matMenuTriggerFor]="userMenu" class="user-avatar-btn" aria-label="Mở menu tài khoản">
+      <button type="button" [matMenuTriggerFor]="userMenu" class="user-avatar-btn" aria-label="Mở menu tài khoản">
         <img [src]="fallbackAvatar" [alt]="authService.currentUser?.fullName || 'User Avatar'" class="user-avatar"
           (error)="onAvatarImgError($event)">
+        <span class="user-trigger-copy">
+          <strong>{{ authService.currentUser?.fullName }}</strong>
+          <small>{{ getRoleLabel(authService.currentUser?.role?.name) }}</small>
+        </span>
+        <lucide-icon name="chevron-down" class="w-4 h-4"></lucide-icon>
       </button>
       <mat-menu #userMenu="matMenu" xPosition="before" class="custom-menu">
         <div class="menu-header">

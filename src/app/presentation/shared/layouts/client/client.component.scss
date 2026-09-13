@@ -1,17 +1,17 @@
 .client-container {
-  min-height: 100vh;
-  background-color: var(--bg-body, #f7fafc);
+  min-height: 100dvh;
+  background-color: var(--bg-body, #f6f8f7);
 }
 
 .client-content-wrapper {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  padding-top: 70px;
+  min-height: 100dvh;
+  padding-top: 64px;
 }
 
 @media (max-width: 680px) {
-  .client-content-wrapper { padding-top: 64px; }
+  .client-content-wrapper { padding-top: 58px; }
 }
 
 .client-main-outlet {

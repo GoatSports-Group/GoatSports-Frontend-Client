@@ -1,17 +1,30 @@
 <main class="feed-page">
-  <header class="feed-hero">
-    <div>
-      <p class="eyebrow">Cộng đồng GOAT Sports</p>
-      <h1>Bảng tin thể thao</h1>
-      <p>Chia sẻ khoảnh khắc tập luyện, kết nối bạn chơi và cập nhật câu chuyện mới nhất.</p>
-    </div>
-    <div class="hero-mark" aria-hidden="true">
-      <lucide-icon name="messages-square" class="w-8 h-8"></lucide-icon>
-    </div>
-  </header>
-
   <div class="feed-layout">
+    <aside class="feed-navigation" aria-label="Điều hướng cộng đồng">
+      @if (currentUser) {
+        <section class="profile-summary">
+          <img [src]="currentUser.avatarUrl || avatar(currentUser.userId)" [alt]="currentUser.fullName" />
+          <div><strong>{{ currentUser.fullName }}</strong><span>Thành viên GOAT Sports</span></div>
+          <dl><div><dt>Bài viết</dt><dd>—</dd></div><div><dt>Kết nối</dt><dd>—</dd></div><div><dt>CLB</dt><dd>—</dd></div></dl>
+        </section>
+      }
+      <nav>
+        <a class="active" routerLink="/feed"><lucide-icon name="home" class="w-5 h-5"></lucide-icon>Bảng tin</a>
+        <a routerLink="/friends"><lucide-icon name="users" class="w-5 h-5"></lucide-icon>Bạn bè</a>
+        <a routerLink="/clubs"><lucide-icon name="shield" class="w-5 h-5"></lucide-icon>Nhóm cộng đồng</a>
+        <a routerLink="/tournaments"><lucide-icon name="calendar" class="w-5 h-5"></lucide-icon>Sự kiện</a>
+        <a routerLink="/notifications"><lucide-icon name="bell" class="w-5 h-5"></lucide-icon>Thông báo</a>
+        <a routerLink="/settings"><lucide-icon name="settings" class="w-5 h-5"></lucide-icon>Cài đặt</a>
+      </nav>
+      <section class="navigation-callout">
+        <p>Cùng chơi cuối tuần?</p>
+        <strong>GOAT AI tìm người cùng trình độ và khung giờ.</strong>
+        <a routerLink="/matchmaking">Ghép kèo ngay <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a>
+      </section>
+    </aside>
+
     <section class="feed-main">
+      <header class="feed-heading"><div><p class="eyebrow">Cộng đồng GOAT Sports</p><h1>Bảng tin</h1></div><span>Kết nối qua từng trận đấu</span></header>
       @if (currentUser) {
         <article class="composer card">
           <div class="composer-heading">
@@ -230,12 +243,21 @@
     </section>
 
     <aside class="feed-sidebar">
-      <div class="card community-card">
+      <section class="rail-section">
+        <header><h2>Trận đấu sắp tới</h2><a routerLink="/tournaments">Xem tất cả <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a></header>
+        <a class="rail-event" routerLink="/tournaments"><time><b>20</b><span>THG 9</span></time><span><strong>Kèo bóng cuối tuần</strong><small>15:00 · Tìm thêm người chơi</small></span><lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon></a>
+        <a class="rail-event" routerLink="/matchmaking"><time><b>23</b><span>THG 9</span></time><span><strong>Ghép kèo cùng GOAT AI</strong><small>Chọn thời gian phù hợp</small></span><lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon></a>
+      </section>
+      <section class="rail-section">
+        <header><h2>Khám phá cộng đồng</h2><a routerLink="/clubs">Xem tất cả <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a></header>
+        <a class="community-row" routerLink="/clubs"><span class="community-thumb football"></span><span><strong>GOAT Football</strong><small>Kết nối người yêu bóng đá</small></span><b>Tham gia</b></a>
+        <a class="community-row" routerLink="/clubs"><span class="community-thumb badminton"></span><span><strong>Cầu lông phong trào</strong><small>Tìm bạn đánh cuối tuần</small></span><b>Tham gia</b></a>
+        <a class="community-row" routerLink="/clubs"><span class="community-thumb running"></span><span><strong>Chạy bộ cùng GOAT</strong><small>Chia sẻ cung đường đẹp</small></span><b>Tham gia</b></a>
+      </section>
+      <section class="card community-card">
         <lucide-icon name="shield-check" class="w-6 h-6"></lucide-icon>
-        <h2>Cộng đồng văn minh</h2>
-        <p>Tôn trọng người chơi khác, không đăng nội dung sai lệch hoặc gây tổn hại.</p>
-        <ul><li>Chia sẻ nội dung thể thao hữu ích</li><li>Bảo vệ thông tin cá nhân</li><li>Báo cáo nội dung vi phạm</li></ul>
-      </div>
+        <div><h2>Cộng đồng văn minh</h2><p>Tôn trọng người chơi khác và báo cáo nội dung vi phạm.</p></div>
+      </section>
     </aside>
   </div>
 </main>
