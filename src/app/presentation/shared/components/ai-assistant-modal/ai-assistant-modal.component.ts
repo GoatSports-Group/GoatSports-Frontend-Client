@@ -90,6 +90,10 @@ export class AiAssistantModalComponent implements OnInit, OnDestroy {
 
   private syncWithRoute(url: string): void {
     this.isDocked = url.startsWith('/matchmaking');
-    if (this.isDocked) this.isOpen = true;
+    if (this.isDocked) {
+      // The matchmaking layout only reserves space for the dock on wide desktops.
+      // Keep it collapsed below that breakpoint so it cannot cover the form.
+      this.isOpen = window.matchMedia('(min-width: 1680px)').matches;
+    }
   }
 }

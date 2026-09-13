@@ -170,7 +170,9 @@ import {
   LucideWifiOff,
   LucideCar,
   LucideDroplets,
-  LucideFolderOpen
+  LucideFolderOpen,
+  LucideMapPinned,
+  LucideScanSearch
 } from '@lucide/angular';
 
 @NgModule({
@@ -330,7 +332,9 @@ import {
       LucideWifiOff,
       LucideCar,
       LucideDroplets,
-      LucideFolderOpen
+      LucideFolderOpen,
+      LucideMapPinned,
+      LucideScanSearch
     )
   ],
   bootstrap: [AppComponent]

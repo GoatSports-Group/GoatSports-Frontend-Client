@@ -15,6 +15,7 @@ export abstract class AiRepositoryPort {
   abstract checkMatchmakingStatus(): Observable<MatchmakingStatusResponse>;
   abstract leaveMatchmakingQueue(): Observable<MatchmakingActionResponse>;
   abstract getMatchmakingSession(sessionId: string): Observable<MatchmakingSessionModel>;
+  abstract getMatchmakingHistory(limit?: number): Observable<MatchmakingSessionModel[]>;
   abstract decideMatch(sessionId: string, decision: AcceptanceDecision): Observable<MatchmakingSessionModel>;
   abstract updateMatchProposal(
     sessionId: string,

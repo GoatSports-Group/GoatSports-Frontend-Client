@@ -36,6 +36,11 @@ export class AiRepository extends AiRepositoryPort {
     return this.http.get<MatchmakingSessionModel>(`${this.baseUrl}/matchmaking/sessions/${sessionId}`);
   }
 
+  override getMatchmakingHistory(limit = 5): Observable<MatchmakingSessionModel[]> {
+    const params = new HttpParams().set('limit', String(limit));
+    return this.http.get<MatchmakingSessionModel[]>(`${this.baseUrl}/matchmaking/sessions`, { params });
+  }
+
   override decideMatch(sessionId: string, decision: AcceptanceDecision): Observable<MatchmakingSessionModel> {
     return this.http.post<MatchmakingSessionModel>(
       `${this.baseUrl}/matchmaking/sessions/${sessionId}/acceptances`,
