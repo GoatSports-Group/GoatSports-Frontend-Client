@@ -263,8 +263,9 @@
           <lucide-icon name="map-pin" class="w-5 h-5"></lucide-icon>
           <span><small>Vị trí đã chọn</small><strong>{{ pendingLocationMessage }}</strong></span>
         </div>
-        <button type="button" class="location-picker__confirm" (click)="confirmPickerLocation()">
-          Xác nhận vị trí
+        <button type="button" class="location-picker__confirm" [disabled]="locationAddressLoading"
+          (click)="confirmPickerLocation()">
+          {{ locationAddressLoading ? 'Đang lấy địa chỉ...' : 'Xác nhận vị trí' }}
         </button>
       </footer>
     </section>

@@ -996,12 +996,11 @@
 }
 
 .location-picker>footer strong {
-  max-width: 500px;
-  overflow: hidden;
+  max-width: min(500px, 58vw);
   color: #1a293a;
   font-size: .78rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.45;
+  white-space: normal;
 }
 
 .location-picker__confirm {
@@ -1016,6 +1015,11 @@
   font-size: .75rem;
   font-weight: 850;
   cursor: pointer;
+}
+
+.location-picker__confirm:disabled {
+  opacity: .62;
+  cursor: wait;
 }
 
 @media (max-width: 1320px) {

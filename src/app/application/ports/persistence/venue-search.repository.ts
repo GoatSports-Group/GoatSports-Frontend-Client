@@ -1,6 +1,6 @@
 import { InjectionToken } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Venue, VenueSearchFilter } from '@application/dto/venue/venue.dto';
+import { GeocodingResult, Venue, VenueSearchFilter } from '@application/dto/venue/venue.dto';
 import { BaseResponse, PageResult } from '@application/dto/base/base-response';
 import { TimeSlot } from '@application/dto/booking/booking.dto';
 
@@ -8,6 +8,8 @@ export interface VenueSearchRepository {
   searchVenues(filter: VenueSearchFilter): Observable<BaseResponse<PageResult<Venue>>>;
   getVenueDetails(venueId: string): Observable<BaseResponse<Venue>>;
   getCourtSlots(courtId: string, date: string): Observable<BaseResponse<TimeSlot[]>>;
+  searchLocations(query: string): Observable<BaseResponse<GeocodingResult[]>>;
+  reverseGeocode(latitude: number, longitude: number): Observable<BaseResponse<GeocodingResult>>;
 }
 
 export const VENUE_SEARCH_REPOSITORY_TOKEN = new InjectionToken<VenueSearchRepository>(

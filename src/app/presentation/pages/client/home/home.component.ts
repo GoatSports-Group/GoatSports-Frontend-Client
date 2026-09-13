@@ -13,18 +13,12 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import * as L from 'leaflet';
 import { VENUE_SEARCH_REPOSITORY_TOKEN } from '@application/ports/persistence/venue-search.repository';
 import { SportType, SPORT_TYPE_OPTIONS, Venue } from '@application/dto/venue/venue.dto';
-import { environment } from '@environments/environment';
-import {
-  BigDataCloudReverseGeocodeResponse,
-  formatBigDataCloudLocation,
-  formatCurrentLocation,
-  ReverseGeocodeResponse
-} from './home-location.utils';
 
 type LocationState = 'locating' | 'ready' | 'error' | 'unsupported';
 
@@ -32,21 +26,8 @@ interface LocationSuggestion {
   refId: string;
   title: string;
   displayName: string;
-}
-
-interface VietMapAutocompleteResult {
-  ref_id?: string;
-  name?: string;
-  display?: string;
-  address?: string;
-}
-
-interface VietMapPlaceResult {
-  display?: string;
-  name?: string;
-  address?: string;
-  lat?: number;
-  lng?: number;
+  latitude: number;
+  longitude: number;
 }
 
 const MAX_EARTH_SURFACE_DISTANCE_KM = 20_050;
@@ -67,8 +48,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private platformId = inject(PLATFORM_ID);
   private destroyRef = inject(DestroyRef);
   private animationContext?: ReturnType<typeof gsap.context>;
-  private reverseGeocodeController?: AbortController;
-  private pickerGeocodeController?: AbortController;
+  private locationSearchVersion = 0;
+  private pickerReverseGeocodeVersion = 0;
+  private pickerReverseGeocodeTimer?: ReturnType<typeof setTimeout>;
   private nearbySearchVersion = 0;
   private map?: L.Map;
   private mapMarker?: L.CircleMarker;
@@ -91,6 +73,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   locationPickerOpen = false;
   locationSearchQuery = '';
   locationSearchLoading = false;
+  locationAddressLoading = false;
   locationSearchError = '';
   locationSuggestions: LocationSuggestion[] = [];
   pendingLatitude?: number;
@@ -148,8 +131,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.animationContext?.revert();
-    this.reverseGeocodeController?.abort();
-    this.pickerGeocodeController?.abort();
+    if (this.pickerReverseGeocodeTimer) clearTimeout(this.pickerReverseGeocodeTimer);
     this.mapResizeObserver?.disconnect();
     this.map?.remove();
   }
@@ -244,6 +226,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       : 'Chọn một điểm trên bản đồ';
     this.locationSearchQuery = '';
     this.locationSearchError = '';
+    this.locationAddressLoading = false;
+    this.locationSearchVersion++;
+    this.pickerReverseGeocodeVersion++;
+    if (this.pickerReverseGeocodeTimer) clearTimeout(this.pickerReverseGeocodeTimer);
     this.locationSuggestions = [];
     this.locationPickerOpen = true;
     setTimeout(() => this.initializeLocationMap());
@@ -253,7 +239,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.locationPickerOpen = false;
     this.locationSuggestions = [];
     this.locationSearchError = '';
-    this.pickerGeocodeController?.abort();
+    this.locationSearchVersion++;
+    this.pickerReverseGeocodeVersion++;
+    if (this.pickerReverseGeocodeTimer) clearTimeout(this.pickerReverseGeocodeTimer);
+    this.locationAddressLoading = false;
     this.mapResizeObserver?.disconnect();
     this.mapResizeObserver = undefined;
     this.map?.remove();
@@ -276,75 +265,45 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     const query = this.locationSearchQuery.trim();
     if (query.length < 3 || this.locationSearchLoading) return;
 
-    this.pickerGeocodeController?.abort();
-    this.pickerGeocodeController = new AbortController();
+    const searchVersion = ++this.locationSearchVersion;
     this.locationSearchLoading = true;
     this.locationSearchError = '';
     this.locationSuggestions = [];
     try {
-      if (!environment.vietMapApiKey) throw new Error('VIETMAP_API_KEY_MISSING');
-      const params = new URLSearchParams({
-        apikey: environment.vietMapApiKey,
-        text: query.slice(0, 160),
-        display_type: '5'
-      });
-      const response = await fetch(`${environment.vietMapApiUrl.replace(/\/$/, '')}/autocomplete/v4?${params}`, {
-        signal: this.pickerGeocodeController.signal
-      });
-      if (!response.ok) throw new Error('VIETMAP_AUTOCOMPLETE_FAILED');
-      const results = await response.json() as VietMapAutocompleteResult[];
+      const response = await firstValueFrom(this.venueSearchRepo.searchLocations(query.slice(0, 160)));
+      if (searchVersion !== this.locationSearchVersion) return;
+      const results = response?.data ?? [];
       this.locationSuggestions = (results ?? []).map(result => ({
-        refId: result.ref_id?.trim() ?? '',
-        title: result.name?.trim() ?? '',
-        displayName: result.display?.trim()
-          || [result.name, result.address].filter(Boolean).join(', ')
-      })).filter(result => result.refId && result.title && result.displayName).slice(0, 6);
+        refId: `${result.latitude},${result.longitude}`,
+        title: result.title?.trim() || result.address,
+        displayName: result.address,
+        latitude: result.latitude,
+        longitude: result.longitude
+      })).filter(result => result.title && result.displayName).slice(0, 6);
       if (!this.locationSuggestions.length) {
         this.locationSearchError = 'Không tìm thấy địa chỉ phù hợp. Hãy nhập địa chỉ cụ thể hơn.';
       }
-    } catch (error) {
-      if ((error as DOMException)?.name === 'AbortError') return;
+    } catch {
+      if (searchVersion !== this.locationSearchVersion) return;
       this.locationSuggestions = [];
-      this.locationSearchError = environment.vietMapApiKey
-        ? 'Không thể tìm địa chỉ lúc này. Vui lòng thử lại.'
-        : 'VietMap API key chưa được cấu hình.';
+      this.locationSearchError = 'Không thể tìm địa chỉ lúc này. Vui lòng thử lại.';
     } finally {
-      this.locationSearchLoading = false;
+      if (searchVersion === this.locationSearchVersion) {
+        this.locationSearchLoading = false;
+      }
     }
   }
 
-  async selectPickerSuggestion(suggestion: LocationSuggestion): Promise<void> {
-    this.pickerGeocodeController?.abort();
-    this.pickerGeocodeController = new AbortController();
+  selectPickerSuggestion(suggestion: LocationSuggestion): void {
+    this.pickerReverseGeocodeVersion++;
+    if (this.pickerReverseGeocodeTimer) clearTimeout(this.pickerReverseGeocodeTimer);
     this.locationSuggestions = [];
     this.locationSearchError = '';
-    this.locationSearchLoading = true;
-    try {
-      const params = new URLSearchParams({
-        apikey: environment.vietMapApiKey,
-        refid: suggestion.refId
-      });
-      const response = await fetch(`${environment.vietMapApiUrl.replace(/\/$/, '')}/place/v4?${params}`, {
-        signal: this.pickerGeocodeController.signal
-      });
-      if (!response.ok) throw new Error('VIETMAP_PLACE_FAILED');
-      const place = await response.json() as VietMapPlaceResult;
-      const latitude = Number(place.lat);
-      const longitude = Number(place.lng);
-      if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-        throw new Error('VIETMAP_COORDINATES_MISSING');
-      }
-      this.locationSearchQuery = suggestion.title;
-      this.pendingLocationMessage = place.display?.trim()
-        || place.address?.trim()
-        || suggestion.displayName;
-      this.updatePickerLocation(latitude, longitude, false);
-    } catch (error) {
-      if ((error as DOMException)?.name === 'AbortError') return;
-      this.locationSearchError = 'Không thể lấy tọa độ của địa chỉ này. Vui lòng chọn kết quả khác.';
-    } finally {
-      this.locationSearchLoading = false;
-    }
+    this.locationSearchLoading = false;
+    this.locationSearchQuery = suggestion.title;
+    this.pendingLocationMessage = suggestion.displayName;
+    this.locationAddressLoading = false;
+    this.updatePickerLocation(suggestion.latitude, suggestion.longitude, false);
   }
 
   confirmPickerLocation(): void {
@@ -379,28 +338,12 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private async resolveCurrentLocationName(latitude: number, longitude: number): Promise<void> {
-    this.reverseGeocodeController?.abort();
-    this.reverseGeocodeController = new AbortController();
-
     try {
-      const location = await this.reverseGeocodeWithBigDataCloud(latitude, longitude);
-      if (location) {
-        this.zone.run(() => this.locationMessage = location);
-        return;
-      }
-
-      const nominatimLocation = await this.reverseGeocodeWithNominatim(latitude, longitude);
-      if (nominatimLocation) {
-        this.zone.run(() => this.locationMessage = nominatimLocation);
-        return;
-      }
-
-      this.zone.run(() => this.locationMessage = 'Vị trí hiện tại của bạn');
+      const response = await firstValueFrom(this.venueSearchRepo.reverseGeocode(latitude, longitude));
+      this.zone.run(() => this.locationMessage = response?.data?.address || 'Vị trí hiện tại của bạn');
     } catch (error) {
-      if ((error as DOMException)?.name !== 'AbortError') {
-        console.warn('Unable to resolve the current location name.', error);
-        this.zone.run(() => this.locationMessage = 'Vị trí hiện tại của bạn');
-      }
+      console.warn('Unable to resolve the current location name.', error);
+      this.zone.run(() => this.locationMessage = 'Vị trí hiện tại của bạn');
     }
   }
 
@@ -433,7 +376,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.pendingLongitude = Number(longitude.toFixed(6));
     this.map?.setView([latitude, longitude], Math.max(this.map.getZoom(), 14), { animate: true });
     this.updateMapMarker();
-    if (resolveName) void this.resolvePickerLocationName(latitude, longitude);
+    if (resolveName) this.schedulePickerLocationName(latitude, longitude);
   }
 
   private updateMapMarker(): void {
@@ -452,64 +395,37 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }).addTo(this.map);
   }
 
-  private async resolvePickerLocationName(latitude: number, longitude: number): Promise<void> {
-    this.pickerGeocodeController?.abort();
-    this.pickerGeocodeController = new AbortController();
+  private schedulePickerLocationName(latitude: number, longitude: number): void {
+    const requestVersion = ++this.pickerReverseGeocodeVersion;
+    if (this.pickerReverseGeocodeTimer) clearTimeout(this.pickerReverseGeocodeTimer);
+    this.locationAddressLoading = true;
     this.pendingLocationMessage = 'Đang xác định địa chỉ...';
+    this.pickerReverseGeocodeTimer = setTimeout(
+      () => void this.resolvePickerLocationName(latitude, longitude, requestVersion),
+      500
+    );
+  }
+
+  private async resolvePickerLocationName(
+    latitude: number,
+    longitude: number,
+    requestVersion: number
+  ): Promise<void> {
     try {
-      const params = new URLSearchParams({
-        latitude: latitude.toString(),
-        longitude: longitude.toString(),
-        localityLanguage: 'vi'
-      });
-      const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?${params}`, {
-        signal: this.pickerGeocodeController.signal
-      });
-      if (!response.ok) throw new Error('REVERSE_GEOCODE_FAILED');
-      const result = await response.json() as BigDataCloudReverseGeocodeResponse;
-      this.pendingLocationMessage = formatBigDataCloudLocation(result) || 'Vị trí đã chọn';
-    } catch (error) {
-      if ((error as DOMException)?.name !== 'AbortError') {
-        this.pendingLocationMessage = 'Vị trí đã chọn';
+      const response = await firstValueFrom(this.venueSearchRepo.reverseGeocode(latitude, longitude));
+      if (requestVersion !== this.pickerReverseGeocodeVersion) return;
+      this.pendingLocationMessage = response?.data?.address || coordinateFallback(latitude, longitude);
+    } catch {
+      if (requestVersion !== this.pickerReverseGeocodeVersion) return;
+      this.pendingLocationMessage = coordinateFallback(latitude, longitude);
+    } finally {
+      if (requestVersion === this.pickerReverseGeocodeVersion) {
+        this.locationAddressLoading = false;
       }
     }
   }
+}
 
-  private async reverseGeocodeWithBigDataCloud(latitude: number, longitude: number): Promise<string> {
-    const query = new URLSearchParams({
-      latitude: latitude.toString(),
-      longitude: longitude.toString(),
-      localityLanguage: 'vi'
-    });
-    const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?${query}`, {
-      signal: this.reverseGeocodeController?.signal
-    });
-    if (!response.ok) return '';
-
-    const result = await response.json() as BigDataCloudReverseGeocodeResponse;
-    return formatBigDataCloudLocation(result);
-  }
-
-  private async reverseGeocodeWithNominatim(latitude: number, longitude: number): Promise<string> {
-    try {
-      const query = new URLSearchParams({
-        format: 'jsonv2',
-        lat: latitude.toString(),
-        lon: longitude.toString(),
-        zoom: '14',
-        addressdetails: '1',
-        'accept-language': 'vi,en'
-      });
-      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?${query}`, {
-        signal: this.reverseGeocodeController?.signal
-      });
-      if (!response.ok) return '';
-
-      const result = await response.json() as ReverseGeocodeResponse;
-      return formatCurrentLocation(result.address);
-    } catch (error) {
-      if ((error as DOMException)?.name === 'AbortError') throw error;
-      return '';
-    }
-  }
+function coordinateFallback(latitude: number, longitude: number): string {
+  return `Vị trí đã chọn (${latitude.toFixed(6)}, ${longitude.toFixed(6)})`;
 }

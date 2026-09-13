@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { VenueSearchRepository } from '@application/ports/persistence/venue-search.repository';
 import { VenueSearchApi } from '@infrastructure/api/venue-search.api';
-import { Venue, VenueSearchFilter } from '@application/dto/venue/venue.dto';
+import { GeocodingResult, Venue, VenueSearchFilter } from '@application/dto/venue/venue.dto';
 import { BaseResponse, PageResult } from '@application/dto/base/base-response';
 import { TimeSlot } from '@application/dto/booking/booking.dto';
 
@@ -22,5 +22,13 @@ export class VenueSearchRepositoryImpl implements VenueSearchRepository {
 
   getCourtSlots(courtId: string, date: string): Observable<BaseResponse<TimeSlot[]>> {
     return this.api.getCourtSlots(courtId, date);
+  }
+
+  searchLocations(query: string): Observable<BaseResponse<GeocodingResult[]>> {
+    return this.api.searchLocations(query);
+  }
+
+  reverseGeocode(latitude: number, longitude: number): Observable<BaseResponse<GeocodingResult>> {
+    return this.api.reverseGeocode(latitude, longitude);
   }
 }

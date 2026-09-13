@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Venue, VenueSearchFilter } from '@application/dto/venue/venue.dto';
+import { GeocodingResult, Venue, VenueSearchFilter } from '@application/dto/venue/venue.dto';
 import { BaseResponse, PageResult } from '@application/dto/base/base-response';
 import { TimeSlot } from '@application/dto/booking/booking.dto';
 import { API_ENDPOINTS } from '@infrastructure/config/api-endpoints';
@@ -44,6 +44,24 @@ export class VenueSearchApi {
     const params = new HttpParams().set('date', date);
     return this.http.get<BaseResponse<TimeSlot[]>>(
       `${this.apiBase}/venue-courts/${courtId}/slots`,
+      { params }
+    );
+  }
+
+  searchLocations(query: string): Observable<BaseResponse<GeocodingResult[]>> {
+    const params = new HttpParams().set('query', query);
+    return this.http.get<BaseResponse<GeocodingResult[]>>(
+      `${this.apiBase}/venues/geocoding/search`,
+      { params }
+    );
+  }
+
+  reverseGeocode(latitude: number, longitude: number): Observable<BaseResponse<GeocodingResult>> {
+    const params = new HttpParams()
+      .set('latitude', latitude.toString())
+      .set('longitude', longitude.toString());
+    return this.http.get<BaseResponse<GeocodingResult>>(
+      `${this.apiBase}/venues/geocoding/reverse`,
       { params }
     );
   }

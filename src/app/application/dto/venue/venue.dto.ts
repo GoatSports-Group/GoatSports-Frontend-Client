@@ -21,3 +21,10 @@ export interface VenueSearchFilter {
   page?: number;
   size?: number;
 }
+
+export interface GeocodingResult {
+  latitude: number;
+  longitude: number;
+  title: string;
+  address: string;
+}
