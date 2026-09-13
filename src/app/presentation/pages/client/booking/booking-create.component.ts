@@ -1,6 +1,7 @@
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { finalize, forkJoin, take } from 'rxjs';
 import { Booking, TimeSlot, TimeSlotStatus } from '@application/dto/booking/booking.dto';
 import { SPORT_TYPE_OPTIONS, Venue, VenueCourt } from '@application/dto/venue/venue.dto';
@@ -10,6 +11,16 @@ import { CreateBookingDepositCheckoutUseCase } from '@application/usecase/paymen
 import { PendingBookingPaymentService } from '@presentation/services/pending-booking-payment.service';
 import { NotifyService } from '@shared/components/notify/notify.service';
 import { AiRepositoryPort } from '@application/ports/ai.repository.port';
+
+export interface BookingCreateDialogData {
+  venueId: string;
+  courtId: string;
+  timeSlotId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  matchmakingSessionId?: string;
+}
 
 @Component({
   selector: 'app-booking-create',
@@ -26,6 +37,10 @@ export class BookingCreateComponent implements OnInit {
   private readonly notifyService = inject(NotifyService);
   private readonly aiRepository = inject(AiRepositoryPort);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly dialogData = inject<BookingCreateDialogData | null>(MAT_DIALOG_DATA, { optional: true });
+  private readonly dialogRef = inject(MatDialogRef<BookingCreateComponent>, { optional: true });
+
+  readonly isDialog = Boolean(this.dialogData);
 
   venueId = '';
   courtId = '';
@@ -45,6 +60,18 @@ export class BookingCreateComponent implements OnInit {
   checkoutError = '';
 
   ngOnInit(): void {
+    if (this.dialogData) {
+      this.venueId = this.dialogData.venueId;
+      this.courtId = this.dialogData.courtId;
+      this.timeSlotId = this.dialogData.timeSlotId;
+      this.date = this.dialogData.date;
+      this.startTime = this.dialogData.startTime;
+      this.endTime = this.dialogData.endTime;
+      this.matchmakingSessionId = this.dialogData.matchmakingSessionId ?? '';
+      this.loadSelection();
+      return;
+    }
+
     this.route.queryParamMap
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(params => {
@@ -143,6 +170,10 @@ export class BookingCreateComponent implements OnInit {
     return this.venue.address
       || [this.venue.ward, this.venue.district, this.venue.city].filter(Boolean).join(', ')
       || 'Chưa cập nhật địa chỉ';
+  }
+
+  closeDialog(): void {
+    if (!this.submitting) this.dialogRef?.close();
   }
 
   get sportLabel(): string {

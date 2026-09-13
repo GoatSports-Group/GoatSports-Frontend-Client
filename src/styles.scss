@@ -126,6 +126,32 @@ mat-icon, .mat-icon, .material-icons {
   font-family: 'Material Icons' !important;
 }
 
+/* Booking checkout dialog shell */
+.booking-checkout-backdrop {
+  background: rgba(10, 20, 36, 0.62) !important;
+  backdrop-filter: blur(3px);
+}
+
+.booking-checkout-dialog {
+  .mat-mdc-dialog-container {
+    padding: 0 !important;
+  }
+
+  .mat-mdc-dialog-surface {
+    overflow: hidden !important;
+    border: 1px solid rgba(255, 255, 255, 0.72);
+    border-radius: 18px !important;
+    background: #fff !important;
+    box-shadow: 0 28px 80px rgba(10, 20, 36, 0.24) !important;
+  }
+}
+
+@media (max-width: 680px) {
+  .booking-checkout-dialog .mat-mdc-dialog-surface {
+    border-radius: 14px !important;
+  }
+}
+
 /* Lucide Icon Sizing & Spacing Utilities */
 lucide-icon, .lucide-icon {
   display: inline-flex;

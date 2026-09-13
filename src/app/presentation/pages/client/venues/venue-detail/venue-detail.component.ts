@@ -1,7 +1,8 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Component, DestroyRef, OnInit, PLATFORM_ID, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
 import { catchError, forkJoin, interval, map, of, take } from 'rxjs';
 import { VENUE_SEARCH_REPOSITORY_TOKEN } from '@application/ports/persistence/venue-search.repository';
 import { VENUE_FAVORITE_REPOSITORY_TOKEN } from '@application/ports/persistence/venue-favorite.repository';
@@ -16,6 +17,10 @@ import {
   isAbsoluteVenueImageUrl,
   VENUE_PLACEHOLDER_IMAGE
 } from '@presentation/shared/utils/venue-media.utils';
+import {
+  BookingCreateComponent,
+  BookingCreateDialogData
+} from '@presentation/pages/client/booking/booking-create.component';
 
 @Component({
   selector: 'app-venue-detail',
@@ -25,7 +30,6 @@ import {
 })
 export class VenueDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
-  private router = inject(Router);
   private venueSearchRepo = inject(VENUE_SEARCH_REPOSITORY_TOKEN);
   private favoriteRepository = inject(VENUE_FAVORITE_REPOSITORY_TOKEN);
   private reviewRepository = inject(REVIEW_REPOSITORY_TOKEN);
@@ -34,6 +38,7 @@ export class VenueDetailComponent implements OnInit {
   private notify = inject(NotifyService);
   private destroyRef = inject(DestroyRef);
   private platformId = inject(PLATFORM_ID);
+  private dialog = inject(MatDialog);
 
   readonly today = this.toLocalDate(new Date());
   readonly maxBookingDate = this.toLocalDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
@@ -277,17 +282,32 @@ export class VenueDetailComponent implements OnInit {
 
   goToBooking(court: VenueCourt, slot: TimeSlot): void {
     if (!this.isSlotAvailable(slot)) return;
-    this.router.navigate(['/booking/create'], {
-      queryParams: {
-        venueId: this.venue?.venueId,
-        courtId: court.venueCourtId,
-        timeSlotId: slot.timeSlotId,
-        date: this.selectedDate,
-        startTime: slot.startTime,
-        endTime: slot.endTime,
-        pricePerHour: slot.pricePerHour,
-        matchmakingSessionId: this.matchmakingSessionId || null
-      }
+
+    if (!this.authService.isAuthenticated) {
+      this.authService.notifyAuthenticationRequired('Vui lòng đăng nhập để đặt sân.');
+      return;
+    }
+
+    const data: BookingCreateDialogData = {
+      venueId: this.venue?.venueId ?? this.venueId,
+      courtId: court.venueCourtId,
+      timeSlotId: slot.timeSlotId,
+      date: this.selectedDate,
+      startTime: slot.startTime,
+      endTime: slot.endTime,
+      matchmakingSessionId: this.matchmakingSessionId || undefined
+    };
+
+    this.dialog.open(BookingCreateComponent, {
+      data,
+      width: '1080px',
+      maxWidth: 'calc(100vw - 32px)',
+      maxHeight: 'calc(100dvh - 32px)',
+      autoFocus: 'dialog',
+      restoreFocus: true,
+      closeOnNavigation: true,
+      panelClass: 'booking-checkout-dialog',
+      backdropClass: 'booking-checkout-backdrop'
     });
   }
 

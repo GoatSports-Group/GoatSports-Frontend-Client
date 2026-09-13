@@ -1,161 +1,203 @@
-<main class="booking-create-page">
+<main class="booking-create-page" [class.booking-create-page--dialog]="isDialog">
   <div class="booking-shell">
-    <a [routerLink]="venueId ? ['/venues', venueId] : ['/venues']" class="back-link">
-      <lucide-icon name="arrow-left" class="w-4 h-4"></lucide-icon>
-      Quay lại chọn lịch
-    </a>
-
-    @if (loading) {
-      <section class="loading-layout" aria-label="Đang kiểm tra khung giờ">
-        <app-loading-skeleton height="420px" borderRadius="20px"></app-loading-skeleton>
-        <app-loading-skeleton height="360px" borderRadius="20px"></app-loading-skeleton>
-      </section>
-    } @else if (loadError) {
-      <section class="state-card neo-card" role="alert">
-        <lucide-icon name="calendar-x" class="state-icon"></lucide-icon>
-        <h1>Không thể tiếp tục đặt sân</h1>
-        <p>{{ loadError }}</p>
-        <div class="state-actions">
-          <button mat-stroked-button type="button" (click)="loadSelection()">Kiểm tra lại</button>
-          <a mat-flat-button color="primary" routerLink="/venues">Chọn khung giờ khác</a>
-        </div>
-      </section>
-    } @else if (venue && court && selectedSlot) {
-      <header class="page-heading">
+    @if (isDialog) {
+    <header class="dialog-toolbar">
+      <div class="dialog-heading">
         <span class="eyebrow">Bước cuối cùng</span>
         <h1>Xác nhận và thanh toán cọc</h1>
-        <p>Kiểm tra thông tin trước khi GOAT SPORTS giữ chỗ và chuyển bạn đến payOS.</p>
-      </header>
+        <p>Kiểm tra thông tin trước khi GOAT SPORTS giữ chỗ và chuyển khoản.</p>
+      </div>
+      <button type="button" class="dialog-close" aria-label="Đóng cửa sổ thanh toán" [disabled]="submitting"
+        (click)="closeDialog()">
+        <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+      </button>
+    </header>
+    } @else {
+    <a [routerLink]="venueId ? ['/venues', venueId] : ['/venues']" class="back-link">
+      <lucide-icon name="arrow-left" class="w-4 h-4"></lucide-icon>
+      <span>Quay lại chọn lịch</span>
+    </a>
+    }
 
-      <div class="booking-grid">
-        <div class="details-column">
-          <section class="content-card neo-card venue-card">
-            <div class="section-heading">
-              <span class="heading-icon"><lucide-icon name="trophy" class="w-5 h-5"></lucide-icon></span>
-              <div>
-                <span>Địa điểm thi đấu</span>
-                <h2>{{ venue.name }}</h2>
-              </div>
-            </div>
+    @if (loading) {
+    <section class="loading-layout" aria-label="Đang kiểm tra khung giờ">
+      <app-loading-skeleton height="420px" borderRadius="4px"></app-loading-skeleton>
+      <app-loading-skeleton height="360px" borderRadius="4px"></app-loading-skeleton>
+    </section>
+    } @else if (loadError) {
+    <section class="state-card" role="alert">
+      <span class="state-icon-wrap">
+        <lucide-icon name="calendar-x" class="state-icon"></lucide-icon>
+      </span>
+      <p class="eyebrow">Thông tin đặt sân</p>
+      <h1>Không thể tiếp tục đặt sân</h1>
+      <p>{{ loadError }}</p>
+      <div class="state-actions">
+        <button mat-stroked-button type="button" (click)="loadSelection()">Kiểm tra lại</button>
+        <a mat-flat-button color="primary" routerLink="/venues">Chọn khung giờ khác</a>
+      </div>
+    </section>
+    } @else if (venue && court && selectedSlot) {
+    @if (!isDialog) {
+    <header class="page-heading">
+      <span class="eyebrow">Bước cuối cùng</span>
+      <h1>Xác nhận và thanh toán cọc</h1>
+      <p>Kiểm tra thông tin trước khi GOAT SPORTS giữ chỗ và chuyển bạn đến payOS.</p>
+    </header>
+    }
 
-            <div class="venue-summary">
-              <div>
-                <span class="field-label">Sân đã chọn</span>
-                <strong>{{ court.name }}</strong>
-                <small>{{ sportLabel }} · {{ court.capacity }} người</small>
-              </div>
-              <div>
-                <span class="field-label">Địa chỉ</span>
-                <strong>{{ venueAddress }}</strong>
-              </div>
+    <div class="booking-grid">
+      <section class="booking-dossier" aria-labelledby="booking-details-title">
+        <header class="dossier-heading">
+          <div>
+            <span class="section-index" aria-hidden="true">01</span>
+            <div>
+              <h2 id="booking-details-title">Thông tin đặt sân</h2>
+              <p>Vui lòng kiểm tra kỹ thông tin trước khi thanh toán.</p>
             </div>
-          </section>
+          </div>
+          <span class="dossier-status">
+            <lucide-icon name="circle-check" class="w-4 h-4"></lucide-icon>
+            Đã chọn lịch
+          </span>
+        </header>
 
-          <section class="content-card neo-card">
-            <div class="section-heading">
-              <span class="heading-icon"><lucide-icon name="calendar-check" class="w-5 h-5"></lucide-icon></span>
-              <div>
-                <span>Lịch thi đấu</span>
-                <h2>Khung giờ đang được xác nhận</h2>
-              </div>
-            </div>
-
-            <div class="schedule-grid">
-              <div class="schedule-item schedule-item--wide">
-                <span>Ngày thi đấu</span>
-                <strong>{{ formatDate(date) }}</strong>
-              </div>
-              <div class="schedule-item">
-                <span>Bắt đầu</span>
-                <strong>{{ startTime.slice(0, 5) }}</strong>
-              </div>
-              <div class="schedule-item">
-                <span>Kết thúc</span>
-                <strong>{{ endTime.slice(0, 5) }}</strong>
-              </div>
-              <div class="schedule-item">
-                <span>Thời lượng</span>
-                <strong>{{ durationHours | number:'1.0-1' }} giờ</strong>
-              </div>
-            </div>
-          </section>
-
-          <section class="content-card neo-card payment-method-card">
-            <div class="section-heading">
-              <span class="heading-icon"><lucide-icon name="qr-code" class="w-5 h-5"></lucide-icon></span>
-              <div>
-                <span>Phương thức thanh toán</span>
-                <h2>Chuyển khoản VietQR qua payOS</h2>
-              </div>
-            </div>
-            <p>payOS sẽ hiển thị mã QR và thông tin chuyển khoản sau khi đơn được tạo.</p>
-            <div class="secure-row">
-              <lucide-icon name="shield-check" class="w-4 h-4"></lucide-icon>
-              Giao dịch được đối soát tự động với đúng mã đơn đặt sân.
-            </div>
-          </section>
+        <div class="venue-identity">
+          <span class="feature-icon">
+            <lucide-icon name="trophy" class="w-6 h-6"></lucide-icon>
+          </span>
+          <div>
+            <span class="field-label">Địa điểm thi đấu</span>
+            <h3>{{ venue.name }}</h3>
+          </div>
         </div>
 
-        <aside class="summary-column">
-          <section class="summary-card neo-card">
-            <h2>Tóm tắt chi phí</h2>
-            <div class="summary-list">
+        <div class="venue-summary">
+          <article>
+            <lucide-icon name="layout-grid" class="summary-icon"></lucide-icon>
+            <div>
+              <span class="field-label">Sân đã chọn</span>
+              <strong>{{ court.name }}</strong>
+              <small>{{ sportLabel }} · {{ court.capacity }} người</small>
+            </div>
+          </article>
+          <article>
+            <lucide-icon name="map-pin" class="summary-icon"></lucide-icon>
+            <div>
+              <span class="field-label">Địa chỉ</span>
+              <strong>{{ venueAddress }}</strong>
+            </div>
+          </article>
+        </div>
+
+        <section class="schedule-section" aria-labelledby="schedule-title">
+          <div class="subsection-heading">
+            <div>
+              <span class="section-index" aria-hidden="true">02</span>
               <div>
-                <span>Đơn giá mỗi giờ</span>
-                <strong>{{ formatPrice(selectedSlot.pricePerHour) }}</strong>
-              </div>
-              <div>
-                <span>Thời lượng</span>
-                <strong>{{ durationHours | number:'1.0-1' }} giờ</strong>
-              </div>
-              <div class="summary-total">
-                <span>Tổng tiền sân</span>
-                <strong>{{ formatPrice(totalPrice) }}</strong>
+                <h2 id="schedule-title">Lịch thi đấu</h2>
+                <p>Khung giờ đang được xác nhận</p>
               </div>
             </div>
+          </div>
 
-            <div class="deposit-box">
-              <span>Cần thanh toán cọc 30%</span>
-              <strong>{{ formatPrice(depositAmount) }}</strong>
-              <small>Còn lại {{ formatPrice(remainingAmount) }} thanh toán khi nhận sân.</small>
+          <div class="schedule-strip">
+            <div class="schedule-calendar" aria-hidden="true">
+              <lucide-icon name="calendar-check" class="w-6 h-6"></lucide-icon>
             </div>
-
-            <div class="hold-notice">
-              <lucide-icon name="hourglass" class="w-4 h-4"></lucide-icon>
-              <span>Khung giờ chỉ được xác nhận sau khi payOS báo thanh toán thành công.</span>
+            <div class="schedule-item schedule-item--date">
+              <span>Ngày thi đấu</span>
+              <strong>{{ formatDate(date) }}</strong>
             </div>
+            <div class="schedule-item">
+              <span>Bắt đầu</span>
+              <strong>{{ startTime.slice(0, 5) }}</strong>
+            </div>
+            <div class="schedule-item">
+              <span>Kết thúc</span>
+              <strong>{{ endTime.slice(0, 5) }}</strong>
+            </div>
+            <div class="schedule-item">
+              <span>Thời lượng</span>
+              <strong>{{ durationHours | number:'1.0-1' }} giờ</strong>
+            </div>
+          </div>
+        </section>
 
-            @if (checkoutError) {
-              <div class="checkout-error" role="alert">
-                <lucide-icon name="alert-triangle" class="w-4 h-4"></lucide-icon>
-                <span>{{ checkoutError }}</span>
-              </div>
+        <section class="payment-method" aria-labelledby="payment-method-title">
+          <span class="feature-icon feature-icon--small">
+            <lucide-icon name="qr-code" class="w-5 h-5"></lucide-icon>
+          </span>
+          <div class="payment-method__copy">
+            <span class="field-label">Phương thức thanh toán</span>
+            <h2 id="payment-method-title">Chuyển khoản VietQR</h2>
+          </div>
+          <div class="secure-row">
+            <lucide-icon name="shield-check" class="w-4 h-4"></lucide-icon>
+            <span>Đối soát tự động</span>
+          </div>
+        </section>
+      </section>
+
+      <aside class="summary-column" aria-labelledby="summary-title">
+        <section class="summary-card">
+          <header class="summary-heading">
+            <span class="section-index" aria-hidden="true">03</span>
+            <div>
+              <h2 id="summary-title">Tóm tắt chi phí</h2>
+              <p>Chi tiết thanh toán cho lần đặt sân này.</p>
+            </div>
+          </header>
+
+          <div class="summary-list">
+            <div>
+              <span>Đơn giá mỗi giờ</span>
+              <strong>{{ formatPrice(selectedSlot.pricePerHour) }}</strong>
+            </div>
+            <div>
+              <span>Thời lượng</span>
+              <strong>{{ durationHours | number:'1.0-1' }} giờ</strong>
+            </div>
+            <div class="summary-total">
+              <span>Tổng tiền sân</span>
+              <strong>{{ formatPrice(totalPrice) }}</strong>
+            </div>
+          </div>
+
+          <div class="deposit-box">
+            <span>Cần thanh toán cọc 30%</span>
+            <strong>{{ formatPrice(depositAmount) }}</strong>
+            <small>Còn lại {{ formatPrice(remainingAmount) }} thanh toán khi nhận sân.</small>
+          </div>
+
+          <div class="hold-notice">
+            <lucide-icon name="hourglass" class="w-4 h-4"></lucide-icon>
+            <span>Khung giờ chỉ được xác nhận sau khi thanh toán thành công.</span>
+          </div>
+
+          @if (checkoutError) {
+          <div class="checkout-error" role="alert">
+            <lucide-icon name="alert-triangle" class="w-4 h-4"></lucide-icon>
+            <span>{{ checkoutError }}</span>
+          </div>
+          }
+
+          <button mat-flat-button color="primary" class="checkout-button" type="button" [disabled]="!canSubmit"
+            (click)="confirmBooking()">
+            @if (submitting) {
+            <mat-progress-spinner mode="indeterminate" diameter="20"></mat-progress-spinner>
+            <span>Đang mở payOS...</span>
+            } @else if (createdBooking) {
+            <span>Thử lại thanh toán</span>
+            <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon>
+            } @else {
+            <span>Thanh toán</span>
+            <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon>
             }
-
-            <button
-              mat-flat-button
-              color="primary"
-              class="checkout-button"
-              type="button"
-              [disabled]="!canSubmit"
-              (click)="confirmBooking()"
-            >
-              @if (submitting) {
-                <mat-progress-spinner mode="indeterminate" diameter="20"></mat-progress-spinner>
-                Đang mở payOS...
-              } @else if (createdBooking) {
-                Thử lại thanh toán
-              } @else {
-                Thanh toán cọc {{ formatPrice(depositAmount) }}
-              }
-            </button>
-
-            <p class="terms-copy">
-              Bằng việc tiếp tục, bạn đồng ý với chính sách đặt sân và hủy sân của cơ sở.
-            </p>
-          </section>
-        </aside>
-      </div>
+          </button>
+        </section>
+      </aside>
+    </div>
     }
   </div>
 </main>
