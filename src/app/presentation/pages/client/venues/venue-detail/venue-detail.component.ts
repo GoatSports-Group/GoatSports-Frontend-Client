@@ -306,6 +306,7 @@ export class VenueDetailComponent implements OnInit {
       autoFocus: 'dialog',
       restoreFocus: true,
       closeOnNavigation: true,
+      disableClose: true,
       panelClass: 'booking-checkout-dialog',
       backdropClass: 'booking-checkout-backdrop'
     });

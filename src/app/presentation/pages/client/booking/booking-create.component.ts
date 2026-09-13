@@ -1,11 +1,16 @@
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { finalize, forkJoin, take } from 'rxjs';
+import { catchError, finalize, forkJoin, of, switchMap, take, takeWhile, timer } from 'rxjs';
 import { Booking, TimeSlot, TimeSlotStatus } from '@application/dto/booking/booking.dto';
+import { Payment, PaymentAttempt, PaymentStatus } from '@application/dto/payment/payment.dto';
 import { SPORT_TYPE_OPTIONS, Venue, VenueCourt } from '@application/dto/venue/venue.dto';
 import { BOOKING_REPOSITORY_TOKEN } from '@application/ports/persistence/booking.repository';
+import {
+  PAYMENT_REPOSITORY_TOKEN,
+  PaymentRepository
+} from '@application/ports/persistence/payment.repository';
 import { VENUE_SEARCH_REPOSITORY_TOKEN } from '@application/ports/persistence/venue-search.repository';
 import { CreateBookingDepositCheckoutUseCase } from '@application/usecase/payment/create-booking-deposit-checkout.usecase';
 import { PendingBookingPaymentService } from '@presentation/services/pending-booking-payment.service';
@@ -30,7 +35,9 @@ export interface BookingCreateDialogData {
 })
 export class BookingCreateComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly bookingRepository = inject(BOOKING_REPOSITORY_TOKEN);
+  private readonly paymentRepository: PaymentRepository = inject(PAYMENT_REPOSITORY_TOKEN);
   private readonly venueSearchRepository = inject(VENUE_SEARCH_REPOSITORY_TOKEN);
   private readonly createDepositCheckout = inject(CreateBookingDepositCheckoutUseCase);
   private readonly pendingPayment = inject(PendingBookingPaymentService);
@@ -58,6 +65,17 @@ export class BookingCreateComponent implements OnInit {
   submitting = false;
   loadError = '';
   checkoutError = '';
+  checkoutAttempt: PaymentAttempt | null = null;
+  paymentStatus: PaymentStatus | null = null;
+  paymentFailureReason = '';
+  secondsRemaining = 0;
+  cancelling = false;
+  showCancelConfirmation = false;
+  cancellationCompleted = false;
+  private paymentExpiresAt = '';
+  private countdownStarted = false;
+  private pollingPaymentId = '';
+  private proposalBookedSynced = false;
 
   ngOnInit(): void {
     if (this.dialogData) {
@@ -162,7 +180,37 @@ export class BookingCreateComponent implements OnInit {
   get canSubmit(): boolean {
     return Boolean(this.venue && this.court && this.selectedSlot && this.depositAmount > 0)
       && !this.loading
-      && !this.submitting;
+      && !this.submitting
+      && !this.checkoutAttempt;
+  }
+
+  get isAwaitingPayment(): boolean {
+    return this.paymentStatus === 'CREATED' || this.paymentStatus === 'PENDING';
+  }
+
+  get hasCheckoutQr(): boolean {
+    return Boolean(this.checkoutAttempt?.qrCodeContent?.startsWith('data:image/'));
+  }
+
+  get paymentCountdown(): string {
+    if (this.secondsRemaining <= 0) return 'Đang kiểm tra thời hạn';
+    const minutes = Math.floor(this.secondsRemaining / 60).toString().padStart(2, '0');
+    const seconds = (this.secondsRemaining % 60).toString().padStart(2, '0');
+    return `${minutes}:${seconds}`;
+  }
+
+  get bookingDetailUrl(): string {
+    return this.createdBooking?.bookingId
+      ? `/booking/detail/${this.createdBooking.bookingId}`
+      : '/booking/history';
+  }
+
+  get canCloseDialog(): boolean {
+    return this.cancellationCompleted
+      || this.paymentStatus === 'SUCCEEDED'
+      || this.paymentStatus === 'CANCELLED'
+      || this.paymentStatus === 'EXPIRED'
+      || this.paymentStatus === 'FAILED';
   }
 
   get venueAddress(): string {
@@ -173,7 +221,103 @@ export class BookingCreateComponent implements OnInit {
   }
 
   closeDialog(): void {
-    if (!this.submitting) this.dialogRef?.close();
+    if (!this.submitting && !this.cancelling && this.canCloseDialog) this.dialogRef?.close();
+  }
+
+  async copyPaymentAmount(): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(String(Math.round(this.depositAmount)));
+      this.notifyService.success('Đã sao chép số tiền thanh toán.');
+    } catch {
+      this.notifyService.warning('Không thể sao chép tự động. Vui lòng nhập đúng số tiền hiển thị.');
+    }
+  }
+
+  requestCancelCheckout(): void {
+    if (this.submitting || this.cancelling) return;
+    if (!this.checkoutAttempt && !this.createdBooking) {
+      this.cancellationCompleted = true;
+      if (this.dialogRef) this.dialogRef.close('cancelled');
+      else void this.router.navigate(this.venueId ? ['/venues', this.venueId] : ['/venues']);
+      return;
+    }
+    this.showCancelConfirmation = true;
+  }
+
+  keepWaitingForPayment(): void {
+    if (!this.cancelling) this.showCancelConfirmation = false;
+  }
+
+  confirmCancelPayment(): void {
+    const paymentId = this.checkoutAttempt?.paymentId;
+    if (this.cancelling) return;
+    if (!paymentId) {
+      this.cancelCreatedBooking();
+      return;
+    }
+    this.cancelling = true;
+    this.checkoutError = '';
+
+    this.paymentRepository.cancelPayment(paymentId).pipe(
+      take(1),
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.cancelling = false)
+    ).subscribe({
+      next: payment => {
+        this.showCancelConfirmation = false;
+        this.handlePaymentUpdate(payment);
+        if (payment.status === 'SUCCEEDED') {
+          this.notifyService.success('Thanh toán đã được xác nhận trước khi yêu cầu hủy hoàn tất.');
+          return;
+        }
+        if (payment.status !== 'CANCELLED' && payment.status !== 'EXPIRED') {
+          this.checkoutError = payment.failureReason || 'Chưa thể xác nhận hủy giao dịch.';
+          return;
+        }
+        this.cancellationCompleted = true;
+        this.pendingPayment.clear();
+        this.syncCancelledMatchmakingProposal();
+        this.notifyService.info('Đã hủy thanh toán và giải phóng khung giờ.');
+        if (this.dialogRef) this.dialogRef.close('cancelled');
+        else void this.router.navigate(this.venueId ? ['/venues', this.venueId] : ['/venues']);
+      },
+      error: error => {
+        this.checkoutError = this.userMessage(
+          error,
+          'Không thể hủy giao dịch lúc này. Vui lòng thử lại.'
+        );
+        this.notifyService.error(this.checkoutError);
+      }
+    });
+  }
+
+  get cancelConfirmationMessage(): string {
+    return this.checkoutAttempt
+      ? 'Mã QR sẽ bị vô hiệu hóa và khung giờ sẽ được giải phóng.'
+      : 'Đơn đang giữ chỗ sẽ bị hủy và khung giờ sẽ được giải phóng.';
+  }
+
+  retryPayment(): void {
+    if (this.submitting || !this.createdBooking) return;
+    this.submitting = true;
+    this.checkoutAttempt = null;
+    this.paymentStatus = null;
+    this.paymentFailureReason = '';
+    this.checkoutError = '';
+    this.startDepositCheckout(this.createdBooking);
+  }
+
+  get paymentStateTitle(): string {
+    if (this.paymentStatus === 'EXPIRED') return 'Mã thanh toán đã hết hạn';
+    if (this.paymentStatus === 'CANCELLED') return 'Thanh toán đã bị hủy';
+    return 'Chưa thể hoàn tất thanh toán';
+  }
+
+  get paymentStateMessage(): string {
+    if (this.paymentFailureReason) return this.paymentFailureReason;
+    if (this.paymentStatus === 'EXPIRED') return 'Thời gian giữ chỗ đã kết thúc. Vui lòng chọn lại khung giờ.';
+    if (this.paymentStatus === 'CANCELLED') return 'Giao dịch đã được hủy trên payOS.';
+    return 'Giao dịch gặp sự cố. Bạn có thể tạo lại mã thanh toán.';
   }
 
   get sportLabel(): string {
@@ -251,7 +395,11 @@ export class BookingCreateComponent implements OnInit {
           expiresAt: payment.expiresAt,
           matchmakingSessionId: this.matchmakingSessionId || undefined
         });
-        window.location.assign(checkoutUrl);
+        this.checkoutAttempt = { ...attempt, checkoutUrl };
+        this.paymentStatus = payment.status === 'CREATED' ? 'PENDING' : payment.status;
+        this.submitting = false;
+        this.startCountdown(payment.expiresAt);
+        this.startPaymentPolling(payment.paymentId);
       },
       error: error => {
         this.submitting = false;
@@ -262,6 +410,104 @@ export class BookingCreateComponent implements OnInit {
         this.notifyService.error(this.checkoutError);
       }
     });
+  }
+
+  private startPaymentPolling(paymentId: string): void {
+    if (this.pollingPaymentId === paymentId) return;
+    this.pollingPaymentId = paymentId;
+
+    timer(0, 2000).pipe(
+      switchMap(() => this.paymentRepository.getPayment(paymentId).pipe(
+        catchError(() => of(null))
+      )),
+      takeWhile(payment => payment == null || this.isProcessingPayment(payment.status), true),
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => {
+        if (this.pollingPaymentId === paymentId) this.pollingPaymentId = '';
+      })
+    ).subscribe(payment => {
+      if (payment) this.handlePaymentUpdate(payment);
+    });
+  }
+
+  private handlePaymentUpdate(payment: Payment): void {
+    this.paymentStatus = payment.status;
+    this.paymentFailureReason = payment.failureReason ?? '';
+
+    if (payment.status === 'SUCCEEDED') {
+      this.secondsRemaining = 0;
+      this.pendingPayment.clear();
+      this.syncBookedMatchmakingProposal();
+      return;
+    }
+
+    if (!this.isProcessingPayment(payment.status)) {
+      this.secondsRemaining = 0;
+    }
+  }
+
+  private startCountdown(expiresAt?: string): void {
+    this.paymentExpiresAt = expiresAt ?? '';
+    if (this.countdownStarted) return;
+    this.countdownStarted = true;
+
+    timer(0, 1000).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      if (!this.paymentExpiresAt || !this.isAwaitingPayment) {
+        this.secondsRemaining = 0;
+        return;
+      }
+      const expiresAtMs = new Date(this.paymentExpiresAt).getTime();
+      this.secondsRemaining = Number.isFinite(expiresAtMs)
+        ? Math.max(0, Math.ceil((expiresAtMs - Date.now()) / 1000))
+        : 0;
+    });
+  }
+
+  private isProcessingPayment(status: PaymentStatus): boolean {
+    return status === 'CREATED' || status === 'PENDING';
+  }
+
+  private syncBookedMatchmakingProposal(): void {
+    if (this.proposalBookedSynced || !this.matchmakingSessionId) return;
+    this.proposalBookedSynced = true;
+    this.aiRepository.updateMatchProposal(this.matchmakingSessionId, { status: 'BOOKED' })
+      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
+      .subscribe({ error: () => this.proposalBookedSynced = false });
+  }
+
+  private cancelCreatedBooking(): void {
+    if (!this.createdBooking) return;
+    this.cancelling = true;
+    this.bookingRepository.cancelBooking(this.createdBooking.bookingId, {
+      reason: 'Người dùng hủy tại màn hình thanh toán.'
+    }).pipe(
+      take(1),
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.cancelling = false)
+    ).subscribe({
+      next: () => {
+        this.cancellationCompleted = true;
+        this.showCancelConfirmation = false;
+        this.pendingPayment.clear();
+        this.syncCancelledMatchmakingProposal();
+        this.notifyService.info('Đã hủy đơn và giải phóng khung giờ.');
+        if (this.dialogRef) this.dialogRef.close('cancelled');
+        else void this.router.navigate(this.venueId ? ['/venues', this.venueId] : ['/venues']);
+      },
+      error: error => {
+        this.checkoutError = this.userMessage(error, 'Không thể hủy đơn lúc này. Vui lòng thử lại.');
+        this.notifyService.error(this.checkoutError);
+      }
+    });
+  }
+
+  private syncCancelledMatchmakingProposal(): void {
+    if (!this.matchmakingSessionId) return;
+    this.aiRepository.updateMatchProposal(this.matchmakingSessionId, { status: 'CANCELLED' })
+      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        error: () => this.notifyService.warning('Thanh toán đã hủy nhưng trạng thái kèo chưa kịp đồng bộ.')
+      });
   }
 
   private syncMatchmakingProposal(booking: Booking): void {

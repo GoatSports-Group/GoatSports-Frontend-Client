@@ -7,7 +7,9 @@
         <h1>Xác nhận và thanh toán cọc</h1>
         <p>Kiểm tra thông tin trước khi GOAT SPORTS giữ chỗ và chuyển khoản.</p>
       </div>
-      <button type="button" class="dialog-close" aria-label="Đóng cửa sổ thanh toán" [disabled]="submitting"
+      <button type="button" class="dialog-close" aria-label="Đóng cửa sổ thanh toán"
+        [attr.title]="canCloseDialog ? 'Đóng' : 'Vui lòng dùng nút Hủy thanh toán'"
+        [disabled]="submitting || cancelling || !canCloseDialog"
         (click)="closeDialog()">
         <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
       </button>
@@ -140,6 +142,127 @@
       </section>
 
       <aside class="summary-column" aria-labelledby="summary-title">
+        @if (checkoutAttempt && isAwaitingPayment) {
+        <section class="summary-card qr-payment-card">
+          <header class="qr-payment-heading">
+            <div>
+              <span class="payment-step">Thanh toán cọc</span>
+              <h2 id="summary-title">Quét mã VietQR</h2>
+            </div>
+            <span class="payment-live-status">
+              <i aria-hidden="true"></i>
+              Đang chờ
+            </span>
+          </header>
+
+          <p class="qr-instruction">Mở ứng dụng ngân hàng và quét mã để hoàn tất giữ sân.</p>
+
+          <div class="qr-frame" [class.qr-frame--empty]="!hasCheckoutQr">
+            @if (hasCheckoutQr) {
+            <img [src]="checkoutAttempt.qrCodeContent" alt="Mã VietQR thanh toán tiền cọc đặt sân" />
+            } @else {
+            <lucide-icon name="qr-code" class="qr-placeholder"></lucide-icon>
+            <span>Không tải được mã QR</span>
+            }
+          </div>
+
+          <div class="payment-amount-row">
+            <div>
+              <span>Số tiền cần chuyển</span>
+              <strong>{{ formatPrice(depositAmount) }}</strong>
+            </div>
+            <button type="button" class="copy-amount" (click)="copyPaymentAmount()">
+              Sao chép
+            </button>
+          </div>
+
+          <div class="payment-guidance">
+            <lucide-icon name="shield-check" class="w-4 h-4"></lucide-icon>
+            <span>Số tiền và nội dung chuyển khoản đã được điền sẵn trong mã QR.</span>
+          </div>
+
+          <div class="payment-waiting-row">
+            <span class="waiting-spinner" aria-hidden="true"></span>
+            <div>
+              <strong>Đang kiểm tra thanh toán</strong>
+              <span>Tự động cập nhật sau khi ngân hàng xác nhận</span>
+            </div>
+            <time>{{ paymentCountdown }}</time>
+          </div>
+
+          @if (checkoutError) {
+          <div class="checkout-error" role="alert">
+            <lucide-icon name="alert-triangle" class="w-4 h-4"></lucide-icon>
+            <span>{{ checkoutError }}</span>
+          </div>
+          }
+
+          @if (showCancelConfirmation) {
+          <div class="cancel-confirmation" role="alertdialog" aria-labelledby="cancel-payment-title">
+            <div>
+              <strong id="cancel-payment-title">Hủy thanh toán?</strong>
+              <span>{{ cancelConfirmationMessage }}</span>
+            </div>
+            <div class="cancel-confirmation__actions">
+              <button type="button" class="keep-payment-button" [disabled]="cancelling"
+                (click)="keepWaitingForPayment()">Tiếp tục thanh toán</button>
+              <button type="button" class="confirm-cancel-button" [disabled]="cancelling"
+                (click)="confirmCancelPayment()">
+                @if (cancelling) { Đang hủy... } @else { Xác nhận hủy }
+              </button>
+            </div>
+          </div>
+          } @else {
+          <button type="button" class="cancel-payment-button" (click)="requestCancelCheckout()">
+            Hủy thanh toán
+          </button>
+          }
+        </section>
+        } @else if (paymentStatus === 'SUCCEEDED') {
+        <section class="summary-card payment-result-card payment-result-card--success" aria-live="assertive">
+          <span class="payment-result-icon">
+            <lucide-icon name="circle-check" class="w-8 h-8"></lucide-icon>
+          </span>
+          <span class="payment-step">Thanh toán thành công</span>
+          <h2 id="summary-title">Sân đã được xác nhận</h2>
+          <p>Khoản cọc <strong>{{ formatPrice(depositAmount) }}</strong> đã được ghi nhận.</p>
+          @if (createdBooking?.bookingCode) {
+          <div class="booking-code-row">
+            <span>Mã đặt sân</span>
+            <strong>{{ createdBooking?.bookingCode }}</strong>
+          </div>
+          }
+          <a mat-flat-button color="primary" class="checkout-button" [routerLink]="bookingDetailUrl">
+            Xem đơn đặt sân
+            <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon>
+          </a>
+        </section>
+        } @else if (checkoutAttempt && paymentStatus && !isAwaitingPayment) {
+        <section class="summary-card payment-result-card payment-result-card--failed" role="alert">
+          <span class="payment-result-icon">
+            <lucide-icon name="alert-triangle" class="w-8 h-8"></lucide-icon>
+          </span>
+          <span class="payment-step">Trạng thái thanh toán</span>
+          <h2 id="summary-title">{{ paymentStateTitle }}</h2>
+          <p>{{ paymentStateMessage }}</p>
+          @if (paymentStatus === 'FAILED') {
+          <button mat-flat-button color="primary" class="checkout-button" type="button"
+            [disabled]="submitting" (click)="retryPayment()">
+            @if (submitting) {
+            <mat-progress-spinner mode="indeterminate" diameter="20"></mat-progress-spinner>
+            Đang tạo mã mới...
+            } @else {
+            Thử lại thanh toán
+            }
+          </button>
+          } @else {
+          <a mat-flat-button color="primary" class="checkout-button"
+            [routerLink]="venueId ? ['/venues', venueId] : ['/venues']">
+            Chọn khung giờ khác
+          </a>
+          }
+        </section>
+        } @else {
         <section class="summary-card">
           <header class="summary-heading">
             <span class="section-index" aria-hidden="true">03</span>
@@ -186,7 +309,7 @@
             (click)="confirmBooking()">
             @if (submitting) {
             <mat-progress-spinner mode="indeterminate" diameter="20"></mat-progress-spinner>
-            <span>Đang mở payOS...</span>
+            <span>Đang thanh toán...</span>
             } @else if (createdBooking) {
             <span>Thử lại thanh toán</span>
             <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon>
@@ -195,7 +318,12 @@
             <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon>
             }
           </button>
+          <button type="button" class="cancel-payment-button cancel-payment-button--initial"
+            [disabled]="submitting" (click)="requestCancelCheckout()">
+            Hủy
+          </button>
         </section>
+        }
       </aside>
     </div>
     }

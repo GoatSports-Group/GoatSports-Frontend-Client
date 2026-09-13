@@ -34,6 +34,12 @@ export class PaymentRepositoryImpl implements PaymentRepository {
     );
   }
 
+  cancelPayment(paymentId: string): Observable<Payment> {
+    return this.api.cancelPayment(paymentId).pipe(
+      map(response => this.requireData(response.data))
+    );
+  }
+
   private requireData<T>(data: T | null | undefined): T {
     if (data == null) throw new Error('Payment service không trả dữ liệu.');
     return data;

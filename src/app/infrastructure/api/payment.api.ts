@@ -37,4 +37,8 @@ export class PaymentApi {
   getPayment(paymentId: string): Observable<BaseResponse<Payment>> {
     return this.http.get<BaseResponse<Payment>>(`${this.apiBase}/${paymentId}`);
   }
+
+  cancelPayment(paymentId: string): Observable<BaseResponse<Payment>> {
+    return this.http.post<BaseResponse<Payment>>(`${this.apiBase}/${paymentId}/cancel`, {});
+  }
 }
