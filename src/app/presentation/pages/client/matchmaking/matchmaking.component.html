@@ -192,6 +192,19 @@
         </div>
       </fieldset>
 
+      <fieldset class="form-section" [disabled]="isSearching() || restoring()">
+        <legend><span>6</span>Cách chọn đối thủ</legend>
+        <p class="section-helper">Để AI chọn ngay hoặc tự chọn trong danh sách được xếp hạng</p>
+        <div class="style-grid selection-mode-grid">
+          <button type="button" class="choice-button style-choice" [class.selected]="selectionMode() === 'AI'" (click)="selectMode('AI')">
+            <strong>AI tự chọn</strong><small>Tự động ghép người phù hợp nhất</small>
+          </button>
+          <button type="button" class="choice-button style-choice" [class.selected]="selectionMode() === 'MANUAL'" (click)="selectMode('MANUAL')">
+            <strong>Tôi sẽ chọn</strong><small>Xem Top đối thủ và lý do phù hợp</small>
+          </button>
+        </div>
+      </fieldset>
+
       <div class="setup-actions">
         @if (isSearching()) {
           <button type="button" class="button button-danger button-full" (click)="cancelSearch()">
@@ -250,6 +263,23 @@
             <div><span>ELO mục tiêu</span><strong>± {{ maxEloDifference() }}</strong></div>
             <div><span>Trong hàng chờ</span><strong>{{ queueSize() ?? '—' }}</strong></div>
           </div>
+          @if (candidates().length) {
+            <section class="candidate-list" aria-label="Đối thủ phù hợp">
+              <header><strong>Top đối thủ phù hợp</strong><span>AI xếp hạng theo 4 tiêu chí</span></header>
+              @for (candidate of candidates(); track candidate.participant.participantId) {
+                <article class="candidate-card">
+                  <div class="candidate-avatar">{{ initials(candidate.participant.name) }}</div>
+                  <div>
+                    <strong>{{ candidate.participant.name }}</strong>
+                    <small>ELO {{ candidate.participant.eloRating }} · {{ candidate.distanceKm | number:'1.0-1' }} km</small>
+                    <p>{{ candidate.scoreBreakdown.reasons[0] }} · {{ candidate.scoreBreakdown.reasons[1] }}</p>
+                  </div>
+                  <span class="candidate-score">{{ candidate.scoreBreakdown.totalScore | number:'1.0-0' }}%</span>
+                  <button type="button" class="button button-primary" [disabled]="actionLoading()" (click)="chooseCandidate(candidate)">Chọn</button>
+                </article>
+              }
+            </section>
+          }
           <p class="search-note">Bạn có thể rời trang. Trạng thái tìm kiếm sẽ tự động được khôi phục.</p>
         </div>
       } @else if (session(); as match) {
@@ -306,6 +336,39 @@
             <div><dt>Khoảng cách</dt><dd>{{ match.distanceKm | number:'1.0-1' }} km</dd></div>
           </dl>
 
+          @if (match.scoreBreakdown; as score) {
+            <div class="score-reasons">
+              @for (reason of score.reasons; track reason) {
+                <span><lucide-icon name="check-circle-2" class="w-4 h-4"></lucide-icon>{{ reason }}</span>
+              }
+            </div>
+          }
+
+          <ol class="match-progress" aria-label="Tiến trình ghép trận">
+            <li class="done">Ghép đối thủ</li>
+            <li [class.done]="!['PROPOSED','ACCEPTED_BY_ONE'].includes(match.status)">Xác nhận</li>
+            <li [class.done]="['VENUE_SELECTED','BOOKING_PENDING','CONFIRMED','CHECKED_IN','RESULT_PENDING','DISPUTED','COMPLETED'].includes(match.status)">Chọn sân</li>
+            <li [class.done]="['CONFIRMED','CHECKED_IN','RESULT_PENDING','DISPUTED','COMPLETED'].includes(match.status)">Đặt cọc</li>
+            <li [class.done]="['CHECKED_IN','RESULT_PENDING','DISPUTED','COMPLETED'].includes(match.status)">Check-in</li>
+            <li [class.done]="match.status === 'COMPLETED'">Kết quả</li>
+          </ol>
+
+          @if (match.status === 'ACCEPTED' && match.proposal?.venueOptions?.length) {
+            <section class="venue-options">
+              <header><strong>3 sân cân bằng khoảng cách</strong><span>Đã kiểm tra sân và lịch trống</span></header>
+              @for (venue of match.proposal!.venueOptions; track venue.venueId) {
+                <article>
+                  <div><strong>{{ venue.venueName }}</strong><small>{{ venue.address }}</small></div>
+                  <span>{{ venue.distanceKm | number:'1.0-1' }} km · {{ venue.rating | number:'1.1-1' }}/5</span>
+                  <p>{{ venue.matchReason }}</p>
+                  <button type="button" class="button button-secondary" [disabled]="!isDesignatedBooker() || !venue.venueCourtId || actionLoading()" (click)="chooseVenue(venue.venueId, venue.venueCourtId)">
+                    {{ isDesignatedBooker() ? 'Chọn sân' : 'Chờ người đặt cọc chọn' }}
+                  </button>
+                </article>
+              }
+            </section>
+          }
+
           @if (match.proposal?.venueId) {
             <button type="button" class="venue-proposal" (click)="openVenue()">
               <lucide-icon name="map-pinned" class="w-6 h-6"></lucide-icon>
@@ -325,22 +388,46 @@
                 Chấp nhận kèo
               </button>
             </div>
-          } @else if (match.status === 'ACCEPTED') {
+          } @else if (match.status === 'ACCEPTED' || match.status === 'VENUE_SELECTED' || match.status === 'BOOKING_PENDING' || match.status === 'CONFIRMED') {
             <div class="decision-actions">
               <button
                 type="button"
                 class="button button-secondary"
-                [disabled]="!match.proposal?.venueId || !isDesignatedBooker()"
+                [disabled]="!match.proposal?.venueId"
                 (click)="openVenue()"
               >
                 <lucide-icon name="calendar-check" class="w-5 h-5"></lucide-icon>
-                {{ isDesignatedBooker() ? 'Chọn lịch sân' : 'Đối thủ đang đặt sân' }}
+                {{ match.status === 'CONFIRMED' ? 'Xem lịch đã đặt' : (isDesignatedBooker() ? 'Đặt sân & thanh toán' : 'Xem sân đã chọn') }}
               </button>
               <button type="button" class="button button-primary" [disabled]="!canOpenChat()" (click)="openChat()">
                 <lucide-icon name="message-circle" class="w-5 h-5"></lucide-icon>
                 Mở trò chuyện
               </button>
             </div>
+          } @else if (match.status === 'CHECKED_IN' || match.status === 'RESULT_PENDING' || match.status === 'DISPUTED') {
+            <section class="result-entry">
+              <header><strong>{{ match.status === 'DISPUTED' ? 'Kết quả chưa trùng khớp' : 'Nhập kết quả trận đấu' }}</strong><span>Mỗi người nhập độc lập; hệ thống chỉ chốt khi hai kết quả giống nhau.</span></header>
+              <div>
+                <label>Tỷ số của bạn<input type="number" min="0" max="999" [ngModel]="resultMyScore()" (ngModelChange)="resultMyScore.set($event)" /></label>
+                <label>Tỷ số đối thủ<input type="number" min="0" max="999" [ngModel]="resultOpponentScore()" (ngModelChange)="resultOpponentScore.set($event)" /></label>
+                <button type="button" class="button button-primary" [disabled]="actionLoading()" (click)="submitResult()">{{ hasSubmittedResult() ? 'Gửi lại kết quả' : 'Xác nhận kết quả' }}</button>
+              </div>
+            </section>
+          } @else if (match.status === 'COMPLETED') {
+            <section class="completed-result">
+              <strong>Kết quả: {{ match.result?.participantOneScore }}–{{ match.result?.participantTwoScore }}</strong>
+              @if (eloAfter(currentParticipant()?.participantId); as newElo) {
+                <p>ELO mới của bạn: <strong>{{ newElo }}</strong></p>
+              }
+              @if (!hasSubmittedFeedback()) {
+                <div class="feedback-form">
+                  <label>Đánh giá<input type="number" min="1" max="5" [ngModel]="feedbackRating()" (ngModelChange)="feedbackRating.set($event)" /></label>
+                  <label>Fair-play<input type="number" min="1" max="5" [ngModel]="fairPlayRating()" (ngModelChange)="fairPlayRating.set($event)" /></label>
+                  <label class="feedback-comment">Nhận xét<input type="text" maxlength="500" [ngModel]="feedbackComment()" (ngModelChange)="feedbackComment.set($event)" /></label>
+                  <button type="button" class="button button-primary" [disabled]="actionLoading()" (click)="submitFeedback()">Gửi đánh giá</button>
+                </div>
+              } @else { <p>Cảm ơn bạn đã đánh giá đối thủ.</p> }
+            </section>
           } @else {
             <button type="button" class="button button-primary button-full" (click)="findAnotherMatch()">
               <lucide-icon name="rotate-cw" class="w-5 h-5"></lucide-icon>

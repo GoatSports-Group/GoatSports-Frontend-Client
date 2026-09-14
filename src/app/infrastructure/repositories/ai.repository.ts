@@ -7,6 +7,7 @@ import {
   ChatbotResponseModel,
   JoinMatchmakingQueueRequest,
   MatchmakingActionResponse,
+  MatchCandidate,
   MatchmakingQueueResponse,
   MatchmakingSessionModel,
   MatchmakingStatusResponse,
@@ -41,6 +42,18 @@ export class AiRepository extends AiRepositoryPort {
     return this.http.get<MatchmakingSessionModel[]>(`${this.baseUrl}/matchmaking/sessions`, { params });
   }
 
+  override getMatchmakingCandidates(limit = 5): Observable<MatchCandidate[]> {
+    const params = new HttpParams().set('limit', String(limit));
+    return this.http.get<MatchCandidate[]>(`${this.baseUrl}/matchmaking/candidates`, { params });
+  }
+
+  override selectMatchmakingCandidate(candidateParticipantId: string): Observable<MatchmakingSessionModel> {
+    return this.http.post<MatchmakingSessionModel>(
+      `${this.baseUrl}/matchmaking/candidates/${candidateParticipantId}/select`,
+      {}
+    );
+  }
+
   override decideMatch(sessionId: string, decision: AcceptanceDecision): Observable<MatchmakingSessionModel> {
     return this.http.post<MatchmakingSessionModel>(
       `${this.baseUrl}/matchmaking/sessions/${sessionId}/acceptances`,
@@ -56,6 +69,37 @@ export class AiRepository extends AiRepositoryPort {
       `${this.baseUrl}/matchmaking/sessions/${sessionId}/proposal`,
       payload
     );
+  }
+
+  override selectMatchVenue(sessionId: string, venueId: string, venueCourtId: string): Observable<MatchmakingSessionModel> {
+    return this.http.post<MatchmakingSessionModel>(`${this.baseUrl}/matchmaking/sessions/${sessionId}/venue`, {
+      venueId,
+      venueCourtId
+    });
+  }
+
+  override registerMatchBooking(sessionId: string, bookingId: string): Observable<MatchmakingSessionModel> {
+    return this.http.post<MatchmakingSessionModel>(`${this.baseUrl}/matchmaking/sessions/${sessionId}/booking`, { bookingId });
+  }
+
+  override submitMatchResult(sessionId: string, myScore: number, opponentScore: number): Observable<MatchmakingSessionModel> {
+    return this.http.post<MatchmakingSessionModel>(`${this.baseUrl}/matchmaking/sessions/${sessionId}/result`, {
+      myScore,
+      opponentScore
+    });
+  }
+
+  override submitOpponentFeedback(
+    sessionId: string,
+    rating: number,
+    fairPlayRating: number,
+    comment?: string
+  ): Observable<MatchmakingSessionModel> {
+    return this.http.post<MatchmakingSessionModel>(`${this.baseUrl}/matchmaking/sessions/${sessionId}/feedback`, {
+      rating,
+      fairPlayRating,
+      comment
+    });
   }
 
   override getVenueRecommendations(lat?: number, lng?: number, sport?: string): Observable<VenueRecommendationModel[]> {

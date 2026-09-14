@@ -20,7 +20,9 @@ import { AiRepositoryPort } from '@application/ports/ai.repository.port';
 import {
   AcceptanceDecision,
   JoinMatchmakingQueueRequest,
+  MatchCandidate,
   MatchmakingPlayer,
+  MatchSelectionMode,
   MatchmakingSession,
   MatchmakingSkill,
   MatchmakingSport,
@@ -59,6 +61,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   readonly selectedSport = signal<MatchmakingSport>('BADMINTON');
   readonly selectedSkill = signal<MatchmakingSkill>('INTERMEDIATE');
   readonly selectedPlayStyle = signal<MatchmakingPlayStyle>('BALANCED');
+  readonly selectionMode = signal<MatchSelectionMode>('AI');
   readonly eloRating = signal(1200);
   readonly maxEloDifference = signal(300);
   readonly maxDistance = signal(10);
@@ -68,10 +71,17 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   readonly coordinates = signal<Coordinates | null>(null);
   readonly profiles = signal<PlayerSportProfile[]>([]);
   readonly history = signal<MatchmakingSession[]>([]);
+  readonly candidates = signal<MatchCandidate[]>([]);
   readonly locating = signal(false);
   readonly isSearching = signal(false);
   readonly restoring = signal(true);
   readonly responding = signal(false);
+  readonly actionLoading = signal(false);
+  readonly resultMyScore = signal(0);
+  readonly resultOpponentScore = signal(0);
+  readonly feedbackRating = signal(5);
+  readonly fairPlayRating = signal(5);
+  readonly feedbackComment = signal('');
   readonly historyLoading = signal(true);
   readonly elapsedSeconds = signal(0);
   readonly nowMs = signal(Date.now());
@@ -146,7 +156,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
       && this.responseRemainingSeconds() > 0;
   });
   readonly canOpenChat = computed(() =>
-    this.session()?.status === 'ACCEPTED' && Boolean(this.session()?.proposal?.conversationId)
+    Boolean(this.session()?.proposal?.conversationId)
   );
   readonly isDesignatedBooker = computed(() =>
     this.session()?.proposal?.designatedBookerId === this.authService.currentUser?.userId
@@ -154,6 +164,13 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   readonly statusMessage = computed(() => {
     const status = this.session()?.status;
     if (status === 'ACCEPTED') return 'Hai bên đã xác nhận kèo';
+    if (status === 'VENUE_SELECTED') return 'Đã chọn sân, chờ người đặt cọc';
+    if (status === 'BOOKING_PENDING') return 'Đang chờ thanh toán tiền cọc';
+    if (status === 'CONFIRMED') return 'Trận đấu đã được xác nhận';
+    if (status === 'CHECKED_IN') return 'Hai người chơi có thể nhập kết quả';
+    if (status === 'RESULT_PENDING') return 'Đang chờ đối thủ xác nhận kết quả';
+    if (status === 'DISPUTED') return 'Kết quả chưa trùng khớp';
+    if (status === 'COMPLETED') return 'Trận đấu đã hoàn tất';
     if (status === 'ACCEPTED_BY_ONE') return this.myDecision() === 'ACCEPTED'
       ? 'Đang chờ đối thủ xác nhận'
       : 'Đối thủ đã đồng ý, đến lượt bạn';
@@ -241,6 +258,10 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     this.selectedPlayStyle.set(style);
   }
 
+  selectMode(mode: MatchSelectionMode): void {
+    this.selectionMode.set(mode);
+  }
+
   refreshLocation(): void {
     if (this.locating()) return;
     this.resolveBrowserLocation();
@@ -295,16 +316,105 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   }
 
   openVenue(): void {
+    const bookingId = this.session()?.proposal?.bookingId;
+    if (bookingId && ['CONFIRMED', 'CHECKED_IN', 'RESULT_PENDING', 'COMPLETED'].includes(this.session()?.status ?? '')) {
+      void this.router.navigate(['/booking/detail', bookingId]);
+      return;
+    }
     const venueId = this.session()?.proposal?.venueId;
     if (!venueId) return;
+    const venueCourtId = this.session()?.proposal?.venueCourtId;
+    if (venueCourtId && this.isDesignatedBooker() && ['VENUE_SELECTED', 'BOOKING_PENDING'].includes(this.session()?.status ?? '')) {
+      void this.router.navigate(['/booking/create'], {
+        queryParams: {
+          venueId,
+          courtId: venueCourtId,
+          date: this.session()?.playDate,
+          startTime: this.session()?.startTime,
+          endTime: this.session()?.endTime,
+          matchmakingSessionId: this.session()?.sessionId
+        }
+      });
+      return;
+    }
     void this.router.navigate(['/venues', venueId], {
       queryParams: {
         date: this.session()?.playDate,
-        matchmakingSessionId: this.session()?.status === 'ACCEPTED' && this.isDesignatedBooker()
-          ? this.session()?.sessionId
-          : null
+        venueCourtId: this.session()?.proposal?.venueCourtId,
+        matchmakingSessionId: null
       }
     });
+  }
+
+  chooseCandidate(candidate: MatchCandidate): void {
+    if (this.actionLoading()) return;
+    this.actionLoading.set(true);
+    this.aiRepository.selectMatchmakingCandidate(candidate.participant.participantId).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.actionLoading.set(false))
+    ).subscribe({
+      next: session => this.applySession(session),
+      error: error => this.errorMessage.set(this.userMessage(error, 'Đối thủ không còn trong hàng chờ.'))
+    });
+  }
+
+  chooseVenue(venueId: string, venueCourtId?: string): void {
+    const match = this.session();
+    if (!match || !venueCourtId || !this.isDesignatedBooker() || this.actionLoading()) return;
+    this.actionLoading.set(true);
+    this.aiRepository.selectMatchVenue(match.sessionId, venueId, venueCourtId).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.actionLoading.set(false))
+    ).subscribe({
+      next: session => this.applySession(session),
+      error: error => this.errorMessage.set(this.userMessage(error, 'Không thể chọn sân này.'))
+    });
+  }
+
+  submitResult(): void {
+    const match = this.session();
+    if (!match || this.actionLoading()) return;
+    this.actionLoading.set(true);
+    this.aiRepository.submitMatchResult(match.sessionId, this.resultMyScore(), this.resultOpponentScore()).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.actionLoading.set(false))
+    ).subscribe({
+      next: session => this.applySession(session),
+      error: error => this.errorMessage.set(this.userMessage(error, 'Không thể gửi kết quả.'))
+    });
+  }
+
+  submitFeedback(): void {
+    const match = this.session();
+    if (!match || this.actionLoading()) return;
+    this.actionLoading.set(true);
+    this.aiRepository.submitOpponentFeedback(
+      match.sessionId,
+      this.feedbackRating(),
+      this.fairPlayRating(),
+      this.feedbackComment() || undefined
+    ).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.actionLoading.set(false))
+    ).subscribe({
+      next: session => this.applySession(session),
+      error: error => this.errorMessage.set(this.userMessage(error, 'Không thể gửi đánh giá.'))
+    });
+  }
+
+  hasSubmittedResult(): boolean {
+    const userId = this.authService.currentUser?.userId;
+    return Boolean(userId && this.session()?.resultClaims?.some(item => item.submittedBy === userId));
+  }
+
+  hasSubmittedFeedback(): boolean {
+    const userId = this.authService.currentUser?.userId;
+    return Boolean(userId && this.session()?.feedback?.some(item => item.reviewerId === userId));
+  }
+
+  eloAfter(participantId?: string): number | null {
+    if (!participantId) return null;
+    return this.session()?.result?.eloUpdates?.[participantId] ?? null;
   }
 
   findAnotherMatch(): void {
@@ -402,7 +512,8 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
       preferredPositions: profile?.preferredPositions ?? [],
       playStyle: this.selectedPlayStyle(),
       matchCount: profile?.matchCount ?? 0,
-      winRate: profile?.winRate ?? 0
+      winRate: profile?.winRate ?? 0,
+      selectionMode: this.selectionMode()
     };
     this.enqueue(payload);
   }
@@ -467,6 +578,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
         this.applySession(response.session);
         this.upsertHistory(response.session);
       }
+      if (!response.session) this.loadCandidates();
     });
   }
 
@@ -492,9 +604,9 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     this.isSearching.set(false);
     this.queuePoll?.unsubscribe();
     this.elapsedTimer?.unsubscribe();
-    const awaitingDecision = session.status === 'PROPOSED' || session.status === 'ACCEPTED_BY_ONE';
-    if (awaitingDecision && startWatcher) this.startSessionPolling(session.sessionId);
-    if (!awaitingDecision) this.sessionPoll?.unsubscribe();
+    const watchable = !['REJECTED', 'EXPIRED', 'CANCELLED', 'COMPLETED'].includes(session.status);
+    if (watchable && startWatcher) this.startSessionPolling(session.sessionId);
+    if (!watchable) this.sessionPoll?.unsubscribe();
   }
 
   private startElapsedTimer(): void {
@@ -509,6 +621,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     this.isSearching.set(false);
     this.queueSize.set(null);
     this.elapsedSeconds.set(0);
+    this.candidates.set([]);
   }
 
   private stopPolling(): void {
@@ -577,11 +690,25 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
       PROPOSED: 'Chờ xác nhận',
       ACCEPTED_BY_ONE: 'Một người đã đồng ý',
       ACCEPTED: 'Đã xác nhận',
+      VENUE_SELECTED: 'Đã chọn sân',
+      BOOKING_PENDING: 'Chờ thanh toán',
+      CONFIRMED: 'Đã xác nhận',
+      CHECKED_IN: 'Đã check-in',
+      RESULT_PENDING: 'Chờ xác nhận kết quả',
+      COMPLETED: 'Đã hoàn tất',
+      DISPUTED: 'Kết quả chưa khớp',
       REJECTED: 'Đã từ chối',
       EXPIRED: 'Đã hết hạn',
       CANCELLED: 'Đã hủy'
     };
     return status ? labels[status] : 'Đang xử lý';
+  }
+
+  private loadCandidates(): void {
+    this.aiRepository.getMatchmakingCandidates(5).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => of([] as MatchCandidate[]))
+    ).subscribe(items => this.candidates.set(items));
   }
 
   private localDate(value: Date): string {
@@ -600,7 +727,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     }).format(new Date(`${value}T00:00:00`));
   }
 
-  private initials(name?: string): string {
+  initials(name?: string): string {
     if (!name) return 'GS';
     return name.trim().split(/\s+/).slice(-2).map(part => part.charAt(0).toUpperCase()).join('') || 'GS';
   }

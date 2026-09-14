@@ -515,10 +515,7 @@ export class BookingCreateComponent implements OnInit {
       this.startDepositCheckout(booking);
       return;
     }
-    this.aiRepository.updateMatchProposal(this.matchmakingSessionId, {
-      bookingId: booking.bookingId,
-      status: 'BOOKING_PENDING'
-    }).pipe(
+    this.aiRepository.registerMatchBooking(this.matchmakingSessionId, booking.bookingId).pipe(
       take(1),
       takeUntilDestroyed(this.destroyRef),
       finalize(() => this.startDepositCheckout(booking))
