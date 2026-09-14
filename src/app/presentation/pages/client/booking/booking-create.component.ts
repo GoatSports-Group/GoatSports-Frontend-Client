@@ -76,6 +76,7 @@ export class BookingCreateComponent implements OnInit {
   private countdownStarted = false;
   private pollingPaymentId = '';
   private proposalBookedSynced = false;
+  private matchmakingBookingRegistered = false;
 
   ngOnInit(): void {
     if (this.dialogData) {
@@ -101,6 +102,7 @@ export class BookingCreateComponent implements OnInit {
         this.endTime = params.get('endTime') ?? '';
         this.matchmakingSessionId = params.get('matchmakingSessionId') ?? '';
         this.createdBooking = null;
+        this.matchmakingBookingRegistered = false;
         this.loadSelection();
       });
   }
@@ -200,9 +202,14 @@ export class BookingCreateComponent implements OnInit {
   }
 
   get bookingDetailUrl(): string {
+    if (this.matchmakingSessionId) return '/matchmaking';
     return this.createdBooking?.bookingId
       ? `/booking/detail/${this.createdBooking.bookingId}`
       : '/booking/history';
+  }
+
+  get paymentSuccessActionLabel(): string {
+    return this.matchmakingSessionId ? 'Tiếp tục kèo đã xác nhận' : 'Xem đơn đặt sân';
   }
 
   get canCloseDialog(): boolean {
@@ -331,7 +338,11 @@ export class BookingCreateComponent implements OnInit {
     this.submitting = true;
 
     if (this.createdBooking) {
-      this.startDepositCheckout(this.createdBooking);
+      if (this.matchmakingSessionId && !this.matchmakingBookingRegistered) {
+        this.syncMatchmakingProposal(this.createdBooking);
+      } else {
+        this.startDepositCheckout(this.createdBooking);
+      }
       return;
     }
 
@@ -517,10 +528,20 @@ export class BookingCreateComponent implements OnInit {
     }
     this.aiRepository.registerMatchBooking(this.matchmakingSessionId, booking.bookingId).pipe(
       take(1),
-      takeUntilDestroyed(this.destroyRef),
-      finalize(() => this.startDepositCheckout(booking))
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe({
-      error: () => this.notifyService.warning('Đơn sân đã được tạo nhưng trạng thái kèo chưa kịp đồng bộ.')
+      next: () => {
+        this.matchmakingBookingRegistered = true;
+        this.startDepositCheckout(booking);
+      },
+      error: error => {
+        this.submitting = false;
+        this.checkoutError = this.userMessage(
+          error,
+          'Đơn sân đã được tạo nhưng chưa thể gắn với kèo. Vui lòng thử lại trước khi thanh toán.'
+        );
+        this.notifyService.warning(this.checkoutError);
+      }
     });
   }
 

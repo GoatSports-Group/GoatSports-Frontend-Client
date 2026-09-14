@@ -1,5 +1,5 @@
 import { Injectable, NgZone, OnDestroy, inject } from '@angular/core';
-import { BehaviorSubject, EMPTY, Observable, Subscription } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, Subject, Subscription } from 'rxjs';
 import { distinctUntilChanged, map, tap } from 'rxjs/operators';
 import {
   Notification,
@@ -59,6 +59,9 @@ export class NotificationService implements OnDestroy {
 
   private readonly allCountSubject = new BehaviorSubject<number>(0);
   readonly allCount$ = this.allCountSubject.asObservable();
+
+  private readonly realtimeNotificationSubject = new Subject<Notification>();
+  readonly realtimeNotifications$ = this.realtimeNotificationSubject.asObservable();
 
   private readonly pageStateSubject = new BehaviorSubject<NotificationPageState>(EMPTY_PAGE_STATE);
   readonly pageState$ = this.pageStateSubject.asObservable();
@@ -281,6 +284,8 @@ export class NotificationService implements OnDestroy {
     const currentUserId = this.sessionStateService.getCurrentUserId();
     if (!currentUserId || notification.receiverId !== currentUserId) return;
     if (this.findNotification(notification.notificationId)) return;
+
+    this.realtimeNotificationSubject.next(notification);
 
     const isUnread = notification.status === NotificationStatus.UNREAD;
     const matchesCurrentFilter = !this.activeStatus || (this.activeStatus === NotificationStatus.UNREAD && isUnread);

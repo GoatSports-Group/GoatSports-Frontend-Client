@@ -14,7 +14,7 @@ import {
 import { isPlatformBrowser } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { EMPTY, Subscription, catchError, finalize, forkJoin, of, switchMap, timer } from 'rxjs';
+import { Observable, Subscription, catchError, finalize, forkJoin, map, of, timer } from 'rxjs';
 import gsap from 'gsap';
 import { AiRepositoryPort } from '@application/ports/ai.repository.port';
 import {
@@ -34,6 +34,8 @@ import {
   PlayerSportProfileRepository
 } from '@application/ports/persistence/player-sport-profile.repository';
 import { AuthService } from '@presentation/services/auth.service';
+import { NotificationService } from '@presentation/services/notification.service';
+import { NotificationType } from '@application/dto/notification/notification.dto';
 
 type MatchmakingPlayStyle = 'BALANCED' | 'FAIR_PLAY' | 'COMPETITIVE';
 type Coordinates = { latitude: number; longitude: number; source: 'profile' | 'browser' };
@@ -51,6 +53,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     PLAYER_SPORT_PROFILE_REPOSITORY_TOKEN
   );
   private readonly authService = inject(AuthService);
+  private readonly notificationService = inject(NotificationService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly host = inject(ElementRef<HTMLElement>);
@@ -181,14 +184,25 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   });
   readonly statusLabel = computed(() => this.sessionStatusLabel(this.session()?.status));
 
-  private queuePoll?: Subscription;
-  private sessionPoll?: Subscription;
   private elapsedTimer?: Subscription;
+  private sessionExpiryRefresh?: Subscription;
+  private realtimeRefreshInFlight = false;
+  private realtimeRefreshPending = false;
 
   ngOnInit(): void {
     timer(0, 1000)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.nowMs.set(Date.now()));
+
+    this.notificationService.realtimeNotifications$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(notification => {
+        if (notification.type !== NotificationType.MATCHMAKING
+          || (notification.referenceType || '').toUpperCase() !== 'MATCHMAKING_SESSION') {
+          return;
+        }
+        this.refreshFromRealtimeEvent(notification.referenceId);
+      });
 
     if (!this.authService.currentUser) {
       this.restoring.set(false);
@@ -316,15 +330,17 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   }
 
   openVenue(): void {
+    const status = this.session()?.status ?? '';
     const bookingId = this.session()?.proposal?.bookingId;
-    if (bookingId && ['CONFIRMED', 'CHECKED_IN', 'RESULT_PENDING', 'COMPLETED'].includes(this.session()?.status ?? '')) {
+    if (bookingId && this.isDesignatedBooker()
+      && ['BOOKING_PENDING', 'CONFIRMED', 'CHECKED_IN', 'RESULT_PENDING', 'DISPUTED', 'COMPLETED'].includes(status)) {
       void this.router.navigate(['/booking/detail', bookingId]);
       return;
     }
     const venueId = this.session()?.proposal?.venueId;
     if (!venueId) return;
     const venueCourtId = this.session()?.proposal?.venueCourtId;
-    if (venueCourtId && this.isDesignatedBooker() && ['VENUE_SELECTED', 'BOOKING_PENDING'].includes(this.session()?.status ?? '')) {
+    if (venueCourtId && this.isDesignatedBooker() && status === 'VENUE_SELECTED') {
       void this.router.navigate(['/booking/create'], {
         queryParams: {
           venueId,
@@ -563,7 +579,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
             this.upsertHistory(response.session);
             return;
           }
-          this.startQueuePolling();
+          if (this.selectionMode() === 'MANUAL') this.loadCandidates();
         },
         error: error => {
           this.resetSearch();
@@ -585,59 +601,81 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
           this.isSearching.set(true);
           this.queueSize.set(response.queueSize ?? null);
           this.startElapsedTimer();
-          this.startQueuePolling();
+          if (this.selectionMode() === 'MANUAL') this.loadCandidates();
         }
       },
       error: () => this.errorMessage.set('Chưa thể khôi phục trạng thái ghép kèo trước đó.')
     });
   }
 
-  private startQueuePolling(): void {
-    this.queuePoll?.unsubscribe();
-    this.queuePoll = timer(0, 3000).pipe(
-      switchMap(() => this.aiRepository.checkMatchmakingStatus().pipe(
-        catchError(() => {
-          this.errorMessage.set('Mất kết nối khi kiểm tra hàng chờ. Hệ thống đang tự kết nối lại.');
-          return EMPTY;
-        })
-      )),
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe(response => {
-      this.errorMessage.set('');
-      this.queueSize.set(response.queueSize ?? null);
-      if (response.session) {
-        this.applySession(response.session);
-        this.upsertHistory(response.session);
-      }
-      if (!response.session) this.loadCandidates();
-    });
-  }
-
-  private startSessionPolling(sessionId: string): void {
-    this.sessionPoll?.unsubscribe();
-    this.sessionPoll = timer(3000, 3000).pipe(
-      switchMap(() => this.aiRepository.getMatchmakingSession(sessionId).pipe(
-        catchError(() => {
-          this.errorMessage.set('Chưa thể cập nhật phản hồi của đối thủ. Hệ thống đang tự kết nối lại.');
-          return EMPTY;
-        })
-      )),
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe(updated => {
-      this.errorMessage.set('');
-      this.applySession(updated, false);
-      this.upsertHistory(updated);
-    });
-  }
-
-  private applySession(session: MatchmakingSession, startWatcher = true): void {
+  private applySession(session: MatchmakingSession): void {
     this.session.set(session);
     this.isSearching.set(false);
-    this.queuePoll?.unsubscribe();
     this.elapsedTimer?.unsubscribe();
-    const watchable = !['REJECTED', 'EXPIRED', 'CANCELLED', 'COMPLETED'].includes(session.status);
-    if (watchable && startWatcher) this.startSessionPolling(session.sessionId);
-    if (!watchable) this.sessionPoll?.unsubscribe();
+    this.scheduleExpiryRefresh(session);
+  }
+
+  private refreshFromRealtimeEvent(referenceId?: string): void {
+    const activeSession = this.session();
+    const isCurrentSession = Boolean(referenceId && activeSession?.sessionId === referenceId);
+    const isDifferentActiveSession = Boolean(
+      referenceId
+      && activeSession
+      && activeSession.sessionId !== referenceId
+      && !['REJECTED', 'EXPIRED', 'CANCELLED', 'COMPLETED'].includes(activeSession.status)
+    );
+    if (isDifferentActiveSession) return;
+
+    if (this.realtimeRefreshInFlight) {
+      this.realtimeRefreshPending = true;
+      return;
+    }
+
+    this.realtimeRefreshInFlight = true;
+    const request: Observable<{ session: MatchmakingSession | null; queueSize: number | null }> = isCurrentSession && referenceId
+      ? this.aiRepository.getMatchmakingSession(referenceId).pipe(
+          map(session => ({ session, queueSize: null }))
+        )
+      : this.aiRepository.checkMatchmakingStatus().pipe(
+          map(response => ({
+            session: response.session ?? null,
+            queueSize: response.queueSize ?? null
+          }))
+        );
+
+    request.pipe(
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => {
+        this.realtimeRefreshInFlight = false;
+        if (this.realtimeRefreshPending) {
+          this.realtimeRefreshPending = false;
+          this.refreshFromRealtimeEvent(this.session()?.sessionId ?? referenceId);
+        }
+      })
+    ).subscribe({
+      next: response => {
+        this.errorMessage.set('');
+        this.queueSize.set(response.queueSize ?? null);
+        if (response.session) {
+          this.applySession(response.session);
+          this.upsertHistory(response.session);
+        } else if (this.selectionMode() === 'MANUAL' && this.isSearching()) {
+          this.loadCandidates();
+        }
+      },
+      error: error => this.errorMessage.set(
+        this.userMessage(error, 'Chưa thể cập nhật thay đổi ghép kèo.')
+      )
+    });
+  }
+
+  private scheduleExpiryRefresh(session: MatchmakingSession): void {
+    this.sessionExpiryRefresh?.unsubscribe();
+    if (!['PROPOSED', 'ACCEPTED_BY_ONE'].includes(session.status) || !session.expiresAt) return;
+    const delay = Math.max(0, new Date(session.expiresAt).getTime() - Date.now()) + 250;
+    this.sessionExpiryRefresh = timer(delay).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => this.refreshFromRealtimeEvent(session.sessionId));
   }
 
   private startElapsedTimer(): void {
@@ -656,9 +694,8 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   }
 
   private stopPolling(): void {
-    this.queuePoll?.unsubscribe();
-    this.sessionPoll?.unsubscribe();
     this.elapsedTimer?.unsubscribe();
+    this.sessionExpiryRefresh?.unsubscribe();
   }
 
   private applyProfileForSport(sport: MatchmakingSport): void {

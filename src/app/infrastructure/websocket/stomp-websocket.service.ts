@@ -65,6 +65,7 @@ export class StompWebSocketService implements WebSocketService {
   private reconnectTimeout: any = null;
   private socialReconnectTimeout: any = null;
   private authProbeSubscription: Subscription | null = null;
+  private authVerified = false;
   private shouldReconnect = false;
   private apiBase = environment.apiUrl;
   private notificationSubscriptionId = 'sub-user-notifications';
@@ -86,6 +87,11 @@ export class StompWebSocketService implements WebSocketService {
     if (this.authProbeSubscription) return;
     if ((this.socket || this.isConnected) && (this.socialSocket || this.isSocialConnected)) return;
 
+    if (this.authVerified) {
+      this.openAuthenticatedSockets();
+      return;
+    }
+
     // WebSocket handshakes cannot use Angular's HTTP interceptor directly. Probe an
     // authenticated endpoint first so an expired HttpOnly access cookie is refreshed
     // before the browser starts either handshake.
@@ -94,6 +100,7 @@ export class StompWebSocketService implements WebSocketService {
       { withCredentials: true }
     ).subscribe({
       next: () => {
+        this.authVerified = true;
         if (this.shouldReconnect) this.openAuthenticatedSockets();
       },
       error: () => {
@@ -153,6 +160,7 @@ export class StompWebSocketService implements WebSocketService {
 
   public disconnect(): void {
     this.shouldReconnect = false;
+    this.authVerified = false;
     this.authProbeSubscription?.unsubscribe();
     this.authProbeSubscription = null;
     if (this.reconnectTimeout) {
@@ -338,15 +346,24 @@ export class StompWebSocketService implements WebSocketService {
     if (this.socialSocket || this.isSocialConnected) return;
 
     let wsUrl = this.apiBase.replace(/^http/, 'ws').replace(/\/+$/, '');
-    wsUrl += '/social-service/ws/websocket';
+    wsUrl += '/social-service/ws';
 
     try {
       const socket = new WebSocket(wsUrl);
       this.socialSocket = socket;
 
+      socket.onopen = () => {
+        if (this.socialSocket !== socket) return;
+        this.sendSocialFrame(new StompFrame('CONNECT', {
+          'accept-version': '1.1,1.2',
+          'heart-beat': '10000,10000'
+        }, ''));
+      };
       socket.onmessage = (event: MessageEvent) => {
         if (this.socialSocket !== socket) return;
-        this.handleSocialTransportMessage(event.data);
+        if (event.data !== '\n' && event.data !== '\r\n') {
+          this.handleSocialStompFrame(event.data);
+        }
       };
       socket.onclose = () => {
         if (this.socialSocket !== socket) return;
@@ -359,24 +376,6 @@ export class StompWebSocketService implements WebSocketService {
       };
     } catch {
       this.handleSocialDisconnect();
-    }
-  }
-
-  private handleSocialTransportMessage(data: string): void {
-    if (data === 'o') {
-      this.sendSocialFrame(new StompFrame('CONNECT', {
-        'accept-version': '1.1,1.2',
-        'heart-beat': '0,0'
-      }, ''));
-      return;
-    }
-    if (data === 'h' || !data.startsWith('a')) return;
-
-    try {
-      const messages = JSON.parse(data.substring(1)) as string[];
-      messages.forEach(message => this.handleSocialStompFrame(message));
-    } catch (error) {
-      console.error('Không thể đọc dữ liệu WebSocket trò chuyện.', error);
     }
   }
 
@@ -435,7 +434,7 @@ export class StompWebSocketService implements WebSocketService {
 
   private sendSocialFrame(frame: StompFrame): void {
     if (!this.socialSocket || this.socialSocket.readyState !== WebSocket.OPEN) return;
-    this.socialSocket.send(JSON.stringify([frame.toString()]));
+    this.socialSocket.send(frame.toString());
   }
 
   private socialSubscribe(id: string, destination: string): void {

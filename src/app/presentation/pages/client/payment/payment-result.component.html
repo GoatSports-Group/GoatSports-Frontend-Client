@@ -29,7 +29,7 @@
     }
     <div class="result-actions">
       @if (state === 'pending') { <button mat-stroked-button type="button" [disabled]="checking" (click)="checkPayment()">Kiểm tra lại</button> }
-      <a mat-flat-button color="primary" [routerLink]="bookingUrl">{{ isTournamentPayment ? 'Quay lại giải đấu' : (context ? 'Xem vé đặt sân' : 'Xem lịch sử đặt sân') }}</a>
+      <a mat-flat-button color="primary" [routerLink]="bookingUrl">{{ bookingActionLabel }}</a>
       <a mat-button [routerLink]="isTournamentPayment ? '/tournaments' : '/venues'">{{ isTournamentPayment ? 'Xem giải đấu khác' : 'Tiếp tục tìm sân' }}</a>
     </div>
   </section>

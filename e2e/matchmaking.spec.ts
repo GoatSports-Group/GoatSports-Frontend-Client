@@ -169,3 +169,24 @@ test('tìm, nhận đề xuất và chấp nhận kèo end-to-end', async ({ pag
   await page.getByRole('button', { name: 'Chấp nhận kèo' }).click();
   await expect(page.getByText('Đang chờ đối thủ xác nhận')).toBeVisible();
 });
+
+test('không polling trạng thái khi đang chờ đối thủ', async ({ page }) => {
+  let statusRequests = 0;
+  await page.route('**/ai-service/api/v1/ai/matchmaking/status', route => {
+    statusRequests += 1;
+    return route.fulfill({ json: { status: 'NOT_IN_QUEUE' } });
+  });
+  await page.route('**/ai-service/api/v1/ai/matchmaking/sessions?**', route =>
+    route.fulfill({ json: [] })
+  );
+  await page.route('**/ai-service/api/v1/ai/matchmaking/queue', route =>
+    route.fulfill({ json: { status: 'QUEUED', message: 'Đang chờ đối thủ phù hợp.', queueSize: 1 } })
+  );
+
+  await page.goto('/matchmaking');
+  await page.getByRole('button', { name: 'Tìm đối thủ', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'GOAT AI đang quét đối thủ phù hợp' })).toBeVisible();
+
+  await page.waitForTimeout(3_500);
+  expect(statusRequests).toBe(1);
+});

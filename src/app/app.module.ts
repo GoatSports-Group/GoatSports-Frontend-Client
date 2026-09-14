@@ -175,6 +175,7 @@ import {
   LucideScanSearch,
   LucideCalendarX2,
   LucideRefreshCw,
+  LucideMoreHorizontal
 
 } from '@lucide/angular';
 
@@ -339,7 +340,8 @@ import {
       LucideMapPinned,
       LucideScanSearch,
       LucideCalendarX2,
-      LucideRefreshCw
+      LucideRefreshCw,
+      LucideMoreHorizontal
     )
   ],
   bootstrap: [AppComponent]

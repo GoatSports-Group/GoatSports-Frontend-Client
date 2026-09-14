@@ -79,7 +79,18 @@ export class PaymentResultComponent implements OnInit {
 
   get bookingUrl(): string {
     if (this.context?.kind === 'TOURNAMENT') return `/tournaments/${this.context.tournamentId}`;
+    if (this.context && 'matchmakingSessionId' in this.context && this.context.matchmakingSessionId) {
+      return '/matchmaking';
+    }
     return this.context && 'bookingId' in this.context ? `/booking/detail/${this.context.bookingId}` : '/booking/history';
+  }
+
+  get bookingActionLabel(): string {
+    if (this.isTournamentPayment) return 'Quay lại giải đấu';
+    if (this.context && 'matchmakingSessionId' in this.context && this.context.matchmakingSessionId) {
+      return 'Tiếp tục kèo đã xác nhận';
+    }
+    return this.context ? 'Xem vé đặt sân' : 'Xem lịch sử đặt sân';
   }
 
   get isTournamentPayment(): boolean {

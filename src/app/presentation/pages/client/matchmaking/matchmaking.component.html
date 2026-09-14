@@ -407,8 +407,13 @@
 
           @if (match.proposal?.venueId) {
             <button type="button" class="venue-proposal" (click)="openVenue()">
-              <lucide-icon name="map-pinned" class="w-6 h-6"></lucide-icon>
-              <span><strong>Đã tìm thấy sân phù hợp</strong><small>Xem sân, lịch trống và hoàn tất đặt lịch</small></span>
+              <lucide-icon [name]="match.status === 'CONFIRMED' ? 'badge-check' : 'map-pinned'" class="w-6 h-6"></lucide-icon>
+              <span>
+                <strong>{{ match.status === 'CONFIRMED' ? 'Sân và tiền cọc đã được xác nhận' : 'Đã tìm thấy sân phù hợp' }}</strong>
+                <small>{{ match.status === 'CONFIRMED'
+                  ? (isDesignatedBooker() ? 'Xem vé đặt sân và chuẩn bị check-in' : 'Theo dõi kèo và trao đổi với người đặt sân')
+                  : (match.status === 'BOOKING_PENDING' ? 'Đơn đang chờ hoàn tất thanh toán' : 'Xem sân, lịch trống và hoàn tất đặt lịch') }}</small>
+              </span>
               <lucide-icon name="chevron-right" class="w-5 h-5"></lucide-icon>
             </button>
           }
@@ -434,10 +439,12 @@
               >
                 <lucide-icon name="calendar-check" class="w-5 h-5"></lucide-icon>
                 {{ match.status === 'CONFIRMED'
-                  ? 'Xem lịch đã đặt'
+                  ? (isDesignatedBooker() ? 'Xem vé & check-in' : 'Xem sân đã đặt')
                   : (match.status === 'ACCEPTED' && !match.proposal?.venueId
                     ? 'Kiểm tra lại sân'
-                    : (isDesignatedBooker() ? 'Đặt sân & thanh toán' : 'Xem sân đã chọn')) }}
+                    : (match.status === 'BOOKING_PENDING'
+                      ? (isDesignatedBooker() ? 'Xem đơn đang thanh toán' : 'Đang chờ người đặt cọc')
+                      : (isDesignatedBooker() ? 'Đặt sân & thanh toán' : 'Xem sân đã chọn'))) }}
               </button>
               <button type="button" class="button button-primary" [disabled]="!canOpenChat()" (click)="openChat()">
                 <lucide-icon name="message-circle" class="w-5 h-5"></lucide-icon>
