@@ -371,6 +371,37 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     });
   }
 
+  refreshVenues(): void {
+    const match = this.session();
+    if (!match || match.status !== 'ACCEPTED' || this.actionLoading()) return;
+    this.actionLoading.set(true);
+    this.errorMessage.set('');
+    this.aiRepository.refreshMatchVenues(match.sessionId).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.actionLoading.set(false))
+    ).subscribe({
+      next: session => this.applySession(session),
+      error: error => this.errorMessage.set(this.userMessage(error, 'Không thể kiểm tra lại lịch sân.'))
+    });
+  }
+
+  cancelMatch(): void {
+    const match = this.session();
+    if (!match || this.actionLoading()) return;
+    this.actionLoading.set(true);
+    this.errorMessage.set('');
+    this.aiRepository.cancelMatchmakingSession(match.sessionId).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.actionLoading.set(false))
+    ).subscribe({
+      next: session => {
+        this.applySession(session);
+        this.upsertHistory(session);
+      },
+      error: error => this.errorMessage.set(this.userMessage(error, 'Không thể hủy kèo lúc này.'))
+    });
+  }
+
   submitResult(): void {
     const match = this.session();
     if (!match || this.actionLoading()) return;

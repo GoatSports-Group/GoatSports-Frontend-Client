@@ -125,6 +125,36 @@
 .venue-options article p { grid-column: 1 / -1; margin: 0; }
 .venue-options article button { grid-column: 2; grid-row: 1 / span 2; }
 
+.venue-search-state {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px 12px;
+  align-items: start;
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px solid #b9e1d4;
+  border-radius: 10px;
+  background: #f1fbf7;
+  color: #007f5d;
+}
+
+.venue-search-state--warning {
+  border-color: #ead9ad;
+  background: #fffaf0;
+  color: #9a6500;
+}
+
+.venue-search-state strong { color: #071426; font-size: 13px; }
+.venue-search-state p { margin: 3px 0 0; color: #607084; font-size: 11px; line-height: 1.45; }
+.venue-search-state__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+.venue-search-state__actions .button { min-height: 38px; }
+
 .result-entry > div,
 .feedback-form {
   display: grid;

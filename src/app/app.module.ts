@@ -172,7 +172,10 @@ import {
   LucideDroplets,
   LucideFolderOpen,
   LucideMapPinned,
-  LucideScanSearch
+  LucideScanSearch,
+  LucideCalendarX2,
+  LucideRefreshCw,
+
 } from '@lucide/angular';
 
 @NgModule({
@@ -334,7 +337,9 @@ import {
       LucideDroplets,
       LucideFolderOpen,
       LucideMapPinned,
-      LucideScanSearch
+      LucideScanSearch,
+      LucideCalendarX2,
+      LucideRefreshCw
     )
   ],
   bootstrap: [AppComponent]

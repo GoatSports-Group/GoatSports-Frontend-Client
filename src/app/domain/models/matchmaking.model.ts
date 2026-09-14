@@ -4,6 +4,7 @@ export type ParticipantType = 'PLAYER' | 'CLUB';
 export type AcceptanceDecision = 'ACCEPTED' | 'REJECTED';
 export type MatchSessionStatus = 'PROPOSED' | 'ACCEPTED_BY_ONE' | 'ACCEPTED' | 'VENUE_SELECTED' | 'BOOKING_PENDING' | 'CONFIRMED' | 'CHECKED_IN' | 'RESULT_PENDING' | 'COMPLETED' | 'DISPUTED' | 'REJECTED' | 'EXPIRED' | 'CANCELLED';
 export type MatchProposalStatus = 'CREATED' | 'VENUE_SELECTED' | 'BOOKING_PENDING' | 'BOOKED' | 'CHECKED_IN' | 'COMPLETED' | 'EXPIRED' | 'CANCELLED';
+export type VenueSearchStatus = 'PENDING' | 'READY' | 'NO_AVAILABILITY' | 'SERVICE_UNAVAILABLE';
 export type MatchmakingQueueStatus = 'MATCHED' | 'QUEUED' | 'CANCELLED' | 'EXPIRED' | 'NOT_IN_QUEUE';
 export type MatchSelectionMode = 'AI' | 'MANUAL';
 
@@ -66,6 +67,7 @@ export interface MatchProposal {
   venueCourtId?: string;
   bookingId?: string;
   venueOptions: MatchVenueOption[];
+  venueSearchStatus: VenueSearchStatus;
   status: MatchProposalStatus;
   createdAt: string;
   expiresAt: string;

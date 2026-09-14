@@ -78,6 +78,17 @@ export class AiRepository extends AiRepositoryPort {
     });
   }
 
+  override refreshMatchVenues(sessionId: string): Observable<MatchmakingSessionModel> {
+    return this.http.post<MatchmakingSessionModel>(
+      `${this.baseUrl}/matchmaking/sessions/${sessionId}/venues/refresh`,
+      {}
+    );
+  }
+
+  override cancelMatchmakingSession(sessionId: string): Observable<MatchmakingSessionModel> {
+    return this.http.delete<MatchmakingSessionModel>(`${this.baseUrl}/matchmaking/sessions/${sessionId}`);
+  }
+
   override registerMatchBooking(sessionId: string, bookingId: string): Observable<MatchmakingSessionModel> {
     return this.http.post<MatchmakingSessionModel>(`${this.baseUrl}/matchmaking/sessions/${sessionId}/booking`, { bookingId });
   }

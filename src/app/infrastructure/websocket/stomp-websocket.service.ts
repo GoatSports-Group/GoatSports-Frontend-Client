@@ -1,5 +1,6 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Subject, Observable } from 'rxjs';
+import { Subject, Observable, Subscription } from 'rxjs';
 import { Notification } from '@domain/entities/notification';
 import { ChatMessage, ChatTypingEvent } from '@application/dto/chat/chat.dto';
 import { WebSocketService } from '@application/ports/websocket.service';
@@ -63,11 +64,13 @@ export class StompWebSocketService implements WebSocketService {
   private isSocialConnected = false;
   private reconnectTimeout: any = null;
   private socialReconnectTimeout: any = null;
+  private authProbeSubscription: Subscription | null = null;
   private shouldReconnect = false;
   private apiBase = environment.apiUrl;
   private notificationSubscriptionId = 'sub-user-notifications';
   private activeRoomSubscriptions = new Set<string>();
   private currentUserProvider = inject<CurrentUserProvider>(CURRENT_USER_PROVIDER_TOKEN);
+  private http = inject(HttpClient);
 
   private notificationSubject = new Subject<Notification>();
   public notifications$: Observable<Notification> = this.notificationSubject.asObservable();
@@ -80,6 +83,30 @@ export class StompWebSocketService implements WebSocketService {
 
   public connect(): void {
     this.shouldReconnect = true;
+    if (this.authProbeSubscription) return;
+    if ((this.socket || this.isConnected) && (this.socialSocket || this.isSocialConnected)) return;
+
+    // WebSocket handshakes cannot use Angular's HTTP interceptor directly. Probe an
+    // authenticated endpoint first so an expired HttpOnly access cookie is refreshed
+    // before the browser starts either handshake.
+    this.authProbeSubscription = this.http.get(
+      `${this.apiBase.replace(/\/+$/, '')}/auth-service/api/v1/auth/me`,
+      { withCredentials: true }
+    ).subscribe({
+      next: () => {
+        if (this.shouldReconnect) this.openAuthenticatedSockets();
+      },
+      error: () => {
+        this.authProbeSubscription = null;
+        this.scheduleReconnect();
+      },
+      complete: () => {
+        this.authProbeSubscription = null;
+      }
+    });
+  }
+
+  private openAuthenticatedSockets(): void {
     this.connectSocialSocket();
     if (this.socket || this.isConnected) {
       return;
@@ -126,6 +153,8 @@ export class StompWebSocketService implements WebSocketService {
 
   public disconnect(): void {
     this.shouldReconnect = false;
+    this.authProbeSubscription?.unsubscribe();
+    this.authProbeSubscription = null;
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);
       this.reconnectTimeout = null;
@@ -292,6 +321,10 @@ export class StompWebSocketService implements WebSocketService {
     this.isConnected = false;
     this.socket = null;
 
+    this.scheduleReconnect();
+  }
+
+  private scheduleReconnect(): void {
     if (this.shouldReconnect && !this.reconnectTimeout) {
       console.log('Attempting reconnection in 5 seconds...');
       this.reconnectTimeout = setTimeout(() => {
@@ -419,7 +452,7 @@ export class StompWebSocketService implements WebSocketService {
     if (this.shouldReconnect && !this.socialReconnectTimeout) {
       this.socialReconnectTimeout = setTimeout(() => {
         this.socialReconnectTimeout = null;
-        this.connectSocialSocket();
+        this.connect();
       }, 5000);
     }
   }

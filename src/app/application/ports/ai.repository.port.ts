@@ -25,6 +25,8 @@ export abstract class AiRepositoryPort {
     payload: { bookingId?: string; status?: 'BOOKING_PENDING' | 'BOOKED' | 'CANCELLED' }
   ): Observable<MatchmakingSessionModel>;
   abstract selectMatchVenue(sessionId: string, venueId: string, venueCourtId: string): Observable<MatchmakingSessionModel>;
+  abstract refreshMatchVenues(sessionId: string): Observable<MatchmakingSessionModel>;
+  abstract cancelMatchmakingSession(sessionId: string): Observable<MatchmakingSessionModel>;
   abstract registerMatchBooking(sessionId: string, bookingId: string): Observable<MatchmakingSessionModel>;
   abstract submitMatchResult(sessionId: string, myScore: number, opponentScore: number): Observable<MatchmakingSessionModel>;
   abstract submitOpponentFeedback(sessionId: string, rating: number, fairPlayRating: number, comment?: string): Observable<MatchmakingSessionModel>;

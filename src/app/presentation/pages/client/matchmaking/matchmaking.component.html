@@ -355,7 +355,10 @@
 
           @if (match.status === 'ACCEPTED' && match.proposal?.venueOptions?.length) {
             <section class="venue-options">
-              <header><strong>3 sân cân bằng khoảng cách</strong><span>Đã kiểm tra sân và lịch trống</span></header>
+              <header>
+                <strong>Sân cân bằng khoảng cách</strong>
+                <span>{{ isDesignatedBooker() ? 'Bạn được chỉ định chọn sân và đặt cọc' : 'Đối thủ được chỉ định chọn sân và đặt cọc' }}</span>
+              </header>
               @for (venue of match.proposal!.venueOptions; track venue.venueId) {
                 <article>
                   <div><strong>{{ venue.venueName }}</strong><small>{{ venue.address }}</small></div>
@@ -365,6 +368,39 @@
                     {{ isDesignatedBooker() ? 'Chọn sân' : 'Chờ người đặt cọc chọn' }}
                   </button>
                 </article>
+              }
+            </section>
+          } @else if (match.status === 'ACCEPTED' && match.proposal) {
+            <section class="venue-search-state" [class.venue-search-state--warning]="match.proposal.venueSearchStatus !== 'PENDING'">
+              @if (!match.proposal.venueSearchStatus || match.proposal.venueSearchStatus === 'PENDING') {
+                <span class="spinner spinner--small"></span>
+                <div>
+                  <strong>AI đang kiểm tra sân còn lịch trống</strong>
+                  <p>Đang tìm sân {{ selectedSportLabel() }} cho khung {{ match.startTime }}–{{ match.endTime }} trong phạm vi của hai người chơi.</p>
+                </div>
+              } @else if (match.proposal.venueSearchStatus === 'SERVICE_UNAVAILABLE') {
+                <lucide-icon name="cloud-off" class="w-6 h-6"></lucide-icon>
+                <div>
+                  <strong>Chưa kết nối được dịch vụ sân</strong>
+                  <p>Kèo vẫn được giữ. Bạn có thể mở trò chuyện và thử kiểm tra lịch sân lại.</p>
+                </div>
+              } @else {
+                <lucide-icon name="calendar-x-2" class="w-6 h-6"></lucide-icon>
+                <div>
+                  <strong>Chưa có sân phù hợp còn lịch trống</strong>
+                  <p>Không có sân {{ selectedSportLabel() }} đáp ứng {{ match.startTime }}–{{ match.endTime }} trong phạm vi đã chọn. Hãy đổi thời gian hoặc bán kính rồi tạo kèo mới.</p>
+                </div>
+              }
+              @if (match.proposal.venueSearchStatus !== 'PENDING') {
+                <div class="venue-search-state__actions">
+                  <button type="button" class="button button-secondary" [disabled]="actionLoading()" (click)="refreshVenues()">
+                    <lucide-icon name="refresh-cw" class="w-4 h-4"></lucide-icon>
+                    Kiểm tra lại
+                  </button>
+                  <button type="button" class="button button-danger" [disabled]="actionLoading()" (click)="cancelMatch()">
+                    Hủy kèo & đổi lịch
+                  </button>
+                </div>
               }
             </section>
           }
@@ -393,11 +429,15 @@
               <button
                 type="button"
                 class="button button-secondary"
-                [disabled]="!match.proposal?.venueId"
-                (click)="openVenue()"
+                [disabled]="match.status === 'ACCEPTED' ? actionLoading() : !match.proposal?.venueId"
+                (click)="match.status === 'ACCEPTED' && !match.proposal?.venueId ? refreshVenues() : openVenue()"
               >
                 <lucide-icon name="calendar-check" class="w-5 h-5"></lucide-icon>
-                {{ match.status === 'CONFIRMED' ? 'Xem lịch đã đặt' : (isDesignatedBooker() ? 'Đặt sân & thanh toán' : 'Xem sân đã chọn') }}
+                {{ match.status === 'CONFIRMED'
+                  ? 'Xem lịch đã đặt'
+                  : (match.status === 'ACCEPTED' && !match.proposal?.venueId
+                    ? 'Kiểm tra lại sân'
+                    : (isDesignatedBooker() ? 'Đặt sân & thanh toán' : 'Xem sân đã chọn')) }}
               </button>
               <button type="button" class="button button-primary" [disabled]="!canOpenChat()" (click)="openChat()">
                 <lucide-icon name="message-circle" class="w-5 h-5"></lucide-icon>
