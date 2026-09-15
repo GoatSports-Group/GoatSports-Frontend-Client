@@ -252,7 +252,7 @@ export class FriendsComponent implements OnInit {
   getFriendAvatar(friendship: Friendship): string {
     return (friendship.requesterId === this.currentUserId
       ? friendship.addresseeAvatar
-      : friendship.requesterAvatar) || 'assets/images/default-avatar.png';
+      : friendship.requesterAvatar) || 'assets/images/default-avatar.svg';
   }
 
   getConnectionState(userId: string): 'FRIEND' | 'PENDING' | 'BLOCKED' | 'NONE' {
@@ -269,8 +269,8 @@ export class FriendsComponent implements OnInit {
 
   useDefaultAvatar(event: Event): void {
     const image = event.target as HTMLImageElement;
-    if (!image.src.endsWith('/assets/images/default-avatar.png')) {
-      image.src = 'assets/images/default-avatar.png';
+    if (!image.src.endsWith('/assets/images/default-avatar.svg')) {
+      image.src = 'assets/images/default-avatar.svg';
     }
   }
 

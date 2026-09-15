@@ -83,7 +83,7 @@
             <div class="friends-grid">
               @for (friendship of pendingReceived(); track friendship.friendshipId) {
                 <article class="friend-card">
-                  <img class="avatar" [src]="friendship.requesterAvatar || 'assets/images/default-avatar.png'" [alt]="friendship.requesterName || 'Người chơi GoatSports'" (error)="useDefaultAvatar($event)" />
+                  <img class="avatar" [src]="friendship.requesterAvatar || 'assets/images/default-avatar.svg'" [alt]="friendship.requesterName || 'Người chơi GoatSports'" (error)="useDefaultAvatar($event)" />
                   <div class="card-info">
                     <h2>{{ friendship.requesterName || 'Người chơi GoatSports' }}</h2>
                     <p>Muốn kết bạn với bạn</p>
@@ -105,7 +105,7 @@
             <div class="friends-grid">
               @for (friendship of pendingSent(); track friendship.friendshipId) {
                 <article class="friend-card">
-                  <img class="avatar" [src]="friendship.addresseeAvatar || 'assets/images/default-avatar.png'" [alt]="friendship.addresseeName || 'Người chơi GoatSports'" (error)="useDefaultAvatar($event)" />
+                  <img class="avatar" [src]="friendship.addresseeAvatar || 'assets/images/default-avatar.svg'" [alt]="friendship.addresseeName || 'Người chơi GoatSports'" (error)="useDefaultAvatar($event)" />
                   <div class="card-info"><h2>{{ friendship.addresseeName || 'Người chơi GoatSports' }}</h2><p>Đang chờ phản hồi</p></div>
                   <button class="btn-secondary" [disabled]="isPending(friendship.friendshipId)" (click)="recallRequest(friendship)">Thu hồi</button>
                 </article>
@@ -131,7 +131,7 @@
             <div class="friends-grid">
               @for (player of discoverPlayers(); track player.userId) {
                 <article class="friend-card">
-                  <img class="avatar" [src]="player.avatarUrl || 'assets/images/default-avatar.png'" [alt]="player.fullName" (error)="useDefaultAvatar($event)" />
+                  <img class="avatar" [src]="player.avatarUrl || 'assets/images/default-avatar.svg'" [alt]="player.fullName" (error)="useDefaultAvatar($event)" />
                   <div class="card-info"><h2>{{ player.fullName }}</h2><p>&#64;{{ player.username }}</p></div>
                   @switch (getConnectionState(player.userId)) {
                     @case ('FRIEND') { <span class="status-pill">Đã là bạn bè</span> }

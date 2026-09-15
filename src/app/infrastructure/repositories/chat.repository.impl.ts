@@ -5,6 +5,7 @@ import { ChatApi } from '@infrastructure/api/chat.api';
 import {
   ChatRoom,
   ChatMessage,
+  ChatPresenceEvent,
   CreateDirectRoomRequest,
   CreateGroupRoomRequest,
   SendMessageRequest
@@ -43,5 +44,9 @@ export class ChatRepositoryImpl implements ChatRepository {
 
   markRoomAsRead(roomId: string): Observable<BaseResponse<void>> {
     return this.api.markRoomAsRead(roomId);
+  }
+
+  getPresence(userIds: string[]): Observable<BaseResponse<ChatPresenceEvent[]>> {
+    return this.api.getPresence(userIds);
   }
 }

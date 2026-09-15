@@ -5,6 +5,7 @@ import { map } from 'rxjs/operators';
 import {
   ChatRoom,
   ChatMessage,
+  ChatPresenceEvent,
   CreateDirectRoomRequest,
   CreateGroupRoomRequest,
   SendMessageRequest
@@ -146,6 +147,17 @@ export class ChatApi {
     );
   }
 
+  getPresence(userIds: string[]): Observable<BaseResponse<ChatPresenceEvent[]>> {
+    let params = new HttpParams();
+    userIds.forEach(userId => {
+      params = params.append('userIds', userId);
+    });
+    return this.http.get<BaseResponse<ChatPresenceEvent[]>>(
+      `${API_ENDPOINTS.social}/presence`,
+      { params }
+    );
+  }
+
   private requireCurrentUserId(): string {
     const userId = this.currentUser.getCurrentUserId();
     if (!userId) {
@@ -188,6 +200,7 @@ export class ChatApi {
       content: item.content,
       type: item.type,
       status: item.status as ChatMessage['status'],
+      deliveryState: 'SENT',
       replyToMessageId: item.replyToMessageId,
       attachments: item.attachments || [],
       receipts: item.receipts || [],

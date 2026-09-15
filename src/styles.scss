@@ -1157,3 +1157,10 @@ body.dark {
 /* GOAT Sports 2026 product design system. Kept last so it normalizes legacy page styles. */
 @include goat.product-system;
 @include surfaces.client-surfaces;
+
+/* Keep the global AI launcher clear of the persistent chat composer. */
+@media (max-width: 820px) {
+  body:has(.chat-workspace) app-ai-assistant-modal .floating-ai-btn {
+    display: none;
+  }
+}

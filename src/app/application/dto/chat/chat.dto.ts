@@ -26,3 +26,9 @@ export interface ChatTypingEvent {
   senderName: string;
   isTyping: boolean;
 }
+
+export interface ChatPresenceEvent {
+  userId: string;
+  online: boolean;
+  lastSeenAt?: string;
+}

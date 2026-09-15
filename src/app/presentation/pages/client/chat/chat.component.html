@@ -1,43 +1,89 @@
-<div class="chat-layout-wrapper">
-  <aside class="rooms-sidebar">
+<div class="chat-workspace">
+  <aside class="rooms-sidebar" aria-label="Danh sách cuộc trò chuyện">
     <header class="sidebar-header">
-      <nav class="sidebar-tabs" aria-label="Kết nối"><a class="active" routerLink="/chat">Tin nhắn</a><a routerLink="/friends">Bạn bè</a></nav>
+      <nav class="sidebar-tabs" aria-label="Kết nối">
+        <a class="active" routerLink="/chat">Tin nhắn</a>
+        <a routerLink="/friends">Bạn bè</a>
+      </nav>
+
       <div class="title-row">
-        <div><p class="eyebrow">Kết nối</p><h1>Tin nhắn</h1></div>
-        <button type="button" class="new-message-btn" aria-label="Tạo nhóm trò chuyện" (click)="openGroupModal()" title="Tạo nhóm trò chuyện">
-          <lucide-icon name="plus" class="w-4 h-4"></lucide-icon><span>Tin nhắn mới</span>
+        <div>
+          <p class="eyebrow">Trò chuyện</p>
+          <h1>Tin nhắn</h1>
+        </div>
+        <button type="button" class="new-message-btn" (click)="openGroupModal()">
+          <lucide-icon name="plus" class="w-4 h-4"></lucide-icon>
+          <span>Tin nhắn mới</span>
         </button>
       </div>
+
       <label class="search-box">
+        <span class="sr-only">Tìm cuộc trò chuyện</span>
         <lucide-icon name="search" class="w-4 h-4"></lucide-icon>
         <input type="search" placeholder="Tìm cuộc trò chuyện..." [(ngModel)]="searchRoomQuery" />
       </label>
-      <div class="room-filters"><button type="button" class="active">Tất cả</button><button type="button">Chưa đọc</button><button type="button">Nhóm</button></div>
+
+      <div class="room-filters" aria-label="Lọc cuộc trò chuyện">
+        <button type="button" [class.active]="roomFilter() === 'ALL'" [attr.aria-pressed]="roomFilter() === 'ALL'" (click)="setRoomFilter('ALL')">Tất cả</button>
+        <button type="button" [class.active]="roomFilter() === 'UNREAD'" [attr.aria-pressed]="roomFilter() === 'UNREAD'" (click)="setRoomFilter('UNREAD')">Chưa đọc</button>
+        <button type="button" [class.active]="roomFilter() === 'GROUP'" [attr.aria-pressed]="roomFilter() === 'GROUP'" (click)="setRoomFilter('GROUP')">Nhóm</button>
+      </div>
     </header>
 
     <div class="rooms-list-container">
       @if (loadingRooms()) {
-        <div class="sidebar-state"><mat-progress-spinner mode="indeterminate" diameter="28"></mat-progress-spinner><span>Đang tải hội thoại...</span></div>
+        <div class="sidebar-state">
+          <mat-progress-spinner mode="indeterminate" diameter="28"></mat-progress-spinner>
+          <span>Đang tải hội thoại...</span>
+        </div>
       } @else if (roomsLoadFailed()) {
-        <div class="sidebar-state error"><lucide-icon name="alert-triangle" class="w-8 h-8"></lucide-icon><p>Chưa tải được hội thoại.</p><button (click)="loadRooms()">Thử lại</button></div>
+        <div class="sidebar-state error" role="alert">
+          <lucide-icon name="alert-triangle" class="w-8 h-8"></lucide-icon>
+          <p>Chưa tải được hội thoại.</p>
+          <button type="button" (click)="loadRooms()">Thử lại</button>
+        </div>
       } @else if (filteredRooms.length) {
         @for (room of filteredRooms; track room.roomId) {
-          <button class="room-item" [class.active]="activeRoom()?.roomId === room.roomId" (click)="selectRoom(room)">
-            <img class="room-avatar" [src]="room.avatarUrl || 'assets/images/default-avatar.png'" [alt]="room.name || 'Cuộc trò chuyện'" (error)="useDefaultAvatar($event)" />
+          <button
+            type="button"
+            class="room-item"
+            [class.active]="activeRoom()?.roomId === room.roomId"
+            (click)="selectRoom(room)"
+          >
+            <span class="avatar-shell">
+              <img class="room-avatar" [src]="room.avatarUrl || 'assets/images/default-avatar.svg'" [alt]="room.name || 'Cuộc trò chuyện'" (error)="useDefaultAvatar($event)" />
+              @if (room.type === ChatRoomType.DIRECT) {
+                <span class="presence-dot" [class.online]="isDirectRoomOnline(room)" aria-hidden="true"></span>
+              }
+            </span>
             <span class="room-info">
               <span class="room-header-row">
                 <strong>{{ room.name || 'Người chơi GoatSports' }}</strong>
-                @if (room.lastMessageAt) { <time>{{ room.lastMessageAt | date:'HH:mm' }}</time> }
+                @if (room.lastMessageAt) {
+                  <time [attr.datetime]="room.lastMessageAt">{{ room.lastMessageAt | date:'HH:mm' }}</time>
+                }
               </span>
               <span class="room-footer-row">
-                <span>{{ room.lastMessage || getRoomMeta(room) }}</span>
-                @if (room.unreadCount > 0) { <b class="unread-badge">{{ room.unreadCount > 99 ? '99+' : room.unreadCount }}</b> }
+                @if (getTypingLabel(room.roomId); as typingLabel) {
+                  <span class="room-typing">{{ typingLabel }}<i class="typing-mini-dots" aria-hidden="true"><b></b><b></b><b></b></i></span>
+                } @else {
+                  <span>{{ room.lastMessage || getRoomMeta(room) }}</span>
+                }
+                @if (room.unreadCount > 0) {
+                  <b class="unread-badge">{{ room.unreadCount > 99 ? '99+' : room.unreadCount }}</b>
+                }
               </span>
             </span>
           </button>
         }
       } @else {
-        <div class="sidebar-state"><lucide-icon name="message-square" class="w-10 h-10"></lucide-icon><p>{{ searchRoomQuery ? 'Không tìm thấy hội thoại.' : 'Bạn chưa có cuộc trò chuyện nào.' }}</p>@if (!searchRoomQuery) { <a routerLink="/friends">Mở danh sách bạn bè</a> }</div>
+        <div class="sidebar-state">
+          <lucide-icon name="message-square" class="w-10 h-10"></lucide-icon>
+          <p>{{ searchRoomQuery || roomFilter() !== 'ALL' ? 'Không tìm thấy hội thoại phù hợp.' : 'Bạn chưa có cuộc trò chuyện nào.' }}</p>
+          @if (!searchRoomQuery && roomFilter() === 'ALL') {
+            <a routerLink="/friends">Mở danh sách bạn bè</a>
+          }
+        </div>
       }
     </div>
   </aside>
@@ -45,83 +91,210 @@
   <main class="chat-main-panel">
     @if (activeRoom(); as room) {
       <header class="active-chat-header">
-        <button class="btn-icon mobile-back" (click)="backToRooms()" title="Quay lại danh sách hội thoại"><lucide-icon name="arrow-left" class="w-5 h-5"></lucide-icon></button>
-        <img class="header-avatar" [src]="room.avatarUrl || 'assets/images/default-avatar.png'" [alt]="room.name || 'Cuộc trò chuyện'" (error)="useDefaultAvatar($event)" />
+        <button type="button" class="icon-button mobile-back" (click)="backToRooms()" aria-label="Quay lại danh sách hội thoại">
+          <lucide-icon name="arrow-left" class="w-5 h-5"></lucide-icon>
+        </button>
+        <span class="avatar-shell header-avatar-shell">
+          <img class="header-avatar" [src]="room.avatarUrl || 'assets/images/default-avatar.svg'" [alt]="room.name || 'Cuộc trò chuyện'" (error)="useDefaultAvatar($event)" />
+          @if (room.type === ChatRoomType.DIRECT) {
+            <span class="presence-dot" [class.online]="isDirectRoomOnline(room)" aria-hidden="true"></span>
+          }
+        </span>
         <div class="partner-meta">
           <h2>{{ room.name || 'Người chơi GoatSports' }}</h2>
-          @if (partnerTypingName()) {
-            <span class="typing-text">{{ partnerTypingName() }} đang nhập...</span>
-          } @else {
-            <span>{{ getRoomMeta(room) }}</span>
-          }
+          <span>{{ getRoomHeaderMeta(room) }}</span>
         </div>
-        <div class="chat-header-actions"><a class="btn-icon" routerLink="/venues" title="Tìm sân để cùng chơi"><lucide-icon name="phone" class="w-4 h-4"></lucide-icon></a><button type="button" class="btn-icon" title="Gọi video"><lucide-icon name="video" class="w-4 h-4"></lucide-icon></button><button type="button" class="btn-icon" title="Tùy chọn"><lucide-icon name="more-horizontal" class="w-4 h-4"></lucide-icon></button></div>
+        <div class="chat-header-actions">
+          <a class="icon-button" routerLink="/venues" aria-label="Tìm sân để cùng chơi" title="Tìm sân để cùng chơi">
+            <lucide-icon name="map-pin" class="w-5 h-5"></lucide-icon>
+          </a>
+          <a class="icon-button" routerLink="/friends" aria-label="Mở danh sách bạn bè" title="Danh sách bạn bè">
+            <lucide-icon name="users" class="w-5 h-5"></lucide-icon>
+          </a>
+          <button
+            type="button"
+            class="icon-button"
+            aria-label="Thông tin cuộc trò chuyện"
+            [attr.aria-expanded]="contextPanelOpen()"
+            (click)="toggleContextPanel()"
+          >
+            <lucide-icon name="more-horizontal" class="w-5 h-5"></lucide-icon>
+          </button>
+        </div>
       </header>
 
-      <section class="messages-container" #messagesScroll aria-live="polite">
+      <section class="messages-container" #messagesScroll aria-label="Nội dung cuộc trò chuyện">
         @if (loadingMessages()) {
-          <div class="message-state"><mat-progress-spinner mode="indeterminate" diameter="28"></mat-progress-spinner><span>Đang tải tin nhắn...</span></div>
+          <div class="message-state">
+            <mat-progress-spinner mode="indeterminate" diameter="28"></mat-progress-spinner>
+            <span>Đang tải tin nhắn...</span>
+          </div>
         } @else if (messagesLoadFailed()) {
-          <div class="message-state error"><lucide-icon name="alert-triangle" class="w-9 h-9"></lucide-icon><p>Chưa tải được lịch sử tin nhắn.</p><button (click)="loadMessages(room.roomId)">Thử lại</button></div>
-        } @else if (messages().length) {
-          @for (message of messages(); track message.messageId) {
-            <article class="message-row" [class.outgoing]="message.senderId === currentUserId">
-              @if (message.senderId !== currentUserId) {
-                <img class="message-avatar" [src]="getMessageSenderAvatar(message)" [alt]="getMessageSenderName(message)" (error)="useDefaultAvatar($event)" />
-              }
-              <div class="message-content">
-                @if (room.type !== ChatRoomType.DIRECT && message.senderId !== currentUserId) { <strong>{{ getMessageSenderName(message) }}</strong> }
-                <p>{{ message.content }}</p>
-                <time>{{ message.createdAt | date:'HH:mm' }}</time>
-              </div>
-            </article>
-          }
+          <div class="message-state error" role="alert">
+            <lucide-icon name="alert-triangle" class="w-9 h-9"></lucide-icon>
+            <p>Chưa tải được lịch sử tin nhắn.</p>
+            <button type="button" (click)="loadMessages(room.roomId)">Thử lại</button>
+          </div>
         } @else {
-          <div class="message-state"><lucide-icon name="messages-square" class="w-12 h-12"></lucide-icon><h3>Bắt đầu cuộc trò chuyện</h3><p>Gửi lời chào hoặc rủ nhau tham gia một trận đấu.</p></div>
+          <div class="message-stream">
+            @if (messages().length) {
+              <div class="timeline-label"><span>Cuộc trò chuyện</span></div>
+              @for (message of messages(); track message.clientMessageId || message.messageId) {
+                <article
+                  class="message-row"
+                  [class.outgoing]="message.senderId === currentUserId"
+                  [class.sending]="message.deliveryState === 'SENDING'"
+                  [class.failed]="message.deliveryState === 'FAILED'"
+                >
+                  @if (message.senderId !== currentUserId) {
+                    <img class="message-avatar" [src]="getMessageSenderAvatar(message)" [alt]="getMessageSenderName(message)" (error)="useDefaultAvatar($event)" />
+                  }
+                  <div class="bubble-stack">
+                    <div class="message-content">
+                      @if (room.type !== ChatRoomType.DIRECT && message.senderId !== currentUserId) {
+                        <strong>{{ getMessageSenderName(message) }}</strong>
+                      }
+                      <p>{{ message.content }}</p>
+                    </div>
+                    <div class="message-meta">
+                      <time [attr.datetime]="message.createdAt">{{ message.createdAt | date:'HH:mm' }}</time>
+                      @if (message.senderId === currentUserId) {
+                        <span class="delivery-state" [class.failed]="message.deliveryState === 'FAILED'">
+                          <lucide-icon [name]="message.deliveryState === 'SENDING' ? 'clock-3' : message.deliveryState === 'FAILED' ? 'circle-alert' : 'check-check'" class="w-3.5 h-3.5"></lucide-icon>
+                          {{ getMessageDeliveryLabel(message) }}
+                        </span>
+                        @if (message.deliveryState === 'FAILED') {
+                          <button type="button" class="retry-button" (click)="retryMessage(message)">Gửi lại</button>
+                        }
+                      }
+                    </div>
+                  </div>
+                </article>
+              }
+            } @else {
+              <div class="message-state empty">
+                <span class="empty-icon"><lucide-icon name="messages-square" class="w-8 h-8"></lucide-icon></span>
+                <h3>Bắt đầu cuộc trò chuyện</h3>
+                <p>Gửi lời chào hoặc rủ nhau tham gia một trận đấu.</p>
+              </div>
+            }
+
+            @if (getTypingParticipants(room.roomId).length) {
+              <div class="typing-indicator" role="status" aria-live="polite">
+                <span class="typing-avatars">
+                  @for (participant of getTypingParticipants(room.roomId).slice(0, 2); track participant.senderId) {
+                    <img [src]="getTypingAvatar(participant)" [alt]="participant.senderName || 'Thành viên đang nhập'" (error)="useDefaultAvatar($event)" />
+                  }
+                </span>
+                <span>
+                  <strong>{{ getTypingLabel(room.roomId) }}</strong>
+                  <small>Đang soạn tin nhắn</small>
+                </span>
+                <i class="typing-dots" aria-hidden="true"><b></b><b></b><b></b></i>
+              </div>
+            }
+          </div>
         }
       </section>
 
-      <footer class="chat-input-bar">
-        <textarea rows="1" maxlength="2000" aria-label="Nội dung tin nhắn" placeholder="Nhập tin nhắn..." [(ngModel)]="messageInput" (input)="onTyping()" (blur)="onTypingStop()" (keydown)="onInputKeyDown($event)"></textarea>
-        <button type="button" class="btn-send" aria-label="Gửi tin nhắn" [disabled]="!messageInput.trim() || sendingMessage()" (click)="sendMessage()" title="Gửi tin nhắn">
+      <footer class="composer">
+        <button type="button" class="composer-action" disabled aria-label="Đính kèm tệp" title="Đính kèm tệp đang được phát triển">
+          <lucide-icon name="image" class="w-5 h-5"></lucide-icon>
+        </button>
+        <label class="composer-field">
+          <span class="sr-only">Nội dung tin nhắn</span>
+          <textarea
+            rows="1"
+            maxlength="2000"
+            placeholder="Nhập tin nhắn..."
+            [(ngModel)]="messageInput"
+            (input)="onTyping()"
+            (blur)="onTypingStop()"
+            (keydown)="onInputKeyDown($event)"
+          ></textarea>
+          <small><span>Enter để gửi · Shift + Enter để xuống dòng</span><span>{{ messageInput.length }}/2000</span></small>
+        </label>
+        <button type="button" class="send-button" [disabled]="!messageInput.trim()" (click)="sendMessage()" aria-label="Gửi tin nhắn">
           <lucide-icon name="send" class="w-5 h-5"></lucide-icon>
         </button>
       </footer>
     } @else {
-      <div class="no-active-chat"><div class="hero-icon"><lucide-icon name="messages-square" class="w-10 h-10"></lucide-icon></div><h2>Trò chuyện cùng đồng đội</h2><p>Chọn một hội thoại hoặc mở danh sách bạn bè để bắt đầu.</p><a routerLink="/friends">Xem bạn bè</a></div>
+      <div class="no-active-chat">
+        <span class="empty-icon"><lucide-icon name="messages-square" class="w-9 h-9"></lucide-icon></span>
+        <p class="eyebrow">GOAT Sports Connect</p>
+        <h2>Trò chuyện cùng đồng đội</h2>
+        <p>Chọn một hội thoại hoặc mở danh sách bạn bè để bắt đầu.</p>
+        <a routerLink="/friends">Xem bạn bè</a>
+      </div>
     }
   </main>
 
   @if (activeRoom(); as room) {
-    <aside class="chat-context" aria-label="Thông tin cuộc trò chuyện">
-      <div class="context-cover">
-        <img [src]="room.avatarUrl || 'assets/images/default-avatar.png'" [alt]="room.name || 'Cuộc trò chuyện'" (error)="useDefaultAvatar($event)" />
-      </div>
-      <section class="context-profile">
+    @if (contextPanelOpen()) {
+      <button type="button" class="context-backdrop" aria-label="Đóng thông tin cuộc trò chuyện" (click)="toggleContextPanel()"></button>
+    }
+    <aside class="chat-context" [class.context-open]="contextPanelOpen()" aria-label="Thông tin cuộc trò chuyện">
+      <header class="context-mobile-header">
+        <strong>Thông tin</strong>
+        <button type="button" class="icon-button" aria-label="Đóng" (click)="toggleContextPanel()">
+          <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+        </button>
+      </header>
+      <section class="context-identity">
+        <span class="avatar-shell context-avatar-shell">
+          <img [src]="room.avatarUrl || 'assets/images/default-avatar.svg'" [alt]="room.name || 'Cuộc trò chuyện'" (error)="useDefaultAvatar($event)" />
+          @if (room.type === ChatRoomType.DIRECT) {
+            <span class="presence-dot" [class.online]="isDirectRoomOnline(room)" aria-hidden="true"></span>
+          }
+        </span>
         <p class="eyebrow">Đang trò chuyện</p>
         <h2>{{ room.name || 'Người chơi GoatSports' }}</h2>
-        <p>{{ getRoomMeta(room) }}</p>
+        <p>{{ getRoomHeaderMeta(room) }}</p>
       </section>
+
       <section class="context-section">
-        <header><h3>Thành viên</h3><span>{{ room.participants.length }}</span></header>
-        @for (participant of room.participants; track participant.userId) {
-          <div class="context-member">
-            <img [src]="participant.userAvatar || 'assets/images/default-avatar.png'" [alt]="participant.userName || 'Thành viên'" (error)="useDefaultAvatar($event)" />
-            <span><strong>{{ participant.userName || 'Thành viên' }}</strong><small>{{ participant.userId === currentUserId ? 'Bạn' : 'Đồng đội' }}</small></span>
-          </div>
-        }
+        <header>
+          <h3>Thành viên</h3>
+          <span>{{ room.participants.length }}</span>
+        </header>
+        <div class="context-member-list">
+          @for (participant of room.participants; track participant.userId) {
+            <div class="context-member">
+              <span class="avatar-shell member-avatar-shell">
+                <img [src]="participant.userAvatar || 'assets/images/default-avatar.svg'" [alt]="participant.userName || 'Thành viên'" (error)="useDefaultAvatar($event)" />
+                <span class="presence-dot" [class.online]="isUserOnline(participant.userId)" aria-hidden="true"></span>
+              </span>
+              <span>
+                <strong>{{ participant.userName || 'Thành viên' }}</strong>
+                <small>{{ participant.userId === currentUserId ? 'Bạn · Đang hoạt động' : getPresenceLabel(participant.userId) }}</small>
+              </span>
+            </div>
+          }
+        </div>
       </section>
-      <section class="context-actions">
-        <a routerLink="/venues"><lucide-icon name="map-pin" class="w-5 h-5"></lucide-icon><span><strong>Tìm sân cùng chơi</strong><small>Xem sân và lịch trống gần bạn</small></span><lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon></a>
-        <a routerLink="/friends"><lucide-icon name="users" class="w-5 h-5"></lucide-icon><span><strong>Quản lý bạn bè</strong><small>Lời mời, kết nối và danh sách chặn</small></span><lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon></a>
-      </section>
+
+      <nav class="context-actions" aria-label="Thao tác cuộc trò chuyện">
+        <a routerLink="/venues">
+          <span class="action-icon"><lucide-icon name="map-pin" class="w-5 h-5"></lucide-icon></span>
+          <span><strong>Tìm sân cùng chơi</strong><small>Xem sân và lịch trống gần bạn</small></span>
+          <lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon>
+        </a>
+        <a routerLink="/friends">
+          <span class="action-icon"><lucide-icon name="users" class="w-5 h-5"></lucide-icon></span>
+          <span><strong>Quản lý bạn bè</strong><small>Lời mời, kết nối và danh sách chặn</small></span>
+          <lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon>
+        </a>
+      </nav>
     </aside>
   }
 
   @if (showNewGroupModal()) {
     <div class="modal-backdrop" (click)="closeGroupModal()">
       <section class="group-modal" appAccessibleDialog aria-labelledby="group-modal-title" (dialogClosed)="closeGroupModal()" (click)="$event.stopPropagation()">
-        <header><div><p class="eyebrow">Nhóm mới</p><h2 id="group-modal-title">Tạo nhóm trò chuyện</h2></div><button type="button" class="btn-icon" aria-label="Đóng" (click)="closeGroupModal()"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button></header>
+        <header>
+          <div><p class="eyebrow">Nhóm mới</p><h2 id="group-modal-title">Tạo nhóm trò chuyện</h2></div>
+          <button type="button" class="icon-button" aria-label="Đóng" (click)="closeGroupModal()"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button>
+        </header>
         <label class="field-label">Tên nhóm<input maxlength="80" placeholder="Ví dụ: Hội cầu lông cuối tuần" [(ngModel)]="newGroupName" /></label>
         <div class="member-heading"><strong>Chọn bạn bè</strong><span>{{ selectedMemberIds().size }} người đã chọn</span></div>
         <div class="member-list">
@@ -139,7 +312,10 @@
             <div class="member-empty">Bạn cần có bạn bè trước khi tạo nhóm.</div>
           }
         </div>
-        <footer><button class="btn-secondary" (click)="closeGroupModal()">Hủy</button><button class="btn-primary" [disabled]="creatingGroup() || selectedMemberIds().size < 2" (click)="createGroup()">{{ creatingGroup() ? 'Đang tạo...' : 'Tạo nhóm' }}</button></footer>
+        <footer>
+          <button type="button" class="secondary-button" (click)="closeGroupModal()">Hủy</button>
+          <button type="button" class="primary-button" [disabled]="creatingGroup() || selectedMemberIds().size < 2" (click)="createGroup()">{{ creatingGroup() ? 'Đang tạo...' : 'Tạo nhóm' }}</button>
+        </footer>
       </section>
     </div>
   }

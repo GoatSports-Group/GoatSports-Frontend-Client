@@ -38,6 +38,7 @@ export interface ChatMessage {
   content: string;
   type: MessageType;
   status?: 'SENT' | 'DELIVERED' | 'READ';
+  deliveryState?: 'SENDING' | 'SENT' | 'FAILED';
   replyToMessageId?: string;
   attachments: ChatMessageAttachment[];
   receipts: ChatMessageReceipt[];

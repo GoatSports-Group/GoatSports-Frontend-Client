@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Subject, Observable, Subscription } from 'rxjs';
 import { Notification } from '@domain/entities/notification';
-import { ChatMessage, ChatTypingEvent } from '@application/dto/chat/chat.dto';
+import { ChatMessage, ChatPresenceEvent, ChatTypingEvent } from '@application/dto/chat/chat.dto';
 import { WebSocketService } from '@application/ports/websocket.service';
 import {
   CURRENT_USER_PROVIDER_TOKEN,
@@ -64,6 +64,7 @@ export class StompWebSocketService implements WebSocketService {
   private isSocialConnected = false;
   private reconnectTimeout: any = null;
   private socialReconnectTimeout: any = null;
+  private presenceHeartbeatInterval: ReturnType<typeof setInterval> | null = null;
   private authProbeSubscription: Subscription | null = null;
   private authVerified = false;
   private shouldReconnect = false;
@@ -79,6 +80,8 @@ export class StompWebSocketService implements WebSocketService {
   public chatMessages$: Observable<ChatMessage> = this.chatMessageSubject.asObservable();
   private typingEventSubject = new Subject<ChatTypingEvent>();
   public typingEvents$: Observable<ChatTypingEvent> = this.typingEventSubject.asObservable();
+  private presenceEventSubject = new Subject<ChatPresenceEvent>();
+  public presenceEvents$: Observable<ChatPresenceEvent> = this.presenceEventSubject.asObservable();
 
   constructor() { }
 
@@ -185,6 +188,8 @@ export class StompWebSocketService implements WebSocketService {
     const socialSocket = this.socialSocket;
     if (socialSocket) {
       if (this.isSocialConnected) {
+        this.publishPresence(false);
+        this.socialUnsubscribe('sub-social-presence');
         this.activeRoomSubscriptions.forEach(roomId => {
           this.socialUnsubscribe(`sub-social-room-${roomId}`);
           this.socialUnsubscribe(`sub-social-typing-${roomId}`);
@@ -193,6 +198,7 @@ export class StompWebSocketService implements WebSocketService {
       this.socialSocket = null;
       socialSocket.close();
     }
+    this.stopPresenceHeartbeat();
     this.isSocialConnected = false;
   }
 
@@ -326,6 +332,7 @@ export class StompWebSocketService implements WebSocketService {
   }
 
   private handleDisconnect(): void {
+    this.authVerified = false;
     this.isConnected = false;
     this.socket = null;
 
@@ -348,12 +355,15 @@ export class StompWebSocketService implements WebSocketService {
     let wsUrl = this.apiBase.replace(/^http/, 'ws').replace(/\/+$/, '');
     wsUrl += '/social-service/ws';
 
+    console.info('[Social STOMP] Connecting to:', wsUrl);
+
     try {
       const socket = new WebSocket(wsUrl);
       this.socialSocket = socket;
 
       socket.onopen = () => {
         if (this.socialSocket !== socket) return;
+        console.info('[Social STOMP] WebSocket opened. Sending CONNECT frame.');
         this.sendSocialFrame(new StompFrame('CONNECT', {
           'accept-version': '1.1,1.2',
           'heart-beat': '10000,10000'
@@ -384,7 +394,12 @@ export class StompWebSocketService implements WebSocketService {
     if (!frame) return;
 
     if (frame.command === 'CONNECTED') {
+      console.info('[Social STOMP] Connected. Subscribing to presence and chat rooms.');
       this.isSocialConnected = true;
+      this.socialSubscribe('sub-social-presence', '/topic/presence');
+      this.publishPresence(true);
+      this.stopPresenceHeartbeat();
+      this.presenceHeartbeatInterval = setInterval(() => this.publishPresence(true), 15_000);
       this.activeRoomSubscriptions.forEach(roomId => {
         this.socialSubscribe(`sub-social-room-${roomId}`, `/topic/conversations/${roomId}`);
         this.socialSubscribe(`sub-social-typing-${roomId}`, `/topic/conversations/${roomId}/typing`);
@@ -394,6 +409,20 @@ export class StompWebSocketService implements WebSocketService {
     if (frame.command !== 'MESSAGE') return;
 
     const destination = frame.headers['destination'] || '';
+    if (destination === '/topic/presence') {
+      try {
+        const payload = JSON.parse(frame.body);
+        this.presenceEventSubject.next({
+          userId: payload.userId,
+          online: Boolean(payload.online),
+          lastSeenAt: payload.lastSeenAt
+        });
+      } catch (error) {
+        console.error('Không thể chuyển đổi trạng thái hoạt động realtime.', error);
+      }
+      return;
+    }
+
     const match = destination.match(/^\/topic\/conversations\/([^/]+)(\/typing)?$/);
     if (!match) return;
 
@@ -417,6 +446,7 @@ export class StompWebSocketService implements WebSocketService {
           content: payload.content,
           type: payload.type,
           status: payload.status,
+          deliveryState: 'SENT',
           clientMessageId: payload.clientMessageId,
           replyToMessageId: payload.replyToMessageId,
           attachments: payload.attachments || [],
@@ -446,6 +476,8 @@ export class StompWebSocketService implements WebSocketService {
   }
 
   private handleSocialDisconnect(): void {
+    this.authVerified = false;
+    this.stopPresenceHeartbeat();
     this.isSocialConnected = false;
     this.socialSocket = null;
     if (this.shouldReconnect && !this.socialReconnectTimeout) {
@@ -454,5 +486,20 @@ export class StompWebSocketService implements WebSocketService {
         this.connect();
       }, 5000);
     }
+  }
+
+  private publishPresence(online: boolean): void {
+    const userId = this.currentUserProvider.getCurrentUserId();
+    if (!userId || !this.isSocialConnected) return;
+    const destination = online
+      ? '/app/social/presence.heartbeat'
+      : '/app/social/presence.offline';
+    this.sendSocialFrame(new StompFrame('SEND', { destination }, JSON.stringify({ userId })));
+  }
+
+  private stopPresenceHeartbeat(): void {
+    if (!this.presenceHeartbeatInterval) return;
+    clearInterval(this.presenceHeartbeatInterval);
+    this.presenceHeartbeatInterval = null;
   }
 }

@@ -5,10 +5,19 @@ import { CHAT_REPOSITORY_TOKEN } from '@application/ports/persistence/chat.repos
 import { FRIEND_REPOSITORY_TOKEN } from '@application/ports/persistence/friend.repository';
 import { WEBSOCKET_SERVICE_TOKEN } from '@application/ports/websocket.service';
 import { CURRENT_USER_PROVIDER_TOKEN } from '@application/ports/current-user.provider';
-import { ChatMessage, ChatRoom, ChatRoomType, ChatTypingEvent, MessageType } from '@application/dto/chat/chat.dto';
+import {
+  ChatMessage,
+  ChatPresenceEvent,
+  ChatRoom,
+  ChatRoomType,
+  ChatTypingEvent,
+  MessageType
+} from '@application/dto/chat/chat.dto';
 import { Friendship } from '@application/dto/friend/friend.dto';
 import { NotifyService } from '@shared/components/notify/notify.service';
 import { PlayerDirectoryService } from '@presentation/services/player-directory.service';
+
+type RoomFilter = 'ALL' | 'UNREAD' | 'GROUP';
 
 @Component({
   selector: 'app-chat',
@@ -35,8 +44,11 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   readonly roomsLoadFailed = signal(false);
   readonly loadingMessages = signal(false);
   readonly messagesLoadFailed = signal(false);
-  readonly sendingMessage = signal(false);
-  readonly partnerTypingName = signal('');
+  readonly roomFilter = signal<RoomFilter>('ALL');
+  readonly typingByRoom = signal<Record<string, ChatTypingEvent[]>>({});
+  readonly presenceByUser = signal<Record<string, ChatPresenceEvent>>({});
+  readonly contextPanelOpen = signal(false);
+  readonly now = signal(Date.now());
   readonly showNewGroupModal = signal(false);
   readonly groupFriends = signal<Friendship[]>([]);
   readonly loadingGroupFriends = signal(false);
@@ -51,6 +63,8 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   private typing = false;
   private typingTimeout?: ReturnType<typeof setTimeout>;
+  private readonly remoteTypingTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
+  private relativeTimeInterval?: ReturnType<typeof setInterval>;
   private shouldScrollBottom = false;
   private requestedRoomId: string | null = null;
   private messageRequestSequence = 0;
@@ -60,6 +74,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.currentUserId = this.userProvider.getCurrentUserId() || '';
     this.wsService.connect();
     this.listenToWebSocket();
+    this.relativeTimeInterval = setInterval(() => this.now.set(Date.now()), 30_000);
 
     this.subscriptions.push(this.route.paramMap.subscribe(params => {
       this.requestedRoomId = params.get('roomId');
@@ -78,17 +93,24 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   ngOnDestroy(): void {
     this.rooms().forEach(room => this.wsService.unsubscribeFromRoom(room.roomId));
-    if (this.typingTimeout) clearTimeout(this.typingTimeout);
+    this.onTypingStop();
+    this.remoteTypingTimeouts.forEach(timeout => clearTimeout(timeout));
+    this.remoteTypingTimeouts.clear();
+    if (this.relativeTimeInterval) clearInterval(this.relativeTimeInterval);
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 
   get filteredRooms(): ChatRoom[] {
     const query = this.searchRoomQuery.trim().toLowerCase();
-    if (!query) return this.rooms();
-    return this.rooms().filter(room =>
-      (room.name || '').toLowerCase().includes(query) ||
-      (room.lastMessage || '').toLowerCase().includes(query)
-    );
+    return this.rooms().filter(room => {
+      const matchesQuery = !query ||
+        (room.name || '').toLowerCase().includes(query) ||
+        (room.lastMessage || '').toLowerCase().includes(query);
+      const matchesFilter = this.roomFilter() === 'ALL' ||
+        (this.roomFilter() === 'UNREAD' && room.unreadCount > 0) ||
+        (this.roomFilter() === 'GROUP' && room.type !== ChatRoomType.DIRECT);
+      return matchesQuery && matchesFilter;
+    });
   }
 
   loadRooms(): void {
@@ -101,6 +123,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       next: rooms => {
         this.rooms.set(this.sortRooms(rooms));
         this.rooms().forEach(room => this.wsService.subscribeToRoom(room.roomId));
+        this.loadPresenceForRooms(rooms);
         if (this.requestedRoomId) {
           this.selectRoomById(this.requestedRoomId);
         } else if (!this.activeRoom() && this.rooms().length) {
@@ -126,6 +149,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
         if (!room) return;
         this.rooms.update(items => this.sortRooms([room, ...items.filter(item => item.roomId !== roomId)]));
         this.wsService.subscribeToRoom(room.roomId);
+        this.loadPresenceForRooms([room]);
         this.selectRoom(room, false);
       },
       error: () => {
@@ -139,8 +163,8 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     if (this.activeRoom()?.roomId === room.roomId) return;
 
     this.onTypingStop();
-    this.partnerTypingName.set('');
     this.activeRoom.set(room);
+    this.contextPanelOpen.set(false);
     this.wsService.subscribeToRoom(room.roomId);
     this.loadMessages(room.roomId);
 
@@ -152,14 +176,26 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   backToRooms(): void {
+    this.onTypingStop();
     this.activeRoom.set(null);
     this.messages.set([]);
-    this.partnerTypingName.set('');
+    this.contextPanelOpen.set(false);
     void this.router.navigate(['/chat']);
+  }
+
+  setRoomFilter(filter: RoomFilter): void {
+    this.roomFilter.set(filter);
+  }
+
+  toggleContextPanel(): void {
+    this.contextPanelOpen.update(open => !open);
   }
 
   loadMessages(roomId: string): void {
     const sequence = ++this.messageRequestSequence;
+    const localPending = this.messages().filter(message =>
+      message.roomId === roomId && message.deliveryState !== 'SENT'
+    );
     this.loadingMessages.set(true);
     this.messagesLoadFailed.set(false);
     this.messages.set([]);
@@ -171,7 +207,11 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     ).subscribe({
       next: response => {
         if (sequence !== this.messageRequestSequence || this.activeRoom()?.roomId !== roomId) return;
-        this.messages.set([...(response.data || [])].reverse());
+        const savedMessages = [...(response.data || [])].reverse();
+        const unmatchedPending = localPending.filter(pending =>
+          !savedMessages.some(saved => saved.clientMessageId === pending.clientMessageId)
+        );
+        this.messages.set(this.sortMessages([...savedMessages, ...unmatchedPending]));
         this.shouldScrollBottom = true;
       },
       error: () => {
@@ -183,55 +223,148 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   sendMessage(): void {
     const content = this.messageInput.trim();
     const room = this.activeRoom();
-    if (!content || !room || this.sendingMessage()) return;
+    if (!content || !room) return;
 
-    this.sendingMessage.set(true);
+    const clientMessageId = crypto.randomUUID();
+    const optimisticMessage: ChatMessage = {
+      messageId: `pending-${clientMessageId}`,
+      clientMessageId,
+      roomId: room.roomId,
+      senderId: this.currentUserId,
+      senderName: this.userProvider.getCurrentUserName() || 'Bạn',
+      senderAvatar: this.userProvider.getCurrentUserAvatar() || undefined,
+      content,
+      type: MessageType.TEXT,
+      deliveryState: 'SENDING',
+      attachments: [],
+      receipts: [],
+      createdAt: new Date().toISOString()
+    };
+
     this.messageInput = '';
     this.onTypingStop();
-    this.chatRepo.sendMessage(room.roomId, {
-      clientMessageId: crypto.randomUUID(),
-      content,
-      type: MessageType.TEXT
-    }).pipe(
-      finalize(() => this.sendingMessage.set(false))
-    ).subscribe({
-      next: response => {
-        if (!response.data) return;
-        this.insertMessage(response.data);
-        this.updateRoomFromMessage(response.data);
-      },
-      error: () => {
-        if (!this.messageInput) this.messageInput = content;
-        this.notifyService.error('Không thể gửi tin nhắn. Vui lòng thử lại.');
-      }
-    });
+    this.insertMessage(optimisticMessage);
+    this.updateRoomFromMessage(optimisticMessage);
+    this.dispatchMessage(optimisticMessage);
+  }
+
+  retryMessage(message: ChatMessage): void {
+    if (message.deliveryState !== 'FAILED' || !message.clientMessageId) return;
+    this.patchMessage(message, { deliveryState: 'SENDING' });
+    this.dispatchMessage({ ...message, deliveryState: 'SENDING' });
   }
 
   onInputKeyDown(event: KeyboardEvent): void {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       this.sendMessage();
-      return;
     }
-    this.onTyping();
   }
 
   onTyping(): void {
     const room = this.activeRoom();
     if (!room) return;
+    if (!this.messageInput.trim()) {
+      this.onTypingStop();
+      return;
+    }
     if (!this.typing) {
       this.typing = true;
-      this.wsService.sendTyping(room.roomId, this.userProvider.getCurrentUserName() || 'Người chơi GoatSports', true);
+      this.wsService.sendTyping(
+        room.roomId,
+        this.userProvider.getCurrentUserName() || 'Người chơi GoatSports',
+        true
+      );
     }
     if (this.typingTimeout) clearTimeout(this.typingTimeout);
     this.typingTimeout = setTimeout(() => this.onTypingStop(), 2500);
   }
 
   onTypingStop(): void {
+    if (this.typingTimeout) {
+      clearTimeout(this.typingTimeout);
+      this.typingTimeout = undefined;
+    }
     const room = this.activeRoom();
     if (!room || !this.typing) return;
     this.typing = false;
-    this.wsService.sendTyping(room.roomId, this.userProvider.getCurrentUserName() || 'Người chơi GoatSports', false);
+    this.wsService.sendTyping(
+      room.roomId,
+      this.userProvider.getCurrentUserName() || 'Người chơi GoatSports',
+      false
+    );
+  }
+
+  getTypingParticipants(roomId: string): ChatTypingEvent[] {
+    return this.typingByRoom()[roomId] || [];
+  }
+
+  getTypingLabel(roomId: string): string {
+    const participants = this.getTypingParticipants(roomId);
+    if (!participants.length) return '';
+    if (participants.length === 1) return `${participants[0].senderName || 'Một thành viên'} đang nhập`;
+    if (participants.length === 2) {
+      return `${participants[0].senderName || 'Một thành viên'} và ${participants[1].senderName || 'một thành viên'} đang nhập`;
+    }
+    return `${participants[0].senderName || 'Một thành viên'} và ${participants.length - 1} người khác đang nhập`;
+  }
+
+  getTypingAvatar(event: ChatTypingEvent): string {
+    return this.activeRoom()?.participants.find(participant => participant.userId === event.senderId)?.userAvatar ||
+      'assets/images/default-avatar.svg';
+  }
+
+  isUserOnline(userId: string): boolean {
+    return userId === this.currentUserId || Boolean(this.presenceByUser()[userId]?.online);
+  }
+
+  getPresenceLabel(userId: string): string {
+    this.now();
+    if (this.isUserOnline(userId)) return 'Đang hoạt động';
+    const lastSeenAt = this.presenceByUser()[userId]?.lastSeenAt;
+    if (!lastSeenAt) return 'Ngoại tuyến';
+
+    const elapsed = Math.max(0, Date.now() - new Date(lastSeenAt).getTime());
+    const minutes = Math.floor(elapsed / 60_000);
+    if (minutes < 1) return 'Hoạt động vừa xong';
+    if (minutes < 60) return `Hoạt động ${minutes} phút trước`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `Hoạt động ${hours} giờ trước`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `Hoạt động ${days} ngày trước`;
+    return `Hoạt động ${new Intl.DateTimeFormat('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).format(new Date(lastSeenAt))}`;
+  }
+
+  getRoomHeaderMeta(room: ChatRoom): string {
+    if (room.type === ChatRoomType.DIRECT) {
+      const counterpart = this.getDirectCounterpart(room);
+      return counterpart ? this.getPresenceLabel(counterpart.userId) : 'Trò chuyện trực tiếp';
+    }
+    const onlineCount = room.participants.filter(participant => this.isUserOnline(participant.userId)).length;
+    return `${room.participants.length} thành viên · ${onlineCount} đang hoạt động`;
+  }
+
+  getRoomMeta(room: ChatRoom): string {
+    return room.type === ChatRoomType.DIRECT
+      ? 'Trò chuyện trực tiếp'
+      : `${room.participantIds.length} thành viên`;
+  }
+
+  isDirectRoomOnline(room: ChatRoom): boolean {
+    const counterpart = this.getDirectCounterpart(room);
+    return Boolean(counterpart && this.isUserOnline(counterpart.userId));
+  }
+
+  getMessageDeliveryLabel(message: ChatMessage): string {
+    if (message.deliveryState === 'SENDING') return 'Đang gửi';
+    if (message.deliveryState === 'FAILED') return 'Gửi thất bại';
+    if (message.status === 'READ' || message.isRead) return 'Đã xem';
+    if (message.status === 'DELIVERED') return 'Đã nhận';
+    return 'Đã gửi';
   }
 
   openGroupModal(): void {
@@ -275,7 +408,9 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       return;
     }
 
-    const selectedFriends = this.groupFriends().filter(friendship => this.selectedMemberIds().has(this.getFriendId(friendship)));
+    const selectedFriends = this.groupFriends().filter(friendship =>
+      this.selectedMemberIds().has(this.getFriendId(friendship))
+    );
     const participants = [
       {
         userId: this.currentUserId,
@@ -300,17 +435,12 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
         this.selectedMemberIds.set(new Set());
         this.rooms.update(items => this.sortRooms([response.data, ...items]));
         this.wsService.subscribeToRoom(response.data.roomId);
+        this.loadPresenceForRooms([response.data]);
         this.selectRoom(response.data);
         this.notifyService.success('Đã tạo nhóm trò chuyện.');
       },
       error: () => this.notifyService.error('Không thể tạo nhóm trò chuyện. Vui lòng thử lại.')
     });
-  }
-
-  getRoomMeta(room: ChatRoom): string {
-    return room.type === ChatRoomType.DIRECT
-      ? 'Trò chuyện trực tiếp'
-      : `${room.participantIds.length} thành viên`;
   }
 
   getFriendId(friendship: Friendship): string {
@@ -326,28 +456,51 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   getFriendAvatar(friendship: Friendship): string {
     return (friendship.requesterId === this.currentUserId
       ? friendship.addresseeAvatar
-      : friendship.requesterAvatar) || 'assets/images/default-avatar.png';
+      : friendship.requesterAvatar) || 'assets/images/default-avatar.svg';
   }
 
   useDefaultAvatar(event: Event): void {
     const image = event.target as HTMLImageElement;
-    if (!image.src.endsWith('/assets/images/default-avatar.png')) image.src = 'assets/images/default-avatar.png';
+    if (!image.src.endsWith('/assets/images/default-avatar.svg')) {
+      image.src = 'assets/images/default-avatar.svg';
+    }
   }
 
   getMessageSenderName(message: ChatMessage): string {
-    return message.senderName || this.activeRoom()?.participants.find(item => item.userId === message.senderId)?.userName || 'Thành viên';
+    return message.senderName ||
+      this.activeRoom()?.participants.find(item => item.userId === message.senderId)?.userName ||
+      'Thành viên';
   }
 
   getMessageSenderAvatar(message: ChatMessage): string {
     return message.senderAvatar ||
       this.activeRoom()?.participants.find(item => item.userId === message.senderId)?.userAvatar ||
-      'assets/images/default-avatar.png';
+      'assets/images/default-avatar.svg';
+  }
+
+  private dispatchMessage(message: ChatMessage): void {
+    this.chatRepo.sendMessage(message.roomId, {
+      clientMessageId: message.clientMessageId,
+      content: message.content,
+      type: message.type
+    }).subscribe({
+      next: response => {
+        if (!response.data) return;
+        this.reconcileMessage(response.data);
+        this.updateRoomFromMessage(response.data);
+      },
+      error: () => {
+        this.patchMessage(message, { deliveryState: 'FAILED' });
+        this.notifyService.error('Tin nhắn chưa gửi được. Bạn có thể thử lại ngay trên tin nhắn.');
+      }
+    });
   }
 
   private listenToWebSocket(): void {
     this.subscriptions.push(this.wsService.chatMessages$.subscribe(message => {
+      this.removeTypingParticipant(message.roomId, message.senderId);
       if (this.activeRoom()?.roomId === message.roomId) {
-        this.insertMessage(message);
+        this.reconcileMessage(message);
         if (message.senderId !== this.currentUserId) {
           this.chatRepo.markRoomAsRead(message.roomId).subscribe({ error: () => undefined });
         }
@@ -355,17 +508,82 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       this.updateRoomFromMessage(message);
     }));
 
-    this.subscriptions.push(this.wsService.typingEvents$.subscribe((event: ChatTypingEvent) => {
-      if (this.activeRoom()?.roomId === event.roomId && event.senderId !== this.currentUserId) {
-        this.partnerTypingName.set(event.isTyping ? (event.senderName || 'Đối phương') : '');
-      }
+    this.subscriptions.push(this.wsService.typingEvents$.subscribe(event => {
+      if (event.senderId !== this.currentUserId) this.updateTypingEvent(event);
+    }));
+
+    this.subscriptions.push(this.wsService.presenceEvents$.subscribe(event => {
+      this.presenceByUser.update(items => ({ ...items, [event.userId]: event }));
+    }));
+  }
+
+  private updateTypingEvent(event: ChatTypingEvent): void {
+    const timerKey = `${event.roomId}:${event.senderId}`;
+    const existingTimeout = this.remoteTypingTimeouts.get(timerKey);
+    if (existingTimeout) clearTimeout(existingTimeout);
+
+    this.typingByRoom.update(state => {
+      const roomTyping = (state[event.roomId] || []).filter(item => item.senderId !== event.senderId);
+      return {
+        ...state,
+        [event.roomId]: event.isTyping ? [...roomTyping, event] : roomTyping
+      };
+    });
+
+    if (!event.isTyping) {
+      this.remoteTypingTimeouts.delete(timerKey);
+      return;
+    }
+
+    this.remoteTypingTimeouts.set(timerKey, setTimeout(() => {
+      this.removeTypingParticipant(event.roomId, event.senderId);
+    }, 4500));
+  }
+
+  private removeTypingParticipant(roomId: string, senderId: string): void {
+    const timerKey = `${roomId}:${senderId}`;
+    const timeout = this.remoteTypingTimeouts.get(timerKey);
+    if (timeout) clearTimeout(timeout);
+    this.remoteTypingTimeouts.delete(timerKey);
+    this.typingByRoom.update(state => ({
+      ...state,
+      [roomId]: (state[roomId] || []).filter(item => item.senderId !== senderId)
     }));
   }
 
   private insertMessage(message: ChatMessage): void {
-    if (this.messages().some(item => item.messageId === message.messageId)) return;
-    this.messages.update(items => [...items, message]);
+    const duplicate = this.messages().some(item =>
+      item.messageId === message.messageId ||
+      (message.clientMessageId && item.clientMessageId === message.clientMessageId)
+    );
+    if (duplicate) return;
+    this.messages.update(items => this.sortMessages([...items, message]));
     this.shouldScrollBottom = true;
+  }
+
+  private reconcileMessage(message: ChatMessage): void {
+    const savedMessage = { ...message, deliveryState: 'SENT' as const };
+    const index = this.messages().findIndex(item =>
+      item.messageId === message.messageId ||
+      (message.clientMessageId && item.clientMessageId === message.clientMessageId)
+    );
+    if (index < 0) {
+      this.insertMessage(savedMessage);
+      return;
+    }
+    this.messages.update(items => items.map((item, itemIndex) =>
+      itemIndex === index ? savedMessage : item
+    ));
+    this.shouldScrollBottom = true;
+  }
+
+  private patchMessage(message: ChatMessage, changes: Partial<ChatMessage>): void {
+    this.messages.update(items => items.map(item =>
+      item.messageId === message.messageId ||
+      (message.clientMessageId && item.clientMessageId === message.clientMessageId)
+        ? { ...item, ...changes }
+        : item
+    ));
   }
 
   private updateRoomFromMessage(message: ChatMessage): void {
@@ -380,12 +598,16 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       lastMessage: message.content,
       lastMessageAt: message.createdAt,
       lastSenderId: message.senderId,
-      unreadCount: !isActive && message.senderId !== this.currentUserId ? room.unreadCount + 1 : room.unreadCount
+      unreadCount: !isActive && message.senderId !== this.currentUserId
+        ? room.unreadCount + 1
+        : room.unreadCount
     });
   }
 
   private updateRoom(roomId: string, changes: Partial<ChatRoom>): void {
-    this.rooms.update(items => this.sortRooms(items.map(item => item.roomId === roomId ? { ...item, ...changes } : item)));
+    this.rooms.update(items => this.sortRooms(items.map(item =>
+      item.roomId === roomId ? { ...item, ...changes } : item
+    )));
     if (this.activeRoom()?.roomId === roomId) {
       this.activeRoom.update(room => room ? { ...room, ...changes } : room);
     }
@@ -397,6 +619,30 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       const rightTime = new Date(right.lastMessageAt || right.updatedAt || right.createdAt).getTime();
       return rightTime - leftTime;
     });
+  }
+
+  private sortMessages(messages: ChatMessage[]): ChatMessage[] {
+    return [...messages].sort((left, right) =>
+      new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime()
+    );
+  }
+
+  private loadPresenceForRooms(rooms: ChatRoom[]): void {
+    const userIds = [...new Set(rooms.flatMap(room => room.participantIds))]
+      .filter(userId => userId && userId !== this.currentUserId);
+    if (!userIds.length) return;
+
+    this.chatRepo.getPresence(userIds).subscribe({
+      next: response => {
+        const updates = Object.fromEntries((response.data || []).map(status => [status.userId, status]));
+        this.presenceByUser.update(items => ({ ...items, ...updates }));
+      },
+      error: () => undefined
+    });
+  }
+
+  private getDirectCounterpart(room: ChatRoom) {
+    return room.participants.find(participant => participant.userId !== this.currentUserId);
   }
 
   private enrichRooms(rooms: ChatRoom[]): Observable<ChatRoom[]> {

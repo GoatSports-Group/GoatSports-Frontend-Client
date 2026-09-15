@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import {
   ChatRoom,
   ChatMessage,
+  ChatPresenceEvent,
   CreateDirectRoomRequest,
   CreateGroupRoomRequest,
   SendMessageRequest
@@ -17,6 +18,7 @@ export interface ChatRepository {
   getRoomMessages(roomId: string, page?: number, size?: number): Observable<BaseResponse<ChatMessage[]>>;
   sendMessage(roomId: string, request: SendMessageRequest): Observable<BaseResponse<ChatMessage>>;
   markRoomAsRead(roomId: string): Observable<BaseResponse<void>>;
+  getPresence(userIds: string[]): Observable<BaseResponse<ChatPresenceEvent[]>>;
 }
 
 export const CHAT_REPOSITORY_TOKEN = new InjectionToken<ChatRepository>('CHAT_REPOSITORY_TOKEN');
