@@ -80,10 +80,43 @@
 
 .score-reasons lucide-icon { color: #008963; }
 
+.match-progress-wrap {
+  --progress: 0%;
+  position: relative;
+  margin: 18px 0;
+  padding-top: 2px;
+}
+
+.match-progress__track {
+  position: absolute;
+  z-index: 0;
+  top: 5px;
+  right: calc(100% / 12);
+  left: calc(100% / 12);
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e3eae7;
+}
+
+.match-progress__fill {
+  width: var(--progress);
+  height: 100%;
+  display: block;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #00a477, #24c995, #00a477);
+  background-size: 200% 100%;
+  transform-origin: left center;
+  transition: width 520ms cubic-bezier(.2, .8, .2, 1);
+  animation: progress-shimmer 1.8s linear infinite;
+}
+
 .match-progress {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  margin: 16px 0;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
@@ -99,16 +132,51 @@
 
 .match-progress li::before {
   position: absolute;
-  top: 4px;
-  left: 0;
-  width: 100%;
-  height: 4px;
-  background: #e3eae7;
+  top: -1px;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: #cfd9d5;
+  box-shadow: 0 0 0 1px #cfd9d5;
+  transform: translateX(-50%);
   content: '';
 }
 
 .match-progress li.done { color: #007f5d; }
-.match-progress li.done::before { background: #00a477; }
+.match-progress li.done::before {
+  background: #00a477;
+  box-shadow: 0 0 0 1px #00a477;
+}
+
+.match-progress li.current::before {
+  animation: progress-pulse 1.5s ease-out infinite;
+}
+
+.schedule-conflict {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 12px;
+  border: 1px solid #e9c46a;
+  border-radius: 11px;
+  background: #fffaf0;
+  color: #956300;
+}
+
+.schedule-conflict strong {
+  color: #6f4800;
+  font-size: 0.78rem;
+}
+
+.schedule-conflict p {
+  margin: 3px 0 0;
+  color: #725c2e;
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
 
 .venue-options { display: grid; gap: 10px; }
 .venue-options > header { margin-bottom: 0; }
@@ -990,6 +1058,27 @@
   font-weight: 850;
 }
 
+.history-return {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  border: 1px solid #c9d9d3;
+  border-radius: 9px;
+  background: #fff;
+  color: #007a58;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.history-return:hover {
+  border-color: #008a63;
+  background: #f1faf6;
+}
+
 .players {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 8rem minmax(0, 1fr);
@@ -1000,6 +1089,10 @@
 .player {
   min-width: 0;
   text-align: center;
+}
+
+.player--opponent {
+  animation: opponent-arrival 520ms cubic-bezier(.2, .8, .2, 1) both;
 }
 
 .player img,
@@ -1142,12 +1235,30 @@
 }
 
 .history-row {
+  width: 100%;
   min-height: 64px;
   display: grid;
   grid-template-columns: auto minmax(12rem, 1fr) minmax(7rem, auto) minmax(7rem, auto);
   align-items: center;
   gap: 12px;
+  padding: 0;
+  border: 0;
   border-bottom: 1px solid #e3ebe8;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.history-row:hover {
+  background: #f4faf7;
+}
+
+.history-row.selected {
+  background: #ebf8f3;
+  box-shadow: -4px 0 0 #008a63;
 }
 
 .history-row:last-child {
@@ -1284,6 +1395,20 @@ input:focus-visible {
 
 @keyframes skeleton {
   to { background-position: -200% 0; }
+}
+
+@keyframes progress-shimmer {
+  to { background-position: -200% 0; }
+}
+
+@keyframes progress-pulse {
+  0%, 100% { box-shadow: 0 0 0 1px #00a477, 0 0 0 0 rgb(0 164 119 / 30%); }
+  55% { box-shadow: 0 0 0 1px #00a477, 0 0 0 7px rgb(0 164 119 / 0%); }
+}
+
+@keyframes opponent-arrival {
+  from { opacity: 0; transform: translateX(24px) scale(0.94); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
 }
 
 @media (max-width: 1200px) {
@@ -1435,7 +1560,15 @@ input:focus-visible {
   .radar-ring,
   .spinner,
   .result-skeleton span,
-  .history-skeleton span {
+  .history-skeleton span,
+  .match-progress__fill,
+  .match-progress li.current::before,
+  .player--opponent {
     animation: none;
+  }
+
+  .match-progress__fill,
+  .history-row {
+    transition: none;
   }
 }

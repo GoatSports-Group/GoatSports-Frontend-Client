@@ -158,13 +158,26 @@
       </fieldset>
 
       <div class="setup-actions">
+        @if (scheduleConflict(); as conflict) {
+        <div class="schedule-conflict" role="status">
+          <lucide-icon name="calendar-x-2" class="w-5 h-5"></lucide-icon>
+          <div>
+            <strong>Khung giờ này đang bị giữ</strong>
+            <p>Bạn đã có trận {{ sportLabel(conflict.session.sportType) }} lúc
+              {{ conflict.session.startTime }}–{{ conflict.session.endTime }} ngày
+              {{ historyDate(conflict.session) }}. Hãy chọn giờ bắt đầu từ {{ conflictAllowedAfter(conflict) }}
+              hoặc một khung không giao nhau.</p>
+          </div>
+        </div>
+        }
         @if (isSearching()) {
         <button type="button" class="button button-danger button-full" (click)="cancelSearch()">
           <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
           Hủy tìm kiếm
         </button>
         } @else {
-        <button type="button" class="button button-primary button-full" [disabled]="locating() || restoring()"
+        <button type="button" class="button button-primary button-full"
+          [disabled]="locating() || restoring() || !!scheduleConflict()"
           (click)="startMatchmaking()">
           @if (locating()) {
           <span class="spinner spinner--small spinner--light"></span>
@@ -174,7 +187,7 @@
           Đang khôi phục...
           } @else {
           <lucide-icon name="search" class="w-5 h-5"></lucide-icon>
-          Tìm đối thủ
+          {{ searchButtonLabel() }}
           }
         </button>
         }
@@ -230,7 +243,7 @@
         }
         <p class="search-note">Bạn có thể rời trang. Trạng thái tìm kiếm sẽ tự động được khôi phục.</p>
       </div>
-      } @else if (session(); as match) {
+      } @else if (displayedSession(); as match) {
       <div class="result-state result-state--matched">
         <header class="match-header">
           <div>
@@ -238,9 +251,14 @@
               <span class="status-dot"></span>{{ statusMessage() }}
             </p>
             <h2>{{ match.compatibilityScore | number:'1.0-0' }}% phù hợp</h2>
-            <p>{{ selectedSportLabel() }} · {{ matchDateLabel() || historyDate(match) }}</p>
+            <p>{{ sportLabel(match.sportType) }} · {{ matchDateLabel() || historyDate(match) }}</p>
           </div>
-          @if (match.status === 'PROPOSED' || match.status === 'ACCEPTED_BY_ONE') {
+          @if (isViewingHistory()) {
+          <button type="button" class="history-return" (click)="clearHistorySelection()">
+            <lucide-icon name="arrow-left" class="w-4 h-4"></lucide-icon>
+            {{ historyReturnLabel() }}
+          </button>
+          } @else if (match.status === 'PROPOSED' || match.status === 'ACCEPTED_BY_ONE') {
           <div class="decision-timer">
             <span>Phản hồi trong</span>
             <strong>{{ formatCountdown(responseRemainingSeconds()) }}</strong>
@@ -252,7 +270,7 @@
 
         <div class="players">
           @if (currentParticipant(); as me) {
-          <article class="player">
+          <article class="player player--current">
             @if (me.avatarUrl) {
             <img [src]="me.avatarUrl" [alt]="'Ảnh đại diện của ' + me.name" />
             } @else {
@@ -265,7 +283,7 @@
           }
           <div class="match-connection" aria-hidden="true"><span></span><b>VS</b><span></span></div>
           @if (opponent(); as rival) {
-          <article class="player">
+          <article class="player player--opponent">
             @if (rival.avatarUrl) {
             <img [src]="rival.avatarUrl" [alt]="'Ảnh đại diện của ' + rival.name" />
             } @else {
@@ -301,17 +319,17 @@
         </div>
         }
 
-        <ol class="match-progress" aria-label="Tiến trình ghép trận">
-          <li class="done">Ghép đối thủ</li>
-          <li [class.done]="!['PROPOSED','ACCEPTED_BY_ONE'].includes(match.status)">Xác nhận</li>
-          <li
-            [class.done]="['VENUE_SELECTED','BOOKING_PENDING','CONFIRMED','CHECKED_IN','RESULT_PENDING','DISPUTED','COMPLETED'].includes(match.status)">
-            Chọn sân</li>
-          <li [class.done]="['CONFIRMED','CHECKED_IN','RESULT_PENDING','DISPUTED','COMPLETED'].includes(match.status)">
-            Đặt cọc</li>
-          <li [class.done]="['CHECKED_IN','RESULT_PENDING','DISPUTED','COMPLETED'].includes(match.status)">Check-in</li>
-          <li [class.done]="match.status === 'COMPLETED'">Kết quả</li>
-        </ol>
+        <div class="match-progress-wrap" [style.--progress]="progressPercent()">
+          <div class="match-progress__track" aria-hidden="true"><span class="match-progress__fill"></span></div>
+          <ol class="match-progress" aria-label="Tiến trình ghép trận">
+            <li [class.done]="progressItemState(0).done" [class.current]="progressItemState(0).current">Ghép đối thủ</li>
+            <li [class.done]="progressItemState(1).done" [class.current]="progressItemState(1).current">Xác nhận</li>
+            <li [class.done]="progressItemState(2).done" [class.current]="progressItemState(2).current">Chọn sân</li>
+            <li [class.done]="progressItemState(3).done" [class.current]="progressItemState(3).current">Đặt cọc</li>
+            <li [class.done]="progressItemState(4).done" [class.current]="progressItemState(4).current">Check-in</li>
+            <li [class.done]="progressItemState(5).done" [class.current]="progressItemState(5).current">Kết quả</li>
+          </ol>
+        </div>
 
         @if (match.status === 'ACCEPTED' && match.proposal?.venueOptions?.length) {
         <section class="venue-options">
@@ -326,7 +344,7 @@
             <span>{{ venue.distanceKm | number:'1.0-1' }} km · {{ venue.rating | number:'1.1-1' }}/5</span>
             <p>{{ venue.matchReason }}</p>
             <button type="button" class="button button-secondary"
-              [disabled]="!isDesignatedBooker() || !venue.venueCourtId || actionLoading()"
+              [disabled]="isViewingHistory() || !isDesignatedBooker() || !venue.venueCourtId || actionLoading()"
               (click)="chooseVenue(venue.venueId, venue.venueCourtId)">
               {{ isDesignatedBooker() ? 'Chọn sân' : 'Chờ người đặt cọc chọn' }}
             </button>
@@ -340,7 +358,7 @@
           <span class="spinner spinner--small"></span>
           <div>
             <strong>AI đang kiểm tra sân còn lịch trống</strong>
-            <p>Đang tìm sân {{ selectedSportLabel() }} cho khung {{ match.startTime }}–{{ match.endTime }} trong phạm vi
+            <p>Đang tìm sân {{ sportLabel(match.sportType) }} cho khung {{ match.startTime }}–{{ match.endTime }} trong phạm vi
               của hai người chơi.</p>
           </div>
           } @else if (match.proposal.venueSearchStatus === 'SERVICE_UNAVAILABLE') {
@@ -353,18 +371,18 @@
           <lucide-icon name="calendar-x-2" class="w-6 h-6"></lucide-icon>
           <div>
             <strong>Chưa có sân phù hợp còn lịch trống</strong>
-            <p>Không có sân {{ selectedSportLabel() }} đáp ứng {{ match.startTime }}–{{ match.endTime }} trong phạm vi
+            <p>Không có sân {{ sportLabel(match.sportType) }} đáp ứng {{ match.startTime }}–{{ match.endTime }} trong phạm vi
               đã chọn. Hãy đổi thời gian hoặc bán kính rồi tạo kèo mới.</p>
           </div>
           }
           @if (match.proposal.venueSearchStatus !== 'PENDING') {
           <div class="venue-search-state__actions">
-            <button type="button" class="button button-secondary" [disabled]="actionLoading()"
+            <button type="button" class="button button-secondary" [disabled]="isViewingHistory() || actionLoading()"
               (click)="refreshVenues()">
               <lucide-icon name="refresh-cw" class="w-4 h-4"></lucide-icon>
               Kiểm tra lại
             </button>
-            <button type="button" class="button button-danger" [disabled]="actionLoading()" (click)="cancelMatch()">
+            <button type="button" class="button button-danger" [disabled]="isViewingHistory() || actionLoading()" (click)="cancelMatch()">
               Hủy kèo & đổi lịch
             </button>
           </div>
@@ -404,7 +422,7 @@
         'BOOKING_PENDING' || match.status === 'CONFIRMED') {
         <div class="decision-actions">
           <button type="button" class="button button-secondary"
-            [disabled]="match.status === 'ACCEPTED' ? actionLoading() : !match.proposal?.venueId"
+            [disabled]="isViewingHistory() || (match.status === 'ACCEPTED' ? actionLoading() : !match.proposal?.venueId)"
             (click)="match.status === 'ACCEPTED' && !match.proposal?.venueId ? refreshVenues() : openVenue()">
             <lucide-icon name="calendar-check" class="w-5 h-5"></lucide-icon>
             {{ match.status === 'CONFIRMED'
@@ -415,7 +433,7 @@
             ? (isDesignatedBooker() ? 'Xem đơn đang thanh toán' : 'Đang chờ người đặt cọc')
             : (isDesignatedBooker() ? 'Đặt sân & thanh toán' : 'Xem sân đã chọn'))) }}
           </button>
-          <button type="button" class="button button-primary" [disabled]="!canOpenChat()" (click)="openChat()">
+          <button type="button" class="button button-primary" [disabled]="isViewingHistory() || !canOpenChat()" (click)="openChat()">
             <lucide-icon name="message-circle" class="w-5 h-5"></lucide-icon>
             Mở trò chuyện
           </button>
@@ -425,11 +443,11 @@
           <header><strong>{{ match.status === 'DISPUTED' ? 'Kết quả chưa trùng khớp' : 'Nhập kết quả trận đấu'
               }}</strong><span>Mỗi người nhập độc lập; hệ thống chỉ chốt khi hai kết quả giống nhau.</span></header>
           <div>
-            <label>Tỷ số của bạn<input type="number" min="0" max="999" [ngModel]="resultMyScore()"
+            <label>Tỷ số của bạn<input type="number" min="0" max="999" [disabled]="isViewingHistory()" [ngModel]="resultMyScore()"
                 (ngModelChange)="resultMyScore.set($event)" /></label>
-            <label>Tỷ số đối thủ<input type="number" min="0" max="999" [ngModel]="resultOpponentScore()"
+            <label>Tỷ số đối thủ<input type="number" min="0" max="999" [disabled]="isViewingHistory()" [ngModel]="resultOpponentScore()"
                 (ngModelChange)="resultOpponentScore.set($event)" /></label>
-            <button type="button" class="button button-primary" [disabled]="actionLoading()" (click)="submitResult()">{{
+            <button type="button" class="button button-primary" [disabled]="isViewingHistory() || actionLoading()" (click)="submitResult()">{{
               hasSubmittedResult() ? 'Gửi lại kết quả' : 'Xác nhận kết quả' }}</button>
           </div>
         </section>
@@ -441,13 +459,13 @@
           }
           @if (!hasSubmittedFeedback()) {
           <div class="feedback-form">
-            <label>Đánh giá<input type="number" min="1" max="5" [ngModel]="feedbackRating()"
+            <label>Đánh giá<input type="number" min="1" max="5" [disabled]="isViewingHistory()" [ngModel]="feedbackRating()"
                 (ngModelChange)="feedbackRating.set($event)" /></label>
-            <label>Fair-play<input type="number" min="1" max="5" [ngModel]="fairPlayRating()"
+            <label>Fair-play<input type="number" min="1" max="5" [disabled]="isViewingHistory()" [ngModel]="fairPlayRating()"
                 (ngModelChange)="fairPlayRating.set($event)" /></label>
-            <label class="feedback-comment">Nhận xét<input type="text" maxlength="500" [ngModel]="feedbackComment()"
+            <label class="feedback-comment">Nhận xét<input type="text" maxlength="500" [disabled]="isViewingHistory()" [ngModel]="feedbackComment()"
                 (ngModelChange)="feedbackComment.set($event)" /></label>
-            <button type="button" class="button button-primary" [disabled]="actionLoading()"
+            <button type="button" class="button button-primary" [disabled]="isViewingHistory() || actionLoading()"
               (click)="submitFeedback()">Gửi đánh giá</button>
           </div>
           } @else { <p>Cảm ơn bạn đã đánh giá đối thủ.</p> }
@@ -542,7 +560,8 @@
         <div class="history-list">
           @for (match of history(); track match.sessionId) {
           @if (historyOpponent(match); as rival) {
-          <article class="history-row">
+          <button type="button" class="history-row" [class.selected]="isSelectedHistory(match)"
+            [attr.aria-pressed]="isSelectedHistory(match)" (click)="selectHistorySession(match)">
             @if (rival.avatarUrl) {
             <img [src]="rival.avatarUrl" [alt]="'Ảnh đại diện của ' + rival.name" loading="lazy" />
             } @else {
@@ -555,7 +574,7 @@
             </div>
             <time>{{ historyDate(match) }}<small>{{ match.startTime }}–{{ match.endTime }}</small></time>
             <span class="history-status" [attr.data-status]="match.status">{{ historyStatus(match) }}</span>
-          </article>
+          </button>
           }
           }
         </div>

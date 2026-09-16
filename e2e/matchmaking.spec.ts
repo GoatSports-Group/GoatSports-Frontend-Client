@@ -18,10 +18,14 @@ function futureDay(offsetDays: number): string {
   return days[new Date(Date.now() + offsetDays * 86_400_000).getDay()];
 }
 
-function session(status: 'PROPOSED' | 'ACCEPTED_BY_ONE' | 'ACCEPTED' = 'PROPOSED') {
+type TestSessionStatus = 'PROPOSED' | 'ACCEPTED_BY_ONE' | 'ACCEPTED' | 'VENUE_SELECTED'
+  | 'BOOKING_PENDING' | 'CONFIRMED' | 'CHECKED_IN' | 'RESULT_PENDING' | 'COMPLETED'
+  | 'DISPUTED' | 'REJECTED' | 'EXPIRED' | 'CANCELLED';
+
+function session(status: TestSessionStatus = 'PROPOSED', sportType = 'BADMINTON') {
   return {
     sessionId: '77777777-7777-4777-8777-777777777777',
-    sportType: 'BADMINTON',
+    sportType,
     playDate: futureDate(1),
     startTime: '18:00:00',
     endTime: '20:00:00',
@@ -38,7 +42,7 @@ function session(status: 'PROPOSED' | 'ACCEPTED_BY_ONE' | 'ACCEPTED' = 'PROPOSED
         participantId: currentUserId,
         participantType: 'PLAYER',
         name: 'Nguyễn Minh Anh',
-        sportType: 'BADMINTON',
+        sportType,
         eloRating: 1200,
         latitude: 10.77,
         longitude: 106.67,
@@ -49,7 +53,7 @@ function session(status: 'PROPOSED' | 'ACCEPTED_BY_ONE' | 'ACCEPTED' = 'PROPOSED
         participantId: opponentId,
         participantType: 'PLAYER',
         name: 'Trần Hoàng Minh',
-        sportType: 'BADMINTON',
+        sportType,
         eloRating: 1260,
         latitude: 10.78,
         longitude: 106.68,
@@ -168,6 +172,38 @@ test('hiển thị cấu hình từ hồ sơ và lịch sử ghép kèo thật',
   await expect(page.locator('#match-elo')).toHaveAttribute('readonly', '');
   await expect(page.getByText('Trần Hoàng Minh')).toBeVisible();
   await expect(page.getByText('Đã xác nhận')).toBeVisible();
+
+  await page.locator('.history-row').click();
+  await expect(page.locator('.result-state--matched .match-header')).toContainText('Cầu lông');
+  await page.getByRole('button', { name: /Tennis/ }).click();
+  await expect(page.locator('.result-state--matched .match-header')).toContainText('Cầu lông');
+  await expect(page.getByRole('button', { name: /Đóng chi tiết/ })).toBeVisible();
+});
+
+test('chặn khung giờ trùng trận sắp tới và mở lại khi hết khoảng đệm', async ({ page }) => {
+  const upcoming = session('CONFIRMED');
+  upcoming.playDate = futureDate(2);
+  upcoming.startTime = '06:30:00';
+  upcoming.endTime = '08:00:00';
+
+  await page.route('**/ai-service/api/v1/ai/matchmaking/status', route =>
+    route.fulfill({ json: { status: 'NOT_IN_QUEUE' } })
+  );
+  await page.route('**/ai-service/api/v1/ai/matchmaking/sessions?**', route =>
+    route.fulfill({ json: [upcoming] })
+  );
+
+  await page.goto('/matchmaking');
+  const searchButton = page.getByRole('button', { name: 'Tìm đối thủ khác', exact: true });
+  await expect(page.getByText('Khung giờ này đang bị giữ')).toBeVisible({ timeout: 15_000 });
+  await expect(searchButton).toBeDisabled();
+
+  await page.locator('#match-start').fill('09:00');
+  await page.locator('#match-end').fill('10:30');
+  await expect(searchButton).toBeEnabled();
+
+  await page.locator('.history-row').click();
+  await expect(page.locator('.match-progress-wrap')).toHaveCSS('--progress', '60%');
 });
 
 test('tìm, nhận đề xuất và chấp nhận kèo end-to-end', async ({ page }) => {

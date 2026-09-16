@@ -43,6 +43,7 @@ import { NotificationType } from '@application/dto/notification/notification.dto
 
 type MatchmakingPlayStyle = 'BALANCED' | 'FAIR_PLAY' | 'COMPETITIVE';
 type Coordinates = { latitude: number; longitude: number; source: 'profile' | 'browser' };
+type ScheduleConflict = { session: MatchmakingSession; bufferedStart: Date; bufferedEnd: Date };
 
 const DAY_INDEX: Record<PlayerDayOfWeek, number> = {
   [PlayerDayOfWeek.SUNDAY]: 0,
@@ -105,6 +106,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   readonly nowMs = signal(Date.now());
   readonly queueSize = signal<number | null>(null);
   readonly session = signal<MatchmakingSession | null>(null);
+  readonly selectedHistorySession = signal<MatchmakingSession | null>(null);
   readonly errorMessage = signal('');
   readonly historyError = signal('');
 
@@ -138,13 +140,16 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     { label: 'Cạnh tranh', helper: 'Thi đấu nghiêm túc', value: 'COMPETITIVE' }
   ];
 
+  readonly displayedSession = computed(() => this.selectedHistorySession() ?? this.session());
+  readonly isViewingHistory = computed(() => Boolean(this.selectedHistorySession()));
+  readonly historyReturnLabel = computed(() => this.session() ? 'Trở lại trận hiện tại' : 'Đóng chi tiết');
   readonly currentParticipant = computed(() => {
     const currentUserId = this.authService.currentUser?.userId;
-    return this.session()?.participants.find(item => item.participantId === currentUserId) ?? null;
+    return this.displayedSession()?.participants.find(item => item.participantId === currentUserId) ?? null;
   });
   readonly opponent = computed(() => {
     const currentUserId = this.authService.currentUser?.userId;
-    return this.session()?.participants.find(item => item.participantId !== currentUserId) ?? null;
+    return this.displayedSession()?.participants.find(item => item.participantId !== currentUserId) ?? null;
   });
   readonly currentParticipantInitials = computed(() => this.initials(this.currentParticipant()?.name));
   readonly opponentInitials = computed(() => this.initials(this.opponent()?.name));
@@ -153,34 +158,35 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   );
   readonly selectedPlayDateLabel = computed(() => this.formatLocalDate(this.playDate()));
   readonly matchDateLabel = computed(() => {
-    const value = this.session()?.playDate;
+    const value = this.displayedSession()?.playDate;
     return value ? this.formatLocalDate(value) : '';
   });
   readonly activeProfile = computed(() =>
     this.profiles().find(item => item.sportType === this.selectedSport()) ?? null
   );
   readonly responseRemainingSeconds = computed(() => {
-    const expiry = this.session()?.expiresAt;
+    const expiry = this.displayedSession()?.expiresAt;
     if (!expiry) return 0;
     return Math.max(0, Math.ceil((new Date(expiry).getTime() - this.nowMs()) / 1000));
   });
   readonly myDecision = computed(() => {
     const profileId = this.currentParticipant()?.participantProfileId;
-    return this.session()?.acceptances.find(item => item.participantProfileId === profileId)?.decision ?? null;
+    return this.displayedSession()?.acceptances.find(item => item.participantProfileId === profileId)?.decision ?? null;
   });
   readonly canRespond = computed(() => {
-    const status = this.session()?.status;
+    if (this.isViewingHistory()) return false;
+    const status = this.displayedSession()?.status;
     return !this.myDecision() && (status === 'PROPOSED' || status === 'ACCEPTED_BY_ONE')
       && this.responseRemainingSeconds() > 0;
   });
   readonly canOpenChat = computed(() =>
-    Boolean(this.session()?.proposal?.conversationId)
+    Boolean(this.displayedSession()?.proposal?.conversationId)
   );
   readonly isDesignatedBooker = computed(() =>
-    this.session()?.proposal?.designatedBookerId === this.authService.currentUser?.userId
+    this.displayedSession()?.proposal?.designatedBookerId === this.authService.currentUser?.userId
   );
   readonly statusMessage = computed(() => {
-    const status = this.session()?.status;
+    const status = this.displayedSession()?.status;
     if (status === 'ACCEPTED') return 'Hai bên đã xác nhận kèo';
     if (status === 'VENUE_SELECTED') return 'Đã chọn sân, chờ người đặt cọc';
     if (status === 'BOOKING_PENDING') return 'Đang chờ thanh toán tiền cọc';
@@ -197,7 +203,36 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     if (status === 'CANCELLED') return 'Kèo đã bị hủy';
     return 'Đã tìm thấy đối thủ';
   });
-  readonly statusLabel = computed(() => this.sessionStatusLabel(this.session()?.status));
+  readonly statusLabel = computed(() => this.sessionStatusLabel(this.displayedSession()?.status));
+  readonly scheduleConflict = computed<ScheduleConflict | null>(() => {
+    const requestStart = this.localDateTime(this.playDate(), this.startTime());
+    const requestEnd = this.localDateTime(this.playDate(), this.endTime());
+    if (!requestStart || !requestEnd || requestEnd <= requestStart) return null;
+
+    const now = Date.now();
+    const sessions = this.uniqueSessions([this.session(), ...this.history()]);
+    for (const match of sessions) {
+      if (!['CONFIRMED', 'CHECKED_IN', 'RESULT_PENDING', 'DISPUTED'].includes(match.status)) continue;
+      const matchStart = this.localDateTime(match.playDate, match.startTime);
+      const matchEnd = this.localDateTime(match.playDate, match.endTime);
+      if (!matchStart || !matchEnd) continue;
+      const bufferedStart = new Date(matchStart.getTime() - 60 * 60 * 1000);
+      const bufferedEnd = new Date(matchEnd.getTime() + 60 * 60 * 1000);
+      if (bufferedEnd.getTime() <= now) continue;
+      if (requestStart < bufferedEnd && requestEnd > bufferedStart) {
+        return { session: match, bufferedStart, bufferedEnd };
+      }
+    }
+    return null;
+  });
+  readonly hasUpcomingMatch = computed(() => this.uniqueSessions([this.session(), ...this.history()]).some(match => {
+    if (!['CONFIRMED', 'CHECKED_IN', 'RESULT_PENDING', 'DISPUTED'].includes(match.status)) return false;
+    const end = this.localDateTime(match.playDate, match.endTime);
+    return Boolean(end && end.getTime() + 60 * 60 * 1000 > this.nowMs());
+  }));
+  readonly searchButtonLabel = computed(() => this.hasUpcomingMatch() ? 'Tìm đối thủ khác' : 'Tìm đối thủ');
+  readonly progressStep = computed(() => this.matchProgressStep(this.displayedSession()?.status));
+  readonly progressPercent = computed(() => `${this.progressStep() * 20}%`);
 
   private elapsedTimer?: Subscription;
   private sessionExpiryRefresh?: Subscription;
@@ -304,6 +339,10 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
       return;
     }
     if (!this.validPreferences()) return;
+    if (this.scheduleConflict()) {
+      this.errorMessage.set(this.scheduleConflictMessage(this.scheduleConflict()!));
+      return;
+    }
 
     const location = this.coordinates();
     if (location) {
@@ -341,38 +380,39 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   }
 
   openChat(): void {
-    const conversationId = this.session()?.proposal?.conversationId;
+    const conversationId = this.displayedSession()?.proposal?.conversationId;
     if (conversationId) void this.router.navigate(['/chat', conversationId]);
   }
 
   openVenue(): void {
-    const status = this.session()?.status ?? '';
-    const bookingId = this.session()?.proposal?.bookingId;
+    const detail = this.displayedSession();
+    const status = detail?.status ?? '';
+    const bookingId = detail?.proposal?.bookingId;
     if (bookingId && this.isDesignatedBooker()
       && ['BOOKING_PENDING', 'CONFIRMED', 'CHECKED_IN', 'RESULT_PENDING', 'DISPUTED', 'COMPLETED'].includes(status)) {
       void this.router.navigate(['/booking/detail', bookingId]);
       return;
     }
-    const venueId = this.session()?.proposal?.venueId;
+    const venueId = detail?.proposal?.venueId;
     if (!venueId) return;
-    const venueCourtId = this.session()?.proposal?.venueCourtId;
+    const venueCourtId = detail?.proposal?.venueCourtId;
     if (venueCourtId && this.isDesignatedBooker() && status === 'VENUE_SELECTED') {
       void this.router.navigate(['/booking/create'], {
         queryParams: {
           venueId,
           courtId: venueCourtId,
-          date: this.session()?.playDate,
-          startTime: this.session()?.startTime,
-          endTime: this.session()?.endTime,
-          matchmakingSessionId: this.session()?.sessionId
+          date: detail?.playDate,
+          startTime: detail?.startTime,
+          endTime: detail?.endTime,
+          matchmakingSessionId: detail?.sessionId
         }
       });
       return;
     }
     void this.router.navigate(['/venues', venueId], {
       queryParams: {
-        date: this.session()?.playDate,
-        venueCourtId: this.session()?.proposal?.venueCourtId,
+        date: detail?.playDate,
+        venueCourtId: detail?.proposal?.venueCourtId,
         matchmakingSessionId: null
       }
     });
@@ -467,17 +507,17 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
 
   hasSubmittedResult(): boolean {
     const userId = this.authService.currentUser?.userId;
-    return Boolean(userId && this.session()?.resultClaims?.some(item => item.submittedBy === userId));
+    return Boolean(userId && this.displayedSession()?.resultClaims?.some(item => item.submittedBy === userId));
   }
 
   hasSubmittedFeedback(): boolean {
     const userId = this.authService.currentUser?.userId;
-    return Boolean(userId && this.session()?.feedback?.some(item => item.reviewerId === userId));
+    return Boolean(userId && this.displayedSession()?.feedback?.some(item => item.reviewerId === userId));
   }
 
   eloAfter(participantId?: string): number | null {
     if (!participantId) return null;
-    return this.session()?.result?.eloUpdates?.[participantId] ?? null;
+    return this.displayedSession()?.result?.eloUpdates?.[participantId] ?? null;
   }
 
   findAnotherMatch(): void {
@@ -485,6 +525,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     if (previous) this.upsertHistory(previous);
     this.stopPolling();
     this.session.set(null);
+    this.selectedHistorySession.set(null);
     this.queueSize.set(null);
     this.elapsedSeconds.set(0);
     this.errorMessage.set('');
@@ -499,6 +540,30 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
 
   historyOpponentInitials(match: MatchmakingSession): string {
     return this.initials(this.historyOpponent(match)?.name);
+  }
+
+  selectHistorySession(match: MatchmakingSession): void {
+    this.selectedHistorySession.set(match);
+    this.animateMatchDetail();
+  }
+
+  clearHistorySelection(): void {
+    this.selectedHistorySession.set(null);
+    this.animateMatchDetail();
+  }
+
+  isSelectedHistory(match: MatchmakingSession): boolean {
+    return this.selectedHistorySession()?.sessionId === match.sessionId;
+  }
+
+  progressItemState(index: number): { done: boolean; current: boolean } {
+    const current = this.progressStep();
+    return { done: index <= current, current: index === current };
+  }
+
+  conflictAllowedAfter(conflict: ScheduleConflict): string {
+    return new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit' })
+      .format(conflict.bufferedEnd);
   }
 
   historyDate(match: MatchmakingSession): string {
@@ -584,6 +649,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   private enqueue(payload: JoinMatchmakingQueueRequest): void {
     this.isSearching.set(true);
     this.session.set(null);
+    this.selectedHistorySession.set(null);
     this.elapsedSeconds.set(0);
     this.startElapsedTimer();
     this.aiRepository.joinMatchmakingQueue(payload)
@@ -626,9 +692,13 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
 
   private applySession(session: MatchmakingSession): void {
     this.session.set(session);
+    if (this.selectedHistorySession()?.sessionId === session.sessionId) {
+      this.selectedHistorySession.set(session);
+    }
     this.isSearching.set(false);
     this.elapsedTimer?.unsubscribe();
     this.scheduleExpiryRefresh(session);
+    this.animateMatchDetail();
   }
 
   private refreshFromRealtimeEvent(referenceId?: string): void {
@@ -774,6 +844,55 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   private timeToMinutes(value: string): number {
     const [hours, minutes] = value.split(':').map(Number);
     return hours * 60 + minutes;
+  }
+
+  private localDateTime(date: string, time: string): Date | null {
+    if (!date || !time) return null;
+    const value = new Date(`${date}T${time.slice(0, 8)}`);
+    return Number.isNaN(value.getTime()) ? null : value;
+  }
+
+  private uniqueSessions(sessions: Array<MatchmakingSession | null>): MatchmakingSession[] {
+    const unique = new Map<string, MatchmakingSession>();
+    for (const match of sessions) {
+      if (match) unique.set(match.sessionId, match);
+    }
+    return [...unique.values()];
+  }
+
+  private scheduleConflictMessage(conflict: ScheduleConflict): string {
+    const match = conflict.session;
+    return `Khung giờ này trùng hoặc quá sát trận ${this.sportLabel(match.sportType)} `
+      + `${match.startTime.slice(0, 5)}–${match.endTime.slice(0, 5)} ngày ${this.historyDate(match)}. `
+      + `Hãy chọn thời gian sau ${this.conflictAllowedAfter(conflict)}.`;
+  }
+
+  private matchProgressStep(status?: MatchSessionStatus): number {
+    if (!status) return 0;
+    if (['PROPOSED', 'ACCEPTED_BY_ONE'].includes(status)) return 0;
+    if (status === 'ACCEPTED') return 1;
+    if (status === 'VENUE_SELECTED') return 2;
+    if (['BOOKING_PENDING', 'CONFIRMED'].includes(status)) return 3;
+    if (['CHECKED_IN', 'RESULT_PENDING', 'DISPUTED'].includes(status)) return 4;
+    if (status === 'COMPLETED') return 5;
+    return 0;
+  }
+
+  private animateMatchDetail(): void {
+    if (!isPlatformBrowser(this.platformId)
+      || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    requestAnimationFrame(() => this.zone.runOutsideAngular(() => {
+      const root = this.host.nativeElement;
+      gsap.fromTo(root.querySelector('.result-state--matched'),
+        { autoAlpha: 0.72, y: 8 },
+        { autoAlpha: 1, y: 0, duration: 0.34, ease: 'power2.out' });
+      gsap.fromTo(root.querySelector('.player--opponent'),
+        { autoAlpha: 0, x: 24, scale: 0.94 },
+        { autoAlpha: 1, x: 0, scale: 1, duration: 0.48, delay: 0.08, ease: 'back.out(1.45)' });
+      gsap.fromTo(root.querySelector('.match-progress__fill'),
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.65, delay: 0.12, ease: 'power2.out' });
+    }));
   }
 
   private validPreferences(): boolean {
