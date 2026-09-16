@@ -1,20 +1,39 @@
-<button type="button" class="floating-ai-btn" [class.is-hidden]="isOpen && isDocked" aria-label="Mở trợ lý GOAT Sports" [attr.aria-expanded]="isOpen" [attr.aria-controls]="isOpen ? 'ai-assistant-dialog' : null" (click)="toggleChat()">
-  <lucide-icon name="sparkles" class="w-5 h-5"></lucide-icon>
-  <span>Trợ lý AI</span>
+<button
+  type="button"
+  class="floating-ai-btn"
+  [class.is-open]="isOpen"
+  aria-label="Mở trợ lý GOAT AI"
+  [attr.aria-expanded]="isOpen"
+  aria-controls="ai-assistant-dialog"
+  (click)="toggleChat()"
+>
+  <span class="chat-head-mark"><lucide-icon name="sparkles" class="w-6 h-6"></lucide-icon></span>
+  <span class="chat-head-presence" aria-hidden="true"></span>
+  <span class="sr-only">GOAT AI đang trực tuyến</span>
 </button>
 
-<section id="ai-assistant-dialog" class="ai-chat-window" [class.ai-chat-window--docked]="isDocked" *ngIf="isOpen" appAccessibleDialog aria-labelledby="ai-assistant-title" (dialogClosed)="toggleChat()">
+<section
+  id="ai-assistant-dialog"
+  class="ai-chat-window"
+  *ngIf="isOpen"
+  role="dialog"
+  aria-modal="false"
+  aria-labelledby="ai-assistant-title"
+>
   <header class="chat-header">
     <div class="bot-profile">
-      <span class="bot-avatar"><lucide-icon name="sparkles" class="w-4 h-4"></lucide-icon></span>
+      <span class="bot-avatar"><lucide-icon name="sparkles" class="w-5 h-5"></lucide-icon></span>
       <span><strong id="ai-assistant-title">GOAT AI</strong><small><i></i> Trực tuyến</small></span>
     </div>
-    <button type="button" class="btn-close" aria-label="Đóng trợ lý" (click)="toggleChat()"><lucide-icon name="x" class="w-4 h-4"></lucide-icon></button>
+    <div class="window-actions">
+      <button type="button" aria-label="Thu nhỏ trợ lý" title="Thu nhỏ" (click)="minimizeChat()"><lucide-icon name="chevron-down" class="w-5 h-5"></lucide-icon></button>
+      <button type="button" aria-label="Đóng trợ lý" title="Đóng" (click)="closeChat()"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button>
+    </div>
   </header>
 
   <div class="ai-disclosure"><lucide-icon name="shield-check" class="w-4 h-4"></lucide-icon><span>Trả lời từ dữ liệu và dịch vụ của GOAT Sports</span></div>
 
-  <div class="chat-messages" aria-live="polite">
+  <div class="chat-messages" #messageList role="log" aria-live="polite" aria-label="Cuộc trò chuyện với GOAT AI">
     @for (message of messages; track $index) {
       <article class="msg-row" [class.user]="message.sender === 'USER'">
         @if (message.sender === 'AI') { <span class="mini-avatar">GS</span> }

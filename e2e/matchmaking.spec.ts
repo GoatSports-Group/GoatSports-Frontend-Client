@@ -100,7 +100,7 @@ test.beforeEach(async ({ page }) => {
   }));
 });
 
-test('căn main và trợ lý theo cùng container với Trang chủ và Tìm sân', async ({ page }, testInfo) => {
+test('main dùng toàn bộ container và trợ lý nổi không chiếm cột layout', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name.includes('mobile'));
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.route('**/ai-service/api/v1/ai/matchmaking/status', route =>
@@ -114,12 +114,27 @@ test('căn main và trợ lý theo cùng container với Trang chủ và Tìm s�
   await expect(page.locator('main.matchmaking-page')).toBeVisible({ timeout: 15_000 });
 
   const mainBox = await page.locator('main.matchmaking-page').boundingBox();
-  const assistantBox = await page.locator('#ai-assistant-dialog').boundingBox();
+  const assistant = page.locator('#ai-assistant-dialog');
+  const launcher = page.getByRole('button', { name: 'Mở trợ lý GOAT AI' });
   expect(mainBox).not.toBeNull();
-  expect(assistantBox).not.toBeNull();
   expect(Math.round(mainBox!.x)).toBe(180);
   expect(Math.round(mainBox!.width)).toBe(1560);
-  expect(Math.round(assistantBox!.x + assistantBox!.width)).toBe(1712);
+  await expect(launcher).toBeVisible();
+  await expect(assistant).toBeHidden();
+
+  await launcher.click();
+  await expect(assistant).toBeVisible();
+  const assistantBox = await assistant.boundingBox();
+  const heroBox = await page.locator('.matchmaking-hero').boundingBox();
+  const workspaceColumns = await page.locator('.matchmaking-workspace').evaluate(element =>
+    getComputedStyle(element).gridTemplateColumns.split(' ').filter(Boolean).length
+  );
+
+  expect(assistantBox).not.toBeNull();
+  expect(heroBox).not.toBeNull();
+  expect(Math.round(assistantBox!.x + assistantBox!.width)).toBe(1898);
+  expect(heroBox!.width).toBeGreaterThan(1490);
+  expect(workspaceColumns).toBe(2);
 });
 
 test('hiển thị cấu hình từ hồ sơ và lịch sử ghép kèo thật', async ({ page }) => {

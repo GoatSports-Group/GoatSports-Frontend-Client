@@ -1,6 +1,5 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { NavigationEnd, Router } from '@angular/router';
-import { Subscription, filter } from 'rxjs';
+import { AfterViewChecked, Component, ElementRef, HostListener, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
 import { AiRepositoryPort } from '@application/ports/ai.repository.port';
 import { VenueRecommendation } from '@application/dto/matchmaking/matchmaking.dto';
 
@@ -18,12 +17,14 @@ interface ChatMessage {
   styleUrls: ['./ai-assistant-modal.component.scss'],
   standalone: false
 })
-export class AiAssistantModalComponent implements OnInit, OnDestroy {
+export class AiAssistantModalComponent implements AfterViewChecked {
 
   isOpen = false;
-  isDocked = false;
   inputText = '';
   loading = false;
+  private scrollPending = false;
+
+  @ViewChild('messageList') private messageList?: ElementRef<HTMLDivElement>;
 
   messages: ChatMessage[] = [
     {
@@ -38,21 +39,30 @@ export class AiAssistantModalComponent implements OnInit, OnDestroy {
     private readonly router: Router
   ) {}
 
-  private navigationSubscription?: Subscription;
-
-  ngOnInit(): void {
-    this.syncWithRoute(this.router.url);
-    this.navigationSubscription = this.router.events
-      .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
-      .subscribe(event => this.syncWithRoute(event.urlAfterRedirects));
-  }
-
-  ngOnDestroy(): void {
-    this.navigationSubscription?.unsubscribe();
+  ngAfterViewChecked(): void {
+    if (!this.scrollPending || !this.messageList) return;
+    this.scrollPending = false;
+    const element = this.messageList.nativeElement;
+    element.scrollTop = element.scrollHeight;
   }
 
   toggleChat(): void {
     this.isOpen = !this.isOpen;
+    if (this.isOpen) this.scrollPending = true;
+  }
+
+  minimizeChat(): void {
+    this.isOpen = false;
+  }
+
+  closeChat(): void {
+    this.isOpen = false;
+    this.inputText = '';
+  }
+
+  @HostListener('document:keydown.escape')
+  closeFromKeyboard(): void {
+    if (this.isOpen) this.minimizeChat();
   }
 
   sendMessage(text?: string): void {
@@ -62,6 +72,7 @@ export class AiAssistantModalComponent implements OnInit, OnDestroy {
     this.messages.push({ sender: 'USER', text: query });
     this.inputText = '';
     this.loading = true;
+    this.scrollPending = true;
 
     this.aiRepo.queryChatbot(query).subscribe({
       next: (res) => {
@@ -72,6 +83,7 @@ export class AiAssistantModalComponent implements OnInit, OnDestroy {
           actions: res.suggestedActions,
           venues: res.recommendedVenues
         });
+        this.scrollPending = true;
       },
       error: () => {
         this.loading = false;
@@ -79,6 +91,7 @@ export class AiAssistantModalComponent implements OnInit, OnDestroy {
           sender: 'AI',
           text: 'Xin lỗi, hệ thống AI đang bảo trì. Vui lòng thử lại sau.'
         });
+        this.scrollPending = true;
       }
     });
   }
@@ -88,12 +101,4 @@ export class AiAssistantModalComponent implements OnInit, OnDestroy {
     this.router.navigate(['/venues', id]);
   }
 
-  private syncWithRoute(url: string): void {
-    this.isDocked = url.startsWith('/matchmaking');
-    if (this.isDocked) {
-      // The matchmaking layout only reserves space for the dock on wide desktops.
-      // Keep it collapsed below that breakpoint so it cannot cover the form.
-      this.isOpen = window.matchMedia('(min-width: 1680px)').matches;
-    }
-  }
 }
