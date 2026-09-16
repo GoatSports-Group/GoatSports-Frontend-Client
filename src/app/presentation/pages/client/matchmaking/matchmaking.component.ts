@@ -28,7 +28,11 @@ import {
   MatchmakingSport,
   MatchSessionStatus
 } from '@application/dto/matchmaking/matchmaking.dto';
-import { PlayerSportProfile } from '@application/dto/player-sport-profile/player-sport-profile.dto';
+import {
+  PlayerAvailability,
+  PlayerDayOfWeek,
+  PlayerSportProfile
+} from '@application/dto/player-sport-profile/player-sport-profile.dto';
 import {
   PLAYER_SPORT_PROFILE_REPOSITORY_TOKEN,
   PlayerSportProfileRepository
@@ -39,6 +43,16 @@ import { NotificationType } from '@application/dto/notification/notification.dto
 
 type MatchmakingPlayStyle = 'BALANCED' | 'FAIR_PLAY' | 'COMPETITIVE';
 type Coordinates = { latitude: number; longitude: number; source: 'profile' | 'browser' };
+
+const DAY_INDEX: Record<PlayerDayOfWeek, number> = {
+  [PlayerDayOfWeek.SUNDAY]: 0,
+  [PlayerDayOfWeek.MONDAY]: 1,
+  [PlayerDayOfWeek.TUESDAY]: 2,
+  [PlayerDayOfWeek.WEDNESDAY]: 3,
+  [PlayerDayOfWeek.THURSDAY]: 4,
+  [PlayerDayOfWeek.FRIDAY]: 5,
+  [PlayerDayOfWeek.SATURDAY]: 6
+};
 
 @Component({
   selector: 'app-matchmaking',
@@ -71,6 +85,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   readonly playDate = signal(this.localDate(new Date(Date.now() + 24 * 60 * 60 * 1000)));
   readonly startTime = signal('18:00');
   readonly endTime = signal('20:00');
+  readonly timezone = signal('Asia/Ho_Chi_Minh');
   readonly coordinates = signal<Coordinates | null>(null);
   readonly profiles = signal<PlayerSportProfile[]>([]);
   readonly history = signal<MatchmakingSession[]>([]);
@@ -108,7 +123,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     value: MatchmakingSkill;
     suggestedElo: number;
   }> = [
-    { label: 'Mới chơi', helper: 'Dưới 6 tháng', value: 'BEGINNER', suggestedElo: 900 },
+    { label: 'Mới chơi', helper: 'Dưới 6 tháng', value: 'BEGINNER', suggestedElo: 1000 },
     { label: 'Trung bình', helper: '6 tháng – 2 năm', value: 'INTERMEDIATE', suggestedElo: 1200 },
     { label: 'Khá', helper: '2 – 5 năm', value: 'ADVANCED', suggestedElo: 1500 },
     { label: 'Nâng cao', helper: 'Trên 5 năm', value: 'PRO', suggestedElo: 1800 }
@@ -264,6 +279,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   }
 
   selectSkill(skill: MatchmakingSkill, suggestedElo: number): void {
+    if (this.activeProfile()) return;
     this.selectedSkill.set(skill);
     this.eloRating.set(suggestedElo);
   }
@@ -553,7 +569,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
       playDate: this.playDate(),
       startTime: this.startTime(),
       endTime: this.endTime(),
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Ho_Chi_Minh',
+      timezone: this.timezone(),
       maxEloDifference: this.maxEloDifference(),
       maxDistanceKm: this.maxDistance(),
       preferredPositions: profile?.preferredPositions ?? [],
@@ -701,6 +717,10 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   private applyProfileForSport(sport: MatchmakingSport): void {
     const profile = this.profiles().find(item => item.sportType === sport);
     if (!profile) {
+      this.selectedSkill.set('INTERMEDIATE');
+      this.eloRating.set(1200);
+      this.maxDistance.set(10);
+      this.selectedPlayStyle.set('BALANCED');
       this.coordinates.set(null);
       return;
     }
@@ -711,6 +731,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     if (profile.playStyle && this.isPlayStyle(profile.playStyle)) {
       this.selectedPlayStyle.set(profile.playStyle);
     }
+    this.applyNextAvailability(profile.availabilities);
     if (profile.latitude != null && profile.longitude != null) {
       this.coordinates.set({
         latitude: profile.latitude,
@@ -720,6 +741,39 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     } else {
       this.coordinates.set(null);
     }
+  }
+
+  private applyNextAvailability(availabilities: PlayerAvailability[]): void {
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const candidates = availabilities
+      .filter(slot => slot.active)
+      .map(slot => {
+        let daysAhead = (DAY_INDEX[slot.dayOfWeek] - now.getDay() + 7) % 7;
+        if (daysAhead === 0 && this.timeToMinutes(slot.startTime) <= currentMinutes) {
+          daysAhead = 7;
+        }
+        const date = new Date(now);
+        date.setHours(0, 0, 0, 0);
+        date.setDate(date.getDate() + daysAhead);
+        return { slot, date };
+      })
+      .sort((first, second) => {
+        const dateDifference = first.date.getTime() - second.date.getTime();
+        return dateDifference || first.slot.startTime.localeCompare(second.slot.startTime);
+      });
+
+    const next = candidates[0];
+    if (!next) return;
+    this.playDate.set(this.localDate(next.date));
+    this.startTime.set(next.slot.startTime.slice(0, 5));
+    this.endTime.set(next.slot.endTime.slice(0, 5));
+    this.timezone.set(next.slot.timezone || 'Asia/Ho_Chi_Minh');
+  }
+
+  private timeToMinutes(value: string): number {
+    const [hours, minutes] = value.split(':').map(Number);
+    return hours * 60 + minutes;
   }
 
   private validPreferences(): boolean {

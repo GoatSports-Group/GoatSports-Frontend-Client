@@ -10,9 +10,12 @@ export type MatchSelectionMode = 'AI' | 'MANUAL';
 
 export interface MatchScoreBreakdown {
   eloScore: number;
+  skillScore: number;
   scheduleScore: number;
   distanceScore: number;
   playStyleScore: number;
+  positionScore: number;
+  experienceScore: number;
   totalScore: number;
   reasons: string[];
 }

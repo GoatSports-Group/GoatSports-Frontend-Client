@@ -13,6 +13,11 @@ function futureDate(offsetDays: number): string {
   ].join('-');
 }
 
+function futureDay(offsetDays: number): string {
+  const days = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+  return days[new Date(Date.now() + offsetDays * 86_400_000).getDay()];
+}
+
 function session(status: 'PROPOSED' | 'ACCEPTED_BY_ONE' | 'ACCEPTED' = 'PROPOSED') {
   return {
     sessionId: '77777777-7777-4777-8777-777777777777',
@@ -89,7 +94,14 @@ test.beforeEach(async ({ page }) => {
         drawCount: 1,
         matchCount: 14,
         winRate: 0.571,
-        availabilities: [],
+        availabilities: [{
+          availabilityId: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+          dayOfWeek: futureDay(2),
+          startTime: '06:30:00',
+          endTime: '08:00:00',
+          timezone: 'Asia/Ho_Chi_Minh',
+          active: true
+        }],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       }],
@@ -150,6 +162,10 @@ test('hiển thị cấu hình từ hồ sơ và lịch sử ghép kèo thật',
   await expect(page.locator('main h1')).toContainText('Ghép đúng kèo', { timeout: 15_000 });
   await expect(page.getByText('Đã dùng hồ sơ')).toBeVisible();
   await expect(page.getByRole('button', { name: /Fair-play/ })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#match-date')).toHaveValue(futureDate(2));
+  await expect(page.locator('#match-start')).toHaveValue('06:30');
+  await expect(page.locator('#match-end')).toHaveValue('08:00');
+  await expect(page.locator('#match-elo')).toHaveAttribute('readonly', '');
   await expect(page.getByText('Trần Hoàng Minh')).toBeVisible();
   await expect(page.getByText('Đã xác nhận')).toBeVisible();
 });
