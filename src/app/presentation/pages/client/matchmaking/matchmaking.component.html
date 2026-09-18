@@ -194,7 +194,7 @@
       </div>
     </section>
 
-    <section class="result-panel" aria-live="polite" [attr.aria-busy]="restoring() || isSearching()">
+    <section class="result-panel" [attr.aria-busy]="restoring() || isSearching()">
       @if (restoring()) {
       <div class="result-state result-state--restoring">
         <div class="status-line"><span class="status-dot"></span>Đang khôi phục phiên ghép kèo</div>
@@ -247,7 +247,7 @@
       <div class="result-state result-state--matched">
         <header class="match-header">
           <div>
-            <p class="live-status" [attr.data-status]="match.status">
+            <p class="live-status" [attr.data-status]="match.status" aria-live="polite">
               <span class="status-dot"></span>{{ statusMessage() }}
             </p>
             <h2>{{ match.compatibilityScore | number:'1.0-0' }}% phù hợp</h2>
@@ -442,6 +442,14 @@
         <section class="result-entry">
           <header><strong>{{ match.status === 'DISPUTED' ? 'Kết quả chưa trùng khớp' : 'Nhập kết quả trận đấu'
               }}</strong><span>Mỗi người nhập độc lập; hệ thống chỉ chốt khi hai kết quả giống nhau.</span></header>
+          @if (myResultClaim(); as mine) {
+          <p class="claim-summary">Bạn đã nhập: <strong>{{ claimScoresFromMyPerspective(mine).my }}–{{
+              claimScoresFromMyPerspective(mine).opponent }}</strong></p>
+          }
+          @if (opponentResultClaim(); as theirs) {
+          <p class="claim-summary">Đối thủ đã nhập: <strong>{{ claimScoresFromMyPerspective(theirs).my }}–{{
+              claimScoresFromMyPerspective(theirs).opponent }}</strong></p>
+          }
           <div>
             <label>Tỷ số của bạn<input type="number" min="0" max="999" [disabled]="isViewingHistory()" [ngModel]="resultMyScore()"
                 (ngModelChange)="resultMyScore.set($event)" /></label>
@@ -470,11 +478,13 @@
           </div>
           } @else { <p>Cảm ơn bạn đã đánh giá đối thủ.</p> }
         </section>
-        } @else {
+        } @else if (isTerminalMatchStatus()) {
         <button type="button" class="button button-primary button-full" (click)="findAnotherMatch()">
           <lucide-icon name="rotate-cw" class="w-5 h-5"></lucide-icon>
           Tìm kèo khác
         </button>
+        } @else {
+        <p class="status-transition-note">Đang cập nhật trạng thái…</p>
         }
       </div>
       } @else {

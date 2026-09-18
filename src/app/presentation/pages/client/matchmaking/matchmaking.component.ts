@@ -22,6 +22,7 @@ import {
   JoinMatchmakingQueueRequest,
   MatchCandidate,
   MatchmakingPlayer,
+  MatchResultClaim,
   MatchSelectionMode,
   MatchmakingSession,
   MatchmakingSkill,
@@ -199,6 +200,10 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   readonly isDesignatedBooker = computed(() =>
     this.displayedSession()?.proposal?.designatedBookerId === this.authService.currentUser?.userId
   );
+  readonly isTerminalMatchStatus = computed(() => {
+    const status = this.displayedSession()?.status;
+    return status === 'REJECTED' || status === 'EXPIRED' || status === 'CANCELLED';
+  });
   readonly statusMessage = computed(() => {
     const status = this.displayedSession()?.status;
     if (status === 'ACCEPTED') return 'Hai bên đã xác nhận kèo';
@@ -437,6 +442,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   chooseCandidate(candidate: MatchCandidate): void {
     if (this.actionLoading()) return;
     this.actionLoading.set(true);
+    this.errorMessage.set('');
     this.aiRepository.selectMatchmakingCandidate(candidate.participant.participantId).pipe(
       takeUntilDestroyed(this.destroyRef),
       finalize(() => this.actionLoading.set(false))
@@ -450,6 +456,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     const match = this.session();
     if (!match || !venueCourtId || !this.isDesignatedBooker() || this.actionLoading()) return;
     this.actionLoading.set(true);
+    this.errorMessage.set('');
     this.aiRepository.selectMatchVenue(match.sessionId, venueId, venueCourtId).pipe(
       takeUntilDestroyed(this.destroyRef),
       finalize(() => this.actionLoading.set(false))
@@ -494,6 +501,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     const match = this.session();
     if (!match || this.actionLoading()) return;
     this.actionLoading.set(true);
+    this.errorMessage.set('');
     this.aiRepository.submitMatchResult(match.sessionId, this.resultMyScore(), this.resultOpponentScore()).pipe(
       takeUntilDestroyed(this.destroyRef),
       finalize(() => this.actionLoading.set(false))
@@ -507,6 +515,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     const match = this.session();
     if (!match || this.actionLoading()) return;
     this.actionLoading.set(true);
+    this.errorMessage.set('');
     this.aiRepository.submitOpponentFeedback(
       match.sessionId,
       this.feedbackRating(),
@@ -747,11 +756,40 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     this.elapsedTimer?.unsubscribe();
     this.scheduleExpiryRefresh(session);
     this.animateMatchDetail();
+    this.seedResultFormFromOwnClaim(session);
+  }
+
+  private seedResultFormFromOwnClaim(session: MatchmakingSession): void {
+    if (!['CHECKED_IN', 'RESULT_PENDING', 'DISPUTED'].includes(session.status)) return;
+    if (this.resultMyScore() !== 0 || this.resultOpponentScore() !== 0) return;
+    const claim = this.myResultClaim();
+    if (!claim) return;
+    const { my, opponent } = this.claimScoresFromMyPerspective(claim);
+    this.resultMyScore.set(my);
+    this.resultOpponentScore.set(opponent);
+  }
+
+  myResultClaim(): MatchResultClaim | null {
+    const userId = this.authService.currentUser?.userId;
+    return this.displayedSession()?.resultClaims?.find(item => item.submittedBy === userId) ?? null;
+  }
+
+  opponentResultClaim(): MatchResultClaim | null {
+    const userId = this.authService.currentUser?.userId;
+    return this.displayedSession()?.resultClaims?.find(item => item.submittedBy && item.submittedBy !== userId) ?? null;
+  }
+
+  claimScoresFromMyPerspective(claim: MatchResultClaim): { my: number; opponent: number } {
+    const session = this.displayedSession();
+    const firstParticipantId = session?.participants[0]?.participantId;
+    const userId = this.authService.currentUser?.userId;
+    return firstParticipantId === userId
+      ? { my: claim.participantOneScore, opponent: claim.participantTwoScore }
+      : { my: claim.participantTwoScore, opponent: claim.participantOneScore };
   }
 
   private refreshFromRealtimeEvent(referenceId?: string): void {
     const activeSession = this.session();
-    const isCurrentSession = Boolean(referenceId && activeSession?.sessionId === referenceId);
     const isDifferentActiveSession = Boolean(
       referenceId
       && activeSession
@@ -765,8 +803,13 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    // Whether the fetched session should become the tracked "current" session
+    // (vs. a different/historical session that only needs its history entry
+    // refreshed without disturbing whatever is currently tracked as active).
+    const becomesCurrent = !referenceId || !activeSession || activeSession.sessionId === referenceId;
+
     this.realtimeRefreshInFlight = true;
-    const request: Observable<{ session: MatchmakingSession | null; queueSize: number | null }> = isCurrentSession && referenceId
+    const request: Observable<{ session: MatchmakingSession | null; queueSize: number | null }> = referenceId
       ? this.aiRepository.getMatchmakingSession(referenceId).pipe(
           map(session => ({ session, queueSize: null }))
         )
@@ -789,10 +832,12 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     ).subscribe({
       next: response => {
         this.errorMessage.set('');
-        this.queueSize.set(response.queueSize ?? null);
-        if (response.session) {
+        if (response.session && becomesCurrent) {
+          this.queueSize.set(response.queueSize ?? null);
           this.applySession(response.session);
           this.hideRestoredSession.set(false);
+          this.upsertHistory(response.session);
+        } else if (response.session) {
           this.upsertHistory(response.session);
         } else if (this.selectionMode() === 'MANUAL' && this.isSearching()) {
           this.loadCandidates();
@@ -968,7 +1013,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     this.history.update(items => [
       session,
       ...items.filter(item => item.sessionId !== session.sessionId)
-    ].slice(0, 5));
+    ]);
   }
 
   private isPlayStyle(value: string): value is MatchmakingPlayStyle {
