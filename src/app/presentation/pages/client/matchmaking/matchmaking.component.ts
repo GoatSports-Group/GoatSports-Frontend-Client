@@ -217,7 +217,11 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     if (status === 'VENUE_SELECTED') return 'Đã chọn sân, chờ người đặt cọc';
     if (status === 'BOOKING_PENDING') return 'Đang chờ thanh toán tiền cọc';
     if (status === 'CONFIRMED') return 'Trận đấu đã được xác nhận';
-    if (status === 'CHECKED_IN') return 'Hai người chơi có thể nhập kết quả';
+    if (status === 'CHECKED_IN') {
+      return this.canEnterResult()
+        ? 'Hai người chơi có thể nhập kết quả'
+        : 'Đã check-in · trận đấu đang diễn ra';
+    }
     if (status === 'RESULT_PENDING') return 'Đang chờ đối thủ xác nhận kết quả';
     if (status === 'DISPUTED') return 'Kết quả chưa trùng khớp';
     if (status === 'COMPLETED') return 'Trận đấu đã hoàn tất';
@@ -278,6 +282,21 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     if (state === 'ACTIVE') return 'Đang trong khung giờ chơi · chưa check-in tại sân';
     if (state === 'MISSED') return 'Chưa check-in tại sân · trận sẽ không được ghi nhận kết quả';
     return '';
+  });
+  readonly canEnterResult = computed(() => {
+    const match = this.displayedSession();
+    if (!match) return false;
+    const end = this.localDateTime(match.playDate, match.endTime);
+    return Boolean(end && this.nowMs() >= end.getTime());
+  });
+  readonly matchInProgressLabel = computed(() => {
+    const match = this.displayedSession();
+    if (!match) return '';
+    const start = this.localDateTime(match.playDate, match.startTime);
+    const endLabel = (match.endTime ?? '').slice(0, 5);
+    return start && this.nowMs() < start.getTime()
+      ? `Trận chưa bắt đầu · chỉ nhập được kết quả sau ${endLabel}`
+      : `Trận đang diễn ra · chỉ nhập được kết quả sau ${endLabel}`;
   });
   readonly resultDeadlineState = computed<'OPEN' | 'WAITING_OPPONENT' | null>(() => {
     const match = this.displayedSession();

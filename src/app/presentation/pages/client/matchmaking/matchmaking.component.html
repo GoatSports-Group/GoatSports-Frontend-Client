@@ -447,6 +447,16 @@
             Mở trò chuyện
           </button>
         </div>
+        } @else if ((match.status === 'CHECKED_IN' || match.status === 'RESULT_PENDING' || match.status === 'DISPUTED')
+        && !canEnterResult()) {
+        <p class="result-deadline-note" data-state="WAITING_OPPONENT">
+          <lucide-icon name="clock-3" class="w-4 h-4"></lucide-icon>
+          {{ matchInProgressLabel() }}
+        </p>
+        <button type="button" class="button button-primary button-full" [disabled]="!canOpenChat()" (click)="openChat()">
+          <lucide-icon name="message-circle" class="w-5 h-5"></lucide-icon>
+          Mở trò chuyện
+        </button>
         } @else if (match.status === 'CHECKED_IN' || match.status === 'RESULT_PENDING' || match.status === 'DISPUTED') {
         <section class="result-entry">
           <header><strong>{{ match.status === 'DISPUTED' ? 'Kết quả chưa trùng khớp' : 'Nhập kết quả trận đấu'
