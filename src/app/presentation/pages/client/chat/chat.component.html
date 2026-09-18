@@ -32,9 +32,13 @@
 
     <div class="rooms-list-container">
       @if (loadingRooms()) {
-        <div class="sidebar-state">
-          <mat-progress-spinner mode="indeterminate" diameter="28"></mat-progress-spinner>
-          <span>Đang tải hội thoại...</span>
+        <div class="room-skeleton-list" aria-busy="true" aria-label="Đang tải hội thoại">
+          @for (placeholder of [1, 2, 3, 4, 5]; track placeholder) {
+            <div class="room-skeleton">
+              <span class="skeleton-avatar"></span>
+              <span class="skeleton-lines"><b></b><i></i></span>
+            </div>
+          }
         </div>
       } @else if (roomsLoadFailed()) {
         <div class="sidebar-state error" role="alert">
@@ -52,22 +56,25 @@
           >
             <span class="avatar-shell">
               <img class="room-avatar" [src]="room.avatarUrl || 'assets/images/default-avatar.svg'" [alt]="room.name || 'Cuộc trò chuyện'" (error)="useDefaultAvatar($event)" />
-              @if (room.type === ChatRoomType.DIRECT) {
+              @if (isPairRoom(room)) {
                 <span class="presence-dot" [class.online]="isDirectRoomOnline(room)" aria-hidden="true"></span>
               }
             </span>
             <span class="room-info">
               <span class="room-header-row">
                 <strong>{{ room.name || 'Người chơi GoatSports' }}</strong>
-                @if (room.lastMessageAt) {
-                  <time [attr.datetime]="room.lastMessageAt">{{ room.lastMessageAt | date:'HH:mm' }}</time>
+                @if (getRoomTimeLabel(room); as timeLabel) {
+                  <time [attr.datetime]="room.lastMessageAt || room.updatedAt">{{ timeLabel }}</time>
                 }
               </span>
               <span class="room-footer-row">
+                @if (getRoomBadge(room); as badge) {
+                  <b class="room-type-badge" [attr.data-type]="room.type">{{ badge }}</b>
+                }
                 @if (getTypingLabel(room.roomId); as typingLabel) {
                   <span class="room-typing">{{ typingLabel }}<i class="typing-mini-dots" aria-hidden="true"><b></b><b></b><b></b></i></span>
                 } @else {
-                  <span>{{ room.lastMessage || getRoomMeta(room) }}</span>
+                  <span class="room-preview" [class.muted]="!room.lastMessage">{{ getRoomPreview(room) }}</span>
                 }
                 @if (room.unreadCount > 0) {
                   <b class="unread-badge">{{ room.unreadCount > 99 ? '99+' : room.unreadCount }}</b>
@@ -96,13 +103,18 @@
         </button>
         <span class="avatar-shell header-avatar-shell">
           <img class="header-avatar" [src]="room.avatarUrl || 'assets/images/default-avatar.svg'" [alt]="room.name || 'Cuộc trò chuyện'" (error)="useDefaultAvatar($event)" />
-          @if (room.type === ChatRoomType.DIRECT) {
+          @if (isPairRoom(room)) {
             <span class="presence-dot" [class.online]="isDirectRoomOnline(room)" aria-hidden="true"></span>
           }
         </span>
         <div class="partner-meta">
-          <h2>{{ room.name || 'Người chơi GoatSports' }}</h2>
-          <span>{{ getRoomHeaderMeta(room) }}</span>
+          <h2>
+            {{ room.name || 'Người chơi GoatSports' }}
+            @if (getRoomBadge(room); as badge) {
+              <b class="room-type-badge" [attr.data-type]="room.type">{{ badge }}</b>
+            }
+          </h2>
+          <span [class.is-online]="isPairRoom(room) && isDirectRoomOnline(room)">{{ getRoomHeaderMeta(room) }}</span>
         </div>
         <div class="chat-header-actions">
           <a class="icon-button" routerLink="/venues" aria-label="Tìm sân để cùng chơi" title="Tìm sân để cùng chơi">
@@ -125,9 +137,10 @@
 
       <section class="messages-container" #messagesScroll aria-label="Nội dung cuộc trò chuyện">
         @if (loadingMessages()) {
-          <div class="message-state">
-            <mat-progress-spinner mode="indeterminate" diameter="28"></mat-progress-spinner>
-            <span>Đang tải tin nhắn...</span>
+          <div class="message-skeleton-list" aria-busy="true" aria-label="Đang tải tin nhắn">
+            @for (placeholder of [1, 2, 3, 4, 5, 6]; track placeholder) {
+              <span class="bubble-skeleton" [class.outgoing]="placeholder % 3 === 0"></span>
+            }
           </div>
         } @else if (messagesLoadFailed()) {
           <div class="message-state error" role="alert">
@@ -138,44 +151,61 @@
         } @else {
           <div class="message-stream">
             @if (messages().length) {
-              <div class="timeline-label"><span>Cuộc trò chuyện</span></div>
-              @for (message of messages(); track message.clientMessageId || message.messageId) {
+              @for (message of messages(); track message.clientMessageId || message.messageId; let index = $index) {
+                @if (getDaySeparator(index); as daySeparator) {
+                  <div class="timeline-label"><span>{{ daySeparator }}</span></div>
+                }
                 <article
                   class="message-row"
                   [class.outgoing]="message.senderId === currentUserId"
                   [class.sending]="message.deliveryState === 'SENDING'"
                   [class.failed]="message.deliveryState === 'FAILED'"
+                  [class.group-start]="isFirstOfGroup(index)"
+                  [class.group-end]="isLastOfGroup(index)"
                 >
                   @if (message.senderId !== currentUserId) {
-                    <img class="message-avatar" [src]="getMessageSenderAvatar(message)" [alt]="getMessageSenderName(message)" (error)="useDefaultAvatar($event)" />
+                    @if (isLastOfGroup(index)) {
+                      <img class="message-avatar" [src]="getMessageSenderAvatar(message)" [alt]="getMessageSenderName(message)" (error)="useDefaultAvatar($event)" />
+                    } @else {
+                      <span class="message-avatar-spacer" aria-hidden="true"></span>
+                    }
                   }
                   <div class="bubble-stack">
                     <div class="message-content">
-                      @if (room.type !== ChatRoomType.DIRECT && message.senderId !== currentUserId) {
+                      @if (!isPairRoom(room) && message.senderId !== currentUserId && isFirstOfGroup(index)) {
                         <strong>{{ getMessageSenderName(message) }}</strong>
                       }
                       <p>{{ message.content }}</p>
                     </div>
-                    <div class="message-meta">
-                      <time [attr.datetime]="message.createdAt">{{ message.createdAt | date:'HH:mm' }}</time>
-                      @if (message.senderId === currentUserId) {
-                        <span class="delivery-state" [class.failed]="message.deliveryState === 'FAILED'">
-                          <lucide-icon [name]="message.deliveryState === 'SENDING' ? 'clock-3' : message.deliveryState === 'FAILED' ? 'circle-alert' : 'check-check'" class="w-3.5 h-3.5"></lucide-icon>
-                          {{ getMessageDeliveryLabel(message) }}
-                        </span>
-                        @if (message.deliveryState === 'FAILED') {
-                          <button type="button" class="retry-button" (click)="retryMessage(message)">Gửi lại</button>
+                    @if (isLastOfGroup(index) || message.deliveryState === 'FAILED') {
+                      <div class="message-meta">
+                        <time [attr.datetime]="message.createdAt">{{ message.createdAt | date:'HH:mm' }}</time>
+                        @if (message.senderId === currentUserId) {
+                          <span class="delivery-state" [class.failed]="message.deliveryState === 'FAILED'">
+                            <lucide-icon [name]="message.deliveryState === 'SENDING' ? 'clock-3' : message.deliveryState === 'FAILED' ? 'circle-alert' : 'check-check'" class="w-3.5 h-3.5"></lucide-icon>
+                            {{ getMessageDeliveryLabel(message) }}
+                          </span>
+                          @if (message.deliveryState === 'FAILED') {
+                            <button type="button" class="retry-button" (click)="retryMessage(message)">Gửi lại</button>
+                          }
                         }
-                      }
-                    </div>
+                      </div>
+                    }
                   </div>
                 </article>
               }
             } @else {
               <div class="message-state empty">
-                <span class="empty-icon"><lucide-icon name="messages-square" class="w-8 h-8"></lucide-icon></span>
-                <h3>Bắt đầu cuộc trò chuyện</h3>
-                <p>Gửi lời chào hoặc rủ nhau tham gia một trận đấu.</p>
+                <span class="empty-avatar">
+                  <img [src]="room.avatarUrl || 'assets/images/default-avatar.svg'" [alt]="room.name || 'Cuộc trò chuyện'" (error)="useDefaultAvatar($event)" />
+                </span>
+                <h3>{{ room.name || 'Người chơi GoatSports' }}</h3>
+                <p>Chưa có tin nhắn nào. Gửi lời chào hoặc chốt luôn giờ ra sân.</p>
+                <div class="quick-replies">
+                  @for (reply of quickReplies; track reply) {
+                    <button type="button" (click)="sendQuickReply(reply)">{{ reply }}</button>
+                  }
+                </div>
               </div>
             }
 
@@ -243,14 +273,21 @@
       <section class="context-identity">
         <span class="avatar-shell context-avatar-shell">
           <img [src]="room.avatarUrl || 'assets/images/default-avatar.svg'" [alt]="room.name || 'Cuộc trò chuyện'" (error)="useDefaultAvatar($event)" />
-          @if (room.type === ChatRoomType.DIRECT) {
+          @if (isPairRoom(room)) {
             <span class="presence-dot" [class.online]="isDirectRoomOnline(room)" aria-hidden="true"></span>
           }
         </span>
-        <p class="eyebrow">Đang trò chuyện</p>
         <h2>{{ room.name || 'Người chơi GoatSports' }}</h2>
         <p>{{ getRoomHeaderMeta(room) }}</p>
       </section>
+
+      @if (room.type === ChatRoomType.MATCH && room.contextId) {
+        <a class="context-match-link" routerLink="/matchmaking">
+          <span class="action-icon"><lucide-icon name="swords" class="w-5 h-5"></lucide-icon></span>
+          <span><strong>Kèo đang ghép</strong><small>Mở tab AI ghép trận để xem tiến độ</small></span>
+          <lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon>
+        </a>
+      }
 
       <section class="context-section">
         <header>

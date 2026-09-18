@@ -56,6 +56,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   readonly creatingGroup = signal(false);
 
   readonly ChatRoomType = ChatRoomType;
+  readonly quickReplies = ['Chào bạn!', 'Mình hẹn mấy giờ nhỉ?', 'Chốt sân nhé!'];
   currentUserId = '';
   searchRoomQuery = '';
   messageInput = '';
@@ -340,7 +341,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   getRoomHeaderMeta(room: ChatRoom): string {
-    if (room.type === ChatRoomType.DIRECT) {
+    if (this.isPairRoom(room)) {
       const counterpart = this.getDirectCounterpart(room);
       return counterpart ? this.getPresenceLabel(counterpart.userId) : 'Trò chuyện trực tiếp';
     }
@@ -349,14 +350,105 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   getRoomMeta(room: ChatRoom): string {
-    return room.type === ChatRoomType.DIRECT
-      ? 'Trò chuyện trực tiếp'
-      : `${room.participantIds.length} thành viên`;
+    if (this.isPairRoom(room)) return 'Chưa có tin nhắn nào';
+    return `${room.participantIds.length} thành viên`;
+  }
+
+  /** Hội thoại giữa đúng hai người: chat riêng hoặc kèo 1-1. */
+  isPairRoom(room: ChatRoom): boolean {
+    return (room.type === ChatRoomType.DIRECT || room.type === ChatRoomType.MATCH)
+      && room.participants.length === 2;
+  }
+
+  getRoomBadge(room: ChatRoom): string {
+    if (room.type === ChatRoomType.MATCH) return 'Kèo';
+    if (room.type === ChatRoomType.CLUB) return 'CLB';
+    if (room.type === ChatRoomType.TOURNAMENT) return 'Giải';
+    if (room.type !== ChatRoomType.DIRECT) return 'Nhóm';
+    return '';
+  }
+
+  /** Người gửi cuối là mình thì nói rõ, giống chuẩn của các ứng dụng nhắn tin. */
+  getRoomPreview(room: ChatRoom): string {
+    if (!room.lastMessage) return this.getRoomMeta(room);
+    return room.lastSenderId === this.currentUserId ? `Bạn: ${room.lastMessage}` : room.lastMessage;
+  }
+
+  /** Hôm nay hiện giờ, hôm qua hiện chữ, xa hơn hiện ngày — tránh mọi dòng cùng "11:50". */
+  getRoomTimeLabel(room: ChatRoom): string {
+    const timestamp = room.lastMessageAt || room.updatedAt;
+    if (!timestamp) return '';
+    const date = new Date(timestamp);
+    if (Number.isNaN(date.getTime())) return '';
+    const days = this.daysFromToday(date);
+    if (days === 0) return new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit' }).format(date);
+    if (days === 1) return 'Hôm qua';
+    if (days < 7) return new Intl.DateTimeFormat('vi-VN', { weekday: 'short' }).format(date);
+    return new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit' }).format(date);
+  }
+
+  /** Nhãn ngăn cách ngày, chỉ hiện ở tin nhắn đầu tiên của mỗi ngày. */
+  getDaySeparator(index: number): string {
+    const list = this.messages();
+    const current = list[index];
+    if (!current) return '';
+    const currentDate = new Date(current.createdAt);
+    if (Number.isNaN(currentDate.getTime())) return '';
+    const previous = list[index - 1];
+    if (previous && this.isSameDay(new Date(previous.createdAt), currentDate)) return '';
+
+    const days = this.daysFromToday(currentDate);
+    if (days === 0) return 'Hôm nay';
+    if (days === 1) return 'Hôm qua';
+    return new Intl.DateTimeFormat('vi-VN', {
+      weekday: 'long',
+      day: '2-digit',
+      month: '2-digit',
+      year: currentDate.getFullYear() === new Date().getFullYear() ? undefined : 'numeric'
+    }).format(currentDate);
+  }
+
+  /** Tin cuối trong một chuỗi liên tiếp của cùng người gửi — chỗ gắn avatar và giờ. */
+  isLastOfGroup(index: number): boolean {
+    const list = this.messages();
+    const current = list[index];
+    const next = list[index + 1];
+    if (!current) return true;
+    if (!next || next.senderId !== current.senderId) return true;
+    if (!this.isSameDay(new Date(current.createdAt), new Date(next.createdAt))) return true;
+    return new Date(next.createdAt).getTime() - new Date(current.createdAt).getTime() > 5 * 60_000;
+  }
+
+  /** Tin đầu trong chuỗi — chỗ hiện tên người gửi ở hội thoại nhóm. */
+  isFirstOfGroup(index: number): boolean {
+    const list = this.messages();
+    const current = list[index];
+    const previous = list[index - 1];
+    if (!current) return true;
+    if (!previous || previous.senderId !== current.senderId) return true;
+    if (!this.isSameDay(new Date(previous.createdAt), new Date(current.createdAt))) return true;
+    return new Date(current.createdAt).getTime() - new Date(previous.createdAt).getTime() > 5 * 60_000;
+  }
+
+  sendQuickReply(content: string): void {
+    this.messageInput = content;
+    this.sendMessage();
   }
 
   isDirectRoomOnline(room: ChatRoom): boolean {
     const counterpart = this.getDirectCounterpart(room);
     return Boolean(counterpart && this.isUserOnline(counterpart.userId));
+  }
+
+  private isSameDay(left: Date, right: Date): boolean {
+    return left.getFullYear() === right.getFullYear()
+      && left.getMonth() === right.getMonth()
+      && left.getDate() === right.getDate();
+  }
+
+  private daysFromToday(date: Date): number {
+    const startOfDay = (value: Date) => new Date(value.getFullYear(), value.getMonth(), value.getDate()).getTime();
+    return Math.round((startOfDay(new Date()) - startOfDay(date)) / 86_400_000);
   }
 
   getMessageDeliveryLabel(message: ChatMessage): string {
@@ -653,14 +745,17 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
         userName: directory.get(participant.userId)?.fullName || participant.userName,
         userAvatar: directory.get(participant.userId)?.avatarUrl || participant.userAvatar
       }));
-      const counterpart = room.type === ChatRoomType.DIRECT
+      // Kèo 1-1 cũng là hội thoại giữa đúng hai người, nên hiển thị theo đối phương
+      // thay vì để tất cả cùng tên "Kèo BADMINTON" và cùng avatar mặc định.
+      const counterpart = participants.length === 2
         ? participants.find(participant => participant.userId !== this.currentUserId)
         : undefined;
+      const isPair = room.type === ChatRoomType.DIRECT || room.type === ChatRoomType.MATCH;
       return {
         ...room,
         participants,
-        name: counterpart?.userName || room.name,
-        avatarUrl: counterpart?.userAvatar || room.avatarUrl
+        name: isPair ? (counterpart?.userName || room.name) : room.name,
+        avatarUrl: (isPair ? counterpart?.userAvatar : undefined) || room.avatarUrl
       };
     })));
   }
