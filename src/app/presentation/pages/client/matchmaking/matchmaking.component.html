@@ -422,7 +422,7 @@
         'BOOKING_PENDING' || match.status === 'CONFIRMED') {
         <div class="decision-actions">
           <button type="button" class="button button-secondary"
-            [disabled]="isViewingHistory() || (match.status === 'ACCEPTED' ? actionLoading() : !match.proposal?.venueId)"
+            [disabled]="match.status === 'ACCEPTED' ? (isViewingHistory() || actionLoading()) : !match.proposal?.venueId"
             (click)="match.status === 'ACCEPTED' && !match.proposal?.venueId ? refreshVenues() : openVenue()">
             <lucide-icon name="calendar-check" class="w-5 h-5"></lucide-icon>
             {{ match.status === 'CONFIRMED'
@@ -433,7 +433,7 @@
             ? (isDesignatedBooker() ? 'Xem đơn đang thanh toán' : 'Đang chờ người đặt cọc')
             : (isDesignatedBooker() ? 'Đặt sân & thanh toán' : 'Xem sân đã chọn'))) }}
           </button>
-          <button type="button" class="button button-primary" [disabled]="isViewingHistory() || !canOpenChat()" (click)="openChat()">
+          <button type="button" class="button button-primary" [disabled]="!canOpenChat()" (click)="openChat()">
             <lucide-icon name="message-circle" class="w-5 h-5"></lucide-icon>
             Mở trò chuyện
           </button>
@@ -557,7 +557,7 @@
           <p>{{ historyError() }}</p>
         </div>
         } @else if (history().length) {
-        <div class="history-list">
+        <div class="history-list" (scroll)="onHistoryScroll($event)">
           @for (match of history(); track match.sessionId) {
           @if (historyOpponent(match); as rival) {
           <button type="button" class="history-row" [class.selected]="isSelectedHistory(match)"
@@ -576,6 +576,12 @@
             <span class="history-status" [attr.data-status]="match.status">{{ historyStatus(match) }}</span>
           </button>
           }
+          }
+          @if (historyLoadingMore()) {
+          <div class="history-load-more">
+            <span class="spinner spinner--small"></span>
+            <span>Đang tải thêm…</span>
+          </div>
           }
         </div>
         } @else {

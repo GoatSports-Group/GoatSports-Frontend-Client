@@ -1232,6 +1232,18 @@
 
 .history-list {
   padding: 0 18px;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.history-load-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 0;
+  color: #718093;
+  font-size: 0.78rem;
 }
 
 .history-row {

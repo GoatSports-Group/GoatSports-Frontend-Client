@@ -102,6 +102,9 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   readonly fairPlayRating = signal(5);
   readonly feedbackComment = signal('');
   readonly historyLoading = signal(true);
+  readonly historyLoadingMore = signal(false);
+  readonly historyHasMore = signal(true);
+  private static readonly HISTORY_PAGE_SIZE = 5;
   readonly elapsedSeconds = signal(0);
   readonly nowMs = signal(Date.now());
   readonly queueSize = signal<number | null>(null);
@@ -140,9 +143,20 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     { label: 'Cạnh tranh', helper: 'Thi đấu nghiêm túc', value: 'COMPETITIVE' }
   ];
 
-  readonly displayedSession = computed(() => this.selectedHistorySession() ?? this.session());
-  readonly isViewingHistory = computed(() => Boolean(this.selectedHistorySession()));
-  readonly historyReturnLabel = computed(() => this.session() ? 'Trở lại trận hiện tại' : 'Đóng chi tiết');
+  readonly hideRestoredSession = signal(false);
+  readonly displayedSession = computed(() => {
+    const selected = this.selectedHistorySession();
+    if (selected) return selected;
+    return this.hideRestoredSession() ? null : this.session();
+  });
+  readonly isViewingHistory = computed(() => {
+    const selected = this.selectedHistorySession();
+    if (!selected) return false;
+    return selected.sessionId !== this.session()?.sessionId;
+  });
+  readonly historyReturnLabel = computed(() =>
+    this.session() && !this.hideRestoredSession() ? 'Trở lại trận hiện tại' : 'Đóng chi tiết'
+  );
   readonly currentParticipant = computed(() => {
     const currentUserId = this.authService.currentUser?.userId;
     return this.displayedSession()?.participants.find(item => item.participantId === currentUserId) ?? null;
@@ -264,13 +278,15 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
       profiles: this.profileRepository.getMyProfiles().pipe(
         catchError(() => of([] as PlayerSportProfile[]))
       ),
-      history: this.aiRepository.getMatchmakingHistory(5).pipe(
+      history: this.aiRepository.getMatchmakingHistory(MatchmakingComponent.HISTORY_PAGE_SIZE, 0).pipe(
         catchError(() => of([] as MatchmakingSession[]))
       )
     }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: ({ profiles, history }) => {
         this.profiles.set(Array.isArray(profiles) ? profiles : []);
-        this.history.set(Array.isArray(history) ? history : []);
+        const items = Array.isArray(history) ? history : [];
+        this.history.set(items);
+        this.historyHasMore.set(items.length >= MatchmakingComponent.HISTORY_PAGE_SIZE);
         this.historyLoading.set(false);
         this.applyProfileForSport(this.selectedSport());
       },
@@ -547,8 +563,38 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     this.animateMatchDetail();
   }
 
+  onHistoryScroll(event: Event): void {
+    const target = event.target as HTMLElement;
+    const remaining = target.scrollHeight - target.scrollTop - target.clientHeight;
+    if (remaining < 120) this.loadMoreHistory();
+  }
+
+  loadMoreHistory(): void {
+    if (this.historyLoading() || this.historyLoadingMore() || !this.historyHasMore()) return;
+    this.historyLoadingMore.set(true);
+    const offset = this.history().length;
+    this.aiRepository.getMatchmakingHistory(MatchmakingComponent.HISTORY_PAGE_SIZE, offset)
+      .pipe(
+        catchError(() => of([] as MatchmakingSession[])),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(items => {
+        this.historyLoadingMore.set(false);
+        if (!items.length) {
+          this.historyHasMore.set(false);
+          return;
+        }
+        this.history.update(current => [...current, ...items]);
+        this.historyHasMore.set(items.length >= MatchmakingComponent.HISTORY_PAGE_SIZE);
+      });
+  }
+
   clearHistorySelection(): void {
     this.selectedHistorySession.set(null);
+    if (!this.session()) {
+      this.isSearching.set(false);
+      this.queueSize.set(null);
+    }
     this.animateMatchDetail();
   }
 
@@ -650,6 +696,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     this.isSearching.set(true);
     this.session.set(null);
     this.selectedHistorySession.set(null);
+    this.hideRestoredSession.set(false);
     this.elapsedSeconds.set(0);
     this.startElapsedTimer();
     this.aiRepository.joinMatchmakingQueue(payload)
@@ -678,6 +725,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
       next: response => {
         if (response.session) {
           this.applySession(response.session);
+          this.hideRestoredSession.set(true);
           this.upsertHistory(response.session);
         } else if (response.status === 'QUEUED') {
           this.isSearching.set(true);
@@ -744,6 +792,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
         this.queueSize.set(response.queueSize ?? null);
         if (response.session) {
           this.applySession(response.session);
+          this.hideRestoredSession.set(false);
           this.upsertHistory(response.session);
         } else if (this.selectionMode() === 'MANUAL' && this.isSearching()) {
           this.loadCandidates();
