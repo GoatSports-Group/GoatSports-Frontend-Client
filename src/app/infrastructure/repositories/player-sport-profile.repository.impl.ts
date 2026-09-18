@@ -15,6 +15,10 @@ export class PlayerSportProfileRepositoryImpl implements PlayerSportProfileRepos
     return this.api.getMyProfiles().pipe(map(response => response.data || []));
   }
 
+  getProfilesOf(userId: string): Observable<PlayerSportProfile[]> {
+    return this.api.getProfilesOf(userId).pipe(map(response => response.data || []));
+  }
+
   createProfile(payload: SavePlayerSportProfileRequest): Observable<PlayerSportProfile> {
     return this.api.createProfile(payload).pipe(map(response => response.data));
   }

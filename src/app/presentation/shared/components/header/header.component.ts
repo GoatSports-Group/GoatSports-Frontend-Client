@@ -35,10 +35,6 @@ export class HeaderComponent implements OnInit {
     return this.router.url.startsWith('/friends') || this.router.url.startsWith('/chat');
   }
 
-  get isChatRoute(): boolean {
-    return this.router.url.startsWith('/chat');
-  }
-
   get connectionLabel(): string {
     if (this.router.url.startsWith('/chat')) return 'Tin Nhắn';
     if (this.router.url.startsWith('/friends')) return 'Bạn Bè';

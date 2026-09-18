@@ -7,6 +7,7 @@ import {
 
 export interface PlayerSportProfileRepository {
   getMyProfiles(): Observable<PlayerSportProfile[]>;
+  getProfilesOf(userId: string): Observable<PlayerSportProfile[]>;
   createProfile(payload: SavePlayerSportProfileRequest): Observable<PlayerSportProfile>;
   updateProfile(profileId: string, payload: SavePlayerSportProfileRequest): Observable<PlayerSportProfile>;
   deleteProfile(profileId: string): Observable<void>;

@@ -1,4 +1,5 @@
-<div class="chat-workspace">
+<div class="chat-page-wrapper">
+  <div class="chat-workspace">
   <aside class="rooms-sidebar" aria-label="Danh sách cuộc trò chuyện">
     <header class="sidebar-header">
       <nav class="sidebar-tabs" aria-label="Kết nối">
@@ -6,27 +7,22 @@
         <a routerLink="/friends">Bạn bè</a>
       </nav>
 
-      <div class="title-row">
-        <div>
-          <p class="eyebrow">Trò chuyện</p>
-          <h1>Tin nhắn</h1>
-        </div>
-        <button type="button" class="new-message-btn" (click)="openGroupModal()">
-          <lucide-icon name="plus" class="w-4 h-4"></lucide-icon>
-          <span>Tin nhắn mới</span>
-        </button>
-      </div>
+      <button type="button" class="new-message-btn" (click)="openGroupModal()">
+        <lucide-icon name="plus" class="w-4 h-4"></lucide-icon>
+        <span>Tin nhắn mới</span>
+      </button>
 
       <label class="search-box">
         <span class="sr-only">Tìm cuộc trò chuyện</span>
         <lucide-icon name="search" class="w-4 h-4"></lucide-icon>
-        <input type="search" placeholder="Tìm cuộc trò chuyện..." [(ngModel)]="searchRoomQuery" />
+        <input type="search" placeholder="Tìm kiếm tin nhắn, người hoặc nhóm..." [(ngModel)]="searchRoomQuery" />
       </label>
 
       <div class="room-filters" aria-label="Lọc cuộc trò chuyện">
         <button type="button" [class.active]="roomFilter() === 'ALL'" [attr.aria-pressed]="roomFilter() === 'ALL'" (click)="setRoomFilter('ALL')">Tất cả</button>
         <button type="button" [class.active]="roomFilter() === 'UNREAD'" [attr.aria-pressed]="roomFilter() === 'UNREAD'" (click)="setRoomFilter('UNREAD')">Chưa đọc</button>
         <button type="button" [class.active]="roomFilter() === 'GROUP'" [attr.aria-pressed]="roomFilter() === 'GROUP'" (click)="setRoomFilter('GROUP')">Nhóm</button>
+        <button type="button" [class.active]="roomFilter() === 'CLUB'" [attr.aria-pressed]="roomFilter() === 'CLUB'" (click)="setRoomFilter('CLUB')">Câu lạc bộ</button>
       </div>
     </header>
 
@@ -68,9 +64,6 @@
                 }
               </span>
               <span class="room-footer-row">
-                @if (getRoomBadge(room); as badge) {
-                  <b class="room-type-badge" [attr.data-type]="room.type">{{ badge }}</b>
-                }
                 @if (getTypingLabel(room.roomId); as typingLabel) {
                   <span class="room-typing">{{ typingLabel }}<i class="typing-mini-dots" aria-hidden="true"><b></b><b></b><b></b></i></span>
                 } @else {
@@ -110,19 +103,20 @@
         <div class="partner-meta">
           <h2>
             {{ room.name || 'Người chơi GoatSports' }}
-            @if (getRoomBadge(room); as badge) {
-              <b class="room-type-badge" [attr.data-type]="room.type">{{ badge }}</b>
+            @if (isPairRoom(room) && isDirectRoomOnline(room)) {
+              <i class="name-presence-dot" aria-hidden="true"></i>
             }
           </h2>
           <span [class.is-online]="isPairRoom(room) && isDirectRoomOnline(room)">{{ getRoomHeaderMeta(room) }}</span>
+          <small>{{ getRoomContextLine(room) }}</small>
         </div>
         <div class="chat-header-actions">
-          <a class="icon-button" routerLink="/venues" aria-label="Tìm sân để cùng chơi" title="Tìm sân để cùng chơi">
-            <lucide-icon name="map-pin" class="w-5 h-5"></lucide-icon>
-          </a>
-          <a class="icon-button" routerLink="/friends" aria-label="Mở danh sách bạn bè" title="Danh sách bạn bè">
-            <lucide-icon name="users" class="w-5 h-5"></lucide-icon>
-          </a>
+          <button type="button" class="icon-button" disabled aria-label="Gọi thoại" title="Gọi thoại đang được phát triển">
+            <lucide-icon name="phone" class="w-5 h-5"></lucide-icon>
+          </button>
+          <button type="button" class="icon-button" disabled aria-label="Gọi video" title="Gọi video đang được phát triển">
+            <lucide-icon name="video" class="w-5 h-5"></lucide-icon>
+          </button>
           <button
             type="button"
             class="icon-button"
@@ -164,7 +158,7 @@
                   [class.group-end]="isLastOfGroup(index)"
                 >
                   @if (message.senderId !== currentUserId) {
-                    @if (isLastOfGroup(index)) {
+                    @if (isFirstOfGroup(index)) {
                       <img class="message-avatar" [src]="getMessageSenderAvatar(message)" [alt]="getMessageSenderName(message)" (error)="useDefaultAvatar($event)" />
                     } @else {
                       <span class="message-avatar-spacer" aria-hidden="true"></span>
@@ -181,9 +175,11 @@
                       <div class="message-meta">
                         <time [attr.datetime]="message.createdAt">{{ message.createdAt | date:'HH:mm' }}</time>
                         @if (message.senderId === currentUserId) {
-                          <span class="delivery-state" [class.failed]="message.deliveryState === 'FAILED'">
-                            <lucide-icon [name]="message.deliveryState === 'SENDING' ? 'clock-3' : message.deliveryState === 'FAILED' ? 'circle-alert' : 'check-check'" class="w-3.5 h-3.5"></lucide-icon>
-                            {{ getMessageDeliveryLabel(message) }}
+                          <span class="delivery-state" [class.failed]="message.deliveryState === 'FAILED'"
+                            [class.seen]="message.status === 'READ' || message.isRead"
+                            [attr.title]="getMessageDeliveryLabel(message)">
+                            <lucide-icon [name]="message.deliveryState === 'SENDING' ? 'clock-3' : message.deliveryState === 'FAILED' ? 'circle-alert' : 'check-check'" class="w-4 h-4"></lucide-icon>
+                            <span class="sr-only">{{ getMessageDeliveryLabel(message) }}</span>
                           </span>
                           @if (message.deliveryState === 'FAILED') {
                             <button type="button" class="retry-button" (click)="retryMessage(message)">Gửi lại</button>
@@ -228,9 +224,17 @@
       </section>
 
       <footer class="composer">
-        <button type="button" class="composer-action" disabled aria-label="Đính kèm tệp" title="Đính kèm tệp đang được phát triển">
-          <lucide-icon name="image" class="w-5 h-5"></lucide-icon>
-        </button>
+        <div class="composer-tools">
+          <button type="button" class="composer-action" disabled aria-label="Gửi ảnh" title="Gửi ảnh đang được phát triển">
+            <lucide-icon name="image" class="w-5 h-5"></lucide-icon>
+          </button>
+          <button type="button" class="composer-action" disabled aria-label="Đính kèm tệp" title="Đính kèm tệp đang được phát triển">
+            <lucide-icon name="paperclip" class="w-5 h-5"></lucide-icon>
+          </button>
+          <button type="button" class="composer-action" disabled aria-label="Chèn biểu cảm" title="Biểu cảm đang được phát triển">
+            <lucide-icon name="smile" class="w-5 h-5"></lucide-icon>
+          </button>
+        </div>
         <label class="composer-field">
           <span class="sr-only">Nội dung tin nhắn</span>
           <textarea
@@ -242,7 +246,9 @@
             (blur)="onTypingStop()"
             (keydown)="onInputKeyDown($event)"
           ></textarea>
-          <small><span>Enter để gửi · Shift + Enter để xuống dòng</span><span>{{ messageInput.length }}/2000</span></small>
+          @if (messageInput.length) {
+            <small><span>Enter để gửi · Shift + Enter để xuống dòng</span><span>{{ messageInput.length }}/2000</span></small>
+          }
         </label>
         <button type="button" class="send-button" [disabled]="!messageInput.trim()" (click)="sendMessage()" aria-label="Gửi tin nhắn">
           <lucide-icon name="send" class="w-5 h-5"></lucide-icon>
@@ -270,30 +276,58 @@
           <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
         </button>
       </header>
-      <section class="context-identity">
-        <span class="avatar-shell context-avatar-shell">
-          <img [src]="room.avatarUrl || 'assets/images/default-avatar.svg'" [alt]="room.name || 'Cuộc trò chuyện'" (error)="useDefaultAvatar($event)" />
-          @if (isPairRoom(room)) {
-            <span class="presence-dot" [class.online]="isDirectRoomOnline(room)" aria-hidden="true"></span>
-          }
-        </span>
-        <h2>{{ room.name || 'Người chơi GoatSports' }}</h2>
-        <p>{{ getRoomHeaderMeta(room) }}</p>
+      <section class="context-cover">
+        <img [src]="room.avatarUrl || 'assets/images/default-avatar.svg'" [alt]="room.name || 'Cuộc trò chuyện'" (error)="useDefaultAvatar($event)" />
+        <button type="button" class="cover-close" aria-label="Đóng thông tin" (click)="toggleContextPanel()">
+          <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+        </button>
       </section>
 
+      <section class="context-identity">
+        <h2>
+          {{ room.name || 'Người chơi GoatSports' }}
+          @if (isPairRoom(room) && isDirectRoomOnline(room)) {
+            <i class="name-presence-dot" aria-hidden="true"></i>
+          }
+        </h2>
+        <p class="context-status">{{ getRoomHeaderMeta(room) }}</p>
+
+        @if (counterpartFacts().length) {
+          <ul class="context-facts">
+            @for (fact of counterpartFacts(); track fact.label) {
+              <li><lucide-icon [name]="fact.icon" class="w-4 h-4"></lucide-icon>{{ fact.label }}</li>
+            }
+          </ul>
+        }
+      </section>
+
+      @if (counterpartSports().length) {
+        <section class="context-section">
+          <h3>Môn thể thao cùng quan tâm</h3>
+          <div class="sport-chips">
+            @for (sport of counterpartSports(); track sport.label) {
+              <span class="sport-chip" [class.shared]="sport.shared">{{ sport.label }}</span>
+            }
+          </div>
+        </section>
+      }
+
       @if (room.type === ChatRoomType.MATCH && room.contextId) {
-        <a class="context-match-link" routerLink="/matchmaking">
-          <span class="action-icon"><lucide-icon name="swords" class="w-5 h-5"></lucide-icon></span>
-          <span><strong>Kèo đang ghép</strong><small>Mở tab AI ghép trận để xem tiến độ</small></span>
-          <lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon>
-        </a>
+        <section class="context-section">
+          <h3>Trận đấu sắp tới</h3>
+          <a class="context-card" routerLink="/matchmaking">
+            <span class="card-thumb"><lucide-icon name="swords" class="w-5 h-5"></lucide-icon></span>
+            <span class="card-copy">
+              <strong>Kèo đã ghép qua GOAT AI</strong>
+              <small>Mở tab AI ghép trận để xem tiến độ</small>
+            </span>
+            <span class="card-cta">Xem</span>
+          </a>
+        </section>
       }
 
       <section class="context-section">
-        <header>
-          <h3>Thành viên</h3>
-          <span>{{ room.participants.length }}</span>
-        </header>
+        <h3>Thành viên<span class="section-count">{{ room.participants.length }}</span></h3>
         <div class="context-member-list">
           @for (participant of room.participants; track participant.userId) {
             <div class="context-member">
@@ -310,17 +344,23 @@
         </div>
       </section>
 
-      <nav class="context-actions" aria-label="Thao tác cuộc trò chuyện">
-        <a routerLink="/venues">
-          <span class="action-icon"><lucide-icon name="map-pin" class="w-5 h-5"></lucide-icon></span>
-          <span><strong>Tìm sân cùng chơi</strong><small>Xem sân và lịch trống gần bạn</small></span>
-          <lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon>
-        </a>
-        <a routerLink="/friends">
-          <span class="action-icon"><lucide-icon name="users" class="w-5 h-5"></lucide-icon></span>
-          <span><strong>Quản lý bạn bè</strong><small>Lời mời, kết nối và danh sách chặn</small></span>
-          <lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon>
-        </a>
+      <nav class="context-danger-actions" aria-label="Thao tác với cuộc trò chuyện">
+        <button type="button" class="danger-row" (click)="toggleRoomMute(room)">
+          <lucide-icon name="bell" class="w-5 h-5"></lucide-icon>
+          <span>Tắt thông báo</span>
+          <i class="switch" [class.on]="isRoomMuted(room.roomId)" aria-hidden="true"></i>
+          <span class="sr-only">{{ isRoomMuted(room.roomId) ? 'Đang tắt' : 'Đang bật' }}</span>
+        </button>
+        @if (counterpart(); as person) {
+          <button type="button" class="danger-row is-danger" [disabled]="contextActionLoading()" (click)="blockCounterpart(person)">
+            <lucide-icon name="ban" class="w-5 h-5"></lucide-icon>
+            <span>Chặn người dùng</span>
+          </button>
+          <button type="button" class="danger-row is-danger" [disabled]="contextActionLoading()" (click)="reportCounterpart(person)">
+            <lucide-icon name="flag" class="w-5 h-5"></lucide-icon>
+            <span>Báo cáo</span>
+          </button>
+        }
       </nav>
     </aside>
   }
@@ -356,4 +396,5 @@
       </section>
     </div>
   }
+  </div>
 </div>

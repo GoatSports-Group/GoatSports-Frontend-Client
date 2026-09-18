@@ -17,6 +17,12 @@ export class PlayerSportProfileApi {
     return this.http.get<BaseResponse<PlayerSportProfile[]>>(this.endpoint);
   }
 
+  getProfilesOf(userId: string): Observable<BaseResponse<PlayerSportProfile[]>> {
+    return this.http.get<BaseResponse<PlayerSportProfile[]>>(
+      `${API_ENDPOINTS.auth}/users/${userId}/sport-profiles`
+    );
+  }
+
   createProfile(payload: SavePlayerSportProfileRequest): Observable<BaseResponse<PlayerSportProfile>> {
     return this.http.post<BaseResponse<PlayerSportProfile>>(this.endpoint, payload);
   }

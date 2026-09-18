@@ -1,4 +1,4 @@
-import { AfterViewChecked, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { AfterViewChecked, Component, ElementRef, OnDestroy, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, Subscription, finalize, map, switchMap } from 'rxjs';
 import { CHAT_REPOSITORY_TOKEN } from '@application/ports/persistence/chat.repository';
@@ -7,6 +7,7 @@ import { WEBSOCKET_SERVICE_TOKEN } from '@application/ports/websocket.service';
 import { CURRENT_USER_PROVIDER_TOKEN } from '@application/ports/current-user.provider';
 import {
   ChatMessage,
+  ChatParticipant,
   ChatPresenceEvent,
   ChatRoom,
   ChatRoomType,
@@ -14,10 +15,24 @@ import {
   MessageType
 } from '@application/dto/chat/chat.dto';
 import { Friendship } from '@application/dto/friend/friend.dto';
+import { User } from '@application/dto/user/user.dto';
+import { PLAYER_SPORT_PROFILE_REPOSITORY_TOKEN } from '@application/ports/persistence/player-sport-profile.repository';
+import { SOCIAL_FEED_REPOSITORY_TOKEN } from '@application/ports/persistence/social-feed.repository';
 import { NotifyService } from '@shared/components/notify/notify.service';
 import { PlayerDirectoryService } from '@presentation/services/player-directory.service';
 
-type RoomFilter = 'ALL' | 'UNREAD' | 'GROUP';
+const SPORT_LABELS: Record<string, string> = {
+  FOOTBALL: 'Bóng đá',
+  BADMINTON: 'Cầu lông',
+  TENNIS: 'Tennis',
+  PICKLEBALL: 'Pickleball',
+  BASKETBALL: 'Bóng rổ',
+  VOLLEYBALL: 'Bóng chuyền'
+};
+
+const MUTED_ROOMS_STORAGE_KEY = 'goat.chat.mutedRooms';
+
+type RoomFilter = 'ALL' | 'UNREAD' | 'GROUP' | 'CLUB';
 
 @Component({
   selector: 'app-chat',
@@ -36,6 +51,8 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   private readonly userProvider = inject(CURRENT_USER_PROVIDER_TOKEN);
   private readonly notifyService = inject(NotifyService);
   private readonly playerDirectory = inject(PlayerDirectoryService);
+  private readonly sportProfileRepo = inject(PLAYER_SPORT_PROFILE_REPOSITORY_TOKEN);
+  private readonly socialFeedRepo = inject(SOCIAL_FEED_REPOSITORY_TOKEN);
 
   readonly rooms = signal<ChatRoom[]>([]);
   readonly activeRoom = signal<ChatRoom | null>(null);
@@ -57,6 +74,12 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   readonly ChatRoomType = ChatRoomType;
   readonly quickReplies = ['Chào bạn!', 'Mình hẹn mấy giờ nhỉ?', 'Chốt sân nhé!'];
+  readonly counterpart = signal<ChatParticipant | null>(null);
+  readonly counterpartProfile = signal<User | null>(null);
+  readonly counterpartSports = signal<{ label: string; shared: boolean }[]>([]);
+  readonly mutedRoomIds = signal<ReadonlySet<string>>(new Set());
+  readonly contextActionLoading = signal(false);
+  private mySportTypes: ReadonlySet<string> = new Set();
   currentUserId = '';
   searchRoomQuery = '';
   messageInput = '';
@@ -73,6 +96,8 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   ngOnInit(): void {
     this.currentUserId = this.userProvider.getCurrentUserId() || '';
+    this.restoreMutedRooms();
+    this.loadMySportTypes();
     this.wsService.connect();
     this.listenToWebSocket();
     this.relativeTimeInterval = setInterval(() => this.now.set(Date.now()), 30_000);
@@ -109,7 +134,8 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
         (room.lastMessage || '').toLowerCase().includes(query);
       const matchesFilter = this.roomFilter() === 'ALL' ||
         (this.roomFilter() === 'UNREAD' && room.unreadCount > 0) ||
-        (this.roomFilter() === 'GROUP' && room.type !== ChatRoomType.DIRECT);
+        (this.roomFilter() === 'GROUP' && room.type === ChatRoomType.GROUP) ||
+        (this.roomFilter() === 'CLUB' && room.type === ChatRoomType.CLUB);
       return matchesQuery && matchesFilter;
     });
   }
@@ -166,6 +192,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.onTypingStop();
     this.activeRoom.set(room);
     this.contextPanelOpen.set(false);
+    this.loadCounterpartContext(room);
     this.wsService.subscribeToRoom(room.roomId);
     this.loadMessages(room.roomId);
 
@@ -349,6 +376,91 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     return `${room.participants.length} thành viên · ${onlineCount} đang hoạt động`;
   }
 
+  /**
+   * Thông tin hồ sơ của đối phương hiển thị ở panel phải. Chỉ dựng từ dữ liệu
+   * auth-service thực sự trả về — hồ sơ hiện chưa có ngày sinh, nơi ở hay nghề nghiệp.
+   */
+  readonly counterpartFacts = computed<{ icon: string; label: string }[]>(() => {
+    const person = this.counterpartProfile();
+    if (!person) return [];
+    const facts: { icon: string; label: string }[] = [];
+    const gender = this.genderLabel(person.gender);
+    if (gender) facts.push({ icon: 'user', label: gender });
+    if (person.country) facts.push({ icon: 'map-pin', label: person.country });
+    if (person.role?.name) facts.push({ icon: 'award', label: this.roleLabel(person.role.name) });
+    if (person.createdAt) {
+      const joined = new Date(person.createdAt);
+      if (!Number.isNaN(joined.getTime())) {
+        facts.push({
+          icon: 'calendar-check',
+          label: `Tham gia ${new Intl.DateTimeFormat('vi-VN', { month: 'long', year: 'numeric' }).format(joined)}`
+        });
+      }
+    }
+    return facts;
+  });
+
+  isRoomMuted(roomId: string): boolean {
+    return this.mutedRoomIds().has(roomId);
+  }
+
+  /** Tắt thông báo là tuỳ chọn cục bộ của từng máy: backend chưa lưu trạng thái này. */
+  toggleRoomMute(room: ChatRoom): void {
+    this.mutedRoomIds.update(items => {
+      const next = new Set(items);
+      next.has(room.roomId) ? next.delete(room.roomId) : next.add(room.roomId);
+      this.persistMutedRooms(next);
+      return next;
+    });
+    this.notifyService.success(
+      this.isRoomMuted(room.roomId)
+        ? 'Đã tắt thông báo cho cuộc trò chuyện này trên thiết bị hiện tại.'
+        : 'Đã bật lại thông báo cho cuộc trò chuyện này.'
+    );
+  }
+
+  blockCounterpart(person: ChatParticipant): void {
+    const name = person.userName || 'người chơi này';
+    if (!confirm(`Chặn ${name}? Hai bạn sẽ không nhắn tin được cho nhau nữa.`)) return;
+    this.contextActionLoading.set(true);
+    this.friendRepo.blockUser({ blockedUserId: person.userId }).pipe(
+      finalize(() => this.contextActionLoading.set(false))
+    ).subscribe({
+      next: () => {
+        this.notifyService.success(`Đã chặn ${name}.`);
+        this.backToRooms();
+        this.loadRooms();
+      },
+      error: () => this.notifyService.error('Không thể chặn người dùng này. Vui lòng thử lại.')
+    });
+  }
+
+  reportCounterpart(person: ChatParticipant): void {
+    const reason = prompt(`Lý do báo cáo ${person.userName || 'người chơi này'}:`)?.trim();
+    if (!reason) return;
+    this.contextActionLoading.set(true);
+    this.socialFeedRepo.reportContent({
+      targetType: 'USER',
+      targetId: person.userId,
+      reason,
+      evidence: []
+    }).pipe(
+      finalize(() => this.contextActionLoading.set(false))
+    ).subscribe({
+      next: () => this.notifyService.success('Đã gửi báo cáo tới đội ngũ kiểm duyệt.'),
+      error: () => this.notifyService.error('Không gửi được báo cáo. Vui lòng thử lại.')
+    });
+  }
+
+  /** Dòng phụ dưới tên ở header: bối cảnh của hội thoại, không phải trạng thái online. */
+  getRoomContextLine(room: ChatRoom): string {
+    if (room.type === ChatRoomType.MATCH) return 'Kèo đấu đã ghép qua GOAT AI';
+    if (room.type === ChatRoomType.CLUB) return 'Kênh trao đổi của câu lạc bộ';
+    if (room.type === ChatRoomType.TOURNAMENT) return 'Kênh trao đổi của giải đấu';
+    if (room.type === ChatRoomType.DIRECT) return 'Trò chuyện riêng';
+    return `${room.participants.length} thành viên trong nhóm`;
+  }
+
   getRoomMeta(room: ChatRoom): string {
     if (this.isPairRoom(room)) return 'Chưa có tin nhắn nào';
     return `${room.participantIds.length} thành viên`;
@@ -398,14 +510,15 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     if (previous && this.isSameDay(new Date(previous.createdAt), currentDate)) return '';
 
     const days = this.daysFromToday(currentDate);
-    if (days === 0) return 'Hôm nay';
-    if (days === 1) return 'Hôm qua';
-    return new Intl.DateTimeFormat('vi-VN', {
-      weekday: 'long',
-      day: '2-digit',
-      month: '2-digit',
-      year: currentDate.getFullYear() === new Date().getFullYear() ? undefined : 'numeric'
+    const fullDate = new Intl.DateTimeFormat('vi-VN', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
     }).format(currentDate);
+    if (days === 0) return `Hôm nay, ${fullDate}`;
+    if (days === 1) return `Hôm qua, ${fullDate}`;
+    const weekday = new Intl.DateTimeFormat('vi-VN', { weekday: 'long' }).format(currentDate);
+    return `${weekday.charAt(0).toUpperCase()}${weekday.slice(1)}, ${fullDate}`;
   }
 
   /** Tin cuối trong một chuỗi liên tiếp của cùng người gửi — chỗ gắn avatar và giờ. */
@@ -735,6 +848,70 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   private getDirectCounterpart(room: ChatRoom) {
     return room.participants.find(participant => participant.userId !== this.currentUserId);
+  }
+
+  private loadCounterpartContext(room: ChatRoom): void {
+    const person = this.isPairRoom(room) ? this.getDirectCounterpart(room) : undefined;
+    this.counterpart.set(person ?? null);
+    this.counterpartProfile.set(null);
+    this.counterpartSports.set([]);
+    if (!person) return;
+
+    this.playerDirectory.resolve([person.userId]).subscribe({
+      next: directory => this.counterpartProfile.set(directory.get(person.userId) ?? null),
+      error: () => undefined
+    });
+
+    this.sportProfileRepo.getProfilesOf(person.userId).subscribe({
+      next: profiles => this.counterpartSports.set(profiles.map(profile => ({
+        label: SPORT_LABELS[profile.sportType] || profile.sportType,
+        shared: this.mySportTypes.has(profile.sportType)
+      }))),
+      error: () => this.counterpartSports.set([])
+    });
+  }
+
+  private loadMySportTypes(): void {
+    this.sportProfileRepo.getMyProfiles().subscribe({
+      next: profiles => {
+        this.mySportTypes = new Set(profiles.map(profile => profile.sportType));
+        const room = this.activeRoom();
+        if (room) this.loadCounterpartContext(room);
+      },
+      error: () => undefined
+    });
+  }
+
+  private restoreMutedRooms(): void {
+    try {
+      const stored = localStorage.getItem(MUTED_ROOMS_STORAGE_KEY);
+      if (stored) this.mutedRoomIds.set(new Set(JSON.parse(stored) as string[]));
+    } catch {
+      // Trình duyệt chặn storage thì coi như chưa tắt thông báo phòng nào.
+    }
+  }
+
+  private persistMutedRooms(roomIds: ReadonlySet<string>): void {
+    try {
+      localStorage.setItem(MUTED_ROOMS_STORAGE_KEY, JSON.stringify([...roomIds]));
+    } catch {
+      // Không lưu được thì tuỳ chọn chỉ có hiệu lực trong phiên hiện tại.
+    }
+  }
+
+  private genderLabel(gender?: string): string {
+    if (!gender) return '';
+    const normalized = gender.toUpperCase();
+    if (normalized === 'MALE' || normalized === 'NAM') return 'Nam';
+    if (normalized === 'FEMALE' || normalized === 'NU' || normalized === 'NỮ') return 'Nữ';
+    return 'Khác';
+  }
+
+  private roleLabel(role: string): string {
+    const normalized = role.toUpperCase();
+    if (normalized.includes('OWNER')) return 'Chủ sân';
+    if (normalized.includes('ADMIN')) return 'Quản trị viên';
+    return 'Người chơi phong trào';
   }
 
   private enrichRooms(rooms: ChatRoom[]): Observable<ChatRoom[]> {

@@ -1,7 +1,7 @@
 export type PostVisibility = 'PUBLIC' | 'FRIENDS' | 'PRIVATE';
 export type PostStatus = 'DRAFT' | 'PUBLISHED' | 'HIDDEN' | 'REMOVED';
 export type AttachmentType = 'IMAGE' | 'VIDEO' | 'FILE';
-export type ReportTargetType = 'POST' | 'COMMENT';
+export type ReportTargetType = 'POST' | 'COMMENT' | 'MESSAGE' | 'USER' | 'VENUE' | 'REVIEW';
 export type ReportStatus = 'PENDING' | 'REVIEWING' | 'RESOLVED' | 'REJECTED';
 
 export interface SocialPostAttachment {
