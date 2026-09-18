@@ -78,6 +78,7 @@ export interface MatchProposal {
   bookingCreatedAt?: string;
   bookedAt?: string;
   checkedInAt?: string;
+  cancelReason?: string;
 }
 
 export interface MatchResultClaim {

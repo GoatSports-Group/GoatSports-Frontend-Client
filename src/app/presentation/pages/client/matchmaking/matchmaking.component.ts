@@ -226,10 +226,55 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
       : 'Đối thủ đã đồng ý, đến lượt bạn';
     if (status === 'REJECTED') return 'Kèo đã bị từ chối';
     if (status === 'EXPIRED') return 'Kèo đã hết thời gian xác nhận';
-    if (status === 'CANCELLED') return 'Kèo đã bị hủy';
+    if (status === 'CANCELLED') return this.cancelReasonMessage();
     return 'Đã tìm thấy đối thủ';
   });
+  readonly cancelReasonMessage = computed(() => {
+    const match = this.displayedSession();
+    const reason = match?.proposal?.cancelReason;
+    switch (reason) {
+      case 'PLAYER_CANCELLED':
+        return this.isDesignatedBooker()
+          ? 'Bạn đã hủy đặt sân cho kèo này'
+          : 'Người đặt cọc đã hủy đặt sân cho kèo này';
+      case 'PAYMENT_EXPIRED':
+        return 'Đã hết thời gian thanh toán tiền cọc';
+      case 'PAYMENT_CANCELLED':
+        return 'Thanh toán tiền cọc đã bị hủy';
+      case 'REFUNDED':
+        return 'Đặt sân đã bị hủy, tiền cọc đã được hoàn lại';
+      default:
+        return 'Kèo đã bị hủy';
+    }
+  });
   readonly statusLabel = computed(() => this.sessionStatusLabel(this.displayedSession()?.status));
+  readonly checkInWindowState = computed<'BEFORE' | 'ACTIVE' | 'MISSED' | null>(() => {
+    const match = this.displayedSession();
+    if (!match || match.status !== 'CONFIRMED') return null;
+    const start = this.localDateTime(match.playDate, match.startTime);
+    const end = this.localDateTime(match.playDate, match.endTime);
+    if (!start || !end) return null;
+    const now = this.nowMs();
+    if (now < start.getTime()) return 'BEFORE';
+    if (now <= end.getTime()) return 'ACTIVE';
+    return 'MISSED';
+  });
+  readonly checkInWindowLabel = computed(() => {
+    const state = this.checkInWindowState();
+    const match = this.displayedSession();
+    if (state === 'BEFORE' && match) {
+      const start = this.localDateTime(match.playDate, match.startTime);
+      if (start) {
+        const hoursLeft = Math.ceil((start.getTime() - this.nowMs()) / 3_600_000);
+        return hoursLeft > 0
+          ? `Còn khoảng ${hoursLeft} giờ nữa · mang mã QR tới sân để check-in`
+          : 'Sắp tới giờ chơi · mang mã QR tới sân để check-in';
+      }
+    }
+    if (state === 'ACTIVE') return 'Đang trong khung giờ chơi · chưa check-in';
+    if (state === 'MISSED') return 'Đã quá giờ chơi mà chưa check-in';
+    return '';
+  });
   readonly scheduleConflict = computed<ScheduleConflict | null>(() => {
     const requestStart = this.localDateTime(this.playDate(), this.startTime());
     const requestEnd = this.localDateTime(this.playDate(), this.endTime());
@@ -637,6 +682,11 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
 
   progressItemState(index: number): { done: boolean; current: boolean } {
     const current = this.progressStep();
+    if (this.displayedSession()?.status === 'CONFIRMED') {
+      // Deposit step is fully done; the pulsing "current" indicator moves
+      // ahead to Check-in so CONFIRMED doesn't look identical to BOOKING_PENDING.
+      return { done: index <= current, current: index === current + 1 };
+    }
     return { done: index <= current, current: index === current };
   }
 

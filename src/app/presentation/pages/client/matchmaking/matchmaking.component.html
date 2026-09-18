@@ -407,6 +407,15 @@
         </button>
         }
 
+        @if (checkInWindowState(); as checkInState) {
+        <p class="checkin-window-note" [attr.data-state]="checkInState">
+          <lucide-icon
+            [name]="checkInState === 'ACTIVE' ? 'clock-3' : checkInState === 'MISSED' ? 'alert-triangle' : 'calendar-check'"
+            class="w-4 h-4"></lucide-icon>
+          {{ checkInWindowLabel() }}
+        </p>
+        }
+
         @if (canRespond()) {
         <div class="decision-actions">
           <button type="button" class="button button-secondary" [disabled]="responding()" (click)="respond('REJECTED')">

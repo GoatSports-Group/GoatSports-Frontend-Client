@@ -1200,6 +1200,28 @@
 .venue-proposal strong { font-size: 0.82rem; }
 .venue-proposal small { color: #607084; font-size: 0.7rem; }
 
+.checkin-window-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #f1f5f3;
+  color: #536479;
+  font-size: 0.78rem;
+}
+
+.checkin-window-note[data-state="ACTIVE"] {
+  background: #fff4e5;
+  color: #a15c00;
+}
+
+.checkin-window-note[data-state="MISSED"] {
+  background: #fdecea;
+  color: #b3261e;
+}
+
 .decision-actions {
   display: grid;
   grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
