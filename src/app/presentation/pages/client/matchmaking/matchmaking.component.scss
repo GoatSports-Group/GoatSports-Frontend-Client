@@ -1254,6 +1254,10 @@
   overflow-y: auto;
 }
 
+.history-sentinel {
+  height: 1px;
+}
+
 .history-load-more {
   display: flex;
   align-items: center;

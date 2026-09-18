@@ -4,12 +4,15 @@ import {
   Component,
   DestroyRef,
   ElementRef,
+  Injector,
   NgZone,
   OnInit,
   PLATFORM_ID,
   computed,
+  effect,
   inject,
-  signal
+  signal,
+  viewChild
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -75,7 +78,11 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   private readonly host = inject(ElementRef<HTMLElement>);
   private readonly zone = inject(NgZone);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly injector = inject(Injector);
   private animationContext?: ReturnType<typeof gsap.context>;
+  readonly historySentinel = viewChild<ElementRef<HTMLElement>>('historySentinel');
+  readonly historyScrollContainer = viewChild<ElementRef<HTMLElement>>('historyScrollContainer');
+  private historyObserver: IntersectionObserver | null = null;
 
   readonly selectedSport = signal<MatchmakingSport>('BADMINTON');
   readonly selectedSkill = signal<MatchmakingSkill>('INTERMEDIATE');
@@ -304,8 +311,10 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    if (!isPlatformBrowser(this.platformId)
-      || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (!isPlatformBrowser(this.platformId)) return;
+    this.setupHistoryInfiniteScroll();
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       return;
     }
     this.zone.runOutsideAngular(() => {
@@ -327,6 +336,27 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
       }, this.host.nativeElement);
     });
     this.destroyRef.onDestroy(() => this.animationContext?.revert());
+  }
+
+  private setupHistoryInfiniteScroll(): void {
+    effect(() => {
+      const sentinel = this.historySentinel();
+      const container = this.historyScrollContainer();
+      this.historyObserver?.disconnect();
+      this.historyObserver = null;
+      if (!sentinel) return;
+      const observer = new IntersectionObserver(
+        entries => {
+          if (entries[0]?.isIntersecting) {
+            this.zone.run(() => this.loadMoreHistory());
+          }
+        },
+        { root: container?.nativeElement ?? null, rootMargin: '100px' }
+      );
+      observer.observe(sentinel.nativeElement);
+      this.historyObserver = observer;
+    }, { injector: this.injector });
+    this.destroyRef.onDestroy(() => this.historyObserver?.disconnect());
   }
 
   selectSport(sport: MatchmakingSport): void {
@@ -570,12 +600,6 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   selectHistorySession(match: MatchmakingSession): void {
     this.selectedHistorySession.set(match);
     this.animateMatchDetail();
-  }
-
-  onHistoryScroll(event: Event): void {
-    const target = event.target as HTMLElement;
-    const remaining = target.scrollHeight - target.scrollTop - target.clientHeight;
-    if (remaining < 120) this.loadMoreHistory();
   }
 
   loadMoreHistory(): void {

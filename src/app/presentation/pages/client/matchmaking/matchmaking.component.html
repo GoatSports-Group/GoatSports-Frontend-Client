@@ -567,7 +567,7 @@
           <p>{{ historyError() }}</p>
         </div>
         } @else if (history().length) {
-        <div class="history-list" (scroll)="onHistoryScroll($event)">
+        <div class="history-list" #historyScrollContainer>
           @for (match of history(); track match.sessionId) {
           @if (historyOpponent(match); as rival) {
           <button type="button" class="history-row" [class.selected]="isSelectedHistory(match)"
@@ -586,6 +586,9 @@
             <span class="history-status" [attr.data-status]="match.status">{{ historyStatus(match) }}</span>
           </button>
           }
+          }
+          @if (historyHasMore()) {
+          <div #historySentinel class="history-sentinel" aria-hidden="true"></div>
           }
           @if (historyLoadingMore()) {
           <div class="history-load-more">
