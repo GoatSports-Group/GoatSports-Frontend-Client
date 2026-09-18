@@ -161,11 +161,16 @@
           </label>
           <label class="form-field">
             <span>Trình độ <b>*</b></span>
-            <select name="skillLevel" [(ngModel)]="draft.skillLevel" required>
+            <select name="skillLevel" [(ngModel)]="draft.skillLevel" [disabled]="draft.skillLocked" required>
               @for (skill of skillOptions; track skill.value) {
                 <option [ngValue]="skill.value">{{ skill.label }}</option>
               }
             </select>
+            @if (draft.skillLocked) {
+              <small class="field-hint">Tự cập nhật theo ELO {{ draft.eloRating }} sau mỗi trận đấu</small>
+            } @else {
+              <small class="field-hint">Chọn đúng trình độ để khởi tạo ELO; sau trận đầu tiên hệ thống sẽ tự điều chỉnh</small>
+            }
           </label>
         </div>
 

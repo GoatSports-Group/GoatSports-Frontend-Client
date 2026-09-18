@@ -491,6 +491,12 @@
           @if (eloAfter(currentParticipant()?.participantId); as newElo) {
           <p>ELO mới của bạn: <strong>{{ newElo }}</strong></p>
           }
+          @if (match.result && match.result.eloApplied === false) {
+          <p class="result-deadline-note" data-state="OPEN">
+            <lucide-icon name="hourglass" class="w-4 h-4"></lucide-icon>
+            Kết quả đã được ghi nhận. ELO chưa đồng bộ được, hệ thống sẽ tự thử lại mỗi lần bạn mở lại trang này.
+          </p>
+          }
           @if (!hasSubmittedFeedback()) {
           <div class="feedback-form">
             <label>Đánh giá<input type="number" min="1" max="5" [disabled]="isViewingHistory()" [ngModel]="feedbackRating()"

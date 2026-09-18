@@ -96,6 +96,7 @@ export interface MatchResult {
   winnerId?: string;
   confirmedAt: string;
   eloUpdates: Record<string, number>;
+  eloApplied?: boolean;
 }
 
 export interface OpponentFeedback {

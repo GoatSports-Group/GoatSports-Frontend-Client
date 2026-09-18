@@ -24,6 +24,9 @@ interface AvailabilityDraft extends SavePlayerAvailabilityRequest {
 interface SportProfileDraft {
   sportType: SportType;
   skillLevel: SkillLevel;
+  /** Đã thi đấu thì trình độ do ELO quyết định, người chơi không tự chọn nữa. */
+  skillLocked: boolean;
+  eloRating: number | null;
   preferredPositions: string;
   playStyle: string;
   latitude: number | null;
@@ -92,6 +95,8 @@ export class SettingsSportsTabComponent implements OnInit {
     this.draft = {
       sportType: profile.sportType,
       skillLevel: profile.skillLevel,
+      skillLocked: (profile.matchCount ?? 0) > 0,
+      eloRating: profile.eloRating ?? null,
       preferredPositions: profile.preferredPositions.join(', '),
       playStyle: profile.playStyle || '',
       latitude: profile.latitude ?? null,
@@ -236,6 +241,8 @@ export class SettingsSportsTabComponent implements OnInit {
     return {
       sportType,
       skillLevel: SkillLevel.INTERMEDIATE,
+      skillLocked: false,
+      eloRating: null,
       preferredPositions: '',
       playStyle: '',
       latitude: null,

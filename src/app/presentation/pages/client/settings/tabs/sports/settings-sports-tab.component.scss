@@ -332,6 +332,13 @@
   b { color: #dc2626; }
   small { color: #94a3b8; font-size: 0.72rem; }
 
+  select:disabled {
+    color: #64748b;
+    background: #eef2f6;
+    border-color: #dbe3ec;
+    cursor: not-allowed;
+  }
+
   input,
   select,
   textarea {
