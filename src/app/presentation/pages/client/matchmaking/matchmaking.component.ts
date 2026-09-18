@@ -225,7 +225,11 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
       ? 'Đang chờ đối thủ xác nhận'
       : 'Đối thủ đã đồng ý, đến lượt bạn';
     if (status === 'REJECTED') return 'Kèo đã bị từ chối';
-    if (status === 'EXPIRED') return 'Kèo đã hết thời gian xác nhận';
+    if (status === 'EXPIRED') {
+      return this.displayedSession()?.proposal?.cancelReason === 'NO_CHECK_IN'
+        ? 'Không ai check-in nhận sân nên trận không được ghi nhận'
+        : 'Kèo đã hết thời gian xác nhận';
+    }
     if (status === 'CANCELLED') return this.cancelReasonMessage();
     return 'Đã tìm thấy đối thủ';
   });
@@ -271,9 +275,31 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
           : 'Sắp tới giờ chơi · mang mã QR tới sân để check-in';
       }
     }
-    if (state === 'ACTIVE') return 'Đang trong khung giờ chơi · chưa check-in';
-    if (state === 'MISSED') return 'Đã quá giờ chơi mà chưa check-in';
+    if (state === 'ACTIVE') return 'Đang trong khung giờ chơi · chưa check-in tại sân';
+    if (state === 'MISSED') return 'Chưa check-in tại sân · trận sẽ không được ghi nhận kết quả';
     return '';
+  });
+  readonly resultDeadlineState = computed<'OPEN' | 'WAITING_OPPONENT' | null>(() => {
+    const match = this.displayedSession();
+    if (!match || !match.resultDeadlineAt) return null;
+    if (match.status !== 'CHECKED_IN' && match.status !== 'RESULT_PENDING' && match.status !== 'DISPUTED') {
+      return null;
+    }
+    return this.hasSubmittedResult() ? 'WAITING_OPPONENT' : 'OPEN';
+  });
+  readonly resultDeadlineLabel = computed(() => {
+    const state = this.resultDeadlineState();
+    const deadline = this.displayedSession()?.resultDeadlineAt;
+    if (!state || !deadline) return '';
+    const remaining = new Date(deadline).getTime() - this.nowMs();
+    const countdown = remaining <= 0
+      ? 'Đã hết hạn nhập kết quả'
+      : remaining < 3_600_000
+        ? `Còn ${Math.max(1, Math.ceil(remaining / 60_000))} phút để nhập kết quả`
+        : `Còn ${Math.ceil(remaining / 3_600_000)} giờ để nhập kết quả`;
+    return state === 'WAITING_OPPONENT'
+      ? `${countdown} · đang chờ đối thủ nhập. Quá hạn, bạn được xử thắng`
+      : `${countdown}. Quá hạn mà bạn không nhập, đối thủ được xử thắng; cả hai không nhập thì tính hòa`;
   });
   readonly scheduleConflict = computed<ScheduleConflict | null>(() => {
     const requestStart = this.localDateTime(this.playDate(), this.startTime());

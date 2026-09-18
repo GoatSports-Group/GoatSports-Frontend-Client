@@ -451,6 +451,13 @@
         <section class="result-entry">
           <header><strong>{{ match.status === 'DISPUTED' ? 'Kết quả chưa trùng khớp' : 'Nhập kết quả trận đấu'
               }}</strong><span>Mỗi người nhập độc lập; hệ thống chỉ chốt khi hai kết quả giống nhau.</span></header>
+          @if (resultDeadlineState(); as deadlineState) {
+          <p class="result-deadline-note" [attr.data-state]="deadlineState">
+            <lucide-icon [name]="deadlineState === 'WAITING_OPPONENT' ? 'hourglass' : 'clock-3'"
+              class="w-4 h-4"></lucide-icon>
+            {{ resultDeadlineLabel() }}
+          </p>
+          }
           @if (myResultClaim(); as mine) {
           <p class="claim-summary">Bạn đã nhập: <strong>{{ claimScoresFromMyPerspective(mine).my }}–{{
               claimScoresFromMyPerspective(mine).opponent }}</strong></p>

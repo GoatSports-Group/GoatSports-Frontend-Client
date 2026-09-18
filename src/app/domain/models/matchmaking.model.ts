@@ -127,6 +127,8 @@ export interface MatchmakingSessionModel {
   confirmedAt?: string;
   checkedInAt?: string;
   completedAt?: string;
+  resultPromptSentAt?: string;
+  resultDeadlineAt?: string;
   participants: MatchmakingPlayer[];
   acceptances: MatchAcceptance[];
   proposal?: MatchProposal;

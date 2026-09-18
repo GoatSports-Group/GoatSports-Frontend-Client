@@ -1222,6 +1222,28 @@
   color: #b3261e;
 }
 
+.result-deadline-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #fff4e5;
+  color: #a15c00;
+  font-size: 0.78rem;
+  line-height: 1.45;
+
+  lucide-icon {
+    flex-shrink: 0;
+  }
+}
+
+.result-deadline-note[data-state="WAITING_OPPONENT"] {
+  background: #f1f5f3;
+  color: #536479;
+}
+
 .decision-actions {
   display: grid;
   grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
