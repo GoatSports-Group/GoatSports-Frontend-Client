@@ -8,7 +8,8 @@ import {
   SaveSocialPostRequest,
   SocialComment,
   SocialPost,
-  SocialPostShare
+  SocialPostShare,
+  UserFollowStatus
 } from '@application/dto/social-feed/social-feed.dto';
 import { SocialFeedRepository } from '@application/ports/persistence/social-feed.repository';
 import { SocialFeedApi } from '@infrastructure/api/social-feed.api';
@@ -17,8 +18,20 @@ import { SocialFeedApi } from '@infrastructure/api/social-feed.api';
 export class SocialFeedRepositoryImpl implements SocialFeedRepository {
   private readonly api = inject(SocialFeedApi);
 
-  getFeed(page: number, size: number): Observable<SpringPageResponse<SocialPost>> {
-    return this.api.getFeed(page, size).pipe(map(response => response.data));
+  getFeed(page: number, size: number, followingOnly = false): Observable<SpringPageResponse<SocialPost>> {
+    return this.api.getFeed(page, size, followingOnly).pipe(map(response => response.data));
+  }
+
+  getFollowingUserIds(): Observable<string[]> {
+    return this.api.getFollowingUserIds().pipe(map(response => response.data ?? []));
+  }
+
+  followUser(userId: string): Observable<UserFollowStatus> {
+    return this.api.followUser(userId).pipe(map(response => response.data));
+  }
+
+  unfollowUser(userId: string): Observable<UserFollowStatus> {
+    return this.api.unfollowUser(userId).pipe(map(response => response.data));
   }
 
   createPost(request: SaveSocialPostRequest): Observable<SocialPost> {

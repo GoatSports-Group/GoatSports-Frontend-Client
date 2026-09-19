@@ -75,3 +75,10 @@ export interface ContentReport {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface UserFollowStatus {
+  userId: string;
+  followed: boolean;
+  followerCount: number;
+  followingCount: number;
+}

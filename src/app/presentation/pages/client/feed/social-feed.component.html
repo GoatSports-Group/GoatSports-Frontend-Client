@@ -26,6 +26,16 @@
     <section class="feed-main">
       <header class="feed-heading"><div><p class="eyebrow">Cộng đồng GOAT Sports</p><h1>Bảng tin</h1></div><span>Kết nối qua từng trận đấu</span></header>
       @if (currentUser) {
+        <nav class="feed-scope" aria-label="Phạm vi bảng tin">
+          <button type="button" [class.active]="!followingOnly()" [disabled]="loading()" (click)="setFeedScope(false)">
+            <lucide-icon name="compass" class="w-4 h-4"></lucide-icon>Khám phá
+          </button>
+          <button type="button" [class.active]="followingOnly()" [disabled]="loading()" (click)="setFeedScope(true)">
+            <lucide-icon name="user-check" class="w-4 h-4"></lucide-icon>Đang theo dõi
+          </button>
+        </nav>
+      }
+      @if (currentUser) {
         <article class="composer card">
           <div class="composer-heading">
             <img [src]="currentUser.avatarUrl || avatar(currentUser.userId)" [alt]="currentUser.fullName" />
@@ -144,6 +154,12 @@
                     <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon>
                   </button>
                 } @else if (currentUser) {
+                  <button type="button" class="follow-button" [class.following]="isFollowing(post.authorId)"
+                    [disabled]="isFollowPending(post.authorId)" (click)="toggleFollow(post.authorId)"
+                    [attr.aria-label]="isFollowing(post.authorId) ? 'Bỏ theo dõi' : 'Theo dõi'">
+                    <lucide-icon [name]="isFollowing(post.authorId) ? 'user-check' : 'user-plus'" class="w-4 h-4"></lucide-icon>
+                    {{ isFollowing(post.authorId) ? 'Đang theo dõi' : 'Theo dõi' }}
+                  </button>
                   <button type="button" class="icon-button" (click)="openReport('POST', post.postId)" aria-label="Báo cáo bài viết">
                     <lucide-icon name="flag" class="w-4 h-4"></lucide-icon>
                   </button>

@@ -8,11 +8,15 @@ import {
   SaveSocialPostRequest,
   SocialComment,
   SocialPost,
-  SocialPostShare
+  SocialPostShare,
+  UserFollowStatus
 } from '@application/dto/social-feed/social-feed.dto';
 
 export interface SocialFeedRepository {
-  getFeed(page: number, size: number): Observable<SpringPageResponse<SocialPost>>;
+  getFeed(page: number, size: number, followingOnly?: boolean): Observable<SpringPageResponse<SocialPost>>;
+  getFollowingUserIds(): Observable<string[]>;
+  followUser(userId: string): Observable<UserFollowStatus>;
+  unfollowUser(userId: string): Observable<UserFollowStatus>;
   createPost(request: SaveSocialPostRequest): Observable<SocialPost>;
   updatePost(postId: string, request: SaveSocialPostRequest): Observable<SocialPost>;
   deletePost(postId: string): Observable<void>;

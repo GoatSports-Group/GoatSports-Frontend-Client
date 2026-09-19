@@ -178,8 +178,8 @@ import {
   LucideScanSearch,
   LucideCalendarX2,
   LucideRefreshCw,
-  LucideMoreHorizontal
-
+  LucideMoreHorizontal,
+  LucideCompass
 } from '@lucide/angular';
 
 @NgModule({
@@ -347,7 +347,8 @@ import {
       LucideScanSearch,
       LucideCalendarX2,
       LucideRefreshCw,
-      LucideMoreHorizontal
+      LucideMoreHorizontal,
+      LucideCompass
     )
   ],
   bootstrap: [AppComponent]

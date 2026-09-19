@@ -66,6 +66,9 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
   readonly deletingCommentIds = signal<ReadonlySet<string>>(new Set());
   readonly hasMore = signal(false);
   readonly page = signal(1);
+  readonly followingOnly = signal(false);
+  readonly followingAuthorIds = signal<ReadonlySet<string>>(new Set());
+  readonly pendingFollowIds = signal<ReadonlySet<string>>(new Set());
 
   readonly composerContent = signal('');
   readonly composerVisibility = signal<PostVisibility>('PUBLIC');
@@ -97,6 +100,7 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadFeed(true);
+    this.loadFollowing();
   }
 
   ngOnDestroy(): void {
@@ -115,7 +119,7 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
       this.loadingMore.set(true);
     }
 
-    this.repository.getFeed(this.page(), 10).pipe(
+    this.repository.getFeed(this.page(), 10, this.followingOnly()).pipe(
       takeUntilDestroyed(this.destroyRef),
       finalize(() => {
         this.loading.set(false);
@@ -128,6 +132,64 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
         this.hydratePosts(response.content);
       },
       error: error => this.notify.error(this.errorMessage(error, 'Không thể tải bảng tin.'))
+    });
+  }
+
+  setFeedScope(followingOnly: boolean): void {
+    if (this.followingOnly() === followingOnly || this.loading()) return;
+    this.followingOnly.set(followingOnly);
+    this.loadFeed(true);
+  }
+
+  loadFollowing(): void {
+    if (!this.currentUser) return;
+    this.repository.getFollowingUserIds().pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: ids => this.followingAuthorIds.set(new Set(ids)),
+      error: () => this.followingAuthorIds.set(new Set())
+    });
+  }
+
+  isFollowing(authorId: string): boolean {
+    return this.followingAuthorIds().has(authorId);
+  }
+
+  isFollowPending(authorId: string): boolean {
+    return this.pendingFollowIds().has(authorId);
+  }
+
+  toggleFollow(authorId: string): void {
+    if (!this.currentUser || this.isOwner(authorId) || this.isFollowPending(authorId)) return;
+    const wasFollowing = this.isFollowing(authorId);
+    this.markFollowPending(authorId, true);
+
+    const request$ = wasFollowing
+      ? this.repository.unfollowUser(authorId)
+      : this.repository.followUser(authorId);
+
+    request$.pipe(
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.markFollowPending(authorId, false))
+    ).subscribe({
+      next: status => {
+        this.followingAuthorIds.update(current => {
+          const next = new Set(current);
+          if (status.followed) next.add(authorId); else next.delete(authorId);
+          return next;
+        });
+        this.notify.success(status.followed ? 'Đã theo dõi.' : 'Đã bỏ theo dõi.');
+        if (this.followingOnly()) this.loadFeed(true);
+      },
+      error: error => this.notify.error(this.errorMessage(error, 'Không thể cập nhật theo dõi.'))
+    });
+  }
+
+  private markFollowPending(authorId: string, pending: boolean): void {
+    this.pendingFollowIds.update(current => {
+      const next = new Set(current);
+      if (pending) next.add(authorId); else next.delete(authorId);
+      return next;
     });
   }
 

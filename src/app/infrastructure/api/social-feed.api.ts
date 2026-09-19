@@ -9,7 +9,8 @@ import {
   SaveSocialPostRequest,
   SocialComment,
   SocialPost,
-  SocialPostShare
+  SocialPostShare,
+  UserFollowStatus
 } from '@application/dto/social-feed/social-feed.dto';
 import { API_ENDPOINTS } from '@infrastructure/config/api-endpoints';
 
@@ -18,11 +19,28 @@ export class SocialFeedApi {
   private readonly http = inject(HttpClient);
   private readonly postUrl = `${API_ENDPOINTS.social}/posts`;
   private readonly reportUrl = `${API_ENDPOINTS.social}/reports`;
+  private readonly followUrl = `${API_ENDPOINTS.social}/follows/users`;
 
-  getFeed(page: number, size: number): Observable<BaseResponse<SpringPageResponse<SocialPost>>> {
+  getFeed(
+    page: number,
+    size: number,
+    followingOnly = false
+  ): Observable<BaseResponse<SpringPageResponse<SocialPost>>> {
     return this.http.get<BaseResponse<SpringPageResponse<SocialPost>>>(this.postUrl, {
-      params: this.pageParams(page, size)
+      params: this.pageParams(page, size).set('followingOnly', followingOnly)
     });
+  }
+
+  getFollowingUserIds(): Observable<BaseResponse<string[]>> {
+    return this.http.get<BaseResponse<string[]>>(`${this.followUrl}/me/following`);
+  }
+
+  followUser(userId: string): Observable<BaseResponse<UserFollowStatus>> {
+    return this.http.post<BaseResponse<UserFollowStatus>>(`${this.followUrl}/${userId}`, {});
+  }
+
+  unfollowUser(userId: string): Observable<BaseResponse<UserFollowStatus>> {
+    return this.http.delete<BaseResponse<UserFollowStatus>>(`${this.followUrl}/${userId}`);
   }
 
   createPost(request: SaveSocialPostRequest): Observable<BaseResponse<SocialPost>> {
@@ -72,6 +90,7 @@ export class SocialFeedApi {
   }
 
   private pageParams(page: number, size: number): HttpParams {
-    return new HttpParams().set('page', page).set('size', size);
+    // UI dem trang tu 1, Spring Pageable dem tu 0.
+    return new HttpParams().set('page', Math.max(0, page - 1)).set('size', size);
   }
 }
