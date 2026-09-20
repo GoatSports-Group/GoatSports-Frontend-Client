@@ -6,8 +6,11 @@ import {
   TournamentModel,
   TournamentRegistrationModel,
   TournamentRegistrationPayload,
+  TournamentEligibilityRuleModel,
+  TournamentReservationModel,
   TournamentStandingModel,
-  TournamentStatus
+  TournamentStatus,
+  ReserveVenuePayload
 } from '@domain/models/tournament.model';
 
 export abstract class TournamentRepositoryPort {
@@ -22,4 +25,9 @@ export abstract class TournamentRepositoryPort {
   abstract updateFixtureResult(tournamentId: string, fixtureId: string,
     payload: { score1: number; score2: number }): Observable<TournamentFixtureModel>;
   abstract getStandings(tournamentId: string): Observable<TournamentStandingModel[]>;
+  abstract getEligibilityRules(tournamentId: string): Observable<TournamentEligibilityRuleModel[]>;
+  abstract changeStatus(tournamentId: string, status: TournamentStatus): Observable<TournamentModel>;
+  abstract getReservations(tournamentId: string): Observable<TournamentReservationModel[]>;
+  abstract reserveVenue(tournamentId: string, payload: ReserveVenuePayload): Observable<TournamentReservationModel>;
+  abstract releaseReservation(tournamentId: string, reservationId: string): Observable<void>;
 }

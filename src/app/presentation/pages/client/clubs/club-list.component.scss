@@ -1,19 +1,397 @@
-:host { display:block; }.clubs-page { width:min(100%,var(--page-max)); margin:auto; padding:0 var(--page-gutter) 5rem; }.club-hero { min-height:270px; display:grid; grid-template-columns:5fr 3fr 2.3fr; margin-top:1.5rem; border:1px solid var(--border-color); background:#fff; }.club-hero__copy { padding:clamp(1.5rem,4vw,3.2rem); }.club-hero h1 { margin:0; font-size:clamp(3rem,5.7vw,6rem); font-weight:900; font-style:italic; line-height:.85; letter-spacing:-.08em; text-transform:uppercase; }.club-hero__copy>p:last-child { max-width:54ch; margin:1rem 0 0; font-size:.85rem; }.club-hero__image { min-height:260px; background:url('/assets/images/goat-night-football-hero.png') 68% center/cover; filter:grayscale(1) contrast(1.08); }.club-hero__action { display:flex; flex-direction:column; justify-content:center; gap:1.5rem; padding:1.5rem; border-left:1px solid var(--border-color); }.club-hero__action blockquote { margin:0; color:var(--text-muted); font-size:.76rem; font-style:italic; line-height:1.6; }.btn-primary,.btn-secondary { min-height:44px; display:inline-flex; align-items:center; justify-content:center; gap:.5rem; padding:.65rem 1rem; border:1px solid var(--primary); border-radius:var(--border-radius-sm); background:var(--primary); color:#fff; font:inherit; font-size:.78rem; font-weight:800; cursor:pointer; }.btn-secondary { border-color:var(--border-color); background:#fff; color:var(--text-dark); }
-.sport-nav { display:flex; overflow-x:auto; border:1px solid var(--border-color); border-top:0; background:#fff; }.sport-nav button { min-height:52px; flex:1 0 auto; padding:0 1rem; border:0; border-right:1px solid var(--border-color); border-bottom:2px solid transparent; background:#fff; color:var(--text-muted); font:inherit; font-size:.72rem; font-weight:800; cursor:pointer; }.sport-nav button.active,.sport-nav button:hover { color:var(--primary); border-bottom-color:var(--primary); background:var(--primary-light); }
-.club-layout { display:grid; grid-template-columns:minmax(0,7fr) minmax(300px,3fr); gap:1rem; margin-top:1.5rem; }.club-discovery { min-width:0; }.discovery-heading { min-height:64px; display:flex; align-items:end; justify-content:space-between; gap:1rem; margin-bottom:1rem; }.discovery-heading h2 { margin:0; font-size:clamp(1.7rem,3vw,2.6rem); font-weight:900; font-style:italic; text-transform:uppercase; }.club-search { min-height:44px; display:flex; align-items:center; gap:.5rem; padding:0 .8rem; border:1px solid var(--border-color); background:#fff; color:var(--text-muted); }.club-search input { min-width:0; border:0; outline:0; background:transparent; font:inherit; font-size:.76rem; }
-.featured-club { display:grid; grid-template-columns:1.1fr 1.6fr; min-height:300px; overflow:hidden; border:1px solid var(--border-color); background:#fff; cursor:pointer; }.featured-club__photo { background:url('/assets/images/goat-night-football-hero.png') 18% center/cover; }.featured-club__content { display:flex; flex-direction:column; padding:clamp(1.2rem,3vw,2rem); }.featured-club__title { display:flex; align-items:center; gap:.8rem; margin:1rem 0; }.featured-club__title h2 { margin:0; font-size:1.5rem; }.featured-club__title p { margin:.25rem 0 0; font-size:.7rem; }.featured-club__content>p { font-size:.82rem; }.featured-club__footer { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-top:auto; padding-top:1rem; border-top:1px solid var(--border-color); color:var(--text-muted); font-size:.72rem; }.text-link { display:inline-flex; align-items:center; gap:.4rem; color:var(--primary); font-weight:800; }.section-divider { display:flex; align-items:center; justify-content:space-between; margin:2rem 0 1rem; }.section-divider h2 { margin:0; font-size:1.2rem; text-transform:uppercase; }.section-divider span { color:var(--text-muted); font-size:.7rem; }
-.club-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.9rem; }.club-card { overflow:hidden; border:1px solid var(--border-color); background:#fff; cursor:pointer; transition:var(--transition-smooth); }.club-card:hover,.featured-club:hover { border-color:#93cbb7; box-shadow:var(--shadow-md); transform:translateY(-2px); }.card-cover { height:145px; display:flex; justify-content:space-between; align-items:flex-start; padding:.7rem; background:url('/assets/images/goat-night-football-hero.png') center 70%/cover; }.sport-tag,.privacy-tag { min-height:25px; display:inline-flex; align-items:center; gap:.3rem; padding:.25rem .45rem; border-radius:3px; background:var(--primary); color:#fff; font-size:.58rem; font-weight:800; text-transform:uppercase; }.privacy-tag { background:rgb(10 20 34 / 88%); }.card-body { padding:1rem; }.club-header { display:flex; align-items:center; gap:.65rem; }.club-header h3 { margin:0; font-size:1rem; }.club-header span { color:var(--text-muted); font-size:.66rem; }.club-avatar { width:48px; height:48px; flex:0 0 48px; display:grid; place-items:center; overflow:hidden; border:1px solid #93cbb7; border-radius:6px; background:var(--primary-light); color:var(--primary); font-weight:900; }.club-avatar img { width:100%; height:100%; object-fit:cover; }.card-body>p { min-height:3em; margin:.8rem 0; display:-webkit-box; overflow:hidden; font-size:.75rem; -webkit-box-orient:vertical; -webkit-line-clamp:2; }.card-footer { display:flex; justify-content:space-between; padding-top:.75rem; border-top:1px solid var(--border-color); color:var(--text-muted); font-size:.68rem; }.card-footer span:last-child { color:var(--primary); font-weight:800; }
-.community-rail { display:flex; flex-direction:column; gap:1rem; }.community-rail>section { border:1px solid var(--border-color); background:#fff; }.community-rail header { min-height:52px; display:flex; align-items:center; justify-content:space-between; padding:.75rem 1rem; border-bottom:1px solid var(--border-color); }.community-rail h2 { margin:0; font-size:.95rem; text-transform:uppercase; }.community-rail header span { color:var(--text-soft); font-size:.62rem; }.compact-club { width:100%; min-height:68px; display:flex; align-items:center; gap:.65rem; padding:.7rem 1rem; border:0; border-bottom:1px solid var(--border-color); background:#fff; text-align:left; cursor:pointer; }.compact-club:last-child { border-bottom:0; }.compact-club:hover { background:var(--primary-light); }.compact-avatar { width:40px; height:40px; flex:0 0 40px; display:grid; place-items:center; border-radius:5px; background:var(--bg-ink); color:#fff; font-size:.68rem; font-weight:900; }.compact-club>span:nth-child(2) { min-width:0; flex:1; display:grid; }.compact-club strong { overflow:hidden; font-size:.76rem; text-overflow:ellipsis; white-space:nowrap; }.compact-club small,.open-match small { margin-top:.2rem; color:var(--text-muted); font-size:.62rem; }.rail-callout { padding:1.3rem; }.rail-callout lucide-icon,.open-match lucide-icon { color:var(--primary); }.rail-callout h3 { margin:.8rem 0 .4rem; font-size:1rem; }.rail-callout p { font-size:.72rem; }.rail-callout button { min-height:40px; padding:0 .8rem; border:1px solid var(--primary); background:#fff; color:var(--primary); font:inherit; font-size:.68rem; font-weight:800; cursor:pointer; }.open-match { min-height:82px; display:flex; align-items:center; gap:.7rem; padding:1rem; color:var(--text-dark); }.open-match>span { flex:1; display:grid; }.open-match strong { font-size:.78rem; }.rail-empty { padding:1rem; font-size:.72rem; }
-.empty-state { min-height:180px; display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:1rem; padding:1.5rem; border:1px dashed var(--border-strong); background:#fff; color:var(--text-soft); }.empty-state h2 { margin:0; font-size:1rem; }.empty-state p { margin:.3rem 0 0; font-size:.75rem; }.skeleton { padding:.75rem; }
-.modal-overlay { position:fixed; inset:0; z-index:1100; display:grid; place-items:center; padding:1rem; background:rgb(10 20 34 / 70%); }.modal-card { width:min(100%,560px); max-height:90vh; overflow:auto; padding:1.5rem; border:1px solid var(--border-color); border-radius:var(--border-radius); background:#fff; box-shadow:var(--shadow-lg); }.modal-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.2rem; }.modal-header h2 { margin:0; }.btn-close { width:44px; height:44px; border:1px solid var(--border-color); border-radius:var(--border-radius-sm); background:#fff; cursor:pointer; }.form-group { display:grid; gap:.4rem; margin-bottom:1rem; }.form-group label { color:var(--text-muted); font-size:.7rem; font-weight:800; }.form-group input,.form-group select,.form-group textarea { width:100%; min-height:46px; padding:.7rem; border:1px solid var(--border-color); border-radius:var(--border-radius-sm); background:#fff; font:inherit; }.form-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }.modal-footer { display:flex; justify-content:flex-end; gap:.7rem; margin-top:1.2rem; }
-@media(max-width:1000px){.club-hero{grid-template-columns:1fr 1fr}.club-hero__action{grid-column:span 2; flex-direction:row; align-items:center; justify-content:space-between}.club-layout{grid-template-columns:1fr}.community-rail{display:grid;grid-template-columns:repeat(3,1fr)}}
-@media(max-width:720px){.club-hero{grid-template-columns:1fr}.club-hero__image{min-height:190px}.club-hero__action{grid-column:auto;align-items:flex-start;flex-direction:column}.club-layout{margin-top:1rem}.discovery-heading{align-items:stretch;flex-direction:column}.featured-club{grid-template-columns:1fr}.featured-club__photo{min-height:210px}.club-grid,.community-rail,.form-row{grid-template-columns:1fr}.empty-state{grid-template-columns:1fr;text-align:center}}
+:host {
+  display: block;
+  background: #fff;
+}
 
-/* Dense 8/4 community workspace from the approved desktop reference. */
-.clubs-page{padding-bottom:2rem}.club-hero{min-height:190px;margin-top:12px;overflow:hidden;border-radius:var(--border-radius)}.club-hero__copy{padding:22px}.club-hero h1{font-size:clamp(2.6rem,4.2vw,4.6rem)}.club-hero__copy>p:last-child{margin-top:10px;font-size:10px}.club-hero__image{min-height:190px}.club-hero__action{gap:14px;padding:18px}.club-hero__action blockquote{font-size:9px}
-.sport-nav{gap:5px;margin-top:8px;padding:5px;border:1px solid var(--border-color);border-radius:var(--border-radius)}.sport-nav button{min-height:38px;border:0;border-radius:9px;font-size:.66rem}.sport-nav button.active,.sport-nav button:hover{color:#fff;background:var(--primary)}
-.club-layout{grid-template-columns:minmax(0,8fr) minmax(300px,4fr);gap:12px;margin-top:10px}.discovery-heading{min-height:54px;margin-bottom:8px}.discovery-heading h2{font-size:20px}.club-search{min-height:42px;border-radius:var(--border-radius-sm)}
-.featured-club{min-height:220px;border-radius:var(--border-radius)}.club-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.club-card{border-radius:var(--border-radius)}.card-cover{height:120px}.sport-tag,.privacy-tag{border-radius:8px}.club-avatar,.compact-avatar{border-radius:10px}
-.community-rail{gap:10px}.community-rail>section{overflow:hidden;border-radius:var(--border-radius)}.pending-label{padding:5px 7px;border-radius:8px;background:#eef2f5;color:var(--text-muted);font-size:8px;white-space:nowrap}.activity-row{width:100%;min-height:66px;display:grid;grid-template-columns:42px 1fr 8px;align-items:center;gap:8px;padding:7px 10px;border:0;border-bottom:1px solid var(--border-color);background:#fff;text-align:left;cursor:pointer}.activity-row:last-child{border-bottom:0}.activity-row:hover{background:var(--primary-light)}.activity-row time{display:grid;place-content:center;text-align:center;color:var(--text-muted);font-size:7px}.activity-row time b{color:var(--text-dark);font-size:16px}.activity-row>span{min-width:0;display:grid}.activity-row strong{overflow:hidden;font-size:10px;text-overflow:ellipsis;white-space:nowrap}.activity-row small{margin-top:2px;color:var(--text-muted);font-size:8px}.activity-row i{width:7px;height:7px;border-radius:50%;background:var(--primary)}
-@media(max-width:1180px){.club-layout{grid-template-columns:1fr}.community-rail{display:grid;grid-template-columns:repeat(2,1fr)}.club-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:720px){.club-grid,.community-rail{grid-template-columns:1fr}}
+.clubs-page {
+  --club-ink: #071426;
+  --club-muted: #5d6b7e;
+  --club-border: #d8e1de;
+  --club-soft: #f5f8f7;
+  --club-green: #007a57;
+  width: min(100%, 1600px);
+  margin: 0 auto;
+  padding: 0 clamp(16px, 2vw, 32px) 48px;
+  color: var(--club-ink);
+  background: #fff;
+  font-size: 16px;
+}
+
+.page-kicker {
+  margin: 0;
+  color: #4b5b70;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.club-hero {
+  min-height: 302px;
+  display: grid;
+  grid-template-columns: minmax(520px, 1.46fr) minmax(320px, .78fr) minmax(250px, .6fr);
+  overflow: hidden;
+  border-bottom: 1px solid var(--club-border);
+  background: #fff;
+}
+
+.club-hero__copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 28px 20px 30px 0;
+
+  h1 {
+    display: grid;
+    margin: 12px 0 0;
+    font-family: 'Arial Narrow', 'Roboto Condensed', 'Be Vietnam Pro', sans-serif !important;
+    font-size: clamp(58px, 5.2vw, 84px);
+    font-weight: 900;
+    line-height: .88;
+    letter-spacing: -.065em;
+    text-transform: uppercase;
+    text-wrap: balance;
+  }
+}
+
+.club-hero__summary {
+  max-width: 64ch;
+  margin: 18px 0 0;
+  color: #415168;
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.club-hero__media {
+  position: relative;
+  min-height: 302px;
+  overflow: hidden;
+  background: url('/assets/images/goat-night-football-hero.png') 72% center / cover;
+  filter: grayscale(1) contrast(1.08);
+
+  &::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, #fff 0, rgba(255,255,255,.1) 24%, transparent 55%), linear-gradient(0deg, rgba(255,255,255,.2), transparent 45%); }
+  span { position: absolute; right: 14px; bottom: 68px; color: #071426; font-family: 'Segoe Print', cursive !important; font-size: 22px; font-weight: 700; font-style: italic; line-height: 1.08; text-align: center; transform: rotate(-7deg); }
+}
+
+.club-hero__action {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 22px;
+  padding: 28px 0 28px 22px;
+
+  blockquote { margin: 0; color: #5c6b7d; font-size: 13px; font-style: normal; font-weight: 600; line-height: 1.65; text-align: center; text-transform: uppercase; }
+  blockquote small { font-size: 11px; letter-spacing: .08em; }
+}
+
+.primary-action,
+.secondary-action {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 0 20px;
+  border: 1px solid var(--club-green);
+  border-radius: 5px;
+  background: var(--club-green);
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
+
+  &:hover:not(:disabled) { border-color: #006448; background: #006448; transform: translateY(-1px); }
+  &:active:not(:disabled) { transform: translateY(1px) scale(.985); }
+  &:disabled { opacity: .55; cursor: not-allowed; }
+}
+
+.secondary-action { border-color: var(--club-border); background: #fff; color: var(--club-ink); }
+
+.sport-nav {
+  min-height: 62px;
+  display: flex;
+  align-items: stretch;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--club-border);
+  background: #fff;
+  scrollbar-width: thin;
+
+  button {
+    min-width: max-content;
+    flex: 1 0 auto;
+    min-height: 54px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    margin: 7px 0;
+    padding: 0 16px;
+    border: 1px solid transparent;
+    border-right-color: #e4e9e7;
+    background: #fff;
+    color: #26364c;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 650;
+    cursor: pointer;
+    transition: color 180ms ease, background-color 180ms ease, border-color 180ms ease;
+  }
+
+  button:first-child { border-radius: 5px 0 0 5px; }
+  button:last-child { border-right-color: transparent; border-radius: 0 5px 5px 0; }
+  button:hover { background: #f1f7f5; color: var(--club-green); }
+  button.active { border-color: #0a2035; background: #0a2035; color: #fff; }
+}
+
+.club-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2.38fr) minmax(360px, .92fr);
+  gap: 18px;
+  padding-top: 20px;
+}
+
+.club-main { min-width: 0; }
+
+.section-heading,
+.discovery-toolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 12px;
+
+  h2 { margin: 0; font-family: 'Arial Narrow', 'Roboto Condensed', 'Be Vietnam Pro', sans-serif !important; font-size: 25px; font-weight: 900; letter-spacing: -.035em; text-transform: uppercase; }
+  p { margin: 3px 0 0; color: #667489; font-size: 14px; line-height: 1.45; }
+  > span { color: #667489; font-size: 13px; font-weight: 600; }
+}
+
+.featured-club {
+  min-height: 306px;
+  display: grid;
+  grid-template-columns: minmax(350px, 1.05fr) minmax(420px, 1.55fr);
+  overflow: hidden;
+  border: 1px solid var(--club-border);
+  border-radius: 6px;
+  background: #fff;
+}
+
+.featured-club__photo {
+  position: relative;
+  min-height: 306px;
+  overflow: hidden;
+  background: url('/assets/images/goat-night-football-hero.png') 72% center / cover;
+
+  &::after { content: ''; position: absolute; inset: 44% 0 0; background: linear-gradient(0deg, rgba(7,20,38,.88), transparent); }
+  strong { position: absolute; z-index: 1; left: 20px; bottom: 22px; color: #fff; font-family: 'Arial Narrow', 'Roboto Condensed', 'Be Vietnam Pro', sans-serif !important; font-size: 17px; font-weight: 900; line-height: 1.15; text-transform: uppercase; }
+  > span { position: absolute; z-index: 1; left: 20px; bottom: 12px; width: 54px; height: 3px; background: #fff; }
+}
+
+.featured-club__content { min-width: 0; display: flex; flex-direction: column; padding: 22px 24px 20px; }
+.featured-club__identity { display: flex; align-items: center; gap: 14px; }
+.featured-club__identity h2 { margin: 3px 0 0; font-family: 'Arial Narrow', 'Roboto Condensed', 'Be Vietnam Pro', sans-serif !important; font-size: clamp(28px, 2.25vw, 38px); font-weight: 900; line-height: 1; letter-spacing: -.045em; text-transform: uppercase; }
+.eyebrow { color: #3f4e62; font-size: 13px; font-weight: 800; text-transform: uppercase; }
+.club-meta { display: flex; align-items: center; gap: 7px; margin: 10px 0 0; color: #536277; font-size: 14px; }
+.featured-club__description { max-width: 68ch; margin: 16px 0 20px; color: #34445a; font-size: 15px; line-height: 1.55; }
+.featured-club__footer { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; margin-top: auto; }
+.club-stats { display: flex; flex-wrap: wrap; gap: 14px 22px; }
+.club-stats span { display: inline-flex; align-items: center; gap: 7px; color: #526178; font-size: 14px; white-space: nowrap; }
+.club-stats b { color: var(--club-ink); }
+.featured-club__footer .primary-action { min-width: 168px; }
+
+.club-avatar {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid #adcfc4;
+  border-radius: 6px;
+  background: #eaf7f2;
+  color: var(--club-green);
+  font-size: 15px;
+  font-weight: 900;
+
+  img { width: 100%; height: 100%; object-fit: cover; }
+}
+.club-avatar--large { width: 76px; height: 76px; flex-basis: 76px; font-size: 20px; }
+
+.discovery-section { margin-top: 24px; }
+.discovery-toolbar { align-items: center; }
+.discovery-controls { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.club-search { width: min(100%, 240px); min-height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 12px; border: 1px solid var(--club-border); border-radius: 5px; color: #68778b; }
+.club-search input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--club-ink); font: inherit; font-size: 14px; }
+.club-search:focus-within { border-color: var(--club-green); box-shadow: 0 0 0 3px rgba(0,122,87,.08); }
+.sort-select { position: relative; min-height: 44px; display: flex; align-items: center; border: 1px solid var(--club-border); border-radius: 5px; background: #fff; }
+.sort-select select { min-height: 42px; padding: 0 38px 0 12px; border: 0; outline: 0; appearance: none; background: transparent; color: #34445a; font: inherit; font-size: 14px; cursor: pointer; }
+.sort-select lucide-icon { position: absolute; right: 11px; pointer-events: none; }
+.view-toggle { display: flex; gap: 4px; }
+.view-toggle button { width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid var(--club-border); border-radius: 5px; background: #fff; color: #536277; cursor: pointer; }
+.view-toggle button.active { border-color: #0a2035; background: #0a2035; color: #fff; }
+
+.club-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.club-card { min-width: 0; overflow: hidden; border: 1px solid var(--club-border); border-radius: 6px; background: #fff; transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease; }
+.club-card:hover { border-color: #7ebca7; box-shadow: 0 12px 28px -22px rgba(7,20,38,.45); transform: translateY(-2px); }
+.club-card:hover .card-cover { background-size: auto 108%; }
+
+.card-cover {
+  height: 168px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 10px;
+  background-image: linear-gradient(180deg, rgba(7,20,38,.04), rgba(7,20,38,.16)), url('/assets/images/goat-night-football-hero.png');
+  background-position: 72% center;
+  background-size: auto 102%;
+  background-repeat: no-repeat;
+  background-color: #0b1d2d;
+  transition: background-size 500ms cubic-bezier(.16,1,.3,1);
+}
+.card-cover.cover-variant-1 { background-position: 54% center; filter: saturate(.78) contrast(1.05); }
+.card-cover.cover-variant-2 { background-position: 88% center; filter: saturate(.9) brightness(1.05); }
+.card-cover.cover-basketball, .card-cover.cover-volleyball { background-image: linear-gradient(180deg, rgba(7,20,38,.05), rgba(7,20,38,.28)), url('/assets/images/background.jpg'); background-size: cover; }
+.card-cover.cover-badminton, .card-cover.cover-tennis, .card-cover.cover-pickleball { background-position: 78% center; }
+.privacy-tag { min-height: 30px; display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px; border-radius: 4px; background: rgba(7,20,38,.84); color: #fff; font-size: 12px; font-weight: 700; backdrop-filter: blur(5px); }
+.card-body { display: flex; flex-direction: column; min-height: 236px; padding: 14px; }
+.club-card__identity { display: flex; align-items: center; gap: 10px; }
+.club-card__identity h3 { margin: 0; overflow: hidden; color: var(--club-ink); font-size: 17px; font-weight: 800; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
+.club-card__identity p { margin: 4px 0 0; color: #69778a; font-size: 13px; }
+.club-card__identity p span { margin: 0 5px; color: #a1aba8; }
+.club-card__description { min-height: 72px; margin: 14px 0; display: -webkit-box; overflow: hidden; color: #526178; font-size: 14px; line-height: 1.55; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+.club-card__footer { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; margin-top: auto; padding-top: 12px; border-top: 1px solid #e1e7e5; }
+.club-card__footer > div { display: flex; flex-wrap: wrap; gap: 8px 12px; }
+.club-card__footer > div span { display: inline-flex; align-items: center; gap: 5px; color: #5f6e82; font-size: 12px; white-space: nowrap; }
+.club-card__footer button { min-height: 38px; display: inline-flex; align-items: center; gap: 6px; padding: 0 11px; border: 1px solid #0d2740; border-radius: 4px; background: #0d2740; color: #fff; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; white-space: nowrap; }
+.club-card__footer button:hover { background: var(--club-green); border-color: var(--club-green); }
+.club-card__footer button.button-muted { border-color: #d9e0df; background: #edf1f2; color: #526178; }
+
+.club-grid--list { grid-template-columns: 1fr; }
+.club-grid--list .club-card { display: grid; grid-template-columns: minmax(230px, .45fr) minmax(0, 1fr); }
+.club-grid--list .card-cover { height: 100%; min-height: 220px; }
+.club-grid--list .card-body { min-height: 220px; }
+
+.create-club-strip,
+.discovery-empty { min-height: 72px; display: flex; align-items: center; gap: 14px; margin-top: 12px; padding: 10px 14px; border: 1px solid var(--club-border); border-radius: 6px; background: #fff; }
+.strip-art { width: 62px; height: 48px; flex: 0 0 62px; border-radius: 5px; background: linear-gradient(135deg, #e9efed 0 45%, #dbe5e2 45% 65%, #eff3f2 65%); }
+.create-club-strip div, .discovery-empty span { min-width: 0; flex: 1; display: grid; gap: 3px; }
+.create-club-strip strong, .discovery-empty strong { font-size: 14px; }
+.create-club-strip small, .discovery-empty small { color: #68778b; font-size: 12px; }
+.create-club-strip button { min-height: 42px; display: inline-flex; align-items: center; gap: 7px; padding: 0 14px; border: 1px solid #0d2740; border-radius: 4px; background: #fff; color: #0d2740; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; }
+.discovery-empty { color: var(--club-green); }
+
+.community-rail { min-width: 0; display: grid; align-content: start; gap: 14px; }
+.rail-section { overflow: hidden; border: 1px solid var(--club-border); border-radius: 6px; background: #fff; }
+.rail-section > header { min-height: 55px; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; border-bottom: 1px solid var(--club-border); }
+.rail-section > header h2 { margin: 0; font-family: 'Arial Narrow', 'Roboto Condensed', 'Be Vietnam Pro', sans-serif !important; font-size: 20px; font-weight: 900; letter-spacing: -.03em; text-transform: uppercase; }
+.rail-section > header > span { color: #68778b; font-size: 13px; font-weight: 700; }
+.rail-section > header .count-badge { min-width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; background: #e11d48; color: #fff; }
+.compact-club { width: 100%; min-height: 82px; display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: 11px; padding: 10px 13px; border: 0; border-bottom: 1px solid #e1e7e5; background: #fff; color: var(--club-ink); text-align: left; cursor: pointer; transition: background-color 180ms ease; }
+.compact-club:last-child { border-bottom: 0; }
+.compact-club:hover { background: #f3f8f6; }
+.compact-avatar { width: 52px; height: 52px; display: grid; place-items: center; overflow: hidden; border: 1px solid #adcfc4; border-radius: 50%; background: #0d2740; color: #fff; font-size: 13px; font-weight: 900; }
+.compact-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.compact-avatar--accent { background: #eaf7f2; color: var(--club-green); }
+.compact-club > span:nth-child(2) { min-width: 0; display: grid; gap: 5px; }
+.compact-club strong { overflow: hidden; font-size: 15px; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
+.compact-club small { color: #617086; font-size: 12px; line-height: 1.4; }
+.compact-club small i { margin: 0 4px; color: #a6afad; font-style: normal; }
+.pending-label { padding: 7px 9px; border-radius: 4px; background: #edf1f2; color: #536277; font-size: 11px; white-space: nowrap; }
+.rail-empty { margin: 0; padding: 18px 14px; color: #617086; font-size: 13px; line-height: 1.55; }
+
+.activity-row { width: 100%; min-height: 90px; display: grid; grid-template-columns: 58px minmax(0, 1fr) 10px; align-items: center; gap: 11px; padding: 10px 13px; border: 0; border-bottom: 1px solid #e1e7e5; background: #fff; color: var(--club-ink); text-align: left; cursor: pointer; }
+.activity-row:last-child { border-bottom: 0; }
+.activity-row:hover { background: #f3f8f6; }
+.activity-row time { width: 58px; min-height: 65px; display: grid; place-content: center; text-align: center; border-radius: 4px; background: #f3f6f5; color: #526178; }
+.activity-row time > span { font-size: 11px; font-weight: 800; text-transform: uppercase; }
+.activity-row time b { margin: 2px 0; color: var(--club-ink); font-size: 22px; line-height: 1; }
+.activity-row time small { font-size: 9px; font-weight: 800; }
+.activity-row > span { min-width: 0; display: grid; gap: 4px; }
+.activity-row strong { overflow: hidden; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+.activity-row small { display: flex; align-items: center; gap: 5px; color: #617086; font-size: 11px; }
+.activity-row > i { width: 9px; height: 9px; border: 1px solid var(--club-green); border-radius: 50%; }
+.activity-row:first-of-type > i { background: var(--club-green); }
+
+.open-match { min-height: 96px; display: grid; grid-template-columns: 90px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 11px 13px; color: var(--club-ink); text-decoration: none; }
+.open-match:hover { color: var(--club-ink); background: #f3f8f6; }
+.open-match__image { width: 90px; height: 68px; border-radius: 4px; background: url('/assets/images/goat-night-football-hero.png') 70% center / cover; }
+.open-match > span:nth-child(2) { min-width: 0; display: grid; gap: 3px; }
+.open-match b { width: max-content; padding: 3px 6px; border-radius: 3px; background: var(--club-green); color: #fff; font-size: 9px; text-transform: uppercase; }
+.open-match strong { font-size: 14px; }
+.open-match small { color: #617086; font-size: 11px; line-height: 1.4; }
+.open-match > span:last-child { min-height: 38px; display: inline-flex; align-items: center; gap: 5px; padding: 0 9px; border: 1px solid #18354f; border-radius: 4px; color: #18354f; font-size: 11px; font-weight: 800; white-space: nowrap; }
+
+.featured-skeleton { border: 1px solid var(--club-border); border-radius: 6px; background: #fff; }
+.empty-state { min-height: 220px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 18px; padding: 28px; border: 1px dashed #b9c6c2; border-radius: 6px; background: #fff; color: var(--club-green); }
+.empty-state h2 { margin: 0; color: var(--club-ink); font-size: 19px; }
+.empty-state p { margin: 5px 0 0; color: #617086; font-size: 14px; }
+
+.modal-overlay { position: fixed; inset: 0; z-index: 1100; display: grid; place-items: center; padding: 16px; background: rgba(7,20,38,.68); backdrop-filter: blur(3px); }
+.modal-card { width: min(100%, 620px); max-height: 90dvh; overflow: auto; padding: 22px; border: 1px solid var(--club-border); border-radius: 8px; background: #fff; box-shadow: 0 24px 65px rgba(7,20,38,.25); }
+.modal-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 18px; }
+.modal-header h2 { margin: 4px 0 0; font-size: 25px; }
+.btn-close { width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid var(--club-border); border-radius: 5px; background: #fff; cursor: pointer; }
+.form-group { display: grid; gap: 7px; margin-bottom: 15px; }
+.form-group label { color: #45556b; font-size: 13px; font-weight: 800; }
+.form-group input, .form-group select, .form-group textarea { width: 100%; min-height: 48px; padding: 11px 12px; border: 1px solid #c7d3cf; border-radius: 5px; background: #fff; color: var(--club-ink); font: inherit; font-size: 15px; }
+.form-group textarea { resize: vertical; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--club-green); outline: 3px solid rgba(0,122,87,.08); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+@media (max-width: 1250px) {
+  .club-hero { grid-template-columns: minmax(460px, 1.3fr) minmax(300px, .8fr) minmax(220px, .58fr); }
+  .club-layout { grid-template-columns: 1fr; }
+  .community-rail { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .open-match-section { grid-column: 1 / -1; }
+}
+
+@media (max-width: 980px) {
+  .club-hero { grid-template-columns: 1.2fr .8fr; }
+  .club-hero__action { grid-column: 1 / -1; min-height: 92px; flex-direction: row; align-items: center; justify-content: space-between; padding: 18px 0; border-top: 1px solid var(--club-border); }
+  .club-hero__action blockquote { text-align: right; }
+  .featured-club { grid-template-columns: .9fr 1.1fr; }
+  .featured-club__footer { align-items: stretch; flex-direction: column; }
+  .featured-club__footer .primary-action { align-self: flex-end; }
+  .club-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .discovery-toolbar { align-items: stretch; flex-direction: column; }
+  .discovery-controls { justify-content: flex-start; }
+}
+
+@media (max-width: 720px) {
+  .clubs-page { padding: 0 14px 32px; font-size: 16px; }
+  .clubs-page button, .clubs-page .open-match { min-height: 44px; }
+  .club-hero { grid-template-columns: 1fr; }
+  .club-hero__copy { padding: 28px 0; }
+  .club-hero__copy h1 { font-size: clamp(48px, 14vw, 66px); }
+  .club-hero__summary { font-size: 16px; }
+  .club-hero__media { min-height: 230px; }
+  .club-hero__action { grid-column: auto; min-height: auto; align-items: stretch; flex-direction: column; padding: 20px 0; }
+  .club-hero__action blockquote { text-align: center; }
+  .sport-nav { margin-inline: -14px; padding-inline: 14px; }
+  .sport-nav button { flex: 0 0 auto; }
+  .section-heading { align-items: flex-start; flex-direction: column; }
+  .featured-club { grid-template-columns: 1fr; }
+  .featured-club__photo { min-height: 235px; }
+  .featured-club__content { padding: 18px; }
+  .featured-club__identity h2 { font-size: 30px; }
+  .featured-club__footer { align-items: stretch; flex-direction: column; }
+  .featured-club__footer .primary-action { width: 100%; }
+  .discovery-controls { display: grid; grid-template-columns: 1fr auto; }
+  .club-search { width: 100%; grid-column: 1 / -1; }
+  .club-grid, .community-rail { grid-template-columns: 1fr; }
+  .open-match-section { grid-column: auto; }
+  .club-grid--list .club-card { grid-template-columns: 1fr; }
+  .club-grid--list .card-cover { min-height: 190px; }
+  .create-club-strip { align-items: flex-start; flex-wrap: wrap; }
+  .create-club-strip button { width: 100%; justify-content: center; }
+  .empty-state { grid-template-columns: 1fr; text-align: center; }
+  .form-row { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+}

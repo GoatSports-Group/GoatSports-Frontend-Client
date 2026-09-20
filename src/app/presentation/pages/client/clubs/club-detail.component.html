@@ -18,6 +18,7 @@
             <span><lucide-icon name="users" class="w-4 h-4"></lucide-icon>{{ currentClub.memberCount }} thành viên</span></p>
         </div>
         <div class="header-action">
+          @if (isManager()) { <button class="btn-secondary" (click)="openClubModal()">Chỉnh sửa</button> }
           @if (isOwner()) { <span class="owner-tag">Chủ câu lạc bộ</span> }
           @else if (membership()?.status === 'PENDING') { <span class="owner-tag">Đang chờ duyệt</span> }
           @else if (isActiveMember()) { <button class="btn-leave" [disabled]="mutating()" (click)="leave()">Rời câu lạc bộ</button> }
@@ -31,6 +32,9 @@
       <button role="tab" [class.active]="activeTab() === 'OVERVIEW'" (click)="setTab('OVERVIEW')">Giới thiệu</button>
       <button role="tab" [class.active]="activeTab() === 'ACTIVITIES'" (click)="setTab('ACTIVITIES')">Hoạt động ({{ activities().length }})</button>
       <button role="tab" [class.active]="activeTab() === 'MEMBERS'" (click)="setTab('MEMBERS')">Thành viên ({{ members().length }})</button>
+      @if (isActiveMember() || isManager()) {
+        <button role="tab" [class.active]="activeTab() === 'FEES'" (click)="setTab('FEES')">Lệ phí</button>
+      }
     </nav>
 
     <section class="tab-body">
@@ -48,10 +52,18 @@
             <article class="activity-card"><div class="act-date">{{ activity.startAt | date:'HH:mm dd/MM' }}</div>
               <div class="act-info"><h3>{{ activity.title }}</h3><p>{{ activity.description || 'Không có mô tả.' }}</p>
                 @if (activity.venueId) { <a [routerLink]="['/venues', activity.venueId]">Xem địa điểm</a> }</div>
-              <span>{{ activity.endAt | date:'HH:mm' }}</span></article>
+              <span>{{ activity.endAt | date:'HH:mm' }}</span>
+              @if (isManager()) {
+                <div class="act-actions">
+                  <button type="button" class="btn-secondary" [disabled]="mutating()"
+                    (click)="editActivity(activity)">Sửa</button>
+                  <button type="button" class="btn-danger" [disabled]="mutating()"
+                    (click)="deleteActivity(activity)">Xóa</button>
+                </div>
+              }</article>
           }
         </div> } @else { <div class="empty-state"><p>Chưa có hoạt động nào.</p></div> }
-      } @else {
+      } @else if (activeTab() === 'MEMBERS') {
         <div class="members-grid">
           @for (member of members(); track member.membershipId) {
             <article class="member-card">
@@ -59,20 +71,127 @@
               @else { <div class="club-avatar">{{ initials(displayName(member.userId)) }}</div> }
               <div class="member-info"><h3>{{ displayName(member.userId) }}</h3><span class="role-badge">{{ member.role }} · {{ member.status }}</span></div>
               @if (isManager() && member.status === 'PENDING') { <button (click)="respond(member, true)">Duyệt</button><button (click)="respond(member, false)">Từ chối</button> }
+              @if (isManager() && member.status === 'ACTIVE' && member.role !== 'OWNER') {
+                <div class="member-actions">
+                  @if (isOwner()) {
+                    <button type="button" class="btn-secondary" [disabled]="mutating()" (click)="promote(member)">
+                      {{ member.role === 'ADMIN' ? 'Gỡ quyền quản trị' : 'Phong quản trị' }}
+                    </button>
+                  }
+                  <button type="button" class="btn-secondary" [disabled]="mutating()"
+                    (click)="removeMember(member, false)">Xóa</button>
+                  <button type="button" class="btn-danger" [disabled]="mutating()"
+                    (click)="removeMember(member, true)">Cấm</button>
+                </div>
+              }
             </article>
           }
         </div>
+      } @else {
+        <div class="tab-header-action"><h2>Lệ phí câu lạc bộ</h2>
+          @if (isManager()) { <button class="btn-create-act" (click)="showFeeModal.set(true)">Tạo khoản phí</button> }</div>
+        @if (fees().length) {
+          <div class="fee-list">
+            @for (fee of fees(); track fee.feeId) {
+              <article class="fee-card">
+                <header>
+                  <div>
+                    <h3>{{ fee.name }}</h3>
+                    <span class="fee-meta">Hạn {{ fee.dueDate | date:'dd/MM/yyyy' }}
+                      @if (fee.required) { · Bắt buộc } @else { · Tự nguyện }</span>
+                  </div>
+                  <strong class="fee-amount">{{ fee.amount | number:'1.0-0' }} đ</strong>
+                </header>
+                <div class="fee-status">
+                  <span class="fee-badge"
+                    [class.paid]="fee.myStatus === 'SUCCEEDED' || fee.myStatus === 'WAIVED'"
+                    [class.pending]="fee.myStatus === 'PENDING'">
+                    {{ feeStatusLabel(fee.myStatus) }}
+                  </span>
+                  <span class="fee-progress">{{ fee.paidCount }}/{{ fee.memberCount }} thành viên đã đóng</span>
+                </div>
+                <footer>
+                  @if (isActiveMember() && fee.myStatus !== 'SUCCEEDED' && fee.myStatus !== 'WAIVED') {
+                    <button type="button" class="btn-join-main" [disabled]="mutating()" (click)="payFee(fee)">Đóng phí</button>
+                  }
+                  @if (isManager()) {
+                    <button type="button" class="btn-secondary" (click)="toggleFeePayments(fee)">
+                      {{ expandedFeeId() === fee.feeId ? 'Ẩn danh sách' : 'Xem ai đã đóng' }}
+                    </button>
+                  }
+                </footer>
+                @if (isManager() && expandedFeeId() === fee.feeId) {
+                  <div class="fee-payments">
+                    @for (payment of paymentsOf(fee.feeId); track payment.feePaymentId) {
+                      <div class="fee-payment-row">
+                        <span>{{ payment.userId ? displayName(payment.userId) : 'Thành viên đã rời' }}</span>
+                        <span class="fee-badge"
+                          [class.paid]="payment.status === 'SUCCEEDED' || payment.status === 'WAIVED'"
+                          [class.pending]="payment.status === 'PENDING'">
+                          {{ feeStatusLabel(payment.status) }}
+                        </span>
+                      </div>
+                    }
+                    @for (member of unpaidMembers(fee.feeId); track member.membershipId) {
+                      <div class="fee-payment-row">
+                        <span>{{ displayName(member.userId) }}</span>
+                        <button type="button" class="btn-secondary" [disabled]="mutating()"
+                          (click)="waiveFee(fee, member.membershipId)">Miễn phí này</button>
+                      </div>
+                    }
+                  </div>
+                }
+              </article>
+            }
+          </div>
+        } @else {
+          <div class="empty-state"><p>Câu lạc bộ chưa có khoản phí nào.</p></div>
+        }
       }
     </section>
 
+    @if (showClubModal()) {
+      <div class="modal-overlay" (click)="showClubModal.set(false)"><section class="modal-card" appAccessibleDialog aria-labelledby="club-modal-title" (dialogClosed)="showClubModal.set(false)" (click)="$event.stopPropagation()">
+        <h2 id="club-modal-title">Chỉnh sửa câu lạc bộ</h2>
+        <div class="form-group"><label for="club-name">Tên câu lạc bộ *</label><input id="club-name" [(ngModel)]="clubForm.name" /></div>
+        <div class="form-group"><label for="club-description">Giới thiệu</label><textarea id="club-description" [(ngModel)]="clubForm.description"></textarea></div>
+        <div class="form-group"><label for="club-logo">Ảnh đại diện (URL)</label><input id="club-logo" [(ngModel)]="clubForm.logoUrl" /></div>
+        <div class="form-row">
+          <div class="form-group"><label for="club-privacy">Quyền riêng tư</label>
+            <select id="club-privacy" [value]="clubForm.privacy" (change)="setPrivacy($any($event.target).value)">
+              <option value="PUBLIC">Công khai</option><option value="PRIVATE">Riêng tư</option></select></div>
+          <div class="form-group"><label for="club-approval">Duyệt thành viên</label>
+            <select id="club-approval" [value]="clubForm.approvalMode" (change)="setApprovalMode($any($event.target).value)">
+              <option value="AUTO">Tự động</option><option value="MANUAL">Chủ CLB duyệt</option></select></div>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn-secondary" (click)="showClubModal.set(false)">Hủy</button>
+          <button type="button" class="btn-join-main" [disabled]="mutating() || !clubForm.name" (click)="saveClub()">Lưu thay đổi</button></div>
+      </section></div>
+    }
+
     @if (showActivityModal()) {
-      <div class="modal-overlay" (click)="showActivityModal.set(false)"><section class="modal-card" appAccessibleDialog aria-labelledby="activity-modal-title" (dialogClosed)="showActivityModal.set(false)" (click)="$event.stopPropagation()">
-        <h2 id="activity-modal-title">Tạo hoạt động</h2><div class="form-group"><label for="activity-title">Tiêu đề *</label><input id="activity-title" [(ngModel)]="activityForm.title" /></div>
+      <div class="modal-overlay" (click)="closeActivityModal()"><section class="modal-card" appAccessibleDialog aria-labelledby="activity-modal-title" (dialogClosed)="closeActivityModal()" (click)="$event.stopPropagation()">
+        <h2 id="activity-modal-title">{{ editingActivityId() ? 'Sửa hoạt động' : 'Tạo hoạt động' }}</h2><div class="form-group"><label for="activity-title">Tiêu đề *</label><input id="activity-title" [(ngModel)]="activityForm.title" /></div>
         <div class="form-group"><label for="activity-description">Mô tả</label><textarea id="activity-description" [(ngModel)]="activityForm.description"></textarea></div>
         <div class="form-row"><div class="form-group"><label for="activity-start">Bắt đầu *</label><input id="activity-start" type="datetime-local" [(ngModel)]="activityForm.startAt" /></div>
           <div class="form-group"><label for="activity-end">Kết thúc *</label><input id="activity-end" type="datetime-local" [(ngModel)]="activityForm.endAt" /></div></div>
-        <div class="modal-footer"><button type="button" class="btn-secondary" (click)="showActivityModal.set(false)">Hủy</button>
-          <button type="button" class="btn-join-main" [disabled]="mutating() || !activityForm.title || !activityForm.startAt || !activityForm.endAt" (click)="createActivity()">Tạo hoạt động</button></div>
+        <div class="modal-footer"><button type="button" class="btn-secondary" (click)="closeActivityModal()">Hủy</button>
+          <button type="button" class="btn-join-main" [disabled]="mutating() || !activityForm.title || !activityForm.startAt || !activityForm.endAt" (click)="createActivity()">{{ editingActivityId() ? 'Lưu thay đổi' : 'Tạo hoạt động' }}</button></div>
+      </section></div>
+    }
+
+    @if (showFeeModal()) {
+      <div class="modal-overlay" (click)="showFeeModal.set(false)"><section class="modal-card" appAccessibleDialog aria-labelledby="fee-modal-title" (dialogClosed)="showFeeModal.set(false)" (click)="$event.stopPropagation()">
+        <h2 id="fee-modal-title">Tạo khoản phí</h2>
+        <div class="form-group"><label for="fee-name">Tên khoản phí *</label><input id="fee-name" [(ngModel)]="feeForm.name" /></div>
+        <div class="form-row">
+          <div class="form-group"><label for="fee-amount">Số tiền (đ) *</label><input id="fee-amount" type="number" min="0" [(ngModel)]="feeForm.amount" /></div>
+          <div class="form-group"><label for="fee-due">Hạn đóng *</label><input id="fee-due" type="date" [(ngModel)]="feeForm.dueDate" /></div>
+        </div>
+        <div class="form-group"><label for="fee-required">
+          <input id="fee-required" type="checkbox" [(ngModel)]="feeForm.required" /> Bắt buộc với mọi thành viên</label></div>
+        <div class="modal-footer"><button type="button" class="btn-secondary" (click)="showFeeModal.set(false)">Hủy</button>
+          <button type="button" class="btn-join-main" [disabled]="mutating() || !feeForm.name || !feeForm.dueDate" (click)="createFee()">Tạo khoản phí</button></div>
       </section></div>
     }
   }

@@ -37,11 +37,4 @@ export class StorageApi {
     });
   }
 
-  confirmUpload(tempKey: string): Observable<BaseResponse<string[]>> {
-    const payload = [{ tempKey }];
-    return this.http.post<BaseResponse<string[]>>(
-      `${this.apiBase}/storage-service/api/v1/files/confirm-upload`,
-      payload
-    );
-  }
 }

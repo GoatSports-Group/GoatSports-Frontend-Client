@@ -105,3 +105,41 @@ export interface TournamentStandingModel {
   points: number;
   rank: number;
 }
+
+export type EligibilityRuleType =
+  | 'AGE' | 'GENDER' | 'SKILL_LEVEL' | 'ELO_RATING' | 'CLUB_MEMBERSHIP' | 'TEAM_SIZE';
+
+export type EligibilityRuleOperator =
+  | 'EQUAL' | 'NOT_EQUAL' | 'GREATER_THAN' | 'GREATER_THAN_OR_EQUAL'
+  | 'LESS_THAN' | 'LESS_THAN_OR_EQUAL' | 'IN' | 'BETWEEN';
+
+export interface TournamentEligibilityRuleModel {
+  ruleId: string;
+  tournamentId: string;
+  ruleType: EligibilityRuleType;
+  operator: EligibilityRuleOperator;
+  expectedValue: string;
+}
+
+export type ReservationStatus = 'PENDING' | 'CONFIRMED' | 'RELEASED' | 'CANCELLED';
+
+export interface TournamentReservationModel {
+  reservationId: string;
+  tournamentId: string;
+  venueId: string;
+  courtId: string;
+  bookingId: string | null;
+  playDate: string;
+  startTime: string;
+  endTime: string;
+  status: ReservationStatus;
+}
+
+export interface ReserveVenuePayload {
+  venueId: string;
+  courtId: string;
+  fixtureId?: string | null;
+  playDate: string;
+  startTime: string;
+  endTime: string;
+}

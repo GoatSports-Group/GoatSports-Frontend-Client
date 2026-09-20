@@ -4,6 +4,11 @@ import {
   ClubMemberModel,
   ClubModel,
   CreateClubActivityPayload,
+  ClubFeeModel,
+  ClubFeePaymentModel,
+  ClubRole,
+  UpdateClubPayload,
+  CreateClubFeePayload,
   CreateClubPayload,
   SportType
 } from '@domain/models/club.model';
@@ -19,4 +24,15 @@ export abstract class ClubRepositoryPort {
   abstract respondMembership(clubId: string, membershipId: string, accepted: boolean): Observable<ClubMemberModel>;
   abstract getClubActivities(clubId: string): Observable<ClubActivityModel[]>;
   abstract createClubActivity(clubId: string, payload: CreateClubActivityPayload): Observable<ClubActivityModel>;
+  abstract getClubFees(clubId: string): Observable<ClubFeeModel[]>;
+  abstract createClubFee(clubId: string, payload: CreateClubFeePayload): Observable<ClubFeeModel>;
+  abstract getFeePayments(clubId: string, feeId: string): Observable<ClubFeePaymentModel[]>;
+  abstract initiateFeePayment(clubId: string, feeId: string): Observable<ClubFeePaymentModel>;
+  abstract waiveFee(clubId: string, feeId: string, membershipId: string): Observable<ClubFeePaymentModel>;
+  abstract updateClub(clubId: string, payload: UpdateClubPayload): Observable<ClubModel>;
+  abstract changeMemberRole(clubId: string, membershipId: string, role: ClubRole): Observable<ClubMemberModel>;
+  abstract removeMember(clubId: string, membershipId: string, ban: boolean): Observable<void>;
+  abstract updateClubActivity(clubId: string, activityId: string,
+    payload: CreateClubActivityPayload): Observable<ClubActivityModel>;
+  abstract deleteClubActivity(clubId: string, activityId: string): Observable<void>;
 }

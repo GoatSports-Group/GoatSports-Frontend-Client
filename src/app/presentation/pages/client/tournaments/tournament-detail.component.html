@@ -11,6 +11,17 @@
           @if (registration.status === 'PENDING_PAYMENT') { <button class="btn-generate" [disabled]="mutating()" (click)="payRegistration(registration)">Thanh toán lệ phí</button> }
           @if (registration.status !== 'CANCELLED') { <button class="btn-register" [disabled]="mutating()" (click)="cancelRegistration()">Hủy đăng ký</button> } }
         @if (isOrganizer() && fixtures().length === 0 && teams().length >= 2) { <button class="btn-generate" [disabled]="mutating()" (click)="generateFixtures()">Tạo lịch đấu</button> }
+        @if (isOrganizer()) {
+          @if (currentTournament.status === 'DRAFT') {
+            <button class="btn-generate" [disabled]="mutating()" (click)="changeStatus('PUBLISHED')">Công bố giải</button>
+          }
+          @if (currentTournament.status === 'IN_PROGRESS') {
+            <button class="btn-generate" [disabled]="mutating()" (click)="changeStatus('COMPLETED')">Kết thúc giải</button>
+          }
+          @if (currentTournament.status !== 'COMPLETED' && currentTournament.status !== 'CANCELLED') {
+            <button class="btn-register" [disabled]="mutating()" (click)="changeStatus('CANCELLED')">Hủy giải</button>
+          }
+        }
       </div></div>
       <h1 class="title">{{ currentTournament.name }}</h1><p class="organizer">Ban tổ chức: {{ displayName(currentTournament.organizerId) }}</p>
       <p>{{ currentTournament.description || 'Giải đấu chưa cập nhật mô tả.' }}</p>
@@ -18,7 +29,47 @@
         <div class="stat-box"><span class="label">Lệ phí</span><span class="val">{{ currentTournament.entryFee | number }} đ</span></div>
         <div class="stat-box"><span class="label">Đăng ký</span><span class="val">{{ currentTournament.currentParticipants }}/{{ currentTournament.maxParticipants }}</span></div>
         <div class="stat-box"><span class="label">Thời gian</span><span class="val">{{ currentTournament.startDate | date:'dd/MM' }} – {{ currentTournament.endDate | date:'dd/MM/yyyy' }}</span></div></div>
+
+      @if (eligibilityRules().length) {
+        <div class="eligibility-panel">
+          <h2>Điều kiện tham dự</h2>
+          <ul>
+            @for (rule of eligibilityRules(); track rule.ruleId) {
+              <li><lucide-icon name="check" class="rule-icon"></lucide-icon>{{ ruleLabel(rule) }}</li>
+            }
+          </ul>
+          <p class="eligibility-note">Hệ thống kiểm tra tự động theo hồ sơ người chơi khi bạn đăng ký.</p>
+        </div>
+      }
     </section>
+
+    @if (isOrganizer()) {
+      <section class="reservation-panel">
+        <div class="reservation-head">
+          <h2>Sân đã giữ</h2>
+          <button class="btn-generate" [disabled]="mutating()" (click)="showReserveModal.set(true)">Giữ sân</button>
+        </div>
+        @if (reservations().length) {
+          <ul class="reservation-list">
+            @for (reservation of reservations(); track reservation.reservationId) {
+              <li>
+                <div>
+                  <strong>{{ reservation.playDate | date:'dd/MM/yyyy' }}</strong>
+                  <span>{{ reservation.startTime }} – {{ reservation.endTime }}</span>
+                </div>
+                <span class="status-pill">{{ reservation.status }}</span>
+                @if (reservation.status === 'PENDING' || reservation.status === 'CONFIRMED') {
+                  <button class="btn-register" [disabled]="mutating()"
+                    (click)="releaseReservation(reservation)">Trả sân</button>
+                }
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="reservation-empty">Chưa giữ sân nào cho giải đấu này.</p>
+        }
+      </section>
+    }
 
     <nav class="tabs-nav" role="tablist"><button role="tab" [class.active]="activeTab() === 'FIXTURES'" (click)="setTab('FIXTURES')">Lịch đấu ({{ fixtures().length }})</button>
       @if (currentTournament.format === 'ROUND_ROBIN') { <button role="tab" [class.active]="activeTab() === 'STANDINGS'" (click)="setTab('STANDINGS')">Bảng xếp hạng</button> }
@@ -48,13 +99,54 @@
       @if (registrationForm.type === 'CLUB') { <div class="form-group"><label for="reg-club">Mã câu lạc bộ *</label><input id="reg-club" [(ngModel)]="registrationForm.clubId" /></div> }
       <div class="form-group"><label for="reg-name">Tên thi đấu / tên đội</label><input id="reg-name" [(ngModel)]="registrationForm.teamName" /></div>
       <div class="form-group"><label for="reg-skill">Trình độ</label><select id="reg-skill" [(ngModel)]="registrationForm.skillLevel"><option value="BEGINNER">Mới chơi</option><option value="INTERMEDIATE">Trung bình</option><option value="ADVANCED">Nâng cao</option><option value="PRO">Chuyên nghiệp</option></select></div>
-      <div class="modal-footer"><button class="btn-secondary" (click)="showRegisterModal.set(false)">Hủy</button><button class="btn-primary" [disabled]="mutating()" (click)="register()">Xác nhận đăng ký</button></div>
+
+      @if (registrationForm.type === 'CLUB') {
+        <div class="lineup-editor">
+          <div class="lineup-head">
+            <h3>Đội hình</h3>
+            <button type="button" class="btn-secondary" (click)="addLineupRow()">Thêm người</button>
+          </div>
+          @if (lineupRows.length) {
+            @for (row of lineupRows; track $index) {
+              <div class="lineup-row">
+                <input [(ngModel)]="row.playerId" [attr.aria-label]="'Mã người chơi ' + ($index + 1)" placeholder="Mã người chơi *" />
+                <input [(ngModel)]="row.playerName" [attr.aria-label]="'Tên người chơi ' + ($index + 1)" placeholder="Tên hiển thị" />
+                <select [(ngModel)]="row.lineupRole" [attr.aria-label]="'Vai trò ' + ($index + 1)">
+                  <option value="CAPTAIN">Đội trưởng</option>
+                  <option value="PLAYER">Thi đấu</option>
+                  <option value="SUBSTITUTE">Dự bị</option>
+                </select>
+                <input type="number" min="0" [(ngModel)]="row.shirtNumber" [attr.aria-label]="'Số áo ' + ($index + 1)" placeholder="Số áo" />
+                <button type="button" class="lineup-remove" (click)="removeLineupRow($index)" aria-label="Xóa khỏi đội hình">×</button>
+              </div>
+            }
+          } @else {
+            <p class="lineup-empty">Chưa thêm ai. Để trống nếu giải không yêu cầu đội hình.</p>
+          }
+          @if (lineupProblem(); as problem) { <p class="lineup-error">{{ problem }}</p> }
+        </div>
+      }
+
+      <div class="modal-footer"><button class="btn-secondary" (click)="showRegisterModal.set(false)">Hủy</button><button class="btn-primary" [disabled]="mutating() || !!lineupProblem()" (click)="register()">Xác nhận đăng ký</button></div>
     </section></div> }
 
     @if (showScoreModal() && selectedFixture(); as fixture) { <div class="modal-overlay" (click)="showScoreModal.set(false)"><section class="modal-card" appAccessibleDialog aria-labelledby="score-modal-title" (dialogClosed)="showScoreModal.set(false)" (click)="$event.stopPropagation()">
       <h2 id="score-modal-title">Cập nhật kết quả</h2><div class="score-inputs"><div class="team-input"><label for="score-team-one">{{ registrationName(fixture.registration1Id) }}</label><input id="score-team-one" type="number" min="0" [(ngModel)]="score1" /></div>
         <div class="vs">VS</div><div class="team-input"><label for="score-team-two">{{ registrationName(fixture.registration2Id) }}</label><input id="score-team-two" type="number" min="0" [(ngModel)]="score2" /></div></div>
       <div class="modal-footer"><button class="btn-secondary" (click)="showScoreModal.set(false)">Hủy</button><button class="btn-primary" [disabled]="mutating()" (click)="saveScore()">Lưu tỷ số</button></div>
+    </section></div> }
+
+    @if (showReserveModal()) { <div class="modal-overlay" (click)="showReserveModal.set(false)"><section class="modal-card" appAccessibleDialog aria-labelledby="reserve-modal-title" (dialogClosed)="showReserveModal.set(false)" (click)="$event.stopPropagation()">
+      <h2 id="reserve-modal-title">Giữ sân cho giải</h2>
+      <div class="form-group"><label for="reserve-venue">Mã cơ sở *</label><input id="reserve-venue" [(ngModel)]="reserveForm.venueId" /></div>
+      <div class="form-group"><label for="reserve-court">Mã sân *</label><input id="reserve-court" [(ngModel)]="reserveForm.courtId" /></div>
+      <div class="form-group"><label for="reserve-date">Ngày thi đấu *</label><input id="reserve-date" type="date" [(ngModel)]="reserveForm.playDate" /></div>
+      <div class="score-inputs">
+        <div class="team-input"><label for="reserve-start">Giờ bắt đầu *</label><input id="reserve-start" type="time" [(ngModel)]="reserveForm.startTime" /></div>
+        <div class="team-input"><label for="reserve-end">Giờ kết thúc *</label><input id="reserve-end" type="time" [(ngModel)]="reserveForm.endTime" /></div>
+      </div>
+      <div class="modal-footer"><button class="btn-secondary" (click)="showReserveModal.set(false)">Hủy</button>
+        <button class="btn-primary" [disabled]="mutating()" (click)="reserveVenue()">Giữ sân</button></div>
     </section></div> }
   }
 </main>

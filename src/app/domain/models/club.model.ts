@@ -64,3 +64,44 @@ export interface CreateClubActivityPayload {
   startAt: string;
   endAt: string;
 }
+
+export type FeePaymentStatus = 'PENDING' | 'SUCCEEDED' | 'FAILED' | 'WAIVED';
+
+export interface ClubFeeModel {
+  feeId: string;
+  clubId: string;
+  name: string;
+  amount: number;
+  dueDate: string;
+  required: boolean;
+  paidCount: number;
+  memberCount: number;
+  myStatus: FeePaymentStatus | null;
+  myPaidAt: string | null;
+}
+
+export interface ClubFeePaymentModel {
+  feePaymentId: string;
+  feeId: string;
+  membershipId: string;
+  userId: string | null;
+  amount: number;
+  paymentId: string | null;
+  status: FeePaymentStatus;
+  paidAt: string | null;
+}
+
+export interface CreateClubFeePayload {
+  name: string;
+  amount: number;
+  dueDate: string;
+  required: boolean;
+}
+
+export interface UpdateClubPayload {
+  name?: string;
+  description?: string;
+  logoUrl?: string;
+  privacy?: ClubPrivacy;
+  approvalMode?: ClubApprovalMode;
+}

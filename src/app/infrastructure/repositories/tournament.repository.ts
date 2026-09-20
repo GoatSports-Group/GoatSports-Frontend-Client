@@ -5,8 +5,9 @@ import { BaseResponse, SpringPageResponse } from '@application/dto/base/base-res
 import { TournamentRepositoryPort } from '@application/ports/tournament.repository.port';
 import { SportType } from '@domain/models/club.model';
 import {
-  CreateTournamentPayload, TournamentFixtureModel, TournamentModel, TournamentRegistrationModel,
-  TournamentRegistrationPayload, TournamentStandingModel, TournamentStatus
+  CreateTournamentPayload, ReserveVenuePayload, TournamentEligibilityRuleModel, TournamentFixtureModel,
+  TournamentModel, TournamentRegistrationModel, TournamentRegistrationPayload, TournamentReservationModel,
+  TournamentStandingModel, TournamentStatus
 } from '@domain/models/tournament.model';
 import { API_ENDPOINTS } from '@infrastructure/config/api-endpoints';
 
@@ -56,5 +57,24 @@ export class TournamentRepository extends TournamentRepositoryPort {
   override getStandings(tournamentId: string): Observable<TournamentStandingModel[]> {
     return this.http.get<BaseResponse<TournamentStandingModel[]>>(`${this.baseUrl}/${tournamentId}/standings`)
       .pipe(map(response => response.data ?? []));
+  }
+  override getEligibilityRules(tournamentId: string): Observable<TournamentEligibilityRuleModel[]> {
+    return this.http.get<BaseResponse<TournamentEligibilityRuleModel[]>>(`${this.baseUrl}/${tournamentId}/eligibility-rules`)
+      .pipe(map(response => response.data ?? []));
+  }
+  override changeStatus(tournamentId: string, status: TournamentStatus): Observable<TournamentModel> {
+    return this.http.patch<BaseResponse<TournamentModel>>(`${this.baseUrl}/${tournamentId}/status`, { status })
+      .pipe(map(response => response.data));
+  }
+  override getReservations(tournamentId: string): Observable<TournamentReservationModel[]> {
+    return this.http.get<BaseResponse<TournamentReservationModel[]>>(`${this.baseUrl}/${tournamentId}/reservations`)
+      .pipe(map(response => response.data ?? []));
+  }
+  override reserveVenue(tournamentId: string, payload: ReserveVenuePayload): Observable<TournamentReservationModel> {
+    return this.http.post<BaseResponse<TournamentReservationModel>>(`${this.baseUrl}/${tournamentId}/reservations`, payload)
+      .pipe(map(response => response.data));
+  }
+  override releaseReservation(tournamentId: string, reservationId: string): Observable<void> {
+    return this.http.delete(`${this.baseUrl}/${tournamentId}/reservations/${reservationId}`).pipe(map(() => void 0));
   }
 }
