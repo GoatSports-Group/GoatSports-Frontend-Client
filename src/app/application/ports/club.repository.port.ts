@@ -1,5 +1,6 @@
 import { Observable } from 'rxjs';
 import {
+  MyClubMembership,
   ClubActivityModel,
   ClubMemberModel,
   ClubModel,
@@ -14,7 +15,16 @@ import {
 } from '@domain/models/club.model';
 
 export abstract class ClubRepositoryPort {
-  abstract searchClubs(sportType?: SportType, keyword?: string): Observable<ClubModel[]>;
+  abstract searchClubs(sportType?: SportType, keyword?: string, city?: string): Observable<ClubModel[]>;
+
+  /** CLB toi dang sinh hoat, kem vai tro cua toi. */
+  abstract getMyClubs(): Observable<MyClubMembership[]>;
+
+  /** Yeu cau tham gia cua toi con dang cho duyet. */
+  abstract getMyPendingRequests(): Observable<MyClubMembership[]>;
+
+  /** Hoat dong sap toi gom tat ca CLB toi dang sinh hoat. */
+  abstract getMyUpcomingActivities(limit?: number): Observable<ClubActivityModel[]>;
   abstract getClubDetails(clubId: string): Observable<ClubModel>;
   abstract createClub(payload: CreateClubPayload): Observable<ClubModel>;
   abstract joinClub(clubId: string): Observable<ClubMemberModel>;

@@ -10,6 +10,10 @@ export interface ClubModel {
   name: string;
   description?: string;
   logoUrl?: string;
+  /** Ma tinh/thanh dung de loc, vi du "ho-chi-minh". */
+  city?: string;
+  /** Dong dia diem hien thi, vi du "Quan 7, TP. Ho Chi Minh". */
+  location?: string;
   sportType: SportType;
   privacy: ClubPrivacy;
   approvalMode: ClubApprovalMode;
@@ -29,9 +33,21 @@ export interface CreateClubPayload {
   name: string;
   description?: string;
   logoUrl?: string;
+  city?: string;
+  location?: string;
   sportType: SportType;
   privacy: ClubPrivacy;
   approvalMode: ClubApprovalMode;
+}
+
+/** Tu cach thanh vien cua chinh nguoi dang dang nhap, kem thong tin CLB. */
+export interface MyClubMembership {
+  membershipId: string;
+  role: ClubRole;
+  status: ClubMemberStatus;
+  joinedAt?: string;
+  requestedAt?: string;
+  club: ClubModel;
 }
 
 export interface ClubMemberModel {
@@ -100,6 +116,8 @@ export interface CreateClubFeePayload {
 
 export interface UpdateClubPayload {
   name?: string;
+  city?: string;
+  location?: string;
   description?: string;
   logoUrl?: string;
   privacy?: ClubPrivacy;

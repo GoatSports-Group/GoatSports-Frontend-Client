@@ -20,7 +20,7 @@
             <p class="page-kicker">Tìm cộng đồng của bạn</p>
             <h2 id="club-finder-title">Chọn môn thể thao và thành phố</h2>
           </div>
-          <span class="result-count">{{ filteredClubs().length }} câu lạc bộ</span>
+          <span class="result-count">{{ totalClubs() }} câu lạc bộ</span>
         </div>
 
         <div class="finder-controls">
@@ -176,7 +176,7 @@
       <section class="rail-section">
         <header class="rail-header">
           <div><p class="page-kicker">Cộng đồng</p><h2>CLB của bạn</h2></div>
-          <button type="button" class="text-action" (click)="showMockNotice('Đây là danh sách câu lạc bộ mẫu của bạn.')">Xem tất cả <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></button>
+          <button type="button" class="text-action" (click)="comingSoon()">Xem tất cả <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></button>
         </header>
         <div class="rail-list">
           @for (club of myClubs(); track club.clubId) {
@@ -192,43 +192,36 @@
 
       <section class="rail-section">
         <header class="rail-header">
-          <div class="rail-title-row"><h2>Lời mời & yêu cầu</h2><span class="count-badge">{{ invitations().length }}</span></div>
-          <button type="button" class="text-action" (click)="showMockNotice('Tất cả lời mời hiện đều là mock data.')">Xem tất cả <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></button>
+          <div class="rail-title-row"><h2>Yêu cầu của bạn</h2><span class="count-badge">{{ pendingRequests().length }}</span></div>
         </header>
-        @if (invitations().length) {
+        @if (pendingRequests().length) {
           <div class="rail-list">
-            @for (invitation of invitations(); track invitation.invitationId) {
+            @for (request of pendingRequests(); track request.clubId) {
               <article class="invitation-row">
-                <span class="compact-logo"><img [src]="invitation.club.logoUrl || defaultClubLogo" (error)="useLogoFallback($event)" [alt]="'Logo ' + invitation.club.name" /></span>
-                <span class="invitation-row__content"><strong>{{ invitation.club.name }}</strong><small>{{ invitation.message }}</small><small>{{ invitation.sentAt }}</small></span>
-                @if (invitation.type === 'INVITATION') {
-                  <span class="invitation-actions">
-                    <button type="button" class="accept-button" (click)="acceptInvitation(invitation)">Chấp nhận</button>
-                    <button type="button" class="decline-button" aria-label="Từ chối lời mời" (click)="declineInvitation(invitation)"><lucide-icon name="x" class="w-4 h-4"></lucide-icon></button>
-                  </span>
-                } @else {
-                  <span class="pending-label">Đang chờ</span>
-                }
+                <span class="compact-logo"><img [src]="request.logoUrl || defaultClubLogo" (error)="useLogoFallback($event)" [alt]="'Logo ' + request.name" /></span>
+                <span class="invitation-row__content"><strong>{{ request.name }}</strong><small>{{ sportLabel(request.sportType) }}</small><small>Đang chờ ban quản trị duyệt</small></span>
+                <span class="pending-label">Đang chờ</span>
               </article>
             }
           </div>
         } @else {
-          <p class="rail-empty">Bạn đã xử lý tất cả lời mời và yêu cầu mẫu.</p>
+          <p class="rail-empty">Bạn không có yêu cầu nào đang chờ duyệt.</p>
         }
       </section>
 
       <section class="rail-section">
         <header class="rail-header">
           <h2>Hoạt động sắp tới</h2>
-          <button type="button" class="text-action" (click)="showMockNotice('Lịch hoạt động hiện dùng dữ liệu mẫu.')">Xem tất cả <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></button>
+          <button type="button" class="text-action" (click)="comingSoon()">Xem tất cả <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></button>
         </header>
+        @if (!upcomingActivities().length) {
+          <p class="rail-empty">Chưa có hoạt động nào sắp diễn ra.</p>
+        }
         <div class="activity-list">
           @for (activity of upcomingActivities(); track activity.activityId) {
-            <button type="button" class="activity-row" (click)="showMockNotice('Đang xem hoạt động: ' + activity.title)">
+            <button type="button" class="activity-row" (click)="comingSoon()">
               <time><span>{{ activity.day }}</span><b>{{ activity.date }}</b><small>{{ activity.month }}</small></time>
               <span class="activity-row__content"><strong>{{ activity.title }}</strong><small>{{ activity.clubName }}</small><small><lucide-icon name="map-pin" class="w-3 h-3"></lucide-icon>{{ activity.location }}</small><small><lucide-icon name="clock" class="w-3 h-3"></lucide-icon>{{ activity.time }}</small></span>
-              <span class="activity-attendance"><lucide-icon name="users" class="w-4 h-4"></lucide-icon>{{ activity.attendance }}</span>
-              <i [class.active]="activity.highlighted" aria-hidden="true"></i>
             </button>
           }
         </div>
@@ -237,17 +230,8 @@
       <section class="rail-section">
         <header class="rail-header">
           <h2>Trận đấu mở</h2>
-          <button type="button" class="text-action" (click)="showMockNotice('Các trận đấu hiện dùng dữ liệu mẫu.')">Xem tất cả <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></button>
         </header>
-        <div class="open-match-list">
-          @for (match of openMatches(); track match.matchId) {
-            <article class="open-match">
-              <img [src]="match.bannerUrl || defaultClubBanner" (error)="useBannerFallback($event)" [alt]="'Ảnh ' + match.title" />
-              <div><span class="match-label">Thách đấu</span><strong>{{ match.title }}</strong><small>{{ match.location }} <i aria-hidden="true">|</i> {{ match.schedule }}</small><small><lucide-icon name="users" class="w-3 h-3"></lucide-icon>Cần thêm {{ match.neededPlayers }} người</small></div>
-              <button type="button" class="match-action" (click)="showMockNotice('Đã chọn trận: ' + match.title)">Tham gia <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></button>
-            </article>
-          }
-        </div>
+        <p class="rail-empty">Chức năng đang phát triển.</p>
       </section>
       </div>
     </aside>
@@ -260,7 +244,7 @@
           <div><p class="page-kicker">Dữ liệu xem trước</p><h2 id="create-club-title">Tạo câu lạc bộ mẫu</h2></div>
           <button type="button" class="icon-button" aria-label="Đóng" (click)="closeCreateModal()"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button>
         </div>
-        <p class="modal-note"><lucide-icon name="info" class="w-4 h-4"></lucide-icon>Câu lạc bộ chỉ được thêm vào mock data trên màn hình, không gửi lên hệ thống.</p>
+        <p class="modal-note"><lucide-icon name="info" class="w-4 h-4"></lucide-icon>Bạn sẽ là chủ câu lạc bộ này và có thể mời thêm thành viên sau khi tạo.</p>
         <div class="modal-body">
           <div class="form-group"><label for="club-name">Tên câu lạc bộ *</label><input id="club-name" [(ngModel)]="createForm.name" placeholder="Ví dụ: GOAT Weekend Club" /></div>
           <div class="form-group"><label for="club-description">Mô tả</label><textarea id="club-description" rows="3" [(ngModel)]="createForm.description" placeholder="Mô tả ngắn về cộng đồng..."></textarea></div>
@@ -268,6 +252,11 @@
             <div class="form-group"><label for="club-sport">Môn thể thao</label><select id="club-sport" [(ngModel)]="createForm.sportType">@for (sport of sports.slice(1); track sport.value) { <option [ngValue]="sport.value">{{ sport.label }}</option> }</select></div>
             <div class="form-group"><label for="club-privacy">Quyền riêng tư</label><select id="club-privacy" [(ngModel)]="createForm.privacy"><option value="PUBLIC">Công khai</option><option value="PRIVATE">Riêng tư</option></select></div>
           </div>
+          <div class="form-row">
+            <div class="form-group"><label for="club-approval">Duyệt thành viên</label><select id="club-approval" [(ngModel)]="createForm.approvalMode"><option value="AUTO">Tự động</option><option value="MANUAL">Chủ CLB duyệt</option></select></div>
+            <div class="form-group"><label for="club-city">Tỉnh/Thành phố</label><select id="club-city" [(ngModel)]="createForm.city"><option value="">Chưa chọn</option>@for (province of provinces(); track province.code) { <option [value]="province.code">{{ province.name }}</option> }</select></div>
+          </div>
+          <div class="form-group"><label for="club-location">Địa điểm sinh hoạt</label><input id="club-location" [(ngModel)]="createForm.location" placeholder="Ví dụ: Quận 7, TP. Hồ Chí Minh" /></div>
         </div>
         <div class="modal-footer"><button type="button" class="secondary-action" (click)="closeCreateModal()">Hủy</button><button type="button" class="primary-action" [disabled]="!createForm.name.trim()" (click)="createClub()">Tạo câu lạc bộ</button></div>
       </section>
@@ -275,6 +264,6 @@
   }
 
   @if (requestClub(); as club) {
-    <app-club-join-request-modal [club]="club" (cancelled)="closeJoinRequest()" (submitted)="submitJoinRequest($event)" />
+    <app-club-join-request-modal [club]="club" (cancelled)="closeJoinRequest()" (submitted)="submitJoinRequest()" />
   }
 </main>

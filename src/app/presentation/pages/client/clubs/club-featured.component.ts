@@ -1,17 +1,15 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { SportType } from '@application/dto/club/club.dto';
-import { NotifyService } from '@shared/components/notify/notify.service';
 import { ClubLocationDataService } from './club-location-data.service';
+import { ClubBrowseService } from './club-browse.service';
 import {
   CLUB_SPORTS,
-  ClubCity,
+  ClubCardView,
   DEFAULT_CLUB_BANNER,
   DEFAULT_CLUB_LOGO,
-  MockClub,
-  MOCK_CLUBS,
   sportLabel
-} from './club-mock-data';
+} from './club-view.model';
 
 @Component({
   selector: 'app-club-featured',
@@ -22,67 +20,90 @@ import {
 })
 export class ClubFeaturedComponent {
   private readonly router = inject(Router);
-  private readonly notify = inject(NotifyService);
   private readonly locationData = inject(ClubLocationDataService);
+  private readonly browse = inject(ClubBrowseService);
 
   readonly defaultClubLogo = DEFAULT_CLUB_LOGO;
   readonly defaultClubBanner = DEFAULT_CLUB_BANNER;
   readonly sports = CLUB_SPORTS;
-  readonly clubs = signal<MockClub[]>(MOCK_CLUBS);
+  readonly clubs = this.browse.clubs;
+  readonly loading = this.browse.loading;
+  readonly error = this.browse.error;
   readonly selectedSport = signal<SportType | 'ALL'>('ALL');
-  readonly selectedCity = signal<ClubCity | 'ALL'>('ALL');
+  readonly selectedCity = signal<string | 'ALL'>('ALL');
   readonly pageIndex = signal(0);
   readonly pageSize = 6;
-  readonly requestClub = signal<MockClub | null>(null);
+  readonly requestClub = signal<ClubCardView | null>(null);
   readonly provinces = this.locationData.provinces;
 
-  readonly filteredClubs = computed(() => this.clubs()
-    .filter(club => this.selectedSport() === 'ALL' || club.sportType === this.selectedSport())
-    .filter(club => this.selectedCity() === 'ALL' || club.city === this.selectedCity())
-    .sort((left, right) => right.winRate - left.winRate));
+  constructor() {
+    this.reload();
+  }
+
+  /** "Nổi bật" xếp theo tỷ lệ thắng thật, không theo cờ featured gán tay. */
+  readonly filteredClubs = computed(() =>
+    [...this.clubs()].sort((left, right) => right.winRate - left.winRate));
 
   readonly pagedClubs = computed(() => {
     const start = this.pageIndex() * this.pageSize;
     return this.filteredClubs().slice(start, start + this.pageSize);
   });
 
-  selectSport(value: string): void { this.selectedSport.set(value as SportType | 'ALL'); this.pageIndex.set(0); }
-  updateCity(value: string): void { this.selectedCity.set(value as ClubCity | 'ALL'); this.pageIndex.set(0); }
-  clearFilters(): void { this.selectedSport.set('ALL'); this.selectedCity.set('ALL'); this.pageIndex.set(0); }
+  selectSport(value: string): void {
+    this.selectedSport.set(value as SportType | 'ALL');
+    this.pageIndex.set(0);
+    this.reload();
+  }
+
+  updateCity(value: string): void {
+    this.selectedCity.set(value);
+    this.pageIndex.set(0);
+    this.reload();
+  }
+
+  clearFilters(): void {
+    this.selectedSport.set('ALL');
+    this.selectedCity.set('ALL');
+    this.pageIndex.set(0);
+    this.reload();
+  }
+
   changePage(page: number): void {
     this.pageIndex.set(page);
     window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   }
+
   sportLabel(value: SportType): string { return sportLabel(value); }
 
-  goToClub(club: MockClub): void { void this.router.navigate(['/clubs', club.clubId]); }
-  goToClubFromKeyboard(event: Event, club: MockClub): void { event.preventDefault(); this.goToClub(club); }
+  goToClub(club: ClubCardView): void { void this.router.navigate(['/clubs', club.clubId]); }
+  goToClubFromKeyboard(event: Event, club: ClubCardView): void { event.preventDefault(); this.goToClub(club); }
 
-  handleClubAction(event: Event, club: MockClub): void {
+  handleClubAction(event: Event, club: ClubCardView): void {
     event.stopPropagation();
-    if (club.action !== 'JOIN' && club.action !== 'REQUEST') return;
-
-    if (club.privacy === 'PRIVATE') {
+    if (club.action === 'PENDING' || club.action === 'DETAIL') return;
+    if (club.action === 'REQUEST') {
       this.requestClub.set(club);
       return;
     }
-
-    this.clubs.update(clubs => clubs.map(item => item.clubId === club.clubId ? { ...item, action: 'DETAIL' } : item));
-    this.notify.success(`Đã tham gia ${club.name} trong bản xem trước.`, 'Mock data');
+    this.browse.join(club, () => this.reload());
   }
 
   closeJoinRequest(): void { this.requestClub.set(null); }
 
-  submitJoinRequest(message: string): void {
+  submitJoinRequest(): void {
     const club = this.requestClub();
-    if (!club) return;
-    this.clubs.update(clubs => clubs.map(item => item.clubId === club.clubId ? { ...item, action: 'PENDING' } : item));
     this.requestClub.set(null);
-    this.notify.success(`Đã gửi lời giới thiệu ${message.length} ký tự đến ${club.name}.`, 'Mock data');
+    if (club) this.browse.join(club, () => this.reload());
   }
 
   useLogoFallback(event: Event): void { this.applyImageFallback(event, this.defaultClubLogo); }
   useBannerFallback(event: Event): void { this.applyImageFallback(event, this.defaultClubBanner); }
+
+  private reload(): void {
+    const sport = this.selectedSport();
+    const city = this.selectedCity();
+    this.browse.load(sport === 'ALL' ? undefined : sport, city === 'ALL' ? undefined : city);
+  }
 
   private applyImageFallback(event: Event, fallback: string): void {
     const image = event.target as HTMLImageElement;

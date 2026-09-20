@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, EventEmitter, Input, Output, signal } from '@angular/core';
-import { MockClub } from './club-mock-data';
+import { ClubCardView } from './club-view.model';
 
 @Component({
   selector: 'app-club-join-request-modal',
@@ -9,7 +9,7 @@ import { MockClub } from './club-mock-data';
   standalone: false
 })
 export class ClubJoinRequestModalComponent {
-  @Input({ required: true }) club!: MockClub;
+  @Input({ required: true }) club!: ClubCardView;
   @Output() cancelled = new EventEmitter<void>();
   @Output() submitted = new EventEmitter<string>();
 

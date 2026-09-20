@@ -1,18 +1,16 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { SportType } from '@application/dto/club/club.dto';
-import { NotifyService } from '@shared/components/notify/notify.service';
 import { ClubLocationDataService } from './club-location-data.service';
+import { ClubBrowseService } from './club-browse.service';
 import {
   CLUB_SPORTS,
-  ClubCity,
+  ClubCardView,
   ClubSortMode,
   DEFAULT_CLUB_BANNER,
   DEFAULT_CLUB_LOGO,
-  MockClub,
-  MOCK_CLUBS,
   sportLabel
-} from './club-mock-data';
+} from './club-view.model';
 
 @Component({
   selector: 'app-club-explore',
@@ -23,33 +21,34 @@ import {
 })
 export class ClubExploreComponent {
   private readonly router = inject(Router);
-  private readonly notify = inject(NotifyService);
   private readonly locationData = inject(ClubLocationDataService);
+  private readonly browse = inject(ClubBrowseService);
 
   readonly defaultClubLogo = DEFAULT_CLUB_LOGO;
   readonly defaultClubBanner = DEFAULT_CLUB_BANNER;
   readonly sports = CLUB_SPORTS;
   readonly provinces = this.locationData.provinces;
-  readonly clubs = signal<MockClub[]>(MOCK_CLUBS.map(club => ({ ...club })));
+  readonly clubs = this.browse.clubs;
+  readonly loading = this.browse.loading;
+  readonly error = this.browse.error;
   readonly selectedSport = signal<SportType | 'ALL'>('ALL');
-  readonly selectedCity = signal<ClubCity | 'ALL'>('ALL');
+  readonly selectedCity = signal<string | 'ALL'>('ALL');
   readonly sortMode = signal<ClubSortMode>('RELEVANCE');
   readonly pageIndex = signal(0);
   readonly pageSize = 6;
-  readonly requestClub = signal<MockClub | null>(null);
+  readonly requestClub = signal<ClubCardView | null>(null);
+
+  constructor() {
+    this.reload();
+  }
 
   readonly filteredClubs = computed(() => {
-    const selectedSport = this.selectedSport();
-    const selectedCity = this.selectedCity();
-    const clubs = this.clubs().filter(club =>
-      (selectedSport === 'ALL' || club.sportType === selectedSport)
-      && (selectedCity === 'ALL' || club.city === selectedCity)
-    );
-
+    const clubs = [...this.clubs()];
     switch (this.sortMode()) {
       case 'MEMBERS': return clubs.sort((left, right) => right.memberCount - left.memberCount);
       case 'WIN_RATE': return clubs.sort((left, right) => right.winRate - left.winRate);
-      default: return clubs.sort((left, right) => Number(right.featured) - Number(left.featured));
+      default: return clubs.sort((left, right) =>
+        (right.memberCount * 2 + right.winRate) - (left.memberCount * 2 + left.winRate));
     }
   });
 
@@ -61,11 +60,13 @@ export class ClubExploreComponent {
   selectSport(value: string): void {
     this.selectedSport.set(value as SportType | 'ALL');
     this.pageIndex.set(0);
+    this.reload();
   }
 
   updateCity(value: string): void {
-    this.selectedCity.set(value as ClubCity | 'ALL');
+    this.selectedCity.set(value);
     this.pageIndex.set(0);
+    this.reload();
   }
 
   updateSortMode(value: string): void {
@@ -77,6 +78,7 @@ export class ClubExploreComponent {
     this.selectedSport.set('ALL');
     this.selectedCity.set('ALL');
     this.pageIndex.set(0);
+    this.reload();
   }
 
   changePage(page: number): void {
@@ -84,35 +86,34 @@ export class ClubExploreComponent {
     window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   }
 
-  goToClub(club: MockClub): void { void this.router.navigate(['/clubs', club.clubId]); }
+  goToClub(club: ClubCardView): void { void this.router.navigate(['/clubs', club.clubId]); }
 
-  handleClubAction(event: Event, club: MockClub): void {
+  handleClubAction(event: Event, club: ClubCardView): void {
     event.stopPropagation();
     if (club.action === 'PENDING' || club.action === 'DETAIL') return;
-    if (club.privacy === 'PRIVATE') {
+    if (club.action === 'REQUEST') {
       this.requestClub.set(club);
       return;
     }
-    this.updateAction(club.clubId, 'DETAIL');
-    this.notify.success(`Đã tham gia ${club.name} trong bản xem trước.`, 'Mock data');
+    this.browse.join(club, () => this.reload());
   }
 
   closeJoinRequest(): void { this.requestClub.set(null); }
 
-  submitJoinRequest(message: string): void {
+  submitJoinRequest(): void {
     const club = this.requestClub();
-    if (!club) return;
-    this.updateAction(club.clubId, 'PENDING');
     this.requestClub.set(null);
-    this.notify.success(`Đã gửi lời giới thiệu ${message.length} ký tự đến ${club.name}.`, 'Mock data');
+    if (club) this.browse.join(club, () => this.reload());
   }
 
   sportLabel(value: SportType): string { return sportLabel(value); }
   useLogoFallback(event: Event): void { this.applyImageFallback(event, this.defaultClubLogo); }
   useBannerFallback(event: Event): void { this.applyImageFallback(event, this.defaultClubBanner); }
 
-  private updateAction(clubId: string, action: MockClub['action']): void {
-    this.clubs.update(clubs => clubs.map(club => club.clubId === clubId ? { ...club, action } : club));
+  private reload(): void {
+    const sport = this.selectedSport();
+    const city = this.selectedCity();
+    this.browse.load(sport === 'ALL' ? undefined : sport, city === 'ALL' ? undefined : city);
   }
 
   private applyImageFallback(event: Event, fallback: string): void {

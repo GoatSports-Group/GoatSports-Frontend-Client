@@ -1,6 +1,7 @@
 export {
   ClubModel as Club,
   ClubMemberModel as ClubMember,
+  MyClubMembership,
   ClubActivityModel as ClubActivity,
   CreateClubPayload,
   CreateClubActivityPayload,
@@ -9,4 +10,4 @@ export {
   CreateClubFeePayload,
   UpdateClubPayload
 } from '@domain/models/club.model';
-export type { SportType, FeePaymentStatus, ClubRole, ClubPrivacy, ClubApprovalMode } from '@domain/models/club.model';
+export type { SportType, FeePaymentStatus, ClubRole, ClubPrivacy, ClubApprovalMode, ClubMemberStatus } from '@domain/models/club.model';

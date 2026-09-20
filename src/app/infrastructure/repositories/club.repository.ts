@@ -5,6 +5,7 @@ import { ClubRepositoryPort } from '@application/ports/club.repository.port';
 import { BaseResponse, PagedModelResponse } from '@application/dto/base/base-response';
 import {
   ClubActivityModel, ClubFeeModel, ClubFeePaymentModel, ClubMemberModel, ClubModel, ClubRole,
+  MyClubMembership,
   CreateClubActivityPayload, CreateClubFeePayload, CreateClubPayload, SportType, UpdateClubPayload
 } from '@domain/models/club.model';
 import { API_ENDPOINTS } from '@infrastructure/config/api-endpoints';
@@ -14,12 +15,26 @@ export class ClubRepository extends ClubRepositoryPort {
   private readonly baseUrl = `${API_ENDPOINTS.club}/clubs`;
   constructor(private readonly http: HttpClient) { super(); }
 
-  override searchClubs(sportType?: SportType, keyword?: string): Observable<ClubModel[]> {
-    let params = new HttpParams().set('size', 20);
+  override searchClubs(sportType?: SportType, keyword?: string, city?: string): Observable<ClubModel[]> {
+    let params = new HttpParams().set('size', 50);
     if (sportType) params = params.set('sportType', sportType);
+    if (city) params = params.set('city', city);
     if (keyword?.trim()) params = params.set('keyword', keyword.trim());
     return this.http.get<BaseResponse<PagedModelResponse<ClubModel>>>(`${this.baseUrl}/search`, { params })
       .pipe(map(response => response.data?.content ?? []));
+  }
+  override getMyClubs(): Observable<MyClubMembership[]> {
+    return this.http.get<BaseResponse<MyClubMembership[]>>(`${this.baseUrl}/me`)
+      .pipe(map(response => response.data ?? []));
+  }
+  override getMyPendingRequests(): Observable<MyClubMembership[]> {
+    return this.http.get<BaseResponse<MyClubMembership[]>>(`${this.baseUrl}/me/requests`)
+      .pipe(map(response => response.data ?? []));
+  }
+  override getMyUpcomingActivities(limit = 10): Observable<ClubActivityModel[]> {
+    return this.http.get<BaseResponse<ClubActivityModel[]>>(`${this.baseUrl}/me/activities`,
+      { params: new HttpParams().set('limit', limit) })
+      .pipe(map(response => response.data ?? []));
   }
   override getClubDetails(clubId: string): Observable<ClubModel> {
     return this.http.get<BaseResponse<ClubModel>>(`${this.baseUrl}/${clubId}`).pipe(map(response => response.data));
