@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
-import { BaseResponse, SpringPageResponse } from '@application/dto/base/base-response';
+import { BaseResponse, PagedModelResponse } from '@application/dto/base/base-response';
 import { TournamentRepositoryPort } from '@application/ports/tournament.repository.port';
 import { SportType } from '@domain/models/club.model';
 import {
@@ -21,7 +21,7 @@ export class TournamentRepository extends TournamentRepositoryPort {
     if (sportType) params = params.set('sportType', sportType);
     if (status) params = params.set('status', status);
     if (keyword?.trim()) params = params.set('keyword', keyword.trim());
-    return this.http.get<BaseResponse<SpringPageResponse<TournamentModel>>>(`${this.baseUrl}/search`, { params })
+    return this.http.get<BaseResponse<PagedModelResponse<TournamentModel>>>(`${this.baseUrl}/search`, { params })
       .pipe(map(response => response.data?.content ?? []));
   }
   override getTournamentDetails(tournamentId: string): Observable<TournamentModel> {

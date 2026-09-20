@@ -1,0 +1,35 @@
+<nav class="pagination" aria-label="Phân trang kết quả">
+  <span class="pagination__summary" aria-live="polite">{{ showingText }}</span>
+
+  <div class="pagination__controls">
+    <button type="button" class="pagination__button" [disabled]="pageIndex === 0" (click)="goToPage(0)" aria-label="Trang đầu">
+      <lucide-icon name="chevrons-left" class="w-4 h-4"></lucide-icon>
+    </button>
+    <button type="button" class="pagination__button" [disabled]="pageIndex === 0" (click)="goToPage(pageIndex - 1)" aria-label="Trang trước">
+      <lucide-icon name="chevron-left" class="w-4 h-4"></lucide-icon>
+    </button>
+
+    @for (page of visiblePages; track $index) {
+      @if (page === 'ellipsis') {
+        <span class="pagination__ellipsis" aria-hidden="true">…</span>
+      } @else {
+        <button
+          type="button"
+          class="pagination__button"
+          [class.pagination__button--active]="page === pageIndex"
+          [attr.aria-current]="page === pageIndex ? 'page' : null"
+          [attr.aria-label]="'Trang ' + (page + 1)"
+          (click)="goToPage(page)">
+          {{ page + 1 }}
+        </button>
+      }
+    }
+
+    <button type="button" class="pagination__button" [disabled]="pageIndex + 1 >= totalPages" (click)="goToPage(pageIndex + 1)" aria-label="Trang sau">
+      <lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon>
+    </button>
+    <button type="button" class="pagination__button" [disabled]="pageIndex + 1 >= totalPages" (click)="goToPage(totalPages - 1)" aria-label="Trang cuối">
+      <lucide-icon name="chevrons-right" class="w-4 h-4"></lucide-icon>
+    </button>
+  </div>
+</nav>

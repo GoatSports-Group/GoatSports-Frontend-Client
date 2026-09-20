@@ -24,6 +24,15 @@ export type PageResult<T> = {
   totalPages: number;
 }
 
+/**
+ * club-service tra Page qua PagedModel (EnableSpringDataWebSupport VIA_DTO),
+ * nen metadata nam trong `page` chu khong phang ra nhu SpringPageResponse.
+ */
+export type PagedModelResponse<T> = {
+  content: T[];
+  page: { size: number; number: number; totalElements: number; totalPages: number };
+};
+
 /** Pagination contract returned by Spring Data Page endpoints. */
 export type SpringPageResponse<T> = {
   content: T[];

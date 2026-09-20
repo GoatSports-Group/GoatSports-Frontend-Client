@@ -1,0 +1,101 @@
+<main class="explore-page">
+  <nav class="breadcrumbs" aria-label="Điều hướng phụ">
+    <a routerLink="/clubs"><lucide-icon name="arrow-left" class="w-4 h-4"></lucide-icon>Quay lại Câu lạc bộ</a>
+  </nav>
+
+  <header class="explore-hero">
+    <img class="explore-hero__media" src="/assets/images/default-banner-dark.png" alt="Cộng đồng vận động viên GOAT Sports" />
+    <span class="explore-hero__scrim" aria-hidden="true"></span>
+    <div class="explore-hero__content">
+      <p>GOAT Sports tuyển chọn</p>
+      <h1>Tất cả câu lạc bộ</h1>
+      <span>Tìm cộng đồng phù hợp với môn thể thao, thành phố và mục tiêu luyện tập của bạn.</span>
+    </div>
+    <div class="explore-hero__count" aria-label="Số câu lạc bộ phù hợp">
+      <strong>{{ filteredClubs().length }}</strong>
+      <span>câu lạc bộ</span>
+    </div>
+  </header>
+
+  <section class="filter-panel" aria-label="Bộ lọc câu lạc bộ">
+    <label class="select-control">
+      <lucide-icon name="activity" class="w-5 h-5"></lucide-icon>
+      <span class="sr-only">Môn thể thao</span>
+      <select [ngModel]="selectedSport()" (ngModelChange)="selectSport($event)">
+        @for (sport of sports; track sport.value) { <option [value]="sport.value">{{ sport.label }}</option> }
+      </select>
+      <lucide-icon name="chevron-down" class="w-4 h-4"></lucide-icon>
+    </label>
+
+    <label class="select-control">
+      <lucide-icon name="map-pin" class="w-5 h-5"></lucide-icon>
+      <span class="sr-only">Thành phố hoặc tỉnh</span>
+      <select [ngModel]="selectedCity()" (ngModelChange)="updateCity($event)">
+        <option value="ALL">Tất cả thành phố và tỉnh</option>
+        @for (province of provinces(); track province.code) { <option [value]="province.code">{{ province.name }}</option> }
+      </select>
+      <lucide-icon name="chevron-down" class="w-4 h-4"></lucide-icon>
+    </label>
+
+    <label class="select-control select-control--sort">
+      <lucide-icon name="arrow-up-down" class="w-5 h-5"></lucide-icon>
+      <span class="sr-only">Sắp xếp</span>
+      <select [ngModel]="sortMode()" (ngModelChange)="updateSortMode($event)">
+        <option value="RELEVANCE">Nổi bật trước</option>
+        <option value="MEMBERS">Nhiều thành viên</option>
+        <option value="WIN_RATE">Tỉ lệ thắng cao</option>
+      </select>
+      <lucide-icon name="chevron-down" class="w-4 h-4"></lucide-icon>
+    </label>
+  </section>
+
+  @if (pagedClubs().length) {
+    <section class="club-grid" aria-label="Danh sách câu lạc bộ">
+      @for (club of pagedClubs(); track club.clubId) {
+        <article class="club-card" role="link" tabindex="0" [attr.aria-label]="'Xem chi tiết ' + club.name"
+          (click)="goToClub(club)" (keydown.enter)="goToClub(club)">
+          <div class="club-card__cover">
+            <img [src]="club.bannerUrl || defaultClubBanner" (error)="useBannerFallback($event)" [alt]="'Banner ' + club.name" />
+            <span class="privacy-label"><lucide-icon [name]="club.privacy === 'PRIVATE' ? 'lock' : 'globe'" class="w-4 h-4"></lucide-icon>{{ club.privacy === 'PRIVATE' ? 'Riêng tư' : 'Công khai' }}</span>
+          </div>
+          <div class="club-card__body">
+            <div class="club-card__identity">
+              <span class="club-logo"><img [src]="club.logoUrl || defaultClubLogo" (error)="useLogoFallback($event)" [alt]="'Logo ' + club.name" /></span>
+              <div><h2>{{ club.name }}</h2><p>{{ sportLabel(club.sportType) }} <i aria-hidden="true">|</i> {{ club.location }}</p></div>
+            </div>
+            <p class="club-card__description">{{ club.description }}</p>
+            <footer class="club-card__footer">
+              <div class="club-card__metrics">
+                <span><lucide-icon name="users" class="w-4 h-4"></lucide-icon>{{ club.memberCount }} thành viên</span>
+                <span><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon>{{ club.winRate }}% thắng</span>
+              </div>
+              @if (club.action === 'JOIN' || club.action === 'REQUEST') {
+                <button type="button" class="club-card__action" [class.button-outline]="club.privacy === 'PRIVATE'" (click)="handleClubAction($event, club)">
+                  {{ club.privacy === 'PRIVATE' ? 'Gửi yêu cầu' : 'Tham gia' }}
+                  <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon>
+                </button>
+              } @else if (club.action === 'PENDING') {
+                <span class="card-status">Đang chờ duyệt</span>
+              } @else {
+                <span class="card-status card-status--joined">Đã tham gia</span>
+              }
+            </footer>
+          </div>
+        </article>
+      }
+    </section>
+
+    <app-pagination [pageIndex]="pageIndex()" [pageSize]="pageSize" [totalItems]="filteredClubs().length" (pageChange)="changePage($event)"></app-pagination>
+  } @else {
+    <section class="empty-state">
+      <lucide-icon name="search-x" class="w-8 h-8"></lucide-icon>
+      <h2>Chưa tìm thấy câu lạc bộ phù hợp</h2>
+      <p>Hãy đổi môn thể thao hoặc thành phố để xem thêm kết quả.</p>
+      <button type="button" (click)="clearFilters()">Xóa bộ lọc</button>
+    </section>
+  }
+</main>
+
+@if (requestClub(); as club) {
+  <app-club-join-request-modal [club]="club" (cancelled)="closeJoinRequest()" (submitted)="submitJoinRequest($event)"></app-club-join-request-modal>
+}

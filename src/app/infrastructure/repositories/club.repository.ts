@@ -2,7 +2,7 @@ import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { ClubRepositoryPort } from '@application/ports/club.repository.port';
-import { BaseResponse, SpringPageResponse } from '@application/dto/base/base-response';
+import { BaseResponse, PagedModelResponse } from '@application/dto/base/base-response';
 import {
   ClubActivityModel, ClubFeeModel, ClubFeePaymentModel, ClubMemberModel, ClubModel, ClubRole,
   CreateClubActivityPayload, CreateClubFeePayload, CreateClubPayload, SportType, UpdateClubPayload
@@ -18,7 +18,7 @@ export class ClubRepository extends ClubRepositoryPort {
     let params = new HttpParams().set('size', 20);
     if (sportType) params = params.set('sportType', sportType);
     if (keyword?.trim()) params = params.set('keyword', keyword.trim());
-    return this.http.get<BaseResponse<SpringPageResponse<ClubModel>>>(`${this.baseUrl}/search`, { params })
+    return this.http.get<BaseResponse<PagedModelResponse<ClubModel>>>(`${this.baseUrl}/search`, { params })
       .pipe(map(response => response.data?.content ?? []));
   }
   override getClubDetails(clubId: string): Observable<ClubModel> {

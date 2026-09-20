@@ -32,7 +32,7 @@
 .tournament-hero__media {
   position: relative;
   min-height: 285px;
-  background: url('/assets/images/goat-night-football-hero.png') 70% center / cover;
+  background: url('/assets/images/default-banner-light.png') 70% center / cover;
   filter: saturate(.74) contrast(1.02);
 
   &::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, #fff 0, transparent 18%, rgba(7, 20, 38, .08)); }
@@ -131,7 +131,7 @@
 .featured-tournament__image {
   position: relative;
   min-height: 270px;
-  background: url('/assets/images/goat-night-football-hero.png') 20% center/cover;
+  background: url('/assets/images/default-banner-light.png') 20% center/cover;
   span { position: absolute; top: 12px; left: 12px; padding: 6px 9px; border-radius: 3px; background: #007a57; color: #fff; font-size: 8px; font-weight: 800; text-transform: uppercase; }
 }
 
@@ -153,7 +153,7 @@
 .list-heading { margin: 18px 0 10px; padding-top: 16px; border-top: 1px solid #d8e1de; }
 .tournament-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .tournament-card { overflow: hidden; border: 1px solid #d8e1de; border-radius: 5px; background: #fff; cursor: pointer; transition: border-color 180ms ease, transform 180ms ease; &:hover { border-color: #78bca6; transform: translateY(-2px); } }
-.card-banner { height: 145px; display: flex; align-items: flex-start; justify-content: space-between; padding: 9px; background: url('/assets/images/goat-night-football-hero.png') center 68%/cover; span, b { padding: 4px 6px; border-radius: 3px; background: rgba(7,20,38,.9); color: #fff; font-size: 7px; font-weight: 800; text-transform: uppercase; } b { background: #eaf7f2; color: #007a57; } }
+.card-banner { height: 145px; display: flex; align-items: flex-start; justify-content: space-between; padding: 9px; background: url('/assets/images/default-banner-light.png') center 68%/cover; span, b { padding: 4px 6px; border-radius: 3px; background: rgba(7,20,38,.9); color: #fff; font-size: 7px; font-weight: 800; text-transform: uppercase; } b { background: #eaf7f2; color: #007a57; } }
 .card-body { padding: 11px; h3 { min-height: 36px; margin: 0 0 8px; font-size: 12px; line-height: 1.35; } > p { display: flex; align-items: center; gap: 6px; margin: 5px 0; color: #68778b; font-size: 8px; } footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; padding-top: 9px; border-top: 1px solid #e1e7e5; strong { font-size: 10px; } span { display: inline-flex; align-items: center; gap: 4px; color: #007a57; font-size: 8px; font-weight: 800; } } }
 
 .tournament-rail { display: grid; align-content: start; gap: 12px; }

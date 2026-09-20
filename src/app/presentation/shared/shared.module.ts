@@ -31,6 +31,7 @@ import { StarRatingComponent } from '@shared/components/star-rating/star-rating.
 import { LoadingSkeletonComponent } from '@shared/components/loading-skeleton/loading-skeleton.component';
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { LucideIconComponent } from '@shared/components/ui/lucide-icon/lucide-icon.component';
+import { PaginationComponent } from '@shared/components/ui/pagination/pagination.component';
 import { FormFieldComponent } from '@shared/components/ui/form-field/form-field.component';
 import { SelectComponent } from '@shared/components/ui/select/select.component';
 import { FileUploadComponent } from '@shared/components/file-upload/file-upload.component';
@@ -86,6 +87,7 @@ const COMPONENT_DECLARATIONS = [
     ReactiveFormsModule,
     RouterModule,
     LucideIconComponent,
+    PaginationComponent,
     FormFieldComponent,
     ...MATERIAL_MODULES
   ],
@@ -95,6 +97,7 @@ const COMPONENT_DECLARATIONS = [
     ReactiveFormsModule,
     RouterModule,
     LucideIconComponent,
+    PaginationComponent,
     FormFieldComponent,
     ...MATERIAL_MODULES,
     ...COMPONENT_DECLARATIONS

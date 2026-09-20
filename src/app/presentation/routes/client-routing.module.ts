@@ -13,7 +13,9 @@ import { PaymentResultComponent } from '@presentation/pages/client/payment/payme
 import { ChatComponent } from '@presentation/pages/client/chat/chat.component';
 import { FriendsComponent } from '@presentation/pages/client/friends/friends.component';
 import { ClubListComponent } from '@presentation/pages/client/clubs/club-list.component';
-import { ClubDetailComponent } from '@presentation/pages/client/clubs/club-detail.component';
+import { ClubFeaturedComponent } from '@presentation/pages/client/clubs/club-featured.component';
+import { ClubExploreComponent } from '@presentation/pages/client/clubs/club-explore.component';
+import { ClubMockDetailComponent } from '@presentation/pages/client/clubs/club-mock-detail.component';
 import { TournamentListComponent } from '@presentation/pages/client/tournaments/tournament-list.component';
 import { TournamentDetailComponent } from '@presentation/pages/client/tournaments/tournament-detail.component';
 import { MatchmakingComponent } from '@presentation/pages/client/matchmaking/matchmaking.component';
@@ -47,7 +49,9 @@ const routes: Routes = [
       },
       { path: 'my-bookings', redirectTo: 'booking/history', pathMatch: 'full' },
       { path: 'clubs', component: ClubListComponent, title: 'Câu lạc bộ | GOAT Sports' },
-      { path: 'clubs/:id', component: ClubDetailComponent, title: 'Chi tiết câu lạc bộ | GOAT Sports' },
+      { path: 'clubs/featured', component: ClubFeaturedComponent, title: 'Câu lạc bộ nổi bật | GOAT Sports' },
+      { path: 'clubs/explore', component: ClubExploreComponent, title: 'Khám phá câu lạc bộ | GOAT Sports' },
+      { path: 'clubs/:clubId', component: ClubMockDetailComponent, title: 'Chi tiết câu lạc bộ | GOAT Sports' },
       { path: 'tournaments', component: TournamentListComponent, title: 'Giải đấu | GOAT Sports' },
       { path: 'tournaments/:id', component: TournamentDetailComponent, title: 'Chi tiết giải đấu | GOAT Sports' },
       { path: 'matchmaking', component: MatchmakingComponent, canActivate: [AuthGuard], title: 'AI ghép trận | GOAT Sports' },

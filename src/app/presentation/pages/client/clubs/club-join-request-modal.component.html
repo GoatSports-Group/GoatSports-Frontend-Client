@@ -1,0 +1,35 @@
+<div class="request-overlay" role="presentation" (click)="cancelled.emit()">
+  <section class="request-modal" appAccessibleDialog aria-labelledby="join-request-title"
+    (dialogClosed)="cancelled.emit()" (click)="$event.stopPropagation()">
+    <header>
+      <div>
+        <p>Yêu cầu tham gia</p>
+        <h2 id="join-request-title">Giới thiệu với {{ club.name }}</h2>
+      </div>
+      <button type="button" class="icon-button" aria-label="Đóng popup" (click)="cancelled.emit()">
+        <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+      </button>
+    </header>
+
+    <div class="club-summary">
+      <lucide-icon name="lock" class="w-5 h-5"></lucide-icon>
+      <p><strong>Đây là câu lạc bộ riêng tư.</strong> Chủ câu lạc bộ sẽ đọc lời giới thiệu trước khi duyệt yêu cầu.</p>
+    </div>
+
+    <label for="join-cover-letter">Lời giới thiệu / Cover letter</label>
+    <textarea id="join-cover-letter" rows="6" maxlength="500"
+      [ngModel]="message()" (ngModelChange)="updateMessage($event)"
+      placeholder="Chia sẻ kinh nghiệm chơi, mục tiêu luyện tập và lý do bạn muốn tham gia..."></textarea>
+    <div class="field-meta">
+      <span>Tối thiểu 20 ký tự</span>
+      <span>{{ message().length }}/500</span>
+    </div>
+
+    <footer>
+      <button type="button" class="cancel-button" (click)="cancelled.emit()">Hủy</button>
+      <button type="button" class="submit-button" [disabled]="!canSubmit()" (click)="submit()">
+        Gửi yêu cầu <lucide-icon name="send" class="w-4 h-4"></lucide-icon>
+      </button>
+    </footer>
+  </section>
+</div>

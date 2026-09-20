@@ -166,7 +166,11 @@ import {
   LucideList,
   LucideChevronLeft,
   LucideChevronRight,
+  LucideChevronsLeft,
+  LucideChevronsRight,
   LucideChevronDown,
+  LucideArrowUpDown,
+  LucideSearchX,
   LucideCircle,
   LucideCircleAlert,
   LucideCircleCheck,
@@ -179,7 +183,9 @@ import {
   LucideCalendarX2,
   LucideRefreshCw,
   LucideMoreHorizontal,
-  LucideCompass
+  LucideCompass,
+  LucideCalendarDays,
+  LucideCalendarClock
 } from '@lucide/angular';
 
 @NgModule({
@@ -335,7 +341,11 @@ import {
       LucideList,
       LucideChevronLeft,
       LucideChevronRight,
+      LucideChevronsLeft,
+      LucideChevronsRight,
       LucideChevronDown,
+      LucideArrowUpDown,
+      LucideSearchX,
       LucideCircle,
       LucideCircleAlert,
       LucideCircleCheck,
@@ -348,7 +358,9 @@ import {
       LucideCalendarX2,
       LucideRefreshCw,
       LucideMoreHorizontal,
-      LucideCompass
+      LucideCompass,
+      LucideCalendarDays,
+      LucideCalendarClock
     )
   ],
   bootstrap: [AppComponent]

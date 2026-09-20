@@ -1,0 +1,220 @@
+<main class="club-detail-page">
+  <nav class="back-navigation" aria-label="Điều hướng">
+    <a routerLink="/clubs"><lucide-icon name="arrow-left" class="w-4 h-4"></lucide-icon>Quay lại Câu lạc bộ</a>
+  </nav>
+
+  @if (club(); as currentClub) {
+    <article class="club-profile">
+      <header class="club-masthead" aria-labelledby="club-detail-title">
+        <div class="club-cover">
+          <img
+            [src]="currentClub.bannerUrl || defaultClubBanner"
+            (error)="useBannerFallback($event)"
+            [alt]="'Banner ' + currentClub.name" />
+          <span class="club-cover__scrim" aria-hidden="true"></span>
+
+          <div class="cover-tools">
+            <button type="button" aria-label="Chia sẻ câu lạc bộ" (click)="showMockNotice('Tính năng chia sẻ đang dùng dữ liệu mẫu.')">
+              <lucide-icon name="share-2" class="w-4 h-4"></lucide-icon>
+            </button>
+          </div>
+
+          <div class="cover-meta">
+            <span>{{ sportLabel(currentClub.sportType) }}</span>
+            <span>
+              <lucide-icon [name]="currentClub.privacy === 'PRIVATE' ? 'lock' : 'globe'" class="w-4 h-4"></lucide-icon>
+              {{ currentClub.privacy === 'PRIVATE' ? 'Riêng tư' : 'Công khai' }}
+            </span>
+          </div>
+        </div>
+
+        <section class="profile-summary">
+          <div class="profile-identity">
+            <span class="club-logo">
+              <img
+                [src]="currentClub.logoUrl || defaultClubLogo"
+                (error)="useLogoFallback($event)"
+                [alt]="'Logo ' + currentClub.name" />
+            </span>
+            <div>
+              <span class="activity-status"><i aria-hidden="true"></i>{{ currentClub.activityLabel }}</span>
+              <h1 id="club-detail-title">{{ currentClub.name }}</h1>
+            </div>
+          </div>
+
+          <p class="profile-location"><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>{{ currentClub.location }}</p>
+          <p class="profile-description">{{ currentClub.description }}</p>
+
+          <dl class="summary-stats">
+            <div><dt>Thành viên</dt><dd>{{ currentClub.memberCount }}</dd></div>
+            <div><dt>Tỉ lệ thắng</dt><dd>{{ currentClub.winRate }}%</dd></div>
+            <div><dt>Thành lập</dt><dd>{{ currentClub.foundedYear }}</dd></div>
+          </dl>
+
+          <div class="membership-action">
+            @if (action() === 'JOIN' || action() === 'REQUEST') {
+              <button type="button" (click)="join()">
+                {{ currentClub.privacy === 'PRIVATE' ? 'Gửi yêu cầu tham gia' : 'Tham gia câu lạc bộ' }}
+                <lucide-icon name="arrow-right" class="w-5 h-5"></lucide-icon>
+              </button>
+            } @else if (action() === 'PENDING') {
+              <span><lucide-icon name="clock" class="w-4 h-4"></lucide-icon>Yêu cầu đang chờ duyệt</span>
+            } @else {
+              <span class="membership-action__joined"><lucide-icon name="check" class="w-4 h-4"></lucide-icon>Bạn là thành viên</span>
+            }
+          </div>
+        </section>
+      </header>
+
+      <nav class="detail-tabs" role="tablist" aria-label="Nội dung trang câu lạc bộ">
+        <button type="button" role="tab" id="tab-achievements" data-tab="ACHIEVEMENTS"
+          [class.active]="selectedTab() === 'ACHIEVEMENTS'" [attr.aria-selected]="selectedTab() === 'ACHIEVEMENTS'"
+          [attr.tabindex]="selectedTab() === 'ACHIEVEMENTS' ? 0 : -1" aria-controls="panel-achievements"
+          (click)="selectTab('ACHIEVEMENTS')" (keydown)="handleTabKeydown($event, 'ACHIEVEMENTS')">Thành tích</button>
+        <button type="button" role="tab" id="tab-activities" data-tab="ACTIVITIES"
+          [class.active]="selectedTab() === 'ACTIVITIES'" [attr.aria-selected]="selectedTab() === 'ACTIVITIES'"
+          [attr.tabindex]="selectedTab() === 'ACTIVITIES' ? 0 : -1" aria-controls="panel-activities"
+          (click)="selectTab('ACTIVITIES')" (keydown)="handleTabKeydown($event, 'ACTIVITIES')">Hoạt động</button>
+        <button type="button" role="tab" id="tab-membership" data-tab="MEMBERSHIP"
+          [class.active]="selectedTab() === 'MEMBERSHIP'" [attr.aria-selected]="selectedTab() === 'MEMBERSHIP'"
+          [attr.tabindex]="selectedTab() === 'MEMBERSHIP' ? 0 : -1" aria-controls="panel-membership"
+          (click)="selectTab('MEMBERSHIP')" (keydown)="handleTabKeydown($event, 'MEMBERSHIP')">Thông tin tham gia</button>
+      </nav>
+
+      @if (selectedTab() === 'ACHIEVEMENTS') {
+        <div class="detail-content tab-panel" role="tabpanel" id="panel-achievements" aria-labelledby="tab-achievements">
+          <div class="main-column">
+            <section class="content-card season-card" aria-labelledby="season-heading">
+              <header class="section-heading section-heading--compact">
+                <div><p>Phong độ gần đây</p><h2 id="season-heading">Thành tích của câu lạc bộ</h2></div>
+                <span class="win-rate"><b>{{ currentClub.winRate }}%</b> tỉ lệ thắng</span>
+              </header>
+              <dl class="record-grid">
+                <div class="record-grid__total"><dt>Tổng số trận</dt><dd>{{ currentClub.wins + currentClub.draws + currentClub.losses }}</dd></div>
+                <div class="record-stat record-stat--win"><dt>Thắng</dt><dd>{{ currentClub.wins }}</dd></div>
+                <div class="record-stat record-stat--draw"><dt>Hòa</dt><dd>{{ currentClub.draws }}</dd></div>
+                <div class="record-stat record-stat--loss"><dt>Thua</dt><dd>{{ currentClub.losses }}</dd></div>
+              </dl>
+            </section>
+
+            <section class="content-card achievement-highlights" aria-labelledby="achievement-highlights-heading">
+              <header class="section-heading"><div><p>Dấu ấn mùa giải</p><h2 id="achievement-highlights-heading">Những con số đáng chú ý</h2></div></header>
+              <div class="highlight-grid">
+                <article><span>01</span><strong>{{ currentClub.wins }} trận thắng</strong><p>Thành tích tích lũy từ các trận giao hữu và thi đấu cộng đồng.</p></article>
+                <article><span>02</span><strong>{{ currentClub.memberCount }} thành viên</strong><p>Lực lượng duy trì hoạt động và tạo chiều sâu cho đội hình.</p></article>
+                <article><span>03</span><strong>{{ currentClub.activityLabel }}</strong><p>Nhịp sinh hoạt hiện tại của câu lạc bộ trên GOAT Sports.</p></article>
+              </div>
+            </section>
+          </div>
+
+          <aside class="side-column">
+            <section class="performance-summary" aria-labelledby="performance-summary-heading">
+              <p>Đánh giá phong độ</p>
+              <strong>{{ currentClub.winRate }}<small>%</small></strong>
+              <h2 id="performance-summary-heading">{{ currentClub.winRate >= 70 ? 'Phong độ rất tốt' : 'Phong độ ổn định' }}</h2>
+              <span>CLB thắng {{ currentClub.wins }} trong tổng số {{ currentClub.wins + currentClub.draws + currentClub.losses }} trận được ghi nhận.</span>
+            </section>
+            <section class="club-milestones" aria-labelledby="milestones-heading">
+              <header><p>Hồ sơ CLB</p><h2 id="milestones-heading">Các cột mốc</h2></header>
+              <dl>
+                <div><dt>Năm thành lập</dt><dd>{{ currentClub.foundedYear }}</dd></div>
+                <div><dt>Quy mô hiện tại</dt><dd>{{ currentClub.memberCount }} thành viên</dd></div>
+                <div><dt>Trạng thái</dt><dd>{{ currentClub.activityLabel }}</dd></div>
+              </dl>
+            </section>
+          </aside>
+        </div>
+      } @else if (selectedTab() === 'ACTIVITIES') {
+        <div class="detail-content tab-panel" role="tabpanel" id="panel-activities" aria-labelledby="tab-activities">
+          <div class="main-column">
+            <section class="content-card activities-card" aria-labelledby="activities-heading">
+              <header class="section-heading section-heading--row">
+                <div><p>Lịch cộng đồng</p><h2 id="activities-heading">Hoạt động sắp tới</h2></div>
+                <button type="button" (click)="showMockNotice('Lịch hoạt động đang dùng dữ liệu mẫu.')">Xem lịch đầy đủ<lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></button>
+              </header>
+              <div class="activity-list">
+                @for (activity of activities; track activity.activityId; let first = $first) {
+                  <button type="button" class="activity-row" [class.activity-row--next]="first" (click)="showMockNotice('Đang xem hoạt động: ' + activity.title)">
+                    <time><small>{{ activity.day }}</small><strong>{{ activity.date }}</strong><span>{{ activity.month }}</span></time>
+                    <span class="activity-copy"><strong>{{ activity.title }}</strong><small><lucide-icon name="map-pin" class="w-3 h-3"></lucide-icon>{{ activity.location }}</small><small><lucide-icon name="clock" class="w-3 h-3"></lucide-icon>{{ activity.time }}</small></span>
+                    <span class="activity-attendance"><lucide-icon name="users" class="w-4 h-4"></lucide-icon>{{ activity.attendance }}</span>
+                    <lucide-icon name="chevron-right" class="w-5 h-5"></lucide-icon>
+                  </button>
+                }
+              </div>
+            </section>
+            <section class="content-card weekly-rhythm" aria-labelledby="weekly-rhythm-heading">
+              <header class="section-heading"><div><p>Nhịp hoạt động</p><h2 id="weekly-rhythm-heading">Lịch sinh hoạt cố định</h2></div></header>
+              <div class="rhythm-grid">
+                <div><lucide-icon name="calendar-clock" class="w-6 h-6"></lucide-icon><span><small>Thời gian</small><strong>{{ currentClub.schedule }}</strong></span></div>
+                <div><lucide-icon name="map-pinned" class="w-6 h-6"></lucide-icon><span><small>Địa điểm chính</small><strong>{{ currentClub.homeVenue }}</strong></span></div>
+              </div>
+            </section>
+          </div>
+          <aside class="side-column">
+            @if (activities[0]; as nextActivity) {
+              <section class="next-session" aria-labelledby="next-session-heading">
+                <p>Buổi gần nhất</p><div class="next-session__date"><span>{{ nextActivity.day }}</span><strong>{{ nextActivity.date }}</strong><small>{{ nextActivity.month }}</small></div>
+                <h2 id="next-session-heading">{{ nextActivity.title }}</h2>
+                <dl><div><dt><lucide-icon name="clock" class="w-4 h-4"></lucide-icon>Thời gian</dt><dd>{{ nextActivity.time }}</dd></div><div><dt><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>Địa điểm</dt><dd>{{ nextActivity.location }}</dd></div></dl>
+                <button type="button" (click)="showMockNotice('Đang xem hoạt động: ' + nextActivity.title)">Xem hoạt động<lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></button>
+              </section>
+            }
+            <section class="activity-prep" aria-labelledby="activity-prep-heading">
+              <header><p>Trước khi đến</p><h2 id="activity-prep-heading">Chuẩn bị cho buổi tập</h2></header>
+              <ul><li><lucide-icon name="check" class="w-4 h-4"></lucide-icon>Có mặt trước giờ bắt đầu 15 phút</li><li><lucide-icon name="check" class="w-4 h-4"></lucide-icon>Mang trang phục và dụng cụ phù hợp</li><li><lucide-icon name="check" class="w-4 h-4"></lucide-icon>Xác nhận tham gia với quản trị viên</li></ul>
+            </section>
+          </aside>
+        </div>
+      } @else {
+        <div class="detail-content tab-panel" role="tabpanel" id="panel-membership" aria-labelledby="tab-membership">
+          <div class="main-column">
+            <section class="content-card join-guide" aria-labelledby="join-guide-heading">
+              <header class="section-heading"><div><p>Quy trình tham gia</p><h2 id="join-guide-heading">Bắt đầu cùng câu lạc bộ</h2></div></header>
+              <p class="join-intro">{{ currentClub.privacy === 'PRIVATE' ? 'Câu lạc bộ sẽ đọc lời giới thiệu và phản hồi trước khi thêm bạn vào đội hình.' : 'Câu lạc bộ đang mở. Bạn có thể tham gia ngay và theo dõi lịch sinh hoạt gần nhất.' }}</p>
+              <ol class="join-steps">
+                <li><span>01</span><div><strong>{{ currentClub.privacy === 'PRIVATE' ? 'Gửi lời giới thiệu' : 'Xác nhận tham gia' }}</strong><p>Chia sẻ mục tiêu luyện tập và kinh nghiệm chơi của bạn.</p></div></li>
+                <li><span>02</span><div><strong>{{ currentClub.privacy === 'PRIVATE' ? 'Chờ quản trị viên phản hồi' : 'Nhận lịch sinh hoạt' }}</strong><p>Thông tin lịch tập và sân nhà sẽ được gửi tới tài khoản.</p></div></li>
+                <li><span>03</span><div><strong>Tham gia buổi đầu tiên</strong><p>Gặp thành viên trong đội và bắt đầu luyện tập cùng CLB.</p></div></li>
+              </ol>
+            </section>
+            <section class="content-card member-benefits" aria-labelledby="benefits-heading">
+              <header class="section-heading"><div><p>Dành cho thành viên</p><h2 id="benefits-heading">Bạn sẽ nhận được gì?</h2></div></header>
+              <div class="benefit-grid"><div><lucide-icon name="calendar-clock" class="w-5 h-5"></lucide-icon><strong>Lịch tập rõ ràng</strong><span>Theo dõi các buổi sinh hoạt sắp tới.</span></div><div><lucide-icon name="users" class="w-5 h-5"></lucide-icon><strong>Kết nối đội nhóm</strong><span>Trao đổi trực tiếp với thành viên cùng CLB.</span></div><div><lucide-icon name="trophy" class="w-5 h-5"></lucide-icon><strong>Trận đấu phù hợp</strong><span>Tham gia giao hữu theo trình độ và lịch rảnh.</span></div></div>
+            </section>
+          </div>
+          <aside class="side-column">
+            <section class="quick-facts" aria-labelledby="facts-heading">
+              <header><p>Thông tin nhanh</p><h2 id="facts-heading">Trước khi tham gia</h2></header>
+              <dl><div><dt><lucide-icon name="calendar-clock" class="w-5 h-5"></lucide-icon>Lịch sinh hoạt</dt><dd>{{ currentClub.schedule }}</dd></div><div><dt><lucide-icon name="map-pinned" class="w-5 h-5"></lucide-icon>Sân nhà</dt><dd>{{ currentClub.homeVenue }}</dd></div><div><dt><lucide-icon name="shield-check" class="w-5 h-5"></lucide-icon>Hình thức</dt><dd>{{ currentClub.privacy === 'PRIVATE' ? 'Chủ CLB xét duyệt yêu cầu' : 'Mở cho mọi thành viên' }}</dd></div></dl>
+            </section>
+            <section class="join-cta-card" aria-labelledby="join-cta-heading">
+              <span class="join-cta-card__logo"><img [src]="currentClub.logoUrl || defaultClubLogo" (error)="useLogoFallback($event)" [alt]="'Logo ' + currentClub.name" /></span>
+              <p>Sẵn sàng vào sân?</p><h2 id="join-cta-heading">Tham gia {{ currentClub.name }}</h2>
+              @if (action() === 'JOIN' || action() === 'REQUEST') {
+                <button type="button" (click)="join()">{{ currentClub.privacy === 'PRIVATE' ? 'Gửi yêu cầu tham gia' : 'Tham gia câu lạc bộ' }}<lucide-icon name="arrow-right" class="w-5 h-5"></lucide-icon></button>
+              } @else if (action() === 'PENDING') {
+                <span class="join-cta-card__state"><lucide-icon name="clock" class="w-4 h-4"></lucide-icon>Yêu cầu đang chờ duyệt</span>
+              } @else {
+                <span class="join-cta-card__state"><lucide-icon name="check" class="w-4 h-4"></lucide-icon>Bạn là thành viên</span>
+              }
+            </section>
+          </aside>
+        </div>
+      }
+    </article>
+  } @else {
+    <section class="not-found">
+      <span><img [src]="defaultClubLogo" alt="Logo GOAT Sports" /></span>
+      <p>Không tìm thấy dữ liệu mẫu</p>
+      <h1>Câu lạc bộ này chưa có hồ sơ</h1>
+      <a routerLink="/clubs"><lucide-icon name="arrow-left" class="w-4 h-4"></lucide-icon>Quay lại Câu lạc bộ</a>
+    </section>
+  }
+
+  @if (showRequestModal()) {
+    @if (club(); as requestClub) {
+      <app-club-join-request-modal [club]="requestClub" (cancelled)="closeJoinRequest()" (submitted)="submitJoinRequest($event)" />
+    }
+  }
+</main>

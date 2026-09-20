@@ -24,6 +24,10 @@ import { ChatComponent } from '@presentation/pages/client/chat/chat.component';
 import { FriendsComponent } from '@presentation/pages/client/friends/friends.component';
 import { ClubListComponent } from '@presentation/pages/client/clubs/club-list.component';
 import { ClubDetailComponent } from '@presentation/pages/client/clubs/club-detail.component';
+import { ClubFeaturedComponent } from '@presentation/pages/client/clubs/club-featured.component';
+import { ClubExploreComponent } from '@presentation/pages/client/clubs/club-explore.component';
+import { ClubMockDetailComponent } from '@presentation/pages/client/clubs/club-mock-detail.component';
+import { ClubJoinRequestModalComponent } from '@presentation/pages/client/clubs/club-join-request-modal.component';
 import { TournamentListComponent } from '@presentation/pages/client/tournaments/tournament-list.component';
 import { TournamentDetailComponent } from '@presentation/pages/client/tournaments/tournament-detail.component';
 import { MatchmakingComponent } from '@presentation/pages/client/matchmaking/matchmaking.component';
@@ -52,6 +56,10 @@ import { AiAssistantModalComponent } from '@presentation/shared/components/ai-as
     FriendsComponent,
     ClubListComponent,
     ClubDetailComponent,
+    ClubFeaturedComponent,
+    ClubExploreComponent,
+    ClubMockDetailComponent,
+    ClubJoinRequestModalComponent,
     TournamentListComponent,
     TournamentDetailComponent,
     MatchmakingComponent,
