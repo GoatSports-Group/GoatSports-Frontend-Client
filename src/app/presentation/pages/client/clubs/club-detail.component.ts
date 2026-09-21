@@ -12,8 +12,20 @@ import { PlayerDirectoryService } from '@presentation/services/player-directory.
 import { SearchPlayersUseCase } from '@application/usecase/user/search-players.usecase';
 import { PlayerSummary } from '@application/dto/user/user.dto';
 import { NotifyService } from '@shared/components/notify/notify.service';
+import { ClubCardView, DEFAULT_CLUB_BANNER, DEFAULT_CLUB_LOGO, sportLabel, toCardView } from './club-view.model';
 
-type ClubTab = 'OVERVIEW' | 'ACTIVITIES' | 'MEMBERS' | 'FEES';
+type ClubTab = 'OVERVIEW' | 'MEMBERS' | 'REQUESTS' | 'ACTIVITIES' | 'TOURNAMENTS' | 'GALLERY' | 'DISCUSSION' | 'FEES' | 'SETTINGS';
+type ClubViewerState = 'MANAGER' | 'MEMBER' | 'PENDING' | 'GUEST';
+type ClubMatchResult = 'WIN' | 'DRAW' | 'LOSS';
+
+interface ClubRecentMatch {
+  matchId: string;
+  opponentName: string;
+  playedAt: string;
+  clubScore: number;
+  opponentScore: number;
+  result: ClubMatchResult;
+}
 
 @Component({
   selector: 'app-club-detail', templateUrl: './club-detail.component.html',
@@ -27,7 +39,7 @@ export class ClubDetailComponent {
   private readonly directory = inject(PlayerDirectoryService);
   private readonly searchPlayers = inject(SearchPlayersUseCase);
   private readonly notify = inject(NotifyService);
-  readonly clubId = this.route.snapshot.paramMap.get('id') ?? '';
+  readonly clubId = this.route.snapshot.paramMap.get('clubId') ?? '';
 
   readonly club = signal<ClubModel | null>(null);
   readonly members = signal<ClubMemberModel[]>([]);
@@ -41,6 +53,7 @@ export class ClubDetailComponent {
   readonly showActivityModal = signal(false);
   readonly showFeeModal = signal(false);
   readonly showInviteModal = signal(false);
+  readonly showJoinRequestModal = signal(false);
   readonly inviteResults = signal<PlayerSummary[]>([]);
   readonly inviteSearching = signal(false);
   readonly showClubModal = signal(false);
@@ -48,16 +61,42 @@ export class ClubDetailComponent {
   readonly feePayments = signal<ReadonlyMap<string, ClubFeePaymentModel[]>>(new Map());
   readonly expandedFeeId = signal<string | null>(null);
   readonly editingActivityId = signal<string | null>(null);
+  readonly defaultClubLogo = DEFAULT_CLUB_LOGO;
+  readonly defaultClubBanner = DEFAULT_CLUB_BANNER;
   readonly isOwner = computed(() => this.club()?.ownerId === this.auth.currentUser?.userId);
   readonly isManager = computed(() => this.isOwner() || (this.membership()?.status === 'ACTIVE' && this.membership()?.role === 'ADMIN'));
-  readonly isActiveMember = computed(() => this.membership()?.status === 'ACTIVE');
+  readonly isActiveMember = computed(() => this.isOwner() || this.membership()?.status === 'ACTIVE');
+  readonly viewerState = computed<ClubViewerState>(() => {
+    if (this.isManager()) return 'MANAGER';
+    if (this.isActiveMember()) return 'MEMBER';
+    if (this.membership()?.status === 'PENDING') return 'PENDING';
+    return 'GUEST';
+  });
+  readonly activeMembers = computed(() => this.members().filter(member => member.status === 'ACTIVE'));
+  readonly pendingMembers = computed(() => this.members().filter(member => member.status === 'PENDING'));
+  readonly sortedActivities = computed(() => [...this.activities()]
+    .sort((left, right) => new Date(left.startAt).getTime() - new Date(right.startAt).getTime()));
+  /** Ready for the tournament/match API; empty until the backend exposes fixture history. */
+  readonly recentMatches = signal<ReadonlyArray<ClubRecentMatch>>([]);
+  readonly joinRequestClub = computed<ClubCardView | null>(() => {
+    const current = this.club();
+    return current ? toCardView(current) : null;
+  });
   activityForm: CreateClubActivityPayload = { title: '', description: '', startAt: '', endAt: '' };
   feeForm: CreateClubFeePayload = { name: '', amount: 0, dueDate: '', required: true };
   inviteQuery = '';
   inviteMessage = '';
-  clubForm: UpdateClubPayload = { name: '', description: '', privacy: 'PUBLIC', approvalMode: 'AUTO' };
+  clubForm: UpdateClubPayload = { name: '', description: '', tags: [], privacy: 'PUBLIC', approvalMode: 'AUTO' };
 
-  constructor() { if (this.clubId) this.load(); else this.error.set('Mã câu lạc bộ không hợp lệ.'); }
+  constructor() {
+    if (this.clubId) {
+      this.load();
+      return;
+    }
+
+    this.error.set('Mã câu lạc bộ không hợp lệ.');
+    this.loading.set(false);
+  }
 
   load(): void {
     this.loading.set(true); this.error.set(null);
@@ -71,7 +110,11 @@ export class ClubDetailComponent {
     }).subscribe({
       next: data => {
         this.club.set(data.club); this.members.set(data.members); this.activities.set(data.activities);
-        this.membership.set(data.membership); this.loading.set(false); this.resolveUsers(data.club, data.members);
+        this.membership.set(data.membership);
+        if (this.route.snapshot.fragment === 'membership-requests' && this.isManager()) {
+          this.activeTab.set('REQUESTS');
+        }
+        this.loading.set(false); this.resolveUsers(data.club, data.members);
       },
       error: () => { this.error.set('Không thể tải thông tin câu lạc bộ.'); this.loading.set(false); }
     });
@@ -80,6 +123,27 @@ export class ClubDetailComponent {
     this.activeTab.set(tab);
     if (tab === 'FEES' && !this.fees().length) this.loadFees();
   }
+
+  sportName(): string { return this.club() ? sportLabel(this.club()!.sportType) : ''; }
+
+  locationLabel(): string {
+    const current = this.club();
+    return current?.location || current?.city || 'Chưa cập nhật địa điểm sinh hoạt';
+  }
+
+  roleLabel(): string {
+    if (this.isOwner()) return 'Chủ CLB';
+    if (this.isManager()) return 'Quản lý CLB';
+    if (this.viewerState() === 'MEMBER') return 'Thành viên';
+    if (this.viewerState() === 'PENDING') return 'Đang chờ duyệt';
+    return 'Chưa tham gia';
+  }
+
+  hasAuthenticatedUser(): boolean { return Boolean(this.auth.currentUser); }
+
+  openPlayerSearch(): void { void this.router.navigate(['/clubs/my', this.clubId, 'players']); }
+
+  goToMyClubs(): void { void this.router.navigate(['/clubs/my']); }
 
   promote(member: ClubMemberModel): void {
     const next: ClubRole = member.role === 'ADMIN' ? 'MEMBER' : 'ADMIN';
@@ -223,16 +287,33 @@ export class ClubDetailComponent {
       default: return 'Chưa đóng';
     }
   }
-  join(): void {
+  startJoin(): void {
     if (!this.auth.currentUser) {
       this.auth.notifyAuthenticationRequired('Vui lòng đăng nhập để tham gia câu lạc bộ.');
       return;
     }
+    if (this.club()?.approvalMode === 'MANUAL') {
+      this.showJoinRequestModal.set(true);
+      return;
+    }
+    this.join();
+  }
+
+  join(message?: string): void {
+    if (this.mutating()) return;
     this.mutating.set(true);
-    this.repository.joinClub(this.clubId).subscribe({
-      next: membership => { this.membership.set(membership); this.mutating.set(false);
-        this.notify.success(membership.status === 'ACTIVE' ? 'Đã tham gia câu lạc bộ.' : 'Yêu cầu đang chờ duyệt.'); this.load(); },
-      error: error => { this.mutating.set(false); this.notify.error(error?.error?.message ?? 'Không thể tham gia câu lạc bộ.'); }
+    this.repository.joinClub(this.clubId, message).subscribe({
+      next: membership => {
+        this.membership.set(membership);
+        this.showJoinRequestModal.set(false);
+        this.mutating.set(false);
+        this.notify.success(membership.status === 'ACTIVE' ? 'Đã tham gia câu lạc bộ.' : 'Yêu cầu đang chờ duyệt.');
+        this.load();
+      },
+      error: error => {
+        this.mutating.set(false);
+        this.notify.error(error?.error?.message ?? 'Không thể tham gia câu lạc bộ.');
+      }
     });
   }
   leave(): void {
@@ -279,6 +360,7 @@ export class ClubDetailComponent {
       name: current.name,
       description: current.description ?? '',
       logoUrl: current.logoUrl ?? '',
+      tags: [...(current.tags ?? [])],
       privacy: current.privacy,
       approvalMode: current.approvalMode
     };

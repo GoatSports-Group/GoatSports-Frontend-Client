@@ -44,6 +44,7 @@ export interface ClubCardView {
   city: string;
   location: string;
   description: string;
+  tags: string[];
   memberCount: number;
   winRate: number;
   privacy: ClubPrivacy;
@@ -79,6 +80,7 @@ export function toCardView(club: Club, membership?: MyClubMembership): ClubCardV
     city: club.city ?? '',
     location: club.location ?? '',
     description: club.description ?? '',
+    tags: club.tags ?? [],
     memberCount: club.memberCount ?? 0,
     winRate: Math.round((club.winRate ?? 0) * 100) / 100,
     privacy: club.privacy,

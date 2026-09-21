@@ -13,7 +13,7 @@ import { AuthService } from '@presentation/services/auth.service';
 import { NotificationService } from '@presentation/services/notification.service';
 import { NotifyService } from '@shared/components/notify/notify.service';
 import { ClubLocationDataService } from './club-location-data.service';
-import { CLUB_SPORTS, DEFAULT_CLUB_BANNER, DEFAULT_CLUB_LOGO } from './club-view.model';
+import { CLUB_SPORTS, DEFAULT_CLUB_BANNER, DEFAULT_CLUB_LOGO, sportLabel } from './club-view.model';
 
 type ClubTab = 'ALL' | 'MANAGED' | 'MEMBER';
 type ClubSort = 'NEWEST' | 'NAME' | 'MEMBERS';
@@ -107,7 +107,8 @@ export class MyClubsComponent {
     privacy: 'PUBLIC',
     approvalMode: 'AUTO',
     city: '',
-    location: ''
+    location: '',
+    tags: []
   };
 
   constructor() {
@@ -159,7 +160,7 @@ export class MyClubsComponent {
   }
   login(): void { this.auth.redirectToLogin(window.location.href); }
 
-  openClub(item: MyClubMembership): void { void this.router.navigate(['/clubs/my', item.club.clubId]); }
+  openClub(item: MyClubMembership): void { void this.router.navigate(['/clubs', item.club.clubId]); }
   openCreateModal(): void { this.showCreateModal.set(true); }
   closeCreateModal(): void { if (!this.creating()) this.showCreateModal.set(false); }
 
@@ -212,6 +213,8 @@ export class MyClubsComponent {
     if (this.pageIndex() > maxPage) this.pageIndex.set(maxPage);
   }
 
+  sportName(value: SportType): string { return sportLabel(value); }
+
   private loadPendingRequestCounts(memberships: MyClubMembership[]): void {
     const managedMemberships = memberships.filter(item => item.role === 'OWNER' || item.role === 'ADMIN');
     if (!managedMemberships.length) {
@@ -230,7 +233,7 @@ export class MyClubsComponent {
   private resetCreateForm(): void {
     this.createForm = {
       name: '', description: '', sportType: 'BADMINTON', privacy: 'PUBLIC',
-      approvalMode: 'AUTO', city: '', location: ''
+      approvalMode: 'AUTO', city: '', location: '', tags: []
     };
   }
 }

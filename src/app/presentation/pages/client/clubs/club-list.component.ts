@@ -91,7 +91,8 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
     privacy: 'PUBLIC',
     approvalMode: 'AUTO',
     city: '',
-    location: ''
+    location: '',
+    tags: []
   };
 
   constructor() {
@@ -227,7 +228,7 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
   }
 
   openMyClub(club: ClubCardView): void {
-    void this.router.navigate(['/clubs/my', club.clubId]);
+    void this.router.navigate(['/clubs', club.clubId]);
   }
 
   goToClubFromKeyboard(event: Event, club: ClubCardView): void {
@@ -256,7 +257,7 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
         this.showCreateModal.set(false);
         this.createForm = {
           name: '', description: '', sportType: 'BADMINTON',
-          privacy: 'PUBLIC', approvalMode: 'AUTO', city: '', location: ''
+          privacy: 'PUBLIC', approvalMode: 'AUTO', city: '', location: '', tags: []
         };
         this.notify.success(`Đã tạo câu lạc bộ ${club.name}.`);
         this.load();

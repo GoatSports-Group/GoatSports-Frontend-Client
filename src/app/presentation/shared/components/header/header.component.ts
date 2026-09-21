@@ -138,10 +138,10 @@ export class HeaderComponent implements OnInit {
         break;
       case 'CLUB':
       case 'CLUB_ACTIVITY':
-        void this.router.navigate(referenceId ? ['/clubs/my', referenceId] : ['/clubs/my']);
+        void this.router.navigate(referenceId ? ['/clubs', referenceId] : ['/clubs/my']);
         break;
       case 'CLUB_MEMBERSHIP_REQUEST':
-        void this.router.navigate(referenceId ? ['/clubs/my', referenceId] : ['/clubs/my'], { fragment: 'membership-requests' });
+        void this.router.navigate(referenceId ? ['/clubs', referenceId] : ['/clubs/my'], { fragment: 'membership-requests' });
         break;
       case 'CLUB_PUBLIC':
         void this.router.navigate(referenceId ? ['/clubs', referenceId] : ['/clubs']);

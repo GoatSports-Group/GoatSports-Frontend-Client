@@ -14,6 +14,8 @@ export interface ClubModel {
   city?: string;
   /** Dong dia diem hien thi, vi du "Quan 7, TP. Ho Chi Minh". */
   location?: string;
+  /** Nhãn do chủ CLB tự tạo, ví dụ "Giao lưu", "Thi đấu". */
+  tags?: string[];
   sportType: SportType;
   privacy: ClubPrivacy;
   approvalMode: ClubApprovalMode;
@@ -37,6 +39,7 @@ export interface CreateClubPayload {
   logoUrl?: string;
   city?: string;
   location?: string;
+  tags: string[];
   sportType: SportType;
   privacy: ClubPrivacy;
   approvalMode: ClubApprovalMode;
@@ -136,6 +139,7 @@ export interface UpdateClubPayload {
   name?: string;
   city?: string;
   location?: string;
+  tags?: string[];
   description?: string;
   logoUrl?: string;
   privacy?: ClubPrivacy;

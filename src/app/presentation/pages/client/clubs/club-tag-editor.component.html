@@ -1,0 +1,33 @@
+<section class="tag-editor" [class.tag-editor--disabled]="disabled">
+  <div class="tag-editor__heading">
+    <div><strong>Badge câu lạc bộ</strong><span>Thêm đặc trưng để người chơi hiểu nhanh về cộng đồng.</span></div>
+    <small>{{ tags.length }}/{{ maxTags }}</small>
+  </div>
+
+  <div class="tag-editor__selected" aria-label="Badge đã chọn">
+    <span class="tag-chip tag-chip--sport"><lucide-icon name="trophy" class="w-3 h-3"></lucide-icon>{{ sportLabel }}</span>
+    @for (tag of tags; track tag) {
+      <button type="button" class="tag-chip" [disabled]="disabled" [attr.aria-label]="'Xóa badge ' + tag"
+        (click)="removeTag(tag)">{{ tag }}<lucide-icon name="x" class="w-3 h-3"></lucide-icon></button>
+    }
+  </div>
+
+  <div class="tag-editor__input">
+    <input type="text" maxlength="24" [disabled]="disabled || limitReached" [(ngModel)]="tagInput"
+      (keydown)="handleKeydown($event)" placeholder="Ví dụ: Giao lưu, Thi đấu..." aria-label="Tên badge mới" />
+    <button type="button" [disabled]="disabled || limitReached || !tagInput.trim()" (click)="addCurrentTag()">
+      <lucide-icon name="plus" class="w-4 h-4"></lucide-icon> Thêm
+    </button>
+  </div>
+
+  <div class="tag-editor__suggestions">
+    <span>Gợi ý:</span>
+    @for (suggestion of suggestions; track suggestion) {
+      <button type="button" [disabled]="disabled || limitReached || isSelected(suggestion)"
+        (click)="addSuggestion(suggestion)">+ {{ suggestion }}</button>
+    }
+  </div>
+
+  @if (validationMessage) { <p class="tag-editor__error" role="alert">{{ validationMessage }}</p> }
+  @else { <p class="tag-editor__hint">Badge môn thể thao được tạo tự động và không tính vào giới hạn.</p> }
+</section>

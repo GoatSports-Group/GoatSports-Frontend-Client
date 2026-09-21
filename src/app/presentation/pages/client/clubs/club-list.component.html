@@ -321,6 +321,8 @@
             [(ngModel)]="createForm.name" placeholder="Ví dụ: GOAT Weekend Club" /></div>
         <div class="form-group"><label for="club-description">Mô tả</label><textarea id="club-description" rows="3"
             [(ngModel)]="createForm.description" placeholder="Mô tả ngắn về cộng đồng..."></textarea></div>
+        <app-club-tag-editor [(tags)]="createForm.tags" [sportLabel]="sportLabel(createForm.sportType)"
+          [disabled]="creating()"></app-club-tag-editor>
         <div class="form-row">
           <div class="form-group"><label for="club-sport">Môn thể thao</label><select id="club-sport"
               [(ngModel)]="createForm.sportType">@for (sport of sports.slice(1); track sport.value) { <option

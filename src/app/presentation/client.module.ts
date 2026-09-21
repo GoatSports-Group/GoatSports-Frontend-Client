@@ -33,6 +33,7 @@ import { MyClubRoleBadgeComponent } from '@presentation/pages/client/clubs/my-cl
 import { MyClubsEmptyStateComponent } from '@presentation/pages/client/clubs/my-clubs-empty-state.component';
 import { ClubMemberWorkspaceComponent } from '@presentation/pages/client/clubs/club-member-workspace.component';
 import { ClubPlayerSearchComponent } from '@presentation/pages/client/clubs/club-player-search.component';
+import { ClubTagEditorComponent } from '@presentation/pages/client/clubs/club-tag-editor.component';
 import { TournamentListComponent } from '@presentation/pages/client/tournaments/tournament-list.component';
 import { TournamentDetailComponent } from '@presentation/pages/client/tournaments/tournament-detail.component';
 import { MatchmakingComponent } from '@presentation/pages/client/matchmaking/matchmaking.component';
@@ -70,6 +71,7 @@ import { AiAssistantModalComponent } from '@presentation/shared/components/ai-as
     MyClubsEmptyStateComponent,
     ClubMemberWorkspaceComponent,
     ClubPlayerSearchComponent,
+    ClubTagEditorComponent,
     TournamentListComponent,
     TournamentDetailComponent,
     MatchmakingComponent,
