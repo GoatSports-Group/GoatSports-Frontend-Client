@@ -52,6 +52,9 @@
 
         <div class="club-actions">
           @if (isManager()) {
+            <button type="button" class="button button--secondary" (click)="openChat()">
+              <lucide-icon name="message-circle" class="w-4 h-4"></lucide-icon> Tin nhắn
+            </button>
             <button type="button" class="button button--secondary" (click)="openClubModal()">
               <lucide-icon name="pencil" class="w-4 h-4"></lucide-icon> Chỉnh sửa
             </button>
@@ -70,8 +73,8 @@
               }
             </div>
           } @else if (viewerState() === 'MEMBER') {
-            <button type="button" class="button button--secondary" (click)="openNotifications()">
-              <lucide-icon name="bell" class="w-4 h-4"></lucide-icon> Thông báo
+            <button type="button" class="button button--secondary" (click)="openChat()">
+              <lucide-icon name="message-circle" class="w-4 h-4"></lucide-icon> Tin nhắn
             </button>
             <button type="button" class="button button--joined" disabled>
               <lucide-icon name="user-round-check" class="w-4 h-4"></lucide-icon> Đang tham gia
@@ -81,7 +84,7 @@
                 (click)="showMemberMenu.update(value => !value)"><lucide-icon name="more-horizontal" class="w-5 h-5"></lucide-icon></button>
               @if (showMemberMenu()) {
                 <div class="member-more__menu">
-                  <button type="button" [disabled]="mutating()" (click)="showMemberMenu.set(false); leave()">
+                  <button type="button" [disabled]="mutating()" (click)="showMemberMenu.set(false); requestLeave()">
                     <lucide-icon name="log-out" class="w-4 h-4"></lucide-icon> Rời câu lạc bộ
                   </button>
                 </div>
@@ -137,9 +140,6 @@
       <button type="button" role="tab" [class.active]="activeTab() === 'GALLERY'" (click)="setTab('GALLERY')">
         <lucide-icon name="image" class="w-4 h-4"></lucide-icon> Thư viện
       </button>
-      @if (isActiveMember()) {
-        <button type="button" role="tab" [class.active]="activeTab() === 'FEES'" (click)="setTab('FEES')">Lệ phí</button>
-      }
       @if (isManager()) {
         <button type="button" role="tab" [class.active]="activeTab() === 'SETTINGS'" (click)="setTab('SETTINGS')">
           <lucide-icon name="settings" class="w-4 h-4"></lucide-icon> Cài đặt
@@ -185,15 +185,20 @@
           <article class="panel guest-overview-card guest-recent-matches">
             <header class="panel__header"><h2>Trận đấu gần đây</h2></header>
             @if (recentMatches().length) {
-              <div class="recent-match-list">
-                @for (match of recentMatches().slice(0, 3); track match.matchId) {
-                  <div class="recent-match-row">
+              <div class="recent-match-list recent-match-list--scroll" (scroll)="onMatchScroll($event)">
+                @for (match of recentMatches(); track match.matchId) {
+                  <button type="button" class="recent-match-row" (click)="openMatchDetails(match)">
                     <span class="recent-match-mark"><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon></span>
                     <div><strong>{{ currentClub.name }} vs {{ match.opponentName }}</strong><span>{{ match.playedAt | date:'dd/MM/yyyy' }}</span></div>
                     <b>{{ match.clubScore }} - {{ match.opponentScore }}</b>
                     <em [class.recent-match-result--win]="match.result === 'WIN'" [class.recent-match-result--loss]="match.result === 'LOSS'">{{ match.result === 'WIN' ? 'Thắng' : match.result === 'LOSS' ? 'Thua' : 'Hòa' }}</em>
-                  </div>
+                  </button>
                 }
+                <div #matchLoadSentinel class="match-load-sentinel" aria-live="polite">
+                  @if (matchPageLoading()) { <span class="member-load-spinner" aria-hidden="true"></span><span>Đang tải thêm trận đấu...</span> }
+                  @else if (matchPageError()) { <button type="button" (click)="loadNextMatchPage()">Thử lại</button> }
+                  @else if (!matchHasMore()) { <span>Đã hiển thị toàn bộ {{ matchTotal() }} trận.</span> }
+                </div>
               </div>
             } @else {
               <div class="guest-empty-state"><lucide-icon name="trophy" class="w-7 h-7"></lucide-icon><strong>Chưa có trận đấu nào</strong><span>Các trận từ giải đấu của câu lạc bộ sẽ xuất hiện tại đây.</span></div>
@@ -266,17 +271,22 @@
           </article>
 
           <article class="panel member-recent-matches">
-            <header class="panel__header"><h2>Trận đấu gần đây</h2><button type="button" class="text-action" (click)="setTab('TOURNAMENTS')">Xem tất cả</button></header>
+            <header class="panel__header"><h2>Trận đấu gần đây</h2><span class="panel-count">{{ matchTotal() }} trận</span></header>
             @if (recentMatches().length) {
-              <div class="recent-match-list">
-                @for (match of recentMatches().slice(0, 3); track match.matchId) {
-                  <div class="recent-match-row">
+              <div class="recent-match-list recent-match-list--scroll" (scroll)="onMatchScroll($event)">
+                @for (match of recentMatches(); track match.matchId) {
+                  <button type="button" class="recent-match-row" (click)="openMatchDetails(match)">
                     <span class="recent-match-mark"><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon></span>
                     <div><strong>{{ currentClub.name }} vs {{ match.opponentName }}</strong><span>{{ match.playedAt | date:'dd/MM/yyyy' }}</span></div>
                     <b>{{ match.clubScore }} - {{ match.opponentScore }}</b>
                     <em [class.recent-match-result--win]="match.result === 'WIN'" [class.recent-match-result--loss]="match.result === 'LOSS'">{{ match.result === 'WIN' ? 'Thắng' : match.result === 'LOSS' ? 'Thua' : 'Hòa' }}</em>
-                  </div>
+                  </button>
                 }
+                <div #matchLoadSentinel class="match-load-sentinel" aria-live="polite">
+                  @if (matchPageLoading()) { <span class="member-load-spinner" aria-hidden="true"></span><span>Đang tải thêm trận đấu...</span> }
+                  @else if (matchPageError()) { <button type="button" (click)="loadNextMatchPage()">Thử lại</button> }
+                  @else if (!matchHasMore()) { <span>Đã hiển thị toàn bộ {{ matchTotal() }} trận.</span> }
+                </div>
               </div>
             } @else {
               <div class="guest-empty-state"><lucide-icon name="trophy" class="w-7 h-7"></lucide-icon><strong>Chưa có trận đấu nào</strong><span>Các trận từ giải đấu của câu lạc bộ sẽ xuất hiện tại đây.</span></div>
@@ -341,7 +351,19 @@
 
           <article class="panel member-tournaments">
             <header class="panel__header"><h2>Bảng xếp hạng / Giải đấu</h2><button type="button" class="text-action" (click)="setTab('TOURNAMENTS')">Xem tất cả</button></header>
-            <div class="panel-empty panel-empty--accent"><lucide-icon name="trophy" class="w-8 h-8"></lucide-icon><strong>{{ (currentClub.tournamentCount ?? 0) ? (currentClub.tournamentCount + ' giải đấu') : 'Chưa có giải đấu nào' }}</strong><span>Câu lạc bộ chưa tham gia giải đấu nào. Hãy cùng tham gia để thử sức và khẳng định bản thân!</span><a routerLink="/tournaments" class="button button--outline">Khám phá giải đấu</a></div>
+            @if (tournament(); as activeTournament) {
+              <div class="tournament-preview">
+                <div class="tournament-preview__title"><span class="recent-match-mark"><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon></span><div><strong>{{ activeTournament.name }}</strong><span>{{ tournamentTeams().length }} đội · {{ matchTotal() }} trận của CLB</span></div></div>
+                <div class="standing-preview">
+                  @for (standing of tournamentStandings().slice(0, 4); track standing.registrationId) {
+                    <div [class.is-club]="isClubStanding(standing)"><b>#{{ standing.rank }}</b><span>{{ tournamentTeamName(standing.registrationId) }}</span><strong>{{ standing.points }}đ</strong></div>
+                  }
+                </div>
+                <a [routerLink]="['/tournaments', activeTournament.tournamentId]" class="button button--outline button--block">Xem giải đấu</a>
+              </div>
+            } @else {
+              <div class="panel-empty panel-empty--accent"><lucide-icon name="trophy" class="w-8 h-8"></lucide-icon><strong>Chưa có giải đấu nào</strong><span>Câu lạc bộ chưa tham gia giải đấu nào. Hãy cùng tham gia để thử sức và khẳng định bản thân!</span><a routerLink="/tournaments" class="button button--outline">Khám phá giải đấu</a></div>
+            }
           </article>
         </section>
       } @else {
@@ -358,17 +380,22 @@
           </article>
 
           <article class="panel manager-recent-matches">
-            <header class="panel__header"><h2>Trận đấu gần đây</h2><button type="button" class="text-action" (click)="setTab('TOURNAMENTS')">Xem tất cả</button></header>
+            <header class="panel__header"><h2>Trận đấu gần đây</h2><span class="panel-count">{{ matchTotal() }} trận</span></header>
             @if (recentMatches().length) {
-              <div class="recent-match-list">
-                @for (match of recentMatches().slice(0, 3); track match.matchId) {
-                  <div class="recent-match-row">
+              <div class="recent-match-list recent-match-list--scroll" (scroll)="onMatchScroll($event)">
+                @for (match of recentMatches(); track match.matchId) {
+                  <button type="button" class="recent-match-row" (click)="openMatchDetails(match)">
                     <span class="recent-match-mark"><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon></span>
                     <div><strong>{{ currentClub.name }} vs {{ match.opponentName }}</strong><span>{{ match.playedAt | date:'dd/MM/yyyy' }}</span></div>
                     <b>{{ match.clubScore }} - {{ match.opponentScore }}</b>
                     <em [class.recent-match-result--win]="match.result === 'WIN'" [class.recent-match-result--loss]="match.result === 'LOSS'">{{ match.result === 'WIN' ? 'Thắng' : match.result === 'LOSS' ? 'Thua' : 'Hòa' }}</em>
-                  </div>
+                  </button>
                 }
+                <div #matchLoadSentinel class="match-load-sentinel" aria-live="polite">
+                  @if (matchPageLoading()) { <span class="member-load-spinner" aria-hidden="true"></span><span>Đang tải thêm trận đấu...</span> }
+                  @else if (matchPageError()) { <button type="button" (click)="loadNextMatchPage()">Thử lại</button> }
+                  @else if (!matchHasMore()) { <span>Đã hiển thị toàn bộ {{ matchTotal() }} trận.</span> }
+                </div>
               </div>
             } @else {
               <div class="guest-empty-state"><lucide-icon name="trophy" class="w-7 h-7"></lucide-icon><strong>Chưa có trận đấu nào</strong><span>Các trận từ giải đấu của câu lạc bộ sẽ xuất hiện tại đây.</span></div>
@@ -433,7 +460,19 @@
 
           <article class="panel manager-tournaments">
             <header class="panel__header"><h2>Bảng xếp hạng / Giải đấu</h2><button type="button" class="text-action" (click)="setTab('TOURNAMENTS')">Xem tất cả</button></header>
-            <div class="panel-empty panel-empty--accent"><lucide-icon name="trophy" class="w-8 h-8"></lucide-icon><strong>{{ (currentClub.tournamentCount ?? 0) ? (currentClub.tournamentCount + ' giải đấu') : 'Chưa có giải đấu nào' }}</strong><span>Tạo giải đấu hoặc đăng ký tham gia để bắt đầu hành trình chinh phục.</span><a routerLink="/tournaments" class="button button--primary"><lucide-icon name="plus" class="w-4 h-4"></lucide-icon>Tạo giải đấu</a></div>
+            @if (tournament(); as activeTournament) {
+              <div class="tournament-preview">
+                <div class="tournament-preview__title"><span class="recent-match-mark"><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon></span><div><strong>{{ activeTournament.name }}</strong><span>{{ tournamentTeams().length }} đội · {{ matchTotal() }} trận của CLB</span></div></div>
+                <div class="standing-preview">
+                  @for (standing of tournamentStandings().slice(0, 4); track standing.registrationId) {
+                    <div [class.is-club]="isClubStanding(standing)"><b>#{{ standing.rank }}</b><span>{{ tournamentTeamName(standing.registrationId) }}</span><strong>{{ standing.points }}đ</strong></div>
+                  }
+                </div>
+                <a [routerLink]="['/tournaments', activeTournament.tournamentId]" class="button button--primary button--block">Quản lý giải đấu</a>
+              </div>
+            } @else {
+              <div class="panel-empty panel-empty--accent"><lucide-icon name="trophy" class="w-8 h-8"></lucide-icon><strong>Chưa có giải đấu nào</strong><span>Tạo giải đấu hoặc đăng ký tham gia để bắt đầu hành trình chinh phục.</span><a routerLink="/tournaments" class="button button--primary"><lucide-icon name="plus" class="w-4 h-4"></lucide-icon>Tạo giải đấu</a></div>
+            }
           </article>
 
           <article class="panel manager-gallery">
@@ -516,24 +555,57 @@
         } @else { <div class="detail-empty detail-empty--inline"><p>Chưa có hoạt động nào. @if (isManager()) { Hãy tạo lời nhắc đầu tiên cho thành viên. }</p></div> }
       </section>
     } @else if (activeTab() === 'TOURNAMENTS') {
-      <section class="content-panel"><div class="detail-empty detail-empty--inline"><lucide-icon name="trophy" class="w-9 h-9"></lucide-icon><h2>Chưa có dữ liệu giải đấu</h2><p>Thông tin giải đấu của câu lạc bộ sẽ hiển thị tại đây khi có dữ liệu.</p><a routerLink="/tournaments" class="button button--primary">Khám phá giải đấu</a></div></section>
+      <section class="content-panel tournament-workspace">
+        @if (tournament(); as activeTournament) {
+          <header class="content-heading tournament-heading">
+            <div><span class="panel__eyebrow">Thi đấu câu lạc bộ</span><h2>{{ activeTournament.name }}</h2><p>{{ activeTournament.description || 'Hành trình thi đấu và thành tích của câu lạc bộ.' }}</p></div>
+            <a [routerLink]="['/tournaments', activeTournament.tournamentId]" class="button button--primary">Xem trang giải đấu</a>
+          </header>
+          <div class="tournament-summary">
+            <div><span>Thể thức</span><strong>{{ activeTournament.format === 'ROUND_ROBIN' ? 'Vòng tròn' : 'Loại trực tiếp' }}</strong></div>
+            <div><span>Số đội</span><strong>{{ tournamentTeams().length }}</strong></div>
+            <div><span>Trận đã đá</span><strong>{{ matchTotal() }}</strong></div>
+            <div><span>Thời gian</span><strong>{{ activeTournament.startDate | date:'dd/MM' }} – {{ activeTournament.endDate | date:'dd/MM/yyyy' }}</strong></div>
+          </div>
+          <div class="tournament-grid">
+            <article class="tournament-board">
+              <header><div><span class="panel__eyebrow">Bảng xếp hạng</span><h3>Thành tích các đội</h3></div></header>
+              <div class="standing-table" role="table" aria-label="Bảng xếp hạng giải đấu">
+                <div class="standing-table__head" role="row"><span>#</span><span>Đội</span><span>Trận</span><span>Thắng</span><span>Hòa</span><span>Thua</span><span>Điểm</span></div>
+                @for (standing of tournamentStandings(); track standing.registrationId) {
+                  <div class="standing-table__row" role="row" [class.is-club]="isClubStanding(standing)">
+                    <b>{{ standing.rank }}</b><strong>{{ tournamentTeamName(standing.registrationId) }}</strong><span>{{ standing.played }}</span><span>{{ standing.won }}</span><span>{{ standing.drawn }}</span><span>{{ standing.lost }}</span><b>{{ standing.points }}</b>
+                  </div>
+                }
+              </div>
+            </article>
+            <article class="tournament-matches">
+              <header><div><span class="panel__eyebrow">Lịch sử thi đấu</span><h3>{{ matchTotal() }} trận của {{ currentClub.name }}</h3></div></header>
+              <div class="recent-match-list recent-match-list--tournament" (scroll)="onMatchScroll($event)">
+                @for (match of recentMatches(); track match.matchId) {
+                  <button type="button" class="recent-match-row" (click)="openMatchDetails(match)">
+                    <span class="recent-match-mark"><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon></span>
+                    <div><strong>{{ currentClub.name }} vs {{ match.opponentName }}</strong><span>{{ match.playedAt | date:'dd/MM/yyyy' }}</span></div>
+                    <b>{{ match.clubScore }} - {{ match.opponentScore }}</b>
+                    <em [class.recent-match-result--win]="match.result === 'WIN'" [class.recent-match-result--loss]="match.result === 'LOSS'">{{ match.result === 'WIN' ? 'Thắng' : match.result === 'LOSS' ? 'Thua' : 'Hòa' }}</em>
+                  </button>
+                }
+                <div #matchLoadSentinel class="match-load-sentinel" aria-live="polite">
+                  @if (matchPageLoading()) { <span class="member-load-spinner" aria-hidden="true"></span><span>Đang tải thêm trận đấu...</span> }
+                  @else if (matchPageError()) { <button type="button" (click)="loadNextMatchPage()">Thử lại</button> }
+                  @else if (!matchHasMore()) { <span>Đã hiển thị toàn bộ {{ matchTotal() }} trận.</span> }
+                </div>
+              </div>
+            </article>
+          </div>
+        } @else {
+          <div class="detail-empty detail-empty--inline"><lucide-icon name="trophy" class="w-9 h-9"></lucide-icon><h2>Chưa có dữ liệu giải đấu</h2><p>Thông tin giải đấu của câu lạc bộ sẽ hiển thị tại đây khi có dữ liệu.</p><a routerLink="/tournaments" class="button button--primary">Khám phá giải đấu</a></div>
+        }
+      </section>
     } @else if (activeTab() === 'GALLERY') {
       <section class="content-panel"><div class="detail-empty detail-empty--inline"><lucide-icon name="image" class="w-9 h-9"></lucide-icon><h2>Thư viện chưa có ảnh</h2><p>Những khoảnh khắc của câu lạc bộ sẽ được lưu giữ tại đây.</p></div></section>
     } @else if (activeTab() === 'SETTINGS') {
       <section class="content-panel"><div class="settings-cta"><div><span class="panel__eyebrow">Quản trị câu lạc bộ</span><h2>Cập nhật thông tin và quyền tham gia</h2><p>Chỉnh sửa tên, giới thiệu, logo, quyền riêng tư và chế độ duyệt thành viên.</p></div><button type="button" class="button button--primary" (click)="openClubModal()"><lucide-icon name="settings" class="w-4 h-4"></lucide-icon>Mở cài đặt</button></div></section>
-    } @else {
-      <section class="content-panel">
-        <header class="content-heading"><div><span class="panel__eyebrow">Tài chính đội</span><h2>Lệ phí câu lạc bộ</h2></div>@if (isManager()) { <button type="button" class="button button--primary" (click)="showFeeModal.set(true)">Tạo khoản phí</button> }</header>
-        @if (fees().length) {
-          <div class="fee-list">
-            @for (fee of fees(); track fee.feeId) {
-              <article class="fee-card"><header><div><h3>{{ fee.name }}</h3><span>Hạn {{ fee.dueDate | date:'dd/MM/yyyy' }} · {{ fee.required ? 'Bắt buộc' : 'Tự nguyện' }}</span></div><strong>{{ fee.amount | number:'1.0-0' }} đ</strong></header><div class="fee-status"><span class="status-label" [class.status-label--paid]="fee.myStatus === 'SUCCEEDED' || fee.myStatus === 'WAIVED'">{{ feeStatusLabel(fee.myStatus) }}</span><span>{{ fee.paidCount }}/{{ fee.memberCount }} thành viên đã đóng</span></div><footer>@if (isActiveMember() && fee.myStatus !== 'SUCCEEDED' && fee.myStatus !== 'WAIVED') { <button type="button" class="button button--primary" [disabled]="mutating()" (click)="payFee(fee)">Đóng phí</button> }@if (isManager()) { <button type="button" class="button button--secondary" (click)="toggleFeePayments(fee)">{{ expandedFeeId() === fee.feeId ? 'Ẩn danh sách' : 'Quản lý đóng phí' }}</button> }</footer>
-                @if (isManager() && expandedFeeId() === fee.feeId) { <div class="fee-payments">@for (payment of paymentsOf(fee.feeId); track payment.feePaymentId) { <div><span>{{ payment.userId ? displayName(payment.userId) : 'Thành viên đã rời' }}</span><strong>{{ feeStatusLabel(payment.status) }}</strong></div> }@for (member of unpaidMembers(fee.feeId); track member.membershipId) { <div><span>{{ displayName(member.userId) }}</span><button type="button" (click)="waiveFee(fee, member.membershipId)">Miễn phí này</button></div> }</div> }
-              </article>
-            }
-          </div>
-        } @else { <div class="detail-empty detail-empty--inline"><p>Câu lạc bộ chưa có khoản phí nào.</p></div> }
-      </section>
     }
 
     @if (showJoinRequestModal() && joinRequestClub(); as requestClub) {
@@ -570,6 +642,41 @@
       </div>
     }
 
+    @if (selectedMatch(); as match) {
+      <div class="modal-overlay" (click)="closeMatchDetails()">
+        <section class="modal-card match-detail-modal" appAccessibleDialog aria-labelledby="match-detail-title"
+          (dialogClosed)="closeMatchDetails()" (click)="$event.stopPropagation()">
+          <header class="modal-title">
+            <div><span>{{ match.tournamentName }}</span><h2 id="match-detail-title">Chi tiết trận đấu</h2></div>
+            <button type="button" class="icon-action" aria-label="Đóng" (click)="closeMatchDetails()"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button>
+          </header>
+          <div class="match-scoreboard">
+            <div><img [src]="currentClub.logoUrl || defaultClubLogo" [alt]="currentClub.name" /><strong>{{ currentClub.name }}</strong></div>
+            <div class="match-scoreboard__score"><span>{{ match.result === 'WIN' ? 'Chiến thắng' : match.result === 'LOSS' ? 'Thất bại' : 'Hòa' }}</span><b>{{ match.clubScore }} - {{ match.opponentScore }}</b><small>{{ match.playedAt | date:'dd/MM/yyyy · HH:mm' }}</small></div>
+            <div><span class="opponent-mark"><lucide-icon name="shield" class="w-7 h-7"></lucide-icon></span><strong>{{ match.opponentName }}</strong></div>
+          </div>
+          <dl class="activity-detail-modal__facts">
+            <div><dt><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon>Giải đấu</dt><dd>{{ match.tournamentName }}</dd></div>
+            <div><dt><lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon>Ngày thi đấu</dt><dd>{{ match.playedAt | date:'dd/MM/yyyy' }}</dd></div>
+            <div><dt><lucide-icon name="activity" class="w-4 h-4"></lucide-icon>Kết quả</dt><dd>{{ match.result === 'WIN' ? 'Thắng' : match.result === 'LOSS' ? 'Thua' : 'Hòa' }}</dd></div>
+          </dl>
+          <footer class="modal-footer"><button type="button" class="button button--secondary" (click)="closeMatchDetails()">Đóng</button><a [routerLink]="['/tournaments', match.tournamentId]" class="button button--primary" (click)="closeMatchDetails()">Xem giải đấu</a></footer>
+        </section>
+      </div>
+    }
+
+    @if (showLeaveConfirm()) {
+      <div class="modal-overlay" (click)="showLeaveConfirm.set(false)">
+        <section class="modal-card confirm-leave-modal" appAccessibleDialog aria-labelledby="leave-club-title"
+          (dialogClosed)="showLeaveConfirm.set(false)" (click)="$event.stopPropagation()">
+          <span class="confirm-leave-modal__icon"><lucide-icon name="log-out" class="w-7 h-7"></lucide-icon></span>
+          <h2 id="leave-club-title">Rời {{ currentClub.name }}?</h2>
+          <p>Bạn sẽ không còn nhận lịch hoạt động và tin nhắn của câu lạc bộ. Bạn có thể gửi yêu cầu tham gia lại sau.</p>
+          <footer class="modal-footer"><button type="button" class="button button--secondary" (click)="showLeaveConfirm.set(false)">Ở lại CLB</button><button type="button" class="button button--danger" [disabled]="mutating()" (click)="leave()">{{ mutating() ? 'Đang xử lý...' : 'Rời câu lạc bộ' }}</button></footer>
+        </section>
+      </div>
+    }
+
     @if (showClubModal()) {
       <div class="modal-overlay" (click)="showClubModal.set(false)"><section class="modal-card" appAccessibleDialog aria-labelledby="club-modal-title" (dialogClosed)="showClubModal.set(false)" (click)="$event.stopPropagation()">
         <header class="modal-title"><div><span>Quản trị CLB</span><h2 id="club-modal-title">Chỉnh sửa câu lạc bộ</h2></div><button type="button" class="icon-action" aria-label="Đóng" (click)="showClubModal.set(false)"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button></header>
@@ -600,12 +707,5 @@
       </section></div>
     }
 
-    @if (showFeeModal()) {
-      <div class="modal-overlay" (click)="showFeeModal.set(false)"><section class="modal-card" appAccessibleDialog aria-labelledby="fee-modal-title" (dialogClosed)="showFeeModal.set(false)" (click)="$event.stopPropagation()">
-        <header class="modal-title"><div><span>Tài chính đội</span><h2 id="fee-modal-title">Tạo khoản phí</h2></div><button type="button" class="icon-action" aria-label="Đóng" (click)="showFeeModal.set(false)"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button></header>
-        <div class="form-group"><label for="fee-name">Tên khoản phí *</label><input id="fee-name" [(ngModel)]="feeForm.name" /></div><div class="form-row"><div class="form-group"><label for="fee-amount">Số tiền (đ) *</label><input id="fee-amount" type="number" min="0" [(ngModel)]="feeForm.amount" /></div><div class="form-group"><label for="fee-due">Hạn đóng *</label><input id="fee-due" type="date" [(ngModel)]="feeForm.dueDate" /></div></div><label class="checkbox-field"><input type="checkbox" [(ngModel)]="feeForm.required" />Bắt buộc với mọi thành viên</label>
-        <footer class="modal-footer"><button type="button" class="button button--secondary" (click)="showFeeModal.set(false)">Hủy</button><button type="button" class="button button--primary" [disabled]="mutating() || !feeForm.name || !feeForm.dueDate" (click)="createFee()">Tạo khoản phí</button></footer>
-      </section></div>
-    }
   }
 </main>

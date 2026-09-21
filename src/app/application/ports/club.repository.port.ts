@@ -51,6 +51,7 @@ export abstract class ClubRepositoryPort {
   abstract getClubActivities(clubId: string): Observable<ClubActivityModel[]>;
   abstract getClubActivitiesPage(clubId: string, page: number, size: number): Observable<PageResult<ClubActivityModel>>;
   abstract getClubRecentMatches(clubId: string, limit?: number): Observable<ClubRecentMatchModel[]>;
+  abstract getClubMatchesPage(clubId: string, page: number, size: number): Observable<PageResult<ClubRecentMatchModel>>;
   abstract createClubActivity(clubId: string, payload: CreateClubActivityPayload): Observable<ClubActivityModel>;
   abstract getClubFees(clubId: string): Observable<ClubFeeModel[]>;
   abstract createClubFee(clubId: string, payload: CreateClubFeePayload): Observable<ClubFeeModel>;

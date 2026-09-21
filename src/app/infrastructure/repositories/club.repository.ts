@@ -109,6 +109,9 @@ export class ClubRepository extends ClubRepositoryPort {
       params: new HttpParams().set('limit', limit)
     }).pipe(map(response => response.data ?? []));
   }
+  override getClubMatchesPage(clubId: string, page: number, size: number): Observable<PageResult<ClubRecentMatchModel>> {
+    return this.getPage<ClubRecentMatchModel>(`${this.baseUrl}/${clubId}/matches/page`, page, size);
+  }
   override createClubActivity(clubId: string, payload: CreateClubActivityPayload): Observable<ClubActivityModel> {
     return this.http.post<BaseResponse<ClubActivityModel>>(`${this.baseUrl}/${clubId}/activities`, payload)
       .pipe(map(response => response.data));

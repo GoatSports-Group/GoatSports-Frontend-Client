@@ -3,19 +3,21 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
 import { ClubRepositoryPort } from '@application/ports/club.repository.port';
 import { User } from '@application/dto/user/user.dto';
-import { Club as ClubModel, ClubActivity as ClubActivityModel, ClubFee as ClubFeeModel,
-  ClubFeePayment as ClubFeePaymentModel, ClubMember as ClubMemberModel,
+import { Club as ClubModel, ClubActivity as ClubActivityModel, ClubMember as ClubMemberModel,
   ClubRecentMatch as ClubRecentMatchModel,
-  CreateClubActivityPayload, CreateClubFeePayload, ClubRole,
+  CreateClubActivityPayload, ClubRole,
   UpdateClubPayload, ClubPrivacy, ClubApprovalMode } from '@application/dto/club/club.dto';
 import { AuthService } from '@presentation/services/auth.service';
 import { PlayerDirectoryService } from '@presentation/services/player-directory.service';
 import { SearchPlayersUseCase } from '@application/usecase/user/search-players.usecase';
 import { PlayerSummary } from '@application/dto/user/user.dto';
 import { NotifyService } from '@shared/components/notify/notify.service';
+import { TournamentRepositoryPort } from '@application/ports/tournament.repository.port';
+import { Tournament as TournamentModel, TournamentRegistration as TournamentRegistrationModel,
+  TournamentStanding as TournamentStandingModel } from '@application/dto/tournament/tournament.dto';
 import { ClubCardView, DEFAULT_CLUB_BANNER, DEFAULT_CLUB_LOGO, sportLabel, toCardView } from './club-view.model';
 
-type ClubTab = 'OVERVIEW' | 'MEMBERS' | 'REQUESTS' | 'ACTIVITIES' | 'TOURNAMENTS' | 'GALLERY' | 'FEES' | 'SETTINGS';
+type ClubTab = 'OVERVIEW' | 'MEMBERS' | 'REQUESTS' | 'ACTIVITIES' | 'TOURNAMENTS' | 'GALLERY' | 'SETTINGS';
 type ClubViewerState = 'MANAGER' | 'MEMBER' | 'PENDING' | 'GUEST';
 @Component({
   selector: 'app-club-detail', templateUrl: './club-detail.component.html',
@@ -25,6 +27,7 @@ export class ClubDetailComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly repository = inject(ClubRepositoryPort);
+  private readonly tournamentRepository = inject(TournamentRepositoryPort);
   private readonly auth = inject(AuthService);
   private readonly directory = inject(PlayerDirectoryService);
   private readonly searchPlayers = inject(SearchPlayersUseCase);
@@ -41,18 +44,16 @@ export class ClubDetailComponent {
   readonly error = signal<string | null>(null);
   readonly mutating = signal(false);
   readonly showActivityModal = signal(false);
-  readonly showFeeModal = signal(false);
   readonly showInviteModal = signal(false);
   readonly showJoinRequestModal = signal(false);
+  readonly showLeaveConfirm = signal(false);
   readonly selectedActivity = signal<ClubActivityModel | null>(null);
+  readonly selectedMatch = signal<ClubRecentMatchModel | null>(null);
   readonly showMemberMenu = signal(false);
   readonly showManagerMenu = signal(false);
   readonly inviteResults = signal<PlayerSummary[]>([]);
   readonly inviteSearching = signal(false);
   readonly showClubModal = signal(false);
-  readonly fees = signal<ClubFeeModel[]>([]);
-  readonly feePayments = signal<ReadonlyMap<string, ClubFeePaymentModel[]>>(new Map());
-  readonly expandedFeeId = signal<string | null>(null);
   readonly editingActivityId = signal<string | null>(null);
   readonly defaultClubLogo = DEFAULT_CLUB_LOGO;
   readonly defaultClubBanner = DEFAULT_CLUB_BANNER;
@@ -80,21 +81,32 @@ export class ClubDetailComponent {
   readonly sortedActivities = computed(() => [...this.activities()]
     .sort((left, right) => new Date(left.startAt).getTime() - new Date(right.startAt).getTime()));
   readonly recentMatches = signal<ReadonlyArray<ClubRecentMatchModel>>([]);
+  readonly matchPageLoading = signal(false);
+  readonly matchPageError = signal(false);
+  readonly matchTotal = signal(0);
+  readonly matchHasMore = signal(true);
+  readonly tournament = signal<TournamentModel | null>(null);
+  readonly tournamentTeams = signal<TournamentRegistrationModel[]>([]);
+  readonly tournamentStandings = signal<TournamentStandingModel[]>([]);
+  readonly clubTournamentRegistrationId = computed(() =>
+    this.tournamentTeams().find(team => team.clubId === this.clubId)?.registrationId ?? null);
   readonly joinRequestClub = computed<ClubCardView | null>(() => {
     const current = this.club();
     return current ? toCardView(current) : null;
   });
   activityForm: CreateClubActivityPayload = { title: '', description: '', startAt: '', endAt: '' };
-  feeForm: CreateClubFeePayload = { name: '', amount: 0, dueDate: '', required: true };
   inviteQuery = '';
   inviteMessage = '';
   clubForm: UpdateClubPayload = { name: '', description: '', tags: [], privacy: 'PUBLIC', approvalMode: 'AUTO' };
   private readonly memberLoadSentinel = viewChild<ElementRef<HTMLElement>>('memberLoadSentinel');
   private readonly activityLoadSentinel = viewChild<ElementRef<HTMLElement>>('activityLoadSentinel');
+  private readonly matchLoadSentinel = viewChild<ElementRef<HTMLElement>>('matchLoadSentinel');
   private readonly memberPageSize = 7;
   private readonly activityPageSize = 3;
+  private readonly matchPageSize = 3;
   private memberPage = 0;
   private activityPage = 0;
+  private matchPage = 0;
 
   constructor() {
     effect(onCleanup => {
@@ -117,6 +129,16 @@ export class ClubDetailComponent {
       onCleanup(() => observer.disconnect());
     });
 
+    effect(onCleanup => {
+      const sentinel = this.matchLoadSentinel()?.nativeElement;
+      if (!sentinel) return;
+      const observer = new IntersectionObserver(entries => {
+        if (entries.some(entry => entry.isIntersecting)) this.loadNextMatchPage();
+      }, { rootMargin: '120px 0px' });
+      observer.observe(sentinel);
+      onCleanup(() => observer.disconnect());
+    });
+
     if (this.clubId) {
       this.load();
       return;
@@ -129,12 +151,13 @@ export class ClubDetailComponent {
   load(): void {
     this.loading.set(true); this.error.set(null);
     this.resetActivityPagination();
+    this.resetMatchPagination();
     const membershipRequest = this.auth.currentUser
       ? this.repository.getMyMembership(this.clubId).pipe(catchError(() => of(null))) : of(null);
     forkJoin({
       club: this.repository.getClubDetails(this.clubId),
       activities: this.repository.getClubActivitiesPage(this.clubId, 0, this.activityPageSize),
-      matches: this.repository.getClubRecentMatches(this.clubId, 3),
+      matches: this.repository.getClubMatchesPage(this.clubId, 0, this.matchPageSize),
       membership: membershipRequest
     }).subscribe({
       next: data => {
@@ -142,7 +165,11 @@ export class ClubDetailComponent {
         this.activityTotal.set(data.activities.total);
         this.activityPage = 1;
         this.activityHasMore.set(this.activityPage < data.activities.totalPages);
-        this.recentMatches.set(data.matches);
+        this.recentMatches.set(data.matches.items);
+        this.matchTotal.set(data.matches.total);
+        this.matchPage = 1;
+        this.matchHasMore.set(this.matchPage < data.matches.totalPages);
+        this.loadTournamentContext(data.matches.items[0]?.tournamentId);
         this.membership.set(data.membership);
         if (this.route.snapshot.fragment === 'membership-requests' && this.isManager()) {
           this.activeTab.set('REQUESTS');
@@ -163,7 +190,9 @@ export class ClubDetailComponent {
     if (tab === 'ACTIVITIES' && !this.activities().length && !this.activityPageLoading()) {
       this.loadNextActivityPage();
     }
-    if (tab === 'FEES' && !this.fees().length) this.loadFees();
+    if (tab === 'TOURNAMENTS' && this.recentMatches().length <= this.matchPageSize && this.matchHasMore()) {
+      this.loadNextMatchPage();
+    }
   }
 
   loadNextMemberPage(): void {
@@ -214,6 +243,41 @@ export class ClubDetailComponent {
 
   closeActivityDetails(): void { this.selectedActivity.set(null); }
 
+  openMatchDetails(match: ClubRecentMatchModel): void { this.selectedMatch.set(match); }
+
+  closeMatchDetails(): void { this.selectedMatch.set(null); }
+
+  onMatchScroll(event: Event): void {
+    const container = event.currentTarget as HTMLElement | null;
+    if (!container) return;
+    const remaining = container.scrollHeight - container.scrollTop - container.clientHeight;
+    if (remaining <= 72) this.loadNextMatchPage();
+  }
+
+  loadNextMatchPage(): void {
+    if (this.matchPageLoading() || !this.matchHasMore()) return;
+    this.matchPageLoading.set(true);
+    this.matchPageError.set(false);
+    const requestedPage = this.matchPage;
+    this.repository.getClubMatchesPage(this.clubId, requestedPage, this.matchPageSize).subscribe({
+      next: page => {
+        this.recentMatches.update(items => {
+          const known = new Set(items.map(item => item.matchId));
+          return [...items, ...page.items.filter(item => !known.has(item.matchId))];
+        });
+        this.matchTotal.set(page.total);
+        this.matchPage = requestedPage + 1;
+        this.matchHasMore.set(this.matchPage < page.totalPages);
+        this.matchPageLoading.set(false);
+        this.loadTournamentContext(page.items[0]?.tournamentId);
+      },
+      error: () => {
+        this.matchPageLoading.set(false);
+        this.matchPageError.set(true);
+      }
+    });
+  }
+
   sportName(): string { return this.club() ? sportLabel(this.club()!.sportType) : ''; }
 
   locationLabel(): string {
@@ -234,8 +298,6 @@ export class ClubDetailComponent {
   openPlayerSearch(): void { void this.router.navigate(['/clubs/my', this.clubId, 'players']); }
 
   goToMyClubs(): void { void this.router.navigate(['/clubs/my']); }
-
-  openNotifications(): void { void this.router.navigate(['/notifications']); }
 
   async shareClub(): Promise<void> {
     const current = this.club();
@@ -322,87 +384,6 @@ export class ClubDetailComponent {
     this.activityForm = { title: '', description: '', startAt: '', endAt: '' };
   }
 
-  loadFees(): void {
-    if (!this.auth.currentUser) return;
-    this.repository.getClubFees(this.clubId).pipe(catchError(() => of([] as ClubFeeModel[])))
-      .subscribe(fees => this.fees.set(fees));
-  }
-
-  toggleFeePayments(fee: ClubFeeModel): void {
-    if (this.expandedFeeId() === fee.feeId) { this.expandedFeeId.set(null); return; }
-    this.expandedFeeId.set(fee.feeId);
-    if (this.feePayments().has(fee.feeId)) return;
-    this.repository.getFeePayments(this.clubId, fee.feeId).subscribe({
-      next: payments => this.feePayments.update(current => new Map(current).set(fee.feeId, payments)),
-      error: error => this.notify.error(error?.error?.message ?? 'Không thể tải lịch sử đóng phí.')
-    });
-  }
-
-  createFee(): void {
-    if (this.mutating() || !this.feeForm.name.trim() || !this.feeForm.dueDate) return;
-    this.mutating.set(true);
-    this.repository.createClubFee(this.clubId, { ...this.feeForm, name: this.feeForm.name.trim() }).subscribe({
-      next: fee => {
-        this.fees.update(items => [...items, fee]);
-        this.showFeeModal.set(false);
-        this.mutating.set(false);
-        this.feeForm = { name: '', amount: 0, dueDate: '', required: true };
-        this.notify.success('Đã tạo khoản phí.');
-      },
-      error: error => { this.mutating.set(false); this.notify.error(error?.error?.message ?? 'Không thể tạo khoản phí.'); }
-    });
-  }
-
-  payFee(fee: ClubFeeModel): void {
-    if (this.mutating()) return;
-    this.mutating.set(true);
-    this.repository.initiateFeePayment(this.clubId, fee.feeId).subscribe({
-      next: () => {
-        this.mutating.set(false);
-        this.notify.success('Đã ghi nhận yêu cầu đóng phí, vui lòng hoàn tất thanh toán.');
-        this.loadFees();
-      },
-      error: error => { this.mutating.set(false); this.notify.error(error?.error?.message ?? 'Không thể khởi tạo đóng phí.'); }
-    });
-  }
-
-  waiveFee(fee: ClubFeeModel, membershipId: string): void {
-    if (this.mutating()) return;
-    this.mutating.set(true);
-    this.repository.waiveFee(this.clubId, fee.feeId, membershipId).subscribe({
-      next: () => {
-        this.mutating.set(false);
-        this.feePayments.update(current => {
-          const next = new Map(current);
-          next.delete(fee.feeId);
-          return next;
-        });
-        this.expandedFeeId.set(null);
-        this.notify.success('Đã miễn khoản phí cho thành viên.');
-        this.loadFees();
-      },
-      error: error => { this.mutating.set(false); this.notify.error(error?.error?.message ?? 'Không thể miễn khoản phí.'); }
-    });
-  }
-
-  paymentsOf(feeId: string): ClubFeePaymentModel[] { return this.feePayments().get(feeId) ?? []; }
-
-  unpaidMembers(feeId: string): ClubMemberModel[] {
-    const settled = new Set(this.paymentsOf(feeId)
-      .filter(item => item.status === 'SUCCEEDED' || item.status === 'WAIVED')
-      .map(item => item.membershipId));
-    return this.members().filter(item => item.status === 'ACTIVE' && !settled.has(item.membershipId));
-  }
-
-  feeStatusLabel(status: string | null): string {
-    switch (status) {
-      case 'SUCCEEDED': return 'Đã đóng';
-      case 'WAIVED': return 'Được miễn';
-      case 'PENDING': return 'Chờ thanh toán';
-      case 'FAILED': return 'Thanh toán lỗi';
-      default: return 'Chưa đóng';
-    }
-  }
   startJoin(): void {
     if (!this.auth.currentUser) {
       this.auth.notifyAuthenticationRequired('Vui lòng đăng nhập để tham gia câu lạc bộ.');
@@ -432,10 +413,21 @@ export class ClubDetailComponent {
       }
     });
   }
+  requestLeave(): void {
+    this.showMemberMenu.set(false);
+    this.showLeaveConfirm.set(true);
+  }
+
   leave(): void {
     if (this.mutating()) return; this.mutating.set(true);
     this.repository.leaveClub(this.clubId).subscribe({
-      next: () => { this.mutating.set(false); this.membership.set(null); this.notify.success('Đã rời câu lạc bộ.'); this.load(); },
+      next: () => {
+        this.showLeaveConfirm.set(false);
+        this.mutating.set(false);
+        this.membership.set(null);
+        this.notify.success('Đã rời câu lạc bộ.');
+        this.load();
+      },
       error: error => { this.mutating.set(false); this.notify.error(error?.error?.message ?? 'Không thể rời câu lạc bộ.'); }
     });
   }
@@ -538,7 +530,22 @@ export class ClubDetailComponent {
     });
   }
 
-  openChat(): void { const id = this.club()?.conversationId; if (id) void this.router.navigate(['/chat', id]); }
+  openChat(): void {
+    const id = this.club()?.conversationId;
+    if (id) {
+      void this.router.navigate(['/chat', id]);
+      return;
+    }
+    this.notify.warning('Nhóm tin nhắn của câu lạc bộ chưa sẵn sàng.');
+  }
+
+  tournamentTeamName(registrationId: string): string {
+    return this.tournamentTeams().find(team => team.registrationId === registrationId)?.teamName || 'Đội tham dự';
+  }
+
+  isClubStanding(standing: TournamentStandingModel): boolean {
+    return standing.registrationId === this.clubTournamentRegistrationId();
+  }
   displayName(userId: string): string { return this.users().get(userId)?.fullName || this.users().get(userId)?.email || `Người dùng ${userId.slice(0, 8)}`; }
   avatar(userId: string): string | undefined { return this.users().get(userId)?.avatarUrl; }
   initials(value: string): string { return value.split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase(); }
@@ -555,6 +562,30 @@ export class ClubDetailComponent {
     this.activityTotal.set(0);
     this.activityHasMore.set(true);
     this.activityPageError.set(false);
+  }
+
+  private resetMatchPagination(): void {
+    this.matchPage = 0;
+    this.matchTotal.set(0);
+    this.matchHasMore.set(true);
+    this.matchPageError.set(false);
+    this.tournament.set(null);
+    this.tournamentTeams.set([]);
+    this.tournamentStandings.set([]);
+  }
+
+  private loadTournamentContext(tournamentId?: string): void {
+    if (!tournamentId || this.tournament()?.tournamentId === tournamentId) return;
+    forkJoin({
+      tournament: this.tournamentRepository.getTournamentDetails(tournamentId),
+      teams: this.tournamentRepository.getTournamentTeams(tournamentId),
+      standings: this.tournamentRepository.getStandings(tournamentId)
+    }).pipe(catchError(() => of(null))).subscribe(data => {
+      if (!data) return;
+      this.tournament.set(data.tournament);
+      this.tournamentTeams.set(data.teams);
+      this.tournamentStandings.set(data.standings);
+    });
   }
 
   private loadPendingMembers(): void {
