@@ -94,6 +94,17 @@ export interface ClubActivityModel {
   createdAt?: string;
 }
 
+export interface ClubRecentMatchModel {
+  matchId: string;
+  tournamentId: string;
+  tournamentName: string;
+  opponentName: string;
+  playedAt: string;
+  clubScore: number;
+  opponentScore: number;
+  result: 'WIN' | 'DRAW' | 'LOSS';
+}
+
 export interface CreateClubActivityPayload {
   title: string;
   description?: string;

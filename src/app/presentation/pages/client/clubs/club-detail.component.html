@@ -22,7 +22,9 @@
     </nav>
 
     <section class="club-identity" [attr.data-viewer]="viewerState()"
-      [class.club-identity--guest]="viewerState() === 'GUEST' || viewerState() === 'PENDING'">
+      [class.club-identity--guest]="viewerState() === 'GUEST' || viewerState() === 'PENDING'"
+      [class.club-identity--member]="viewerState() === 'MEMBER'"
+      [class.club-identity--manager]="viewerState() === 'MANAGER'">
       <div class="club-cover">
         <img [src]="defaultClubBanner" [alt]="'Ảnh bìa ' + currentClub.name" />
         <div class="club-cover__shade"></div>
@@ -53,20 +55,38 @@
             <button type="button" class="button button--secondary" (click)="openClubModal()">
               <lucide-icon name="pencil" class="w-4 h-4"></lucide-icon> Chỉnh sửa
             </button>
-            <button type="button" class="button button--primary" (click)="openPlayerSearch()">
-              <lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon> Tìm người chơi
-            </button>
+            <div class="member-more">
+              <button type="button" class="icon-action" aria-label="Tùy chọn quản trị" [attr.aria-expanded]="showManagerMenu()"
+                (click)="showManagerMenu.update(value => !value)"><lucide-icon name="more-horizontal" class="w-5 h-5"></lucide-icon></button>
+              @if (showManagerMenu()) {
+                <div class="member-more__menu member-more__menu--manager">
+                  <button type="button" (click)="showManagerMenu.set(false); openPlayerSearch()">
+                    <lucide-icon name="search" class="w-4 h-4"></lucide-icon> Tìm người chơi
+                  </button>
+                  <button type="button" (click)="showManagerMenu.set(false); openInviteModal()">
+                    <lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon> Mời thành viên
+                  </button>
+                </div>
+              }
+            </div>
           } @else if (viewerState() === 'MEMBER') {
-            @if (currentClub.conversationId) {
-              <button type="button" class="button button--secondary" (click)="openChat()">
-                <lucide-icon name="message-circle" class="w-4 h-4"></lucide-icon> Nhóm chat
-              </button>
-            }
+            <button type="button" class="button button--secondary" (click)="openNotifications()">
+              <lucide-icon name="bell" class="w-4 h-4"></lucide-icon> Thông báo
+            </button>
             <button type="button" class="button button--joined" disabled>
               <lucide-icon name="user-round-check" class="w-4 h-4"></lucide-icon> Đang tham gia
             </button>
-            <button type="button" class="icon-action" aria-label="Rời câu lạc bộ" title="Rời câu lạc bộ"
-              [disabled]="mutating()" (click)="leave()"><lucide-icon name="log-out" class="w-5 h-5"></lucide-icon></button>
+            <div class="member-more">
+              <button type="button" class="icon-action" aria-label="Thêm tùy chọn" [attr.aria-expanded]="showMemberMenu()"
+                (click)="showMemberMenu.update(value => !value)"><lucide-icon name="more-horizontal" class="w-5 h-5"></lucide-icon></button>
+              @if (showMemberMenu()) {
+                <div class="member-more__menu">
+                  <button type="button" [disabled]="mutating()" (click)="showMemberMenu.set(false); leave()">
+                    <lucide-icon name="log-out" class="w-4 h-4"></lucide-icon> Rời câu lạc bộ
+                  </button>
+                </div>
+              }
+            </div>
           } @else if (viewerState() === 'PENDING') {
             <button type="button" class="button button--pending" disabled>
               <lucide-icon name="clock-3" class="w-4 h-4"></lucide-icon> Đang chờ duyệt
@@ -95,7 +115,7 @@
       </div>
     </section>
 
-    <nav class="detail-tabs" role="tablist" aria-label="Nội dung câu lạc bộ">
+    <nav class="detail-tabs" [class.detail-tabs--manager]="isManager()" role="tablist" aria-label="Nội dung câu lạc bộ">
       <button type="button" role="tab" [class.active]="activeTab() === 'OVERVIEW'" (click)="setTab('OVERVIEW')">
         <lucide-icon name="layout-grid" class="w-4 h-4"></lucide-icon> Tổng quan
       </button>
@@ -116,9 +136,6 @@
       </button>
       <button type="button" role="tab" [class.active]="activeTab() === 'GALLERY'" (click)="setTab('GALLERY')">
         <lucide-icon name="image" class="w-4 h-4"></lucide-icon> Thư viện
-      </button>
-      <button type="button" role="tab" [class.active]="activeTab() === 'DISCUSSION'" (click)="setTab('DISCUSSION')">
-        <lucide-icon name="messages-square" class="w-4 h-4"></lucide-icon> Thảo luận
       </button>
       @if (isActiveMember()) {
         <button type="button" role="tab" [class.active]="activeTab() === 'FEES'" (click)="setTab('FEES')">Lệ phí</button>
@@ -191,7 +208,7 @@
                   <div class="guest-activity-row">
                     <span class="guest-activity-icon"><lucide-icon name="calendar-days" class="w-5 h-5"></lucide-icon></span>
                     <div><strong>{{ activity.title }}</strong><span>{{ activity.description || 'Thông tin chi tiết sẽ được cập nhật.' }}</span><small>{{ activity.startAt | date:'dd/MM/yyyy · HH:mm' }}</small></div>
-                    <button type="button" class="mini-button" (click)="setTab('ACTIVITIES')">Xem chi tiết</button>
+                    <button type="button" class="mini-button" (click)="openActivityDetails(activity)">Xem chi tiết</button>
                   </div>
                 }
               </div>
@@ -206,7 +223,7 @@
               <div class="guest-empty-state"><lucide-icon name="log-in" class="w-7 h-7"></lucide-icon><strong>Đăng nhập để xem thành viên</strong><span>Thông tin thành viên được bảo vệ và chỉ hiển thị cho người dùng đã đăng nhập.</span></div>
             } @else if (activeMembers().length) {
               <div class="guest-member-grid">
-                @for (member of activeMembers().slice(0, 8); track member.membershipId) {
+                @for (member of memberPreview(); track member.membershipId) {
                   <div class="guest-member">
                     <div class="member-avatar">
                       @if (avatar(member.userId); as avatarUrl) { <img [src]="avatarUrl" [alt]="displayName(member.userId)" /> }
@@ -214,6 +231,12 @@
                     </div>
                     <div><strong>{{ displayName(member.userId) }}</strong><span>{{ member.role === 'OWNER' ? 'Chủ CLB' : member.role === 'ADMIN' ? 'Quản lý' : 'Thành viên' }}</span></div>
                   </div>
+                }
+                @if (memberOverflowCount() > 0) {
+                  <button type="button" class="member-overflow-badge" (click)="setTab('MEMBERS')"
+                    [attr.aria-label]="'Xem thêm ' + memberOverflowCount() + ' thành viên'">
+                    <span>+{{ memberOverflowCount() }}</span><strong>Xem thêm</strong>
+                  </button>
                 }
               </div>
             } @else {
@@ -229,42 +252,136 @@
             </div>
           </article>
         </section>
-      } @else {
-      <section class="overview-layout">
-        <article class="panel panel--intro">
-          <header class="panel__header"><div><span class="panel__eyebrow">Thông tin CLB</span><h2>Giới thiệu</h2></div></header>
-          <p class="intro-copy">{{ currentClub.description || 'Câu lạc bộ chưa cập nhật phần giới thiệu.' }}</p>
-          <dl class="club-information">
-            <div><dt><lucide-icon name="circle-dot" class="w-4 h-4"></lucide-icon>Môn thể thao</dt><dd>{{ sportName() }}</dd></div>
-            <div><dt><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>Địa điểm</dt><dd>{{ locationLabel() }}</dd></div>
-            <div><dt><lucide-icon name="shield-check" class="w-4 h-4"></lucide-icon>Hình thức</dt><dd>{{ currentClub.privacy === 'PRIVATE' ? 'Riêng tư' : 'Công khai' }} · {{ currentClub.approvalMode === 'MANUAL' ? 'Duyệt thành viên' : 'Tự động duyệt' }}</dd></div>
-            <div><dt><lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon>Ngày thành lập</dt><dd>{{ currentClub.createdAt ? (currentClub.createdAt | date:'dd/MM/yyyy') : 'Chưa cập nhật' }}</dd></div>
-          </dl>
-        </article>
+      } @else if (viewerState() === 'MEMBER') {
+        <section class="member-overview" aria-label="Tổng quan dành cho thành viên">
+          <article class="panel member-introduction">
+            <header class="panel__header"><h2>Giới thiệu</h2></header>
+            <p class="intro-copy">{{ currentClub.description || 'Câu lạc bộ chưa cập nhật phần giới thiệu.' }}</p>
+            <dl class="club-information club-information--member">
+              <div><dt><lucide-icon name="circle-dot" class="w-4 h-4"></lucide-icon>Môn thể thao</dt><dd>{{ sportName() }}</dd></div>
+              <div><dt><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>Địa điểm</dt><dd>{{ locationLabel() }}</dd></div>
+              <div><dt><lucide-icon name="shield-check" class="w-4 h-4"></lucide-icon>Hình thức</dt><dd>{{ currentClub.privacy === 'PRIVATE' ? 'Riêng tư' : 'Công khai' }} · {{ currentClub.approvalMode === 'MANUAL' ? 'Duyệt thành viên' : 'Tự động duyệt' }}</dd></div>
+              <div><dt><lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon>Ngày thành lập</dt><dd>{{ currentClub.createdAt ? (currentClub.createdAt | date:'dd/MM/yyyy') : 'Chưa cập nhật' }}</dd></div>
+            </dl>
+          </article>
 
-        <article class="panel panel--performance">
-          <header class="panel__header"><div><span class="panel__eyebrow">Phong độ</span><h2>Thành tích thi đấu</h2></div><strong class="win-rate">{{ currentClub.winRate | number:'1.0-0' }}%</strong></header>
-          <div class="scoreboard">
-            <div><span>Tổng trận</span><strong>{{ currentClub.matchCount }}</strong></div>
-            <div class="scoreboard--win"><span>Thắng</span><strong>{{ currentClub.winCount }}</strong></div>
-            <div><span>Hòa</span><strong>{{ currentClub.drawCount }}</strong></div>
-            <div class="scoreboard--loss"><span>Thua</span><strong>{{ currentClub.lossCount }}</strong></div>
-          </div>
-        </article>
+          <article class="panel member-recent-matches">
+            <header class="panel__header"><h2>Trận đấu gần đây</h2><button type="button" class="text-action" (click)="setTab('TOURNAMENTS')">Xem tất cả</button></header>
+            @if (recentMatches().length) {
+              <div class="recent-match-list">
+                @for (match of recentMatches().slice(0, 3); track match.matchId) {
+                  <div class="recent-match-row">
+                    <span class="recent-match-mark"><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon></span>
+                    <div><strong>{{ currentClub.name }} vs {{ match.opponentName }}</strong><span>{{ match.playedAt | date:'dd/MM/yyyy' }}</span></div>
+                    <b>{{ match.clubScore }} - {{ match.opponentScore }}</b>
+                    <em [class.recent-match-result--win]="match.result === 'WIN'" [class.recent-match-result--loss]="match.result === 'LOSS'">{{ match.result === 'WIN' ? 'Thắng' : match.result === 'LOSS' ? 'Thua' : 'Hòa' }}</em>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="guest-empty-state"><lucide-icon name="trophy" class="w-7 h-7"></lucide-icon><strong>Chưa có trận đấu nào</strong><span>Các trận từ giải đấu của câu lạc bộ sẽ xuất hiện tại đây.</span></div>
+            }
+          </article>
 
-        @if (isManager()) {
-          <article class="panel panel--requests" id="membership-requests">
-            <header class="panel__header"><div><span class="panel__eyebrow">Tuyển thành viên</span><h2>Yêu cầu tham gia</h2></div>
-              @if (pendingMembers().length) { <button class="text-action" type="button" (click)="setTab('REQUESTS')">Xem tất cả</button> }
-            </header>
-            @if (pendingMembers().length) {
-              <div class="request-list request-list--compact">
-                @for (member of pendingMembers().slice(0, 4); track member.membershipId) {
-                  <div class="request-row">
+          <article class="panel member-roster">
+            <header class="panel__header"><h2>Thành viên ({{ currentClub.memberCount }})</h2><button type="button" class="text-action" (click)="setTab('MEMBERS')">Xem tất cả</button></header>
+            @if (activeMembers().length) {
+              <div class="member-preview member-preview--compact">
+                @for (member of memberPreview(); track member.membershipId) {
+                  <div class="member-preview__item">
                     <div class="member-avatar">
                       @if (avatar(member.userId); as avatarUrl) { <img [src]="avatarUrl" [alt]="displayName(member.userId)" /> }
                       @else { {{ initials(displayName(member.userId)) }} }
                     </div>
+                    <div><strong>{{ displayName(member.userId) }}</strong><span>{{ member.role === 'OWNER' ? 'Chủ CLB' : member.role === 'ADMIN' ? 'Quản lý' : 'Thành viên' }}</span></div>
+                  </div>
+                }
+                @if (memberOverflowCount() > 0) {
+                  <button type="button" class="member-overflow-badge" (click)="setTab('MEMBERS')"
+                    [attr.aria-label]="'Xem thêm ' + memberOverflowCount() + ' thành viên'">
+                    <span>+{{ memberOverflowCount() }}</span><strong>Xem thêm</strong>
+                  </button>
+                }
+              </div>
+            } @else {
+              <div class="panel-empty panel-empty--compact"><span>Danh sách thành viên chưa có dữ liệu.</span></div>
+            }
+          </article>
+
+          <aside class="panel member-invite-card">
+            <span class="callout-icon"><lucide-icon name="users" class="w-7 h-7"></lucide-icon></span>
+            <h2>Mời thêm bạn tham gia</h2>
+            <p>Cùng lan tỏa đam mê và xây dựng cộng đồng {{ currentClub.name }} lớn mạnh hơn.</p>
+            <button type="button" class="button button--outline button--block" (click)="shareClub()">
+              <lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon> Mời thành viên
+            </button>
+          </aside>
+
+          <article class="panel member-activities">
+            <header class="panel__header"><h2>Hoạt động sắp tới</h2><button type="button" class="text-action" (click)="setTab('ACTIVITIES')">Xem tất cả</button></header>
+            @if (sortedActivities().length) {
+              <div class="activity-preview">
+                @for (activity of sortedActivities().slice(0, 3); track activity.activityId) {
+                  <div class="activity-row">
+                    <time><strong>{{ activity.startAt | date:'dd' }}</strong><span>THG {{ activity.startAt | date:'M' }}</span></time>
+                    <div><strong>{{ activity.title }}</strong><span>{{ activity.description || 'Thông tin chi tiết sẽ được cập nhật.' }}</span><small>{{ activity.startAt | date:'dd/MM/yyyy · HH:mm' }}</small></div>
+                    <button type="button" class="mini-button" (click)="openActivityDetails(activity)">Xem chi tiết</button>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="panel-empty"><lucide-icon name="calendar-days" class="w-7 h-7"></lucide-icon><strong>Chưa có hoạt động sắp tới</strong><span>Lịch mới sẽ được cập nhật tại đây.</span></div>
+            }
+          </article>
+
+          <article class="panel member-gallery">
+            <header class="panel__header"><h2>Thư viện ảnh</h2><button type="button" class="text-action" (click)="setTab('GALLERY')">Xem tất cả</button></header>
+            <div class="gallery-placeholder"><img [src]="defaultClubBanner" alt="Ảnh hệ thống GOAT Sports" /><div><lucide-icon name="image" class="w-6 h-6"></lucide-icon><span>Ảnh hoạt động sẽ được cập nhật tại đây</span></div></div>
+          </article>
+
+          <article class="panel member-tournaments">
+            <header class="panel__header"><h2>Bảng xếp hạng / Giải đấu</h2><button type="button" class="text-action" (click)="setTab('TOURNAMENTS')">Xem tất cả</button></header>
+            <div class="panel-empty panel-empty--accent"><lucide-icon name="trophy" class="w-8 h-8"></lucide-icon><strong>{{ (currentClub.tournamentCount ?? 0) ? (currentClub.tournamentCount + ' giải đấu') : 'Chưa có giải đấu nào' }}</strong><span>Câu lạc bộ chưa tham gia giải đấu nào. Hãy cùng tham gia để thử sức và khẳng định bản thân!</span><a routerLink="/tournaments" class="button button--outline">Khám phá giải đấu</a></div>
+          </article>
+        </section>
+      } @else {
+        <section class="manager-overview" aria-label="Tổng quan quản trị câu lạc bộ">
+          <article class="panel manager-introduction">
+            <header class="panel__header"><h2>Giới thiệu</h2></header>
+            <p class="intro-copy">{{ currentClub.description || 'Câu lạc bộ chưa cập nhật phần giới thiệu.' }}</p>
+            <dl class="club-information club-information--manager">
+              <div><dt><lucide-icon name="circle-dot" class="w-4 h-4"></lucide-icon>Môn thể thao</dt><dd>{{ sportName() }}</dd></div>
+              <div><dt><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>Địa điểm</dt><dd>{{ locationLabel() }}</dd></div>
+              <div><dt><lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon>Ngày thành lập</dt><dd>{{ currentClub.createdAt ? (currentClub.createdAt | date:'MM/yyyy') : 'Chưa cập nhật' }}</dd></div>
+              <div><dt><lucide-icon name="shield-check" class="w-4 h-4"></lucide-icon>Hình thức</dt><dd>{{ currentClub.privacy === 'PRIVATE' ? 'Riêng tư' : 'Công khai' }} · {{ currentClub.approvalMode === 'MANUAL' ? 'Duyệt thành viên' : 'Tự động duyệt' }}</dd></div>
+            </dl>
+          </article>
+
+          <article class="panel manager-recent-matches">
+            <header class="panel__header"><h2>Trận đấu gần đây</h2><button type="button" class="text-action" (click)="setTab('TOURNAMENTS')">Xem tất cả</button></header>
+            @if (recentMatches().length) {
+              <div class="recent-match-list">
+                @for (match of recentMatches().slice(0, 3); track match.matchId) {
+                  <div class="recent-match-row">
+                    <span class="recent-match-mark"><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon></span>
+                    <div><strong>{{ currentClub.name }} vs {{ match.opponentName }}</strong><span>{{ match.playedAt | date:'dd/MM/yyyy' }}</span></div>
+                    <b>{{ match.clubScore }} - {{ match.opponentScore }}</b>
+                    <em [class.recent-match-result--win]="match.result === 'WIN'" [class.recent-match-result--loss]="match.result === 'LOSS'">{{ match.result === 'WIN' ? 'Thắng' : match.result === 'LOSS' ? 'Thua' : 'Hòa' }}</em>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="guest-empty-state"><lucide-icon name="trophy" class="w-7 h-7"></lucide-icon><strong>Chưa có trận đấu nào</strong><span>Các trận từ giải đấu của câu lạc bộ sẽ xuất hiện tại đây.</span></div>
+            }
+          </article>
+
+          <article class="panel manager-requests" id="membership-requests">
+            <header class="panel__header"><h2>Yêu cầu tham gia ({{ pendingMembers().length }})</h2><button class="text-action" type="button" (click)="setTab('REQUESTS')">Xem tất cả</button></header>
+            @if (pendingMembers().length) {
+              <div class="request-list request-list--compact">
+                @for (member of pendingMembers().slice(0, 5); track member.membershipId) {
+                  <div class="request-row">
+                    <div class="member-avatar">@if (avatar(member.userId); as avatarUrl) { <img [src]="avatarUrl" [alt]="displayName(member.userId)" /> } @else { {{ initials(displayName(member.userId)) }} }</div>
                     <div><strong>{{ displayName(member.userId) }}</strong><span>{{ member.requestedAt ? (member.requestedAt | date:'dd/MM, HH:mm') : 'Vừa gửi yêu cầu' }}</span></div>
                     <div class="row-actions"><button class="mini-button mini-button--accept" [disabled]="mutating()" (click)="respond(member, true)">Duyệt</button><button class="mini-button mini-button--reject" [disabled]="mutating()" (click)="respond(member, false)">Từ chối</button></div>
                   </div>
@@ -274,73 +391,60 @@
               <div class="panel-empty"><lucide-icon name="user-round-check" class="w-7 h-7"></lucide-icon><strong>Không có yêu cầu đang chờ</strong><span>Yêu cầu mới sẽ xuất hiện tại đây theo thời gian thực.</span></div>
             }
           </article>
-        } @else if (viewerState() === 'GUEST' || viewerState() === 'PENDING') {
-          <aside class="panel join-callout">
-            <span class="callout-icon"><lucide-icon name="users" class="w-7 h-7"></lucide-icon></span>
-            <h2>{{ viewerState() === 'PENDING' ? 'Yêu cầu đã được gửi' : 'Tham gia cùng chúng tôi!' }}</h2>
-            <p>{{ viewerState() === 'PENDING' ? 'Ban quản trị đang xem lời giới thiệu của bạn. Kết quả sẽ được thông báo ngay khi có.' : 'Kết nối, luyện tập và tham gia các hoạt động cùng cộng đồng ' + currentClub.name + '.' }}</p>
-            <button type="button" class="button button--primary button--block" [disabled]="mutating() || viewerState() === 'PENDING'" (click)="startJoin()">
-              {{ viewerState() === 'PENDING' ? 'Đang chờ duyệt' : (currentClub.approvalMode === 'MANUAL' ? 'Yêu cầu tham gia' : 'Tham gia CLB') }}
-            </button>
-          </aside>
-        } @else {
-          <aside class="panel community-callout">
-            <span class="panel__eyebrow">Cộng đồng</span><h2>Cùng đội, cùng nhịp</h2>
-            <p>Theo dõi lịch hoạt động, trao đổi với thành viên và đồng hành cùng câu lạc bộ.</p>
-            @if (currentClub.conversationId) { <button type="button" class="button button--primary button--block" (click)="openChat()">Mở nhóm chat</button> }
-          </aside>
-        }
 
-        <article class="panel panel--members">
-          <header class="panel__header"><div><span class="panel__eyebrow">Đội hình</span><h2>Thành viên ({{ currentClub.memberCount }})</h2></div><button type="button" class="text-action" (click)="setTab('MEMBERS')">Xem tất cả</button></header>
-          @if (activeMembers().length) {
-            <div class="member-preview">
-              @for (member of activeMembers().slice(0, 6); track member.membershipId) {
-                <div class="member-preview__item">
-                  <div class="member-avatar">
-                    @if (avatar(member.userId); as avatarUrl) { <img [src]="avatarUrl" [alt]="displayName(member.userId)" /> }
-                    @else { {{ initials(displayName(member.userId)) }} }
+          <article class="panel manager-members">
+            <header class="panel__header"><h2>Thành viên ({{ currentClub.memberCount }})</h2><button type="button" class="text-action" (click)="setTab('MEMBERS')">Xem tất cả</button></header>
+            @if (activeMembers().length) {
+              <div class="member-preview member-preview--compact">
+                @for (member of memberPreview(); track member.membershipId) {
+                  <div class="member-preview__item">
+                    <div class="member-avatar">@if (avatar(member.userId); as avatarUrl) { <img [src]="avatarUrl" [alt]="displayName(member.userId)" /> } @else { {{ initials(displayName(member.userId)) }} }</div>
+                    <div><strong>{{ displayName(member.userId) }}</strong><span>{{ member.role === 'OWNER' ? 'Chủ CLB' : member.role === 'ADMIN' ? 'Quản lý' : 'Thành viên' }}</span></div>
                   </div>
-                  <div><strong>{{ displayName(member.userId) }}</strong><span>{{ member.role === 'OWNER' ? 'Chủ CLB' : member.role === 'ADMIN' ? 'Quản lý' : 'Thành viên' }}</span></div>
-                </div>
-              }
-            </div>
-          } @else { <div class="panel-empty"><span>Danh sách thành viên chưa có dữ liệu.</span></div> }
-          @if (isManager()) { <button type="button" class="button button--outline button--block" (click)="openInviteModal()"><lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon>Mời thành viên</button> }
-        </article>
+                }
+                @if (memberOverflowCount() > 0) {
+                  <button type="button" class="member-overflow-badge" (click)="setTab('MEMBERS')"
+                    [attr.aria-label]="'Xem thêm ' + memberOverflowCount() + ' thành viên'">
+                    <span>+{{ memberOverflowCount() }}</span><strong>Xem thêm</strong>
+                  </button>
+                }
+              </div>
+            } @else { <div class="panel-empty panel-empty--compact"><span>Danh sách thành viên chưa có dữ liệu.</span></div> }
+            <button type="button" class="button button--outline button--block" (click)="openInviteModal()"><lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon>Mời thành viên</button>
+          </article>
 
-        <article class="panel panel--activities">
-          <header class="panel__header"><div><span class="panel__eyebrow">Lịch cộng đồng</span><h2>Hoạt động sắp tới</h2></div><button type="button" class="text-action" (click)="setTab('ACTIVITIES')">Xem tất cả</button></header>
-          @if (sortedActivities().length) {
-            <div class="activity-preview">
-              @for (activity of sortedActivities().slice(0, 3); track activity.activityId) {
-                <div class="activity-row">
-                  <time><strong>{{ activity.startAt | date:'dd' }}</strong><span>THG {{ activity.startAt | date:'M' }}</span></time>
-                  <div><strong>{{ activity.title }}</strong><span>{{ activity.description || 'Thông tin chi tiết sẽ được cập nhật.' }}</span><small>{{ activity.startAt | date:'dd/MM/yyyy · HH:mm' }}</small></div>
-                  @if (isManager()) { <button type="button" class="mini-button" (click)="editActivity(activity)">Chỉnh sửa</button> }
-                </div>
-              }
-            </div>
-          } @else {
-            <div class="panel-empty"><lucide-icon name="calendar-days" class="w-7 h-7"></lucide-icon><strong>Chưa có hoạt động sắp tới</strong><span>@if (isManager()) { Hãy tạo lời nhắc đầu tiên cho thành viên. } @else { Lịch mới sẽ được cập nhật tại đây. }</span></div>
-          }
-          @if (isManager()) { <button type="button" class="button button--outline button--block" (click)="showActivityModal.set(true)">Tạo lời nhắc hoạt động</button> }
-        </article>
+          <article class="panel manager-activities">
+            <header class="panel__header"><h2>Lịch hoạt động sắp tới</h2><button type="button" class="text-action" (click)="setTab('ACTIVITIES')">Xem tất cả</button></header>
+            @if (sortedActivities().length) {
+              <div class="activity-preview">
+                @for (activity of sortedActivities().slice(0, 3); track activity.activityId) {
+                  <div class="activity-row">
+                    <time><strong>{{ activity.startAt | date:'dd' }}</strong><span>THG {{ activity.startAt | date:'M' }}</span></time>
+                    <div><strong>{{ activity.title }}</strong><span>{{ activity.description || 'Thông tin chi tiết sẽ được cập nhật.' }}</span><small>{{ activity.startAt | date:'dd/MM/yyyy · HH:mm' }}</small></div>
+                    <button type="button" class="mini-button" (click)="editActivity(activity)">Chỉnh sửa</button>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="panel-empty"><lucide-icon name="calendar-days" class="w-7 h-7"></lucide-icon><strong>Chưa có hoạt động sắp tới</strong><span>Hãy tạo lời nhắc đầu tiên cho thành viên.</span></div>
+            }
+            <button type="button" class="button button--outline button--block" (click)="showActivityModal.set(true)">Tạo lời nhắc hoạt động</button>
+          </article>
 
-        <article class="panel panel--tournaments">
-          <header class="panel__header"><div><span class="panel__eyebrow">Thi đấu</span><h2>Giải đấu</h2></div></header>
-          <div class="panel-empty panel-empty--accent"><lucide-icon name="trophy" class="w-8 h-8"></lucide-icon><strong>{{ (currentClub.tournamentCount ?? 0) ? (currentClub.tournamentCount + ' giải đấu') : 'Chưa có giải đấu nào' }}</strong><span>Theo dõi hành trình thi đấu của câu lạc bộ.</span><a routerLink="/tournaments" class="button button--outline">Khám phá giải đấu</a></div>
-        </article>
+          <article class="panel manager-tournaments">
+            <header class="panel__header"><h2>Bảng xếp hạng / Giải đấu</h2><button type="button" class="text-action" (click)="setTab('TOURNAMENTS')">Xem tất cả</button></header>
+            <div class="panel-empty panel-empty--accent"><lucide-icon name="trophy" class="w-8 h-8"></lucide-icon><strong>{{ (currentClub.tournamentCount ?? 0) ? (currentClub.tournamentCount + ' giải đấu') : 'Chưa có giải đấu nào' }}</strong><span>Tạo giải đấu hoặc đăng ký tham gia để bắt đầu hành trình chinh phục.</span><a routerLink="/tournaments" class="button button--primary"><lucide-icon name="plus" class="w-4 h-4"></lucide-icon>Tạo giải đấu</a></div>
+          </article>
 
-        <article class="panel panel--gallery">
-          <header class="panel__header"><div><span class="panel__eyebrow">Khoảnh khắc</span><h2>Thư viện ảnh</h2></div><button type="button" class="text-action" (click)="setTab('GALLERY')">Xem tất cả</button></header>
-          <div class="gallery-placeholder"><img [src]="defaultClubBanner" alt="Ảnh hệ thống GOAT Sports" /><div><lucide-icon name="image" class="w-6 h-6"></lucide-icon><span>Ảnh hoạt động sẽ được cập nhật tại đây</span></div></div>
-        </article>
-      </section>
+          <article class="panel manager-gallery">
+            <header class="panel__header"><h2>Thư viện ảnh</h2><button type="button" class="text-action" (click)="setTab('GALLERY')">Xem tất cả</button></header>
+            <div class="gallery-placeholder"><img [src]="defaultClubBanner" alt="Ảnh hệ thống GOAT Sports" /><div><lucide-icon name="image" class="w-6 h-6"></lucide-icon><span>Ảnh hoạt động sẽ được cập nhật tại đây</span></div></div>
+          </article>
+        </section>
       }
     } @else if (activeTab() === 'MEMBERS') {
       <section class="content-panel">
-        <header class="content-heading"><div><span class="panel__eyebrow">Đội hình câu lạc bộ</span><h2>Thành viên đang hoạt động</h2><p>{{ activeMembers().length }} thành viên trong danh sách.</p></div>@if (isManager()) { <button type="button" class="button button--primary" (click)="openInviteModal()"><lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon>Mời thành viên</button> }</header>
+        <header class="content-heading"><div><span class="panel__eyebrow">Đội hình câu lạc bộ</span><h2>Thành viên đang hoạt động</h2><p>{{ memberTotal() }} thành viên trong danh sách.</p></div>@if (isManager()) { <button type="button" class="button button--primary" (click)="openInviteModal()"><lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon>Mời thành viên</button> }</header>
         @if (activeMembers().length) {
           <div class="member-grid">
             @for (member of activeMembers(); track member.membershipId) {
@@ -353,6 +457,17 @@
               </article>
             }
           </div>
+          <div #memberLoadSentinel class="member-load-sentinel" aria-live="polite">
+            @if (memberPageLoading()) {
+              <span class="member-load-spinner" aria-hidden="true"></span><span>Đang tải thêm thành viên...</span>
+            } @else if (memberPageError()) {
+              <span>Không thể tải thêm thành viên.</span><button type="button" (click)="loadNextMemberPage()">Thử lại</button>
+            } @else if (!memberHasMore()) {
+              <span>Đã hiển thị toàn bộ {{ memberTotal() }} thành viên.</span>
+            }
+          </div>
+        } @else if (memberPageLoading()) {
+          <div class="member-load-sentinel"><span class="member-load-spinner" aria-hidden="true"></span><span>Đang tải danh sách thành viên...</span></div>
         } @else { <div class="detail-empty detail-empty--inline"><p>Chưa có thành viên nào trong câu lạc bộ.</p></div> }
       </section>
     } @else if (activeTab() === 'REQUESTS') {
@@ -376,7 +491,26 @@
         @if (sortedActivities().length) {
           <div class="activity-list">
             @for (activity of sortedActivities(); track activity.activityId) {
-              <article class="activity-card"><time><strong>{{ activity.startAt | date:'dd' }}</strong><span>THG {{ activity.startAt | date:'M' }}</span></time><div><h3>{{ activity.title }}</h3><p>{{ activity.description || 'Không có mô tả.' }}</p><span>{{ activity.startAt | date:'dd/MM/yyyy · HH:mm' }} – {{ activity.endAt | date:'HH:mm' }}</span></div>@if (isManager()) { <div class="row-actions"><button class="mini-button" (click)="editActivity(activity)">Sửa</button><button class="mini-button mini-button--reject" (click)="deleteActivity(activity)">Xóa</button></div> }</article>
+              <article class="activity-card activity-card--interactive" role="button" tabindex="0"
+                (click)="openActivityDetails(activity)" (keydown.enter)="openActivityDetails(activity)">
+                <time><strong>{{ activity.startAt | date:'dd' }}</strong><span>THG {{ activity.startAt | date:'M' }}</span></time>
+                <div><h3>{{ activity.title }}</h3><p>{{ activity.description || 'Không có mô tả.' }}</p><span>{{ activity.startAt | date:'dd/MM/yyyy · HH:mm' }} – {{ activity.endAt | date:'HH:mm' }}</span></div>
+                @if (isManager()) {
+                  <div class="row-actions">
+                    <button class="mini-button" (click)="$event.stopPropagation(); editActivity(activity)">Sửa</button>
+                    <button class="mini-button mini-button--reject" (click)="$event.stopPropagation(); deleteActivity(activity)">Xóa</button>
+                  </div>
+                }
+              </article>
+            }
+          </div>
+          <div #activityLoadSentinel class="member-load-sentinel" aria-live="polite">
+            @if (activityPageLoading()) {
+              <span class="member-load-spinner" aria-hidden="true"></span><span>Đang tải thêm hoạt động...</span>
+            } @else if (activityPageError()) {
+              <span>Không thể tải thêm hoạt động.</span><button type="button" (click)="loadNextActivityPage()">Thử lại</button>
+            } @else if (!activityHasMore()) {
+              <span>Đã hiển thị toàn bộ {{ activityTotal() }} hoạt động sắp tới.</span>
             }
           </div>
         } @else { <div class="detail-empty detail-empty--inline"><p>Chưa có hoạt động nào. @if (isManager()) { Hãy tạo lời nhắc đầu tiên cho thành viên. }</p></div> }
@@ -385,8 +519,6 @@
       <section class="content-panel"><div class="detail-empty detail-empty--inline"><lucide-icon name="trophy" class="w-9 h-9"></lucide-icon><h2>Chưa có dữ liệu giải đấu</h2><p>Thông tin giải đấu của câu lạc bộ sẽ hiển thị tại đây khi có dữ liệu.</p><a routerLink="/tournaments" class="button button--primary">Khám phá giải đấu</a></div></section>
     } @else if (activeTab() === 'GALLERY') {
       <section class="content-panel"><div class="detail-empty detail-empty--inline"><lucide-icon name="image" class="w-9 h-9"></lucide-icon><h2>Thư viện chưa có ảnh</h2><p>Những khoảnh khắc của câu lạc bộ sẽ được lưu giữ tại đây.</p></div></section>
-    } @else if (activeTab() === 'DISCUSSION') {
-      <section class="content-panel"><div class="discussion-cta"><span><lucide-icon name="messages-square" class="w-8 h-8"></lucide-icon></span><div><span class="panel__eyebrow">Kênh thành viên</span><h2>{{ isActiveMember() ? 'Tiếp tục câu chuyện cùng đồng đội' : 'Thảo luận dành cho thành viên' }}</h2><p>{{ isActiveMember() ? 'Trao đổi lịch tập, chiến thuật và cập nhật mới nhất trong nhóm chat câu lạc bộ.' : 'Tham gia câu lạc bộ để trò chuyện và nhận cập nhật từ cộng đồng.' }}</p></div>@if (isActiveMember() && currentClub.conversationId) { <button type="button" class="button button--primary" (click)="openChat()">Mở nhóm chat</button> } @else if (!isActiveMember()) { <button type="button" class="button button--primary" [disabled]="viewerState() === 'PENDING'" (click)="startJoin()">{{ viewerState() === 'PENDING' ? 'Đang chờ duyệt' : 'Yêu cầu tham gia' }}</button> }</div></section>
     } @else if (activeTab() === 'SETTINGS') {
       <section class="content-panel"><div class="settings-cta"><div><span class="panel__eyebrow">Quản trị câu lạc bộ</span><h2>Cập nhật thông tin và quyền tham gia</h2><p>Chỉnh sửa tên, giới thiệu, logo, quyền riêng tư và chế độ duyệt thành viên.</p></div><button type="button" class="button button--primary" (click)="openClubModal()"><lucide-icon name="settings" class="w-4 h-4"></lucide-icon>Mở cài đặt</button></div></section>
     } @else {
@@ -407,6 +539,35 @@
     @if (showJoinRequestModal() && joinRequestClub(); as requestClub) {
       <app-club-join-request-modal [club]="requestClub" [submitting]="mutating()"
         (cancelled)="showJoinRequestModal.set(false)" (submitted)="join($event)"></app-club-join-request-modal>
+    }
+
+    @if (selectedActivity(); as activity) {
+      <div class="modal-overlay" (click)="closeActivityDetails()">
+        <section class="modal-card activity-detail-modal" appAccessibleDialog aria-labelledby="activity-detail-title"
+          (dialogClosed)="closeActivityDetails()" (click)="$event.stopPropagation()">
+          <header class="modal-title">
+            <div><span>Hoạt động câu lạc bộ</span><h2 id="activity-detail-title">{{ activity.title }}</h2></div>
+            <button type="button" class="icon-action" aria-label="Đóng" (click)="closeActivityDetails()"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button>
+          </header>
+          <div class="activity-detail-modal__hero">
+            <time><strong>{{ activity.startAt | date:'dd' }}</strong><span>THG {{ activity.startAt | date:'M' }}</span></time>
+            <div><span>Lịch cộng đồng</span><strong>{{ currentClub.name }}</strong><small>{{ sportName() }} · {{ locationLabel() }}</small></div>
+          </div>
+          <dl class="activity-detail-modal__facts">
+            <div><dt><lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon>Ngày diễn ra</dt><dd>{{ activity.startAt | date:'dd/MM/yyyy' }}</dd></div>
+            <div><dt><lucide-icon name="clock-3" class="w-4 h-4"></lucide-icon>Thời gian</dt><dd>{{ activity.startAt | date:'HH:mm' }} – {{ activity.endAt | date:'HH:mm' }}</dd></div>
+            <div><dt><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>Khu vực CLB</dt><dd>{{ locationLabel() }}</dd></div>
+          </dl>
+          <div class="activity-detail-modal__description">
+            <span>Nội dung nhắc</span>
+            <p>{{ activity.description || 'Ban quản trị chưa bổ sung nội dung chi tiết cho hoạt động này.' }}</p>
+          </div>
+          <footer class="modal-footer">
+            <button type="button" class="button button--secondary" (click)="closeActivityDetails()">Đóng</button>
+            @if (isManager()) { <button type="button" class="button button--primary" (click)="closeActivityDetails(); editActivity(activity)">Chỉnh sửa hoạt động</button> }
+          </footer>
+        </section>
+      </div>
     }
 
     @if (showClubModal()) {

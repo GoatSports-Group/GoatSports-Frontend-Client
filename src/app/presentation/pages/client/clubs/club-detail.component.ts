@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
 import { ClubRepositoryPort } from '@application/ports/club.repository.port';
 import { User } from '@application/dto/user/user.dto';
 import { Club as ClubModel, ClubActivity as ClubActivityModel, ClubFee as ClubFeeModel,
   ClubFeePayment as ClubFeePaymentModel, ClubMember as ClubMemberModel,
+  ClubRecentMatch as ClubRecentMatchModel,
   CreateClubActivityPayload, CreateClubFeePayload, ClubRole,
   UpdateClubPayload, ClubPrivacy, ClubApprovalMode } from '@application/dto/club/club.dto';
 import { AuthService } from '@presentation/services/auth.service';
@@ -14,19 +15,8 @@ import { PlayerSummary } from '@application/dto/user/user.dto';
 import { NotifyService } from '@shared/components/notify/notify.service';
 import { ClubCardView, DEFAULT_CLUB_BANNER, DEFAULT_CLUB_LOGO, sportLabel, toCardView } from './club-view.model';
 
-type ClubTab = 'OVERVIEW' | 'MEMBERS' | 'REQUESTS' | 'ACTIVITIES' | 'TOURNAMENTS' | 'GALLERY' | 'DISCUSSION' | 'FEES' | 'SETTINGS';
+type ClubTab = 'OVERVIEW' | 'MEMBERS' | 'REQUESTS' | 'ACTIVITIES' | 'TOURNAMENTS' | 'GALLERY' | 'FEES' | 'SETTINGS';
 type ClubViewerState = 'MANAGER' | 'MEMBER' | 'PENDING' | 'GUEST';
-type ClubMatchResult = 'WIN' | 'DRAW' | 'LOSS';
-
-interface ClubRecentMatch {
-  matchId: string;
-  opponentName: string;
-  playedAt: string;
-  clubScore: number;
-  opponentScore: number;
-  result: ClubMatchResult;
-}
-
 @Component({
   selector: 'app-club-detail', templateUrl: './club-detail.component.html',
   styleUrls: ['./club-detail.component.scss'], changeDetection: ChangeDetectionStrategy.OnPush, standalone: false
@@ -54,6 +44,9 @@ export class ClubDetailComponent {
   readonly showFeeModal = signal(false);
   readonly showInviteModal = signal(false);
   readonly showJoinRequestModal = signal(false);
+  readonly selectedActivity = signal<ClubActivityModel | null>(null);
+  readonly showMemberMenu = signal(false);
+  readonly showManagerMenu = signal(false);
   readonly inviteResults = signal<PlayerSummary[]>([]);
   readonly inviteSearching = signal(false);
   readonly showClubModal = signal(false);
@@ -74,10 +67,19 @@ export class ClubDetailComponent {
   });
   readonly activeMembers = computed(() => this.members().filter(member => member.status === 'ACTIVE'));
   readonly pendingMembers = computed(() => this.members().filter(member => member.status === 'PENDING'));
+  readonly memberPageLoading = signal(false);
+  readonly memberPageError = signal(false);
+  readonly memberTotal = signal(0);
+  readonly memberHasMore = signal(true);
+  readonly memberPreview = computed(() => this.activeMembers().slice(0, 7));
+  readonly memberOverflowCount = computed(() => Math.max(0, this.memberTotal() - 7));
+  readonly activityPageLoading = signal(false);
+  readonly activityPageError = signal(false);
+  readonly activityTotal = signal(0);
+  readonly activityHasMore = signal(true);
   readonly sortedActivities = computed(() => [...this.activities()]
     .sort((left, right) => new Date(left.startAt).getTime() - new Date(right.startAt).getTime()));
-  /** Ready for the tournament/match API; empty until the backend exposes fixture history. */
-  readonly recentMatches = signal<ReadonlyArray<ClubRecentMatch>>([]);
+  readonly recentMatches = signal<ReadonlyArray<ClubRecentMatchModel>>([]);
   readonly joinRequestClub = computed<ClubCardView | null>(() => {
     const current = this.club();
     return current ? toCardView(current) : null;
@@ -87,8 +89,34 @@ export class ClubDetailComponent {
   inviteQuery = '';
   inviteMessage = '';
   clubForm: UpdateClubPayload = { name: '', description: '', tags: [], privacy: 'PUBLIC', approvalMode: 'AUTO' };
+  private readonly memberLoadSentinel = viewChild<ElementRef<HTMLElement>>('memberLoadSentinel');
+  private readonly activityLoadSentinel = viewChild<ElementRef<HTMLElement>>('activityLoadSentinel');
+  private readonly memberPageSize = 7;
+  private readonly activityPageSize = 3;
+  private memberPage = 0;
+  private activityPage = 0;
 
   constructor() {
+    effect(onCleanup => {
+      const sentinel = this.memberLoadSentinel()?.nativeElement;
+      if (this.activeTab() !== 'MEMBERS' || !sentinel) return;
+      const observer = new IntersectionObserver(entries => {
+        if (entries.some(entry => entry.isIntersecting)) this.loadNextMemberPage();
+      }, { rootMargin: '180px 0px' });
+      observer.observe(sentinel);
+      onCleanup(() => observer.disconnect());
+    });
+
+    effect(onCleanup => {
+      const sentinel = this.activityLoadSentinel()?.nativeElement;
+      if (this.activeTab() !== 'ACTIVITIES' || !sentinel) return;
+      const observer = new IntersectionObserver(entries => {
+        if (entries.some(entry => entry.isIntersecting)) this.loadNextActivityPage();
+      }, { rootMargin: '180px 0px' });
+      observer.observe(sentinel);
+      onCleanup(() => observer.disconnect());
+    });
+
     if (this.clubId) {
       this.load();
       return;
@@ -100,29 +128,91 @@ export class ClubDetailComponent {
 
   load(): void {
     this.loading.set(true); this.error.set(null);
+    this.resetActivityPagination();
     const membershipRequest = this.auth.currentUser
       ? this.repository.getMyMembership(this.clubId).pipe(catchError(() => of(null))) : of(null);
     forkJoin({
       club: this.repository.getClubDetails(this.clubId),
-      members: this.repository.getClubMembers(this.clubId),
-      activities: this.repository.getClubActivities(this.clubId),
+      activities: this.repository.getClubActivitiesPage(this.clubId, 0, this.activityPageSize),
+      matches: this.repository.getClubRecentMatches(this.clubId, 3),
       membership: membershipRequest
     }).subscribe({
       next: data => {
-        this.club.set(data.club); this.members.set(data.members); this.activities.set(data.activities);
+        this.club.set(data.club); this.members.set([]); this.activities.set(data.activities.items);
+        this.activityTotal.set(data.activities.total);
+        this.activityPage = 1;
+        this.activityHasMore.set(this.activityPage < data.activities.totalPages);
+        this.recentMatches.set(data.matches);
         this.membership.set(data.membership);
         if (this.route.snapshot.fragment === 'membership-requests' && this.isManager()) {
           this.activeTab.set('REQUESTS');
         }
-        this.loading.set(false); this.resolveUsers(data.club, data.members);
+        this.resetMemberPagination();
+        this.loadNextMemberPage();
+        if (this.isManager()) this.loadPendingMembers();
+        this.loading.set(false); this.resolveUsers(data.club, []);
       },
       error: () => { this.error.set('Không thể tải thông tin câu lạc bộ.'); this.loading.set(false); }
     });
   }
   setTab(tab: ClubTab): void {
     this.activeTab.set(tab);
+    if (tab === 'MEMBERS' && !this.activeMembers().length && !this.memberPageLoading()) {
+      this.loadNextMemberPage();
+    }
+    if (tab === 'ACTIVITIES' && !this.activities().length && !this.activityPageLoading()) {
+      this.loadNextActivityPage();
+    }
     if (tab === 'FEES' && !this.fees().length) this.loadFees();
   }
+
+  loadNextMemberPage(): void {
+    if (this.memberPageLoading() || !this.memberHasMore()) return;
+    this.memberPageLoading.set(true);
+    this.memberPageError.set(false);
+    const requestedPage = this.memberPage;
+    this.repository.getClubMembersPage(this.clubId, requestedPage, this.memberPageSize, 'ACTIVE').subscribe({
+      next: page => {
+        this.appendMembers(page.items);
+        this.memberTotal.set(page.total);
+        this.memberPage = requestedPage + 1;
+        this.memberHasMore.set(this.memberPage < page.totalPages);
+        this.memberPageLoading.set(false);
+        this.resolveUsers(this.club(), page.items);
+      },
+      error: () => {
+        this.memberPageLoading.set(false);
+        this.memberPageError.set(true);
+      }
+    });
+  }
+
+  loadNextActivityPage(): void {
+    if (this.activityPageLoading() || !this.activityHasMore()) return;
+    this.activityPageLoading.set(true);
+    this.activityPageError.set(false);
+    const requestedPage = this.activityPage;
+    this.repository.getClubActivitiesPage(this.clubId, requestedPage, this.activityPageSize).subscribe({
+      next: page => {
+        this.activities.update(items => {
+          const known = new Set(items.map(item => item.activityId));
+          return [...items, ...page.items.filter(item => !known.has(item.activityId))];
+        });
+        this.activityTotal.set(page.total);
+        this.activityPage = requestedPage + 1;
+        this.activityHasMore.set(this.activityPage < page.totalPages);
+        this.activityPageLoading.set(false);
+      },
+      error: () => {
+        this.activityPageLoading.set(false);
+        this.activityPageError.set(true);
+      }
+    });
+  }
+
+  openActivityDetails(activity: ClubActivityModel): void { this.selectedActivity.set(activity); }
+
+  closeActivityDetails(): void { this.selectedActivity.set(null); }
 
   sportName(): string { return this.club() ? sportLabel(this.club()!.sportType) : ''; }
 
@@ -144,6 +234,31 @@ export class ClubDetailComponent {
   openPlayerSearch(): void { void this.router.navigate(['/clubs/my', this.clubId, 'players']); }
 
   goToMyClubs(): void { void this.router.navigate(['/clubs/my']); }
+
+  openNotifications(): void { void this.router.navigate(['/notifications']); }
+
+  async shareClub(): Promise<void> {
+    const current = this.club();
+    if (!current) return;
+    const shareData = {
+      title: current.name,
+      text: `Tham gia ${current.name} trên GOAT Sports.`,
+      url: window.location.href
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        return;
+      }
+      await navigator.clipboard.writeText(shareData.url);
+      this.notify.success('Đã sao chép liên kết câu lạc bộ.');
+    } catch (error) {
+      if ((error as DOMException)?.name !== 'AbortError') {
+        this.notify.error('Không thể chia sẻ câu lạc bộ lúc này.');
+      }
+    }
+  }
 
   promote(member: ClubMemberModel): void {
     const next: ClubRole = member.role === 'ADMIN' ? 'MEMBER' : 'ADMIN';
@@ -193,6 +308,7 @@ export class ClubDetailComponent {
     this.repository.deleteClubActivity(this.clubId, activity.activityId).subscribe({
       next: () => {
         this.activities.update(items => items.filter(item => item.activityId !== activity.activityId));
+        this.activityTotal.update(total => Math.max(0, total - 1));
         this.mutating.set(false);
         this.notify.success('Đã xóa hoạt động.');
       },
@@ -346,6 +462,7 @@ export class ClubDetailComponent {
         this.activities.update(items => editingId
           ? items.map(item => item.activityId === editingId ? activity : item)
           : [activity, ...items]);
+        if (!editingId) this.activityTotal.update(total => total + 1);
         this.mutating.set(false);
         this.closeActivityModal();
         this.notify.success(editingId ? 'Đã cập nhật hoạt động.' : 'Đã tạo hoạt động.');
@@ -425,7 +542,47 @@ export class ClubDetailComponent {
   displayName(userId: string): string { return this.users().get(userId)?.fullName || this.users().get(userId)?.email || `Người dùng ${userId.slice(0, 8)}`; }
   avatar(userId: string): string | undefined { return this.users().get(userId)?.avatarUrl; }
   initials(value: string): string { return value.split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase(); }
-  private resolveUsers(club: ClubModel, members: ClubMemberModel[]): void {
-    this.directory.resolve([club.ownerId, ...members.map(member => member.userId)]).subscribe(users => this.users.set(users));
+
+  private resetMemberPagination(): void {
+    this.memberPage = 0;
+    this.memberTotal.set(0);
+    this.memberHasMore.set(true);
+    this.memberPageError.set(false);
+  }
+
+  private resetActivityPagination(): void {
+    this.activityPage = 0;
+    this.activityTotal.set(0);
+    this.activityHasMore.set(true);
+    this.activityPageError.set(false);
+  }
+
+  private loadPendingMembers(): void {
+    this.repository.getClubMembersPage(this.clubId, 0, 50, 'PENDING').subscribe({
+      next: page => {
+        this.appendMembers(page.items);
+        this.resolveUsers(this.club(), page.items);
+      },
+      error: () => this.notify.error('Không thể tải các yêu cầu tham gia.')
+    });
+  }
+
+  private appendMembers(items: ClubMemberModel[]): void {
+    this.members.update(current => {
+      const byId = new Map(current.map(member => [member.membershipId, member]));
+      items.forEach(member => byId.set(member.membershipId, member));
+      return [...byId.values()];
+    });
+  }
+
+  private resolveUsers(club: ClubModel | null, members: ClubMemberModel[]): void {
+    const userIds = [...new Set([club?.ownerId, ...members.map(member => member.userId)]
+      .filter((userId): userId is string => Boolean(userId)))];
+    if (!userIds.length) return;
+    this.directory.resolve(userIds).subscribe(users => this.users.update(current => {
+      const merged = new Map(current);
+      users.forEach((user, userId) => merged.set(userId, user));
+      return merged;
+    }));
   }
 }

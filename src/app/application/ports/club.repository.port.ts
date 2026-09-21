@@ -1,8 +1,10 @@
 import { Observable } from 'rxjs';
+import { PageResult } from '@application/dto/base/base-response';
 import {
   MyClubMembership,
   ClubInvitationModel,
   ClubActivityModel,
+  ClubRecentMatchModel,
   ClubMemberModel,
   ClubModel,
   CreateClubActivityPayload,
@@ -26,6 +28,7 @@ export abstract class ClubRepositoryPort {
 
   /** Hoat dong sap toi gom tat ca CLB toi dang sinh hoat. */
   abstract getMyUpcomingActivities(limit?: number): Observable<ClubActivityModel[]>;
+  abstract getMyUpcomingActivitiesPage(page: number, size: number): Observable<PageResult<ClubActivityModel>>;
 
   /** Loi moi vao CLB dang cho toi tra loi. */
   abstract getMyInvitations(): Observable<ClubInvitationModel[]>;
@@ -42,8 +45,12 @@ export abstract class ClubRepositoryPort {
   abstract leaveClub(clubId: string): Observable<void>;
   abstract getMyMembership(clubId: string): Observable<ClubMemberModel | null>;
   abstract getClubMembers(clubId: string): Observable<ClubMemberModel[]>;
+  abstract getClubMembersPage(clubId: string, page: number, size: number,
+    status?: 'ACTIVE' | 'PENDING'): Observable<PageResult<ClubMemberModel>>;
   abstract respondMembership(clubId: string, membershipId: string, accepted: boolean): Observable<ClubMemberModel>;
   abstract getClubActivities(clubId: string): Observable<ClubActivityModel[]>;
+  abstract getClubActivitiesPage(clubId: string, page: number, size: number): Observable<PageResult<ClubActivityModel>>;
+  abstract getClubRecentMatches(clubId: string, limit?: number): Observable<ClubRecentMatchModel[]>;
   abstract createClubActivity(clubId: string, payload: CreateClubActivityPayload): Observable<ClubActivityModel>;
   abstract getClubFees(clubId: string): Observable<ClubFeeModel[]>;
   abstract createClubFee(clubId: string, payload: CreateClubFeePayload): Observable<ClubFeeModel>;

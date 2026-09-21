@@ -270,8 +270,6 @@
         <section class="rail-section">
           <header class="rail-header">
             <h2>Hoạt động sắp tới</h2>
-            <button type="button" class="text-action" (click)="comingSoon()">Xem tất cả <lucide-icon name="arrow-right"
-                class="w-4 h-4"></lucide-icon></button>
           </header>
           @if (!signedIn()) {
           <p class="rail-empty">Đăng nhập để xem lịch hoạt động của câu lạc bộ bạn tham gia.
@@ -282,13 +280,24 @@
           }
           <div class="activity-list">
             @for (activity of upcomingActivities(); track activity.activityId) {
-            <button type="button" class="activity-row" (click)="comingSoon()">
+            <button type="button" class="activity-row" (click)="openActivityDetails(activity)">
               <time><span>{{ activity.day }}</span><b>{{ activity.date }}</b><small>{{ activity.month }}</small></time>
               <span class="activity-row__content"><strong>{{ activity.title }}</strong><small>{{ activity.clubName
                   }}</small><small><lucide-icon name="map-pin" class="w-3 h-3"></lucide-icon>{{ activity.location
                   }}</small><small><lucide-icon name="clock" class="w-3 h-3"></lucide-icon>{{ activity.time
                   }}</small></span>
             </button>
+            }
+            @if (signedIn() && upcomingActivities().length) {
+            <div #activityLoadSentinel class="rail-load-sentinel" aria-live="polite">
+              @if (activityLoading()) {
+              <span class="rail-load-spinner" aria-hidden="true"></span><span>Đang tải thêm...</span>
+              } @else if (activityLoadError()) {
+              <button type="button" (click)="loadNextUpcomingActivities()">Thử lại</button>
+              } @else if (!activityHasMore()) {
+              <span>Đã hiển thị {{ activityTotal() }} hoạt động.</span>
+              }
+            </div>
             }
           </div>
         </section>
@@ -302,6 +311,30 @@
       </div>
     </aside>
   </div>
+
+  @if (selectedActivity(); as activity) {
+  <div class="modal-overlay" role="presentation" (click)="closeActivityDetails()">
+    <section class="modal-card activity-detail-modal" appAccessibleDialog aria-labelledby="rail-activity-title"
+      (dialogClosed)="closeActivityDetails()" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div><span class="modal-kicker">Hoạt động câu lạc bộ</span><h2 id="rail-activity-title">{{ activity.title }}</h2></div>
+        <button type="button" class="modal-close" aria-label="Đóng" (click)="closeActivityDetails()">
+          <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+        </button>
+      </div>
+      <div class="activity-detail-hero">
+        <time><strong>{{ activity.startAt | date:'dd' }}</strong><span>THG {{ activity.startAt | date:'M' }}</span></time>
+        <div><span>Lịch cộng đồng</span><strong>{{ activity.clubName }}</strong><small>{{ activity.startAt | date:'dd/MM/yyyy' }}</small></div>
+      </div>
+      <dl class="activity-detail-facts">
+        <div><dt><lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon>Ngày diễn ra</dt><dd>{{ activity.startAt | date:'dd/MM/yyyy' }}</dd></div>
+        <div><dt><lucide-icon name="clock" class="w-4 h-4"></lucide-icon>Thời gian</dt><dd>{{ activity.time }}</dd></div>
+      </dl>
+      <div class="activity-detail-copy"><span>Nội dung nhắc</span><p>{{ activity.description || 'Ban quản trị chưa bổ sung nội dung chi tiết.' }}</p></div>
+      <footer class="modal-actions"><button type="button" class="secondary-button" (click)="closeActivityDetails()">Đóng</button></footer>
+    </section>
+  </div>
+  }
 
   @if (showCreateModal()) {
   <div class="modal-overlay" role="presentation" (click)="closeCreateModal()">

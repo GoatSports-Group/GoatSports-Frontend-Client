@@ -57,6 +57,7 @@ export interface ClubCardView {
 
 export interface ActivityView {
   activityId: string;
+  clubId: string;
   day: string;
   date: string;
   month: string;
@@ -64,6 +65,9 @@ export interface ActivityView {
   clubName: string;
   location: string;
   time: string;
+  description: string;
+  startAt: string;
+  endAt: string;
 }
 
 const WEEKDAYS = ['CN', 'TH 2', 'TH 3', 'TH 4', 'TH 5', 'TH 6', 'TH 7'];
@@ -102,13 +106,17 @@ export function toActivityView(activity: ClubActivity, clubName: string): Activi
   const end = activity.endAt ? new Date(activity.endAt) : null;
   return {
     activityId: activity.activityId,
+    clubId: activity.clubId,
     day: WEEKDAYS[start.getDay()],
     date: String(start.getDate()).padStart(2, '0'),
     month: 'THG ' + (start.getMonth() + 1),
     title: activity.title,
     clubName,
     location: activity.description?.trim() || '',
-    time: formatTime(start) + (end ? ' – ' + formatTime(end) : '')
+    time: formatTime(start) + (end ? ' – ' + formatTime(end) : ''),
+    description: activity.description?.trim() || '',
+    startAt: activity.startAt,
+    endAt: activity.endAt
   };
 }
 

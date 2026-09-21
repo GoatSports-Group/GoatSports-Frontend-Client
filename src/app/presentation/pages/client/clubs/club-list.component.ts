@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, computed, DestroyRef, ElementRef, inject, OnDestroy, signal } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, computed, DestroyRef, ElementRef, effect, inject, OnDestroy, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { filter, forkJoin } from 'rxjs';
@@ -46,6 +46,11 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
   readonly myClubs = signal<ClubCardView[]>([]);
   readonly pendingRequests = signal<ClubCardView[]>([]);
   readonly upcomingActivities = signal<ActivityView[]>([]);
+  readonly selectedActivity = signal<ActivityView | null>(null);
+  readonly activityLoading = signal(false);
+  readonly activityLoadError = signal(false);
+  readonly activityHasMore = signal(true);
+  readonly activityTotal = signal(0);
   readonly invitations = signal<ClubInvitation[]>([]);
   /** Ba khối bên phải chỉ có nghĩa khi biết bạn là ai, nên hỏi trước khi gọi API. */
   readonly signedIn = signal(false);
@@ -65,6 +70,10 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
 
   /** Tư cách thành viên của tôi theo clubId, để mỗi thẻ biết hiện nút nào. */
   private memberships = new Map<string, MyClubMembership>();
+  private clubNames = new Map<string, string>();
+  private readonly activityLoadSentinel = viewChild<ElementRef<HTMLElement>>('activityLoadSentinel');
+  private readonly activityPageSize = 3;
+  private activityPage = 0;
 
   readonly sortedClubs = computed(() => {
     const clubs = [...this.clubs()];
@@ -96,6 +105,15 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
   };
 
   constructor() {
+    effect(onCleanup => {
+      const sentinel = this.activityLoadSentinel()?.nativeElement;
+      if (!sentinel || !this.signedIn() || this.loading()) return;
+      const observer = new IntersectionObserver(entries => {
+        if (entries.some(entry => entry.isIntersecting)) this.loadNextUpcomingActivities();
+      }, { rootMargin: '100px 0px' });
+      observer.observe(sentinel);
+      onCleanup(() => observer.disconnect());
+    });
     this.load();
     this.notifications.realtimeNotifications$
       .pipe(
@@ -108,6 +126,7 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
     this.loading.set(true);
     this.error.set(null);
     this.signedIn.set(this.auth.isAuthenticated);
+    this.resetActivityPagination();
 
     const sport = this.selectedSport();
     const city = this.selectedCity();
@@ -141,7 +160,7 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
       mine: this.repository.getMyClubs(),
       pending: this.repository.getMyPendingRequests(),
       invitations: this.repository.getMyInvitations(),
-      activities: this.repository.getMyUpcomingActivities(5)
+      activities: this.repository.getMyUpcomingActivitiesPage(0, this.activityPageSize)
     }).subscribe({
       next: data => {
         this.memberships = new Map(
@@ -151,9 +170,12 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
         this.pendingRequests.set(data.pending.map(item => toCardView(item.club, item)));
         this.invitations.set(data.invitations);
 
-        const clubNames = new Map(data.mine.map(item => [item.club.clubId, item.club.name]));
-        this.upcomingActivities.set(data.activities.map(activity =>
-          toActivityView(activity, clubNames.get(activity.clubId) ?? '')));
+        this.clubNames = new Map(data.mine.map(item => [item.club.clubId, item.club.name]));
+        this.upcomingActivities.set(data.activities.items.map(activity =>
+          toActivityView(activity, this.clubNames.get(activity.clubId) ?? '')));
+        this.activityTotal.set(data.activities.total);
+        this.activityPage = 1;
+        this.activityHasMore.set(this.activityPage < data.activities.totalPages);
         this.loading.set(false);
       },
       error: () => {
@@ -221,6 +243,41 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
   closeCreateModal(): void {
     if (this.creating()) return;
     this.showCreateModal.set(false);
+  }
+
+  loadNextUpcomingActivities(): void {
+    if (this.activityLoading() || !this.activityHasMore() || !this.signedIn()) return;
+    this.activityLoading.set(true);
+    this.activityLoadError.set(false);
+    const requestedPage = this.activityPage;
+    this.repository.getMyUpcomingActivitiesPage(requestedPage, this.activityPageSize).subscribe({
+      next: page => {
+        const mapped = page.items.map(activity =>
+          toActivityView(activity, this.clubNames.get(activity.clubId) ?? ''));
+        this.upcomingActivities.update(items => {
+          const known = new Set(items.map(item => item.activityId));
+          return [...items, ...mapped.filter(item => !known.has(item.activityId))];
+        });
+        this.activityTotal.set(page.total);
+        this.activityPage = requestedPage + 1;
+        this.activityHasMore.set(this.activityPage < page.totalPages);
+        this.activityLoading.set(false);
+      },
+      error: () => {
+        this.activityLoading.set(false);
+        this.activityLoadError.set(true);
+      }
+    });
+  }
+
+  openActivityDetails(activity: ActivityView): void { this.selectedActivity.set(activity); }
+  closeActivityDetails(): void { this.selectedActivity.set(null); }
+
+  private resetActivityPagination(): void {
+    this.activityPage = 0;
+    this.activityTotal.set(0);
+    this.activityHasMore.set(true);
+    this.activityLoadError.set(false);
   }
 
   goToClub(club: ClubCardView): void {

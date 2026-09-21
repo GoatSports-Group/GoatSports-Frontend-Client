@@ -2,9 +2,9 @@ import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { ClubRepositoryPort } from '@application/ports/club.repository.port';
-import { BaseResponse, PagedModelResponse } from '@application/dto/base/base-response';
+import { BaseResponse, PageResult, PagedModelResponse } from '@application/dto/base/base-response';
 import {
-  ClubActivityModel, ClubFeeModel, ClubFeePaymentModel, ClubMemberModel, ClubModel, ClubRole,
+  ClubActivityModel, ClubRecentMatchModel, ClubFeeModel, ClubFeePaymentModel, ClubMemberModel, ClubModel, ClubRole,
   MyClubMembership, ClubInvitationModel,
   CreateClubActivityPayload, CreateClubFeePayload, CreateClubPayload, SportType, UpdateClubPayload
 } from '@domain/models/club.model';
@@ -75,6 +75,24 @@ export class ClubRepository extends ClubRepositoryPort {
     return this.http.get<BaseResponse<ClubMemberModel[]>>(`${this.baseUrl}/${clubId}/members`)
       .pipe(map(response => response.data ?? []));
   }
+  override getMyUpcomingActivitiesPage(page: number, size: number): Observable<PageResult<ClubActivityModel>> {
+    return this.getPage<ClubActivityModel>(`${this.baseUrl}/me/activities/page`, page, size);
+  }
+  override getClubMembersPage(clubId: string, page: number, size: number,
+    status: 'ACTIVE' | 'PENDING' = 'ACTIVE'): Observable<PageResult<ClubMemberModel>> {
+    const params = new HttpParams().set('page', page).set('size', size).set('status', status);
+    return this.http.get<BaseResponse<PagedModelResponse<ClubMemberModel>>>(
+      `${this.baseUrl}/${clubId}/members/page`, { params }).pipe(map(response => {
+        const data = response.data;
+        return {
+          items: data?.content ?? [],
+          total: data?.page?.totalElements ?? 0,
+          page: data?.page?.number ?? page,
+          pageSize: data?.page?.size ?? size,
+          totalPages: data?.page?.totalPages ?? 0
+        };
+      }));
+  }
   override respondMembership(clubId: string, membershipId: string, accepted: boolean): Observable<ClubMemberModel> {
     return this.http.put<BaseResponse<ClubMemberModel>>(`${this.baseUrl}/${clubId}/members/${membershipId}/respond`, { accepted })
       .pipe(map(response => response.data));
@@ -82,6 +100,14 @@ export class ClubRepository extends ClubRepositoryPort {
   override getClubActivities(clubId: string): Observable<ClubActivityModel[]> {
     return this.http.get<BaseResponse<ClubActivityModel[]>>(`${this.baseUrl}/${clubId}/activities`)
       .pipe(map(response => response.data ?? []));
+  }
+  override getClubActivitiesPage(clubId: string, page: number, size: number): Observable<PageResult<ClubActivityModel>> {
+    return this.getPage<ClubActivityModel>(`${this.baseUrl}/${clubId}/activities/page`, page, size);
+  }
+  override getClubRecentMatches(clubId: string, limit = 3): Observable<ClubRecentMatchModel[]> {
+    return this.http.get<BaseResponse<ClubRecentMatchModel[]>>(`${this.baseUrl}/${clubId}/matches/recent`, {
+      params: new HttpParams().set('limit', limit)
+    }).pipe(map(response => response.data ?? []));
   }
   override createClubActivity(clubId: string, payload: CreateClubActivityPayload): Observable<ClubActivityModel> {
     return this.http.post<BaseResponse<ClubActivityModel>>(`${this.baseUrl}/${clubId}/activities`, payload)
@@ -129,5 +155,19 @@ export class ClubRepository extends ClubRepositoryPort {
   }
   override deleteClubActivity(clubId: string, activityId: string): Observable<void> {
     return this.http.delete(`${this.baseUrl}/${clubId}/activities/${activityId}`).pipe(map(() => void 0));
+  }
+
+  private getPage<T>(url: string, page: number, size: number): Observable<PageResult<T>> {
+    const params = new HttpParams().set('page', page).set('size', size);
+    return this.http.get<BaseResponse<PagedModelResponse<T>>>(url, { params }).pipe(map(response => {
+      const data = response.data;
+      return {
+        items: data?.content ?? [],
+        total: data?.page?.totalElements ?? 0,
+        page: data?.page?.number ?? page,
+        pageSize: data?.page?.size ?? size,
+        totalPages: data?.page?.totalPages ?? 0
+      };
+    }));
   }
 }
