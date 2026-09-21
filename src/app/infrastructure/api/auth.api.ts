@@ -17,12 +17,12 @@ export class AuthApi {
     return this.http.post<BaseResponse<void>>(`${this.apiBase}/auth-service/api/v1/auth/logout`, {}, { withCredentials: true });
   }
 
-  refresh(): Observable<BaseResponse<User>> {
-    return this.http.get<BaseResponse<User>>(`${this.apiBase}/auth-service/api/v1/auth/refresh`, { withCredentials: true });
+  refresh(): Observable<BaseResponse<User> | User> {
+    return this.http.get<BaseResponse<User> | User>(`${this.apiBase}/auth-service/api/v1/auth/refresh`, { withCredentials: true });
   }
 
-  getCurrentUser(): Observable<BaseResponse<User>> {
-    return this.http.get<BaseResponse<User>>(`${this.apiBase}/auth-service/api/v1/auth/me`);
+  getCurrentUser(): Observable<BaseResponse<User> | User> {
+    return this.http.get<BaseResponse<User> | User>(`${this.apiBase}/auth-service/api/v1/auth/me`);
   }
 
   getPublicKey(): Observable<BaseResponse<PublicKeyResponse>> {

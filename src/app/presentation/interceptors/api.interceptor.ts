@@ -1,114 +1,76 @@
 import { Injectable, inject, Injector } from '@angular/core';
-import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError, BehaviorSubject } from 'rxjs';
-import { catchError, filter, take, switchMap } from 'rxjs/operators';
+import {
+  HttpContextToken,
+  HttpErrorResponse,
+  HttpEvent,
+  HttpHandler,
+  HttpInterceptor,
+  HttpRequest
+} from '@angular/common/http';
+import { Observable, throwError, timer } from 'rxjs';
+import { catchError, switchMap } from 'rxjs/operators';
 import { AuthService } from '@presentation/services/auth.service';
+
+const AUTH_RETRY = new HttpContextToken<boolean>(() => false);
 
 @Injectable()
 export class ApiInterceptor implements HttpInterceptor {
-  private injector = inject(Injector);
-  private isRefreshing = false;
-  private refreshTokenSubject = new BehaviorSubject<any>(null);
+  private readonly injector = inject(Injector);
 
-  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const cloned = req.clone({
-      withCredentials: true
-    });
+  intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
+    const credentialRequest = request.clone({ withCredentials: true });
 
-    const isRefreshEndpoint = req.url.includes('/auth-service/api/v1/auth/refresh');
-    const isAuthEndpoint =
-      req.url.includes('/auth-service/api/v1/auth/login') ||
-      req.url.includes('/auth-service/api/v1/auth/register') ||
-      req.url.includes('/auth-service/api/v1/auth/verify');
-
-    if (this.isRefreshing && !isRefreshEndpoint && !isAuthEndpoint) {
-      return this.refreshTokenSubject.pipe(
-        filter(value => value !== null),
-        take(1),
-        switchMap(() => next.handle(cloned))
+    if (this.isRefreshRequest(request)) {
+      return next.handle(credentialRequest).pipe(
+        catchError((error: HttpErrorResponse) => {
+          if (error.status === 401) this.injector.get(AuthService).performLogout();
+          return throwError(() => error);
+        })
       );
     }
 
-    if (req.headers.has('X-Retry')) {
-      return next.handle(cloned);
+    if (this.isPublicAuthRequest(request) || request.context.get(AUTH_RETRY)) {
+      return next.handle(credentialRequest);
     }
 
-    return next.handle(cloned).pipe(
+    return next.handle(credentialRequest).pipe(
       catchError((error: HttpErrorResponse) => {
-        const authService = this.injector.get(AuthService);
-        const isUnauthorized = error.status === 401;
-        const isRefreshEndpoint = req.url.includes('/auth-service/api/v1/auth/refresh');
-
-        if (isUnauthorized && isRefreshEndpoint) {
-          console.log('Refresh token endpoint failed, logging out...');
-          authService.performLogout();
-          return throwError(() => error);
-        }
-
-        if (
-          isUnauthorized &&
-          !req.url.includes('/auth-service/api/v1/auth/login') &&
-          !req.url.includes('/auth-service/api/v1/auth/register')
-        ) {
-          const errorMsg = error.error?.message;
-          const isRefreshTokenExpired =
-            errorMsg === 'Refresh token hết hạn' ||
-            errorMsg === 'Refresh token không hợp lệ hoặc đã hết hạn' ||
-            errorMsg === 'Hết hạn đăng nhập';
-
-          if (isRefreshTokenExpired) {
-            console.log('Refresh token is expired/invalid, logging out...');
-            authService.performLogout();
-            return throwError(() => error);
-          }
-
-          return this.handle401Error(cloned, next);
-        }
-        return throwError(() => error);
+        if (error.status !== 401) return throwError(() => error);
+        return this.refreshAndRetry(credentialRequest, next);
       })
     );
   }
 
-  private handle401Error(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+  private refreshAndRetry(
+    request: HttpRequest<unknown>,
+    next: HttpHandler
+  ): Observable<HttpEvent<unknown>> {
     const authService = this.injector.get(AuthService);
+    return authService.refresh().pipe(
+      catchError(error => {
+        authService.performLogout();
+        return throwError(() => error);
+      }),
+      // Let the browser apply Set-Cookie before replaying the protected request.
+      switchMap(() => timer(0)),
+      switchMap(() => next.handle(request.clone({
+        context: request.context.set(AUTH_RETRY, true),
+        withCredentials: true
+      })))
+    );
+  }
 
-    if (!this.isRefreshing) {
-      this.isRefreshing = true;
-      this.refreshTokenSubject.next(null);
+  private isRefreshRequest(request: HttpRequest<unknown>): boolean {
+    return request.url.includes('/auth-service/api/v1/auth/refresh');
+  }
 
-      return authService.refresh().pipe(
-        switchMap((response) => {
-          this.isRefreshing = false;
-          this.refreshTokenSubject.next(response);
-
-          const retryRequest = request.clone({
-            headers: request.headers.set('X-Retry', 'true')
-          });
-          return next.handle(retryRequest);
-        }),
-        catchError((err) => {
-          this.isRefreshing = false;
-          this.refreshTokenSubject.error(err);
-          this.refreshTokenSubject = new BehaviorSubject<any>(null);
-
-          authService.performLogout();
-          return throwError(() => err);
-        })
-      );
-    } else {
-      return this.refreshTokenSubject.pipe(
-        filter(token => token !== null),
-        take(1),
-        switchMap(() => {
-          const retryRequest = request.clone({
-            headers: request.headers.set('X-Retry', 'true')
-          });
-          return next.handle(retryRequest);
-        }),
-        catchError((err) => {
-          return throwError(() => err);
-        })
-      );
-    }
+  private isPublicAuthRequest(request: HttpRequest<unknown>): boolean {
+    return [
+      '/auth-service/api/v1/auth/login',
+      '/auth-service/api/v1/auth/register',
+      '/auth-service/api/v1/auth/verify',
+      '/auth-service/api/v1/auth/resend',
+      '/auth-service/api/v1/auth/forgot-password'
+    ].some(endpoint => request.url.includes(endpoint));
   }
 }
