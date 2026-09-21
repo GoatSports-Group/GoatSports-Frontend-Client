@@ -5,18 +5,10 @@
     <img [src]="defaultClubBanner" (error)="useBannerFallback($event)" [alt]="'Ảnh bìa ' + item.club.name" />
     <span class="my-club-card__shade" aria-hidden="true"></span>
     <app-my-club-role-badge [role]="item.role"></app-my-club-role-badge>
-    <button type="button" class="card-menu-button" aria-label="Mở menu câu lạc bộ"
-      [attr.aria-expanded]="menuOpen()" (click)="toggleMenu($event)">
-      <lucide-icon name="more-horizontal" class="w-5 h-5"></lucide-icon>
-    </button>
-    @if (menuOpen()) {
-      <div class="card-menu" (click)="$event.stopPropagation()">
-        <button type="button" (click)="open()"><lucide-icon name="layout-grid" class="w-4 h-4"></lucide-icon>Mở clubhouse</button>
-        <button type="button" (click)="openPublic($event)"><lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon>Xem trang công khai</button>
-        @if (isManager) {
-          <button type="button" (click)="openPlayers($event)"><lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon>Tìm người chơi</button>
-        }
-      </div>
+    @if (isManager && pendingRequestCount > 0) {
+      <span class="my-club-card__request-badge">
+        <lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon>{{ pendingRequestCount }} yêu cầu
+      </span>
     }
   </div>
 
@@ -27,13 +19,11 @@
     </header>
     <p class="my-club-card__location"><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>{{ item.club.location || item.club.city || 'Chưa cập nhật địa điểm' }}</p>
     <p class="my-club-card__description">{{ item.club.description || 'Câu lạc bộ chưa cập nhật phần giới thiệu.' }}</p>
-    <ul class="my-club-card__tags">
-      @for (tag of tags; track tag) { <li>{{ tag }}</li> }
-    </ul>
     <footer>
       <div class="my-club-card__metrics">
         <span><lucide-icon name="users" class="w-4 h-4"></lucide-icon><b>{{ item.club.memberCount }}</b><small>Thành viên</small></span>
         <span><lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon><b>{{ item.club.matchCount }}</b><small>Trận đã đá</small></span>
+        <span><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon><b>{{ item.club.tournamentCount ?? 0 }}</b><small>Giải đấu</small></span>
       </div>
       <button type="button" class="card-action" (click)="$event.stopPropagation(); open()">{{ actionLabel }}<lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></button>
     </footer>

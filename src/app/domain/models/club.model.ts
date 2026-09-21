@@ -23,6 +23,8 @@ export interface ClubModel {
   lossCount: number;
   drawCount: number;
   matchCount: number;
+  /** Number of tournaments the club has joined; older API responses may omit it. */
+  tournamentCount?: number;
   winRate: number;
   memberCount: number;
   createdAt?: string;

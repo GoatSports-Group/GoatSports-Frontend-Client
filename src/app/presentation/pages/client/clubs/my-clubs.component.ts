@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { filter, take } from 'rxjs';
+import { catchError, filter, forkJoin, map, of, take } from 'rxjs';
 import {
   ClubRole,
   CreateClubPayload,
@@ -39,6 +39,7 @@ export class MyClubsComponent {
   readonly sports = CLUB_SPORTS;
   readonly provinces = this.locationData.provinces;
   readonly memberships = signal<MyClubMembership[]>([]);
+  readonly pendingRequestCounts = signal<Partial<Record<string, number>>>({});
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly isAuthenticated = signal(false);
@@ -82,12 +83,6 @@ export class MyClubsComponent {
   readonly hasToolbarFilters = computed(() => Boolean(this.keyword().trim())
     || this.selectedSport() !== 'ALL' || this.selectedCity() !== 'ALL');
 
-  /** Dòng "Hiển thị 1–6 trong tổng số 8" dưới lưới thẻ. */
-  readonly rangeStart = computed(() =>
-    this.filteredMemberships().length ? this.pageIndex() * this.pageSize + 1 : 0);
-  readonly rangeEnd = computed(() =>
-    Math.min((this.pageIndex() + 1) * this.pageSize, this.filteredMemberships().length));
-  readonly showPagination = computed(() => this.filteredMemberships().length > this.pageSize);
   readonly emptyTitle = computed(() => {
     if (this.hasToolbarFilters()) return 'Không tìm thấy câu lạc bộ phù hợp';
     if (this.selectedTab() === 'MANAGED') return 'Bạn chưa quản lý câu lạc bộ nào';
@@ -135,6 +130,7 @@ export class MyClubsComponent {
     this.repository.getMyClubs().subscribe({
       next: memberships => {
         this.memberships.set(memberships);
+        this.loadPendingRequestCounts(memberships);
         this.ensureValidPage();
         this.loading.set(false);
       },
@@ -164,9 +160,6 @@ export class MyClubsComponent {
   login(): void { this.auth.redirectToLogin(window.location.href); }
 
   openClub(item: MyClubMembership): void { void this.router.navigate(['/clubs/my', item.club.clubId]); }
-  openPublicClub(item: MyClubMembership): void { void this.router.navigate(['/clubs', item.club.clubId]); }
-  openPlayerSearch(item: MyClubMembership): void { void this.router.navigate(['/clubs/my', item.club.clubId, 'players']); }
-
   openCreateModal(): void { this.showCreateModal.set(true); }
   closeCreateModal(): void { if (!this.creating()) this.showCreateModal.set(false); }
 
@@ -217,6 +210,21 @@ export class MyClubsComponent {
   private ensureValidPage(): void {
     const maxPage = Math.max(0, Math.ceil(this.filteredMemberships().length / this.pageSize) - 1);
     if (this.pageIndex() > maxPage) this.pageIndex.set(maxPage);
+  }
+
+  private loadPendingRequestCounts(memberships: MyClubMembership[]): void {
+    const managedMemberships = memberships.filter(item => item.role === 'OWNER' || item.role === 'ADMIN');
+    if (!managedMemberships.length) {
+      this.pendingRequestCounts.set({});
+      return;
+    }
+
+    forkJoin(managedMemberships.map(item => this.repository.getClubMembers(item.club.clubId).pipe(
+      map(members => [item.club.clubId, members.filter(member => member.status === 'PENDING').length] as const),
+      catchError(() => of([item.club.clubId, 0] as const))
+    ))).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(entries => {
+      this.pendingRequestCounts.set(Object.fromEntries(entries));
+    });
   }
 
   private resetCreateForm(): void {

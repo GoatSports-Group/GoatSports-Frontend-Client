@@ -14,6 +14,7 @@ export class PaginationComponent implements OnChanges {
   @Input({ required: true }) pageIndex = 0;
   @Input({ required: true }) pageSize = 10;
   @Input({ required: true }) totalItems = 0;
+  @Input() itemLabel = 'kết quả';
 
   @Output() readonly pageChange = new EventEmitter<number>();
 
@@ -26,10 +27,10 @@ export class PaginationComponent implements OnChanges {
   }
 
   get showingText(): string {
-    if (this.totalItems === 0) return 'Hiển thị 0 - 0 trong tổng số 0 kết quả';
+    if (this.totalItems === 0) return `Hiển thị 0 - 0 trong tổng số 0 ${this.itemLabel}`;
     const start = this.pageIndex * this.pageSize + 1;
     const end = Math.min((this.pageIndex + 1) * this.pageSize, this.totalItems);
-    return `Hiển thị ${start} - ${end} trong tổng số ${this.totalItems} kết quả`;
+    return `Hiển thị ${start} - ${end} trong tổng số ${this.totalItems} ${this.itemLabel}`;
   }
 
   goToPage(page: number): void {
