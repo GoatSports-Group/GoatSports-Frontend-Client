@@ -59,8 +59,8 @@ export class ClubRepository extends ClubRepositoryPort {
   override createClub(payload: CreateClubPayload): Observable<ClubModel> {
     return this.http.post<BaseResponse<ClubModel>>(this.baseUrl, payload).pipe(map(response => response.data));
   }
-  override joinClub(clubId: string): Observable<ClubMemberModel> {
-    return this.http.post<BaseResponse<ClubMemberModel>>(`${this.baseUrl}/${clubId}/join`, {})
+  override joinClub(clubId: string, message?: string): Observable<ClubMemberModel> {
+    return this.http.post<BaseResponse<ClubMemberModel>>(`${this.baseUrl}/${clubId}/join`, { message })
       .pipe(map(response => response.data));
   }
   override leaveClub(clubId: string): Observable<void> {

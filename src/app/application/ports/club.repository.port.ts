@@ -38,7 +38,7 @@ export abstract class ClubRepositoryPort {
   abstract inviteMember(clubId: string, inviteeId: string, message?: string): Observable<ClubInvitationModel>;
   abstract getClubDetails(clubId: string): Observable<ClubModel>;
   abstract createClub(payload: CreateClubPayload): Observable<ClubModel>;
-  abstract joinClub(clubId: string): Observable<ClubMemberModel>;
+  abstract joinClub(clubId: string, message?: string): Observable<ClubMemberModel>;
   abstract leaveClub(clubId: string): Observable<void>;
   abstract getMyMembership(clubId: string): Observable<ClubMemberModel | null>;
   abstract getClubMembers(clubId: string): Observable<ClubMemberModel[]>;

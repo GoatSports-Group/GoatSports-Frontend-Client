@@ -46,6 +46,9 @@ footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; 
 .cancel-button { border: 1px solid #17334d; background: #fff; color: #17334d; }
 .submit-button { border: 1px solid var(--green); background: var(--green); color: #fff; }
 .submit-button:disabled { opacity: .5; cursor: not-allowed; }
+.cancel-button:disabled, .icon-button:disabled { opacity: .55; cursor: wait; }
+.request-spinner { width: 15px; height: 15px; border: 2px solid rgba(255,255,255,.38); border-top-color: #fff; border-radius: 50%; animation: request-spin .7s linear infinite; }
+@keyframes request-spin { to { transform: rotate(360deg); } }
 .cancel-button:active, .submit-button:not(:disabled):active { transform: scale(.985); }
 
 @media (max-width: 560px) {

@@ -311,6 +311,37 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .club-statline > div:not(.club-statline__lead) b { font-size: clamp(18px, 2vw, 26px); line-height: 1; }
 .club-statline > div:not(.club-statline__lead) small { color: var(--club-muted); font-size: 10px; text-transform: uppercase; }
 
+/* MEMBERSHIP DESK — live transfer sheet */
+.membership-desk { scroll-margin-top: 92px; margin-top: 18px; border: 1px solid var(--club-line); background: var(--club-paper); }
+.membership-desk__header { min-height: 142px; display: grid; grid-template-columns: minmax(0, 1fr) 160px; border-bottom: 4px solid var(--club-ink); }
+.membership-desk__header > div:first-child { padding: 25px 28px; }
+.membership-desk__header h2 { margin: 6px 0 8px; color: var(--club-ink) !important; font-size: clamp(30px, 3.4vw, 48px); font-weight: 900; font-style: italic; line-height: .95; letter-spacing: -.06em; text-transform: uppercase; }
+.membership-desk__header > div:first-child > p:last-child { max-width: 670px; margin: 0; color: var(--club-muted); font-size: 12px; line-height: 1.55; }
+.membership-desk__score { display: grid; align-content: center; padding: 18px 24px; border-left: 1px solid var(--club-paper-20); background: var(--club-ink); color: var(--club-paper); }
+.membership-desk__score strong { color: var(--club-signal); font-size: 56px; font-weight: 900; font-style: italic; line-height: .88; }
+.membership-desk__score small { margin-top: 6px; color: var(--club-paper-76); font-size: 9px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+.membership-desk__live { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; font-size: 9px; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
+.membership-desk__live i { width: 7px; height: 7px; border-radius: 50%; background: var(--club-signal); box-shadow: 0 0 0 4px rgba(84, 232, 178, .14); }
+.membership-desk__loading { padding: 20px; }
+.application-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.application-card { position: relative; min-height: 330px; display: grid; grid-template-rows: auto 1fr auto; gap: 20px; padding: 26px 28px; overflow: hidden; }
+.application-card:nth-child(even) { border-left: 1px solid var(--club-line); }
+.application-card:nth-child(n+3) { border-top: 1px solid var(--club-line); }
+.application-card__number { position: absolute; right: 18px; top: 10px; color: var(--club-fog); font-size: 62px; font-weight: 900; font-style: italic; line-height: 1; }
+.application-card__player { position: relative; z-index: 1; display: flex; align-items: center; gap: 14px; padding-right: 52px; }
+.application-card__avatar { width: 58px; height: 70px; display: grid; place-items: center; overflow: hidden; flex: 0 0 auto; clip-path: polygon(0 0, 100% 0, 100% 82%, 77% 100%, 0 100%); background: var(--club-field); color: var(--club-paper); font-size: 15px; font-weight: 900; }
+.application-card__avatar img { width: 100%; height: 100%; object-fit: cover; }
+.application-card__player p, .application-card blockquote span { margin: 0; color: var(--club-field); font-size: 9px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+.application-card__player h3 { margin: 4px 0; color: var(--club-ink) !important; font-size: 19px; font-weight: 900; letter-spacing: -.035em; }
+.application-card__player div > span { color: var(--club-muted); font-size: 10px; }
+.application-card blockquote { margin: 0; padding: 17px 18px; border-left: 3px solid var(--club-field); background: var(--club-fog); }
+.application-card blockquote p { display: -webkit-box; overflow: hidden; margin: 8px 0 0; color: var(--club-ink-2); font-size: 12px; line-height: 1.65; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+.application-card__actions { display: flex; justify-content: flex-end; gap: 8px; padding-top: 16px; border-top: 1px solid var(--club-line); }
+.membership-desk__empty { min-height: 160px; display: flex; align-items: center; justify-content: center; gap: 16px; padding: 28px; text-align: left; }
+.membership-desk__empty > span { width: 52px; height: 52px; display: grid; place-items: center; background: var(--club-fog); color: var(--club-field); }
+.membership-desk__empty h3 { margin: 0 0 4px; color: var(--club-ink) !important; font-size: 16px; font-weight: 900; }
+.membership-desk__empty p { margin: 0; color: var(--club-muted); font-size: 11px; }
+
 .clubhouse-layout { display: grid; grid-template-columns: minmax(0, 2fr) minmax(290px, .72fr); align-items: start; gap: 18px; padding-top: 18px; }
 .activity-editorial, .club-ledger { border: 1px solid var(--club-line); background: var(--club-paper); }
 .activity-editorial { padding: clamp(24px, 3vw, 38px); }
@@ -430,6 +461,9 @@ app-pagination { display: block; margin-top: 20px; }
   .club-statline__lead { grid-column: 1 / -1; }
   .club-statline > div:nth-child(2) { border-left: 0; }
   .clubhouse-layout { grid-template-columns: 1fr; }
+  .application-grid { grid-template-columns: 1fr; }
+  .application-card:nth-child(even) { border-left: 0; }
+  .application-card + .application-card { border-top: 1px solid var(--club-line); }
   .coach-note { min-height: 300px; }
   .player-row { grid-template-columns: 32px 56px minmax(0, 1fr) auto; }
   .player-facts { grid-column: 3 / 4; }
@@ -463,6 +497,13 @@ app-pagination { display: block; margin-top: 20px; }
   .club-statline { grid-template-columns: 1fr; }
   .club-statline__lead { grid-column: auto; }
   .club-statline > div + div { border-top: 1px solid var(--club-line); border-left: 0; }
+  .membership-desk__header { grid-template-columns: 1fr; }
+  .membership-desk__score { grid-template-columns: 1fr auto; align-items: end; border-left: 0; }
+  .membership-desk__score .membership-desk__live { grid-column: 1 / -1; }
+  .membership-desk__score small { text-align: right; }
+  .application-card { min-height: 0; padding: 22px 18px; }
+  .application-card__actions { flex-direction: column-reverse; }
+  .application-card__actions .member-button { width: 100%; }
   .fixture-row { grid-template-columns: 34px 76px minmax(0, 1fr); gap: 10px; }
   .fixture-row__note { grid-column: 3; }
   .fixture-row > button { display: none; }

@@ -83,6 +83,6 @@
   }
 
   @if (requestClub(); as club) {
-    <app-club-join-request-modal [club]="club" (cancelled)="closeJoinRequest()" (submitted)="submitJoinRequest()" />
+    <app-club-join-request-modal [club]="club" [submitting]="requestSubmitting()" (cancelled)="closeJoinRequest()" (submitted)="submitJoinRequest($event)" />
   }
 </main>

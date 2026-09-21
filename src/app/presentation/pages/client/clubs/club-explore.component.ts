@@ -37,6 +37,7 @@ export class ClubExploreComponent {
   readonly pageIndex = signal(0);
   readonly pageSize = 6;
   readonly requestClub = signal<ClubCardView | null>(null);
+  readonly requestSubmitting = this.browse.mutating;
 
   constructor() {
     this.reload();
@@ -100,10 +101,9 @@ export class ClubExploreComponent {
 
   closeJoinRequest(): void { this.requestClub.set(null); }
 
-  submitJoinRequest(): void {
+  submitJoinRequest(message: string): void {
     const club = this.requestClub();
-    this.requestClub.set(null);
-    if (club) this.browse.join(club, () => this.reload());
+    if (club) this.browse.join(club, () => { this.requestClub.set(null); this.reload(); }, message);
   }
 
   sportLabel(value: SportType): string { return sportLabel(value); }

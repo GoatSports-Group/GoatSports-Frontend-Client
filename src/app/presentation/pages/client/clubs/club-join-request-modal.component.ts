@@ -10,6 +10,7 @@ import { ClubCardView } from './club-view.model';
 })
 export class ClubJoinRequestModalComponent {
   @Input({ required: true }) club!: ClubCardView;
+  @Input() submitting = false;
   @Output() cancelled = new EventEmitter<void>();
   @Output() submitted = new EventEmitter<string>();
 
@@ -18,8 +19,12 @@ export class ClubJoinRequestModalComponent {
 
   updateMessage(value: string): void { this.message.set(value); }
 
+  cancel(): void {
+    if (!this.submitting) this.cancelled.emit();
+  }
+
   submit(): void {
-    if (!this.canSubmit()) return;
+    if (!this.canSubmit() || this.submitting) return;
     this.submitted.emit(this.message().trim());
   }
 }

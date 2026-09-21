@@ -34,6 +34,7 @@ export class ClubFeaturedComponent {
   readonly pageIndex = signal(0);
   readonly pageSize = 6;
   readonly requestClub = signal<ClubCardView | null>(null);
+  readonly requestSubmitting = this.browse.mutating;
   readonly provinces = this.locationData.provinces;
 
   constructor() {
@@ -90,10 +91,9 @@ export class ClubFeaturedComponent {
 
   closeJoinRequest(): void { this.requestClub.set(null); }
 
-  submitJoinRequest(): void {
+  submitJoinRequest(message: string): void {
     const club = this.requestClub();
-    this.requestClub.set(null);
-    if (club) this.browse.join(club, () => this.reload());
+    if (club) this.browse.join(club, () => { this.requestClub.set(null); this.reload(); }, message);
   }
 
   useLogoFallback(event: Event): void { this.applyImageFallback(event, this.defaultClubLogo); }

@@ -28,6 +28,9 @@ import { ClubFeaturedComponent } from '@presentation/pages/client/clubs/club-fea
 import { ClubExploreComponent } from '@presentation/pages/client/clubs/club-explore.component';
 import { ClubJoinRequestModalComponent } from '@presentation/pages/client/clubs/club-join-request-modal.component';
 import { MyClubsComponent } from '@presentation/pages/client/clubs/my-clubs.component';
+import { MyClubCardComponent } from '@presentation/pages/client/clubs/my-club-card.component';
+import { MyClubRoleBadgeComponent } from '@presentation/pages/client/clubs/my-club-role-badge.component';
+import { MyClubsEmptyStateComponent } from '@presentation/pages/client/clubs/my-clubs-empty-state.component';
 import { ClubMemberWorkspaceComponent } from '@presentation/pages/client/clubs/club-member-workspace.component';
 import { ClubPlayerSearchComponent } from '@presentation/pages/client/clubs/club-player-search.component';
 import { TournamentListComponent } from '@presentation/pages/client/tournaments/tournament-list.component';
@@ -62,6 +65,9 @@ import { AiAssistantModalComponent } from '@presentation/shared/components/ai-as
     ClubExploreComponent,
     ClubJoinRequestModalComponent,
     MyClubsComponent,
+    MyClubCardComponent,
+    MyClubRoleBadgeComponent,
+    MyClubsEmptyStateComponent,
     ClubMemberWorkspaceComponent,
     ClubPlayerSearchComponent,
     TournamentListComponent,

@@ -46,10 +46,10 @@ export class ClubBrowseService {
    * Backend tự quyết vào thẳng hay chờ duyệt theo approvalMode, client không đoán thay,
    * nên chỉ có một đường gửi cho cả hai kiểu CLB.
    */
-  join(club: ClubCardView, onDone: () => void): void {
+  join(club: ClubCardView, onDone: () => void, message?: string): void {
     if (this.mutating()) return;
     this.mutating.set(true);
-    this.repository.joinClub(club.clubId).subscribe({
+    this.repository.joinClub(club.clubId, message).subscribe({
       next: member => {
         this.mutating.set(false);
         this.notify.success(member.status === 'ACTIVE'

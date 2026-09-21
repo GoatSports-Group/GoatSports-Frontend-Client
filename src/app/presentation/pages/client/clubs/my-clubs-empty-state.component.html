@@ -1,0 +1,5 @@
+<section class="my-clubs-empty" aria-live="polite">
+  <span class="my-clubs-empty__mark"><lucide-icon name="shield-check" class="w-7 h-7"></lucide-icon></span>
+  <div><p>GOAT Sports Clubhouse</p><h2>{{ title() }}</h2><span>{{ description() }}</span></div>
+  <button type="button" (click)="action.emit()">{{ actionLabel() }}<lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></button>
+</section>

@@ -212,7 +212,7 @@
           }
           <div class="rail-list">
             @for (club of myClubs(); track club.clubId) {
-            <button type="button" class="compact-club" (click)="goToClub(club)">
+            <button type="button" class="compact-club" (click)="openMyClub(club)">
               <span class="compact-logo"><img [src]="club.logoUrl || defaultClubLogo" (error)="useLogoFallback($event)"
                   [alt]="'Logo ' + club.name" /></span>
               <span class="compact-club__content"><strong>{{ club.name }}</strong><small>{{ sportLabel(club.sportType)
@@ -356,6 +356,6 @@
   }
 
   @if (requestClub(); as club) {
-  <app-club-join-request-modal [club]="club" (cancelled)="closeJoinRequest()" (submitted)="submitJoinRequest()" />
+  <app-club-join-request-modal [club]="club" [submitting]="requestSubmitting()" (cancelled)="closeJoinRequest()" (submitted)="submitJoinRequest($event)" />
   }
 </main>

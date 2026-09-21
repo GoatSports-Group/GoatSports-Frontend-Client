@@ -70,6 +70,8 @@ export interface ClubMemberModel {
   userId: string;
   role: ClubRole;
   status: ClubMemberStatus;
+  introMessage?: string;
+  requestedAt?: string;
   joinedAt?: string;
   respondedBy?: string;
   respondedAt?: string;

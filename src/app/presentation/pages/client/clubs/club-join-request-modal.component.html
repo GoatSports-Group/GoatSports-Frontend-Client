@@ -1,12 +1,12 @@
-<div class="request-overlay" role="presentation" (click)="cancelled.emit()">
+<div class="request-overlay" role="presentation" (click)="cancel()">
   <section class="request-modal" appAccessibleDialog aria-labelledby="join-request-title"
-    (dialogClosed)="cancelled.emit()" (click)="$event.stopPropagation()">
+    [attr.aria-busy]="submitting" (dialogClosed)="cancel()" (click)="$event.stopPropagation()">
     <header>
       <div>
         <p>Yêu cầu tham gia</p>
         <h2 id="join-request-title">Giới thiệu với {{ club.name }}</h2>
       </div>
-      <button type="button" class="icon-button" aria-label="Đóng popup" (click)="cancelled.emit()">
+      <button type="button" class="icon-button" aria-label="Đóng popup" [disabled]="submitting" (click)="cancel()">
         <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
       </button>
     </header>
@@ -18,7 +18,7 @@
 
     <label for="join-cover-letter">Lời giới thiệu / Cover letter</label>
     <textarea id="join-cover-letter" rows="6" maxlength="500"
-      [ngModel]="message()" (ngModelChange)="updateMessage($event)"
+      [ngModel]="message()" (ngModelChange)="updateMessage($event)" [disabled]="submitting"
       placeholder="Chia sẻ kinh nghiệm chơi, mục tiêu luyện tập và lý do bạn muốn tham gia..."></textarea>
     <div class="field-meta">
       <span>Tối thiểu 20 ký tự</span>
@@ -26,9 +26,10 @@
     </div>
 
     <footer>
-      <button type="button" class="cancel-button" (click)="cancelled.emit()">Hủy</button>
-      <button type="button" class="submit-button" [disabled]="!canSubmit()" (click)="submit()">
-        Gửi yêu cầu <lucide-icon name="send" class="w-4 h-4"></lucide-icon>
+      <button type="button" class="cancel-button" [disabled]="submitting" (click)="cancel()">Hủy</button>
+      <button type="button" class="submit-button" [disabled]="!canSubmit() || submitting" (click)="submit()">
+        @if (submitting) { <span class="request-spinner" aria-hidden="true"></span> Đang gửi... }
+        @else { Gửi yêu cầu <lucide-icon name="send" class="w-4 h-4"></lucide-icon> }
       </button>
     </footer>
   </section>

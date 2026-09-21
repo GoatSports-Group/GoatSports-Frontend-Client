@@ -27,6 +27,67 @@
       <div><span>01</span><b>{{ currentClub.memberCount }}</b><small>Thành viên</small></div><div><span>02</span><b>{{ currentClub.matchCount }}</b><small>Trận đã đấu</small></div><div><span>03</span><b>{{ currentClub.approvalMode === 'AUTO' ? 'Tự động' : 'Xét duyệt' }}</b><small>Cách tham gia</small></div>
     </section>
 
+    @if (isManager()) {
+      <section class="membership-desk" id="membership-requests" aria-labelledby="membership-requests-title">
+        <header class="membership-desk__header">
+          <div>
+            <p class="member-kicker">Transfer desk / Realtime</p>
+            <h2 id="membership-requests-title">Hồ sơ chờ duyệt</h2>
+            <p>Xem lời giới thiệu và quyết định người phù hợp với nhịp sinh hoạt của đội.</p>
+          </div>
+          <div class="membership-desk__score" aria-label="Số yêu cầu đang chờ">
+            <span class="membership-desk__live"><i></i> Live</span>
+            <strong>{{ pendingApplications().length.toString().padStart(2, '0') }}</strong>
+            <small>đang chờ</small>
+          </div>
+        </header>
+
+        @if (membersLoading()) {
+          <div class="membership-desk__loading"><app-loading-skeleton height="180px"></app-loading-skeleton></div>
+        } @else if (pendingApplications().length) {
+          <div class="application-grid">
+            @for (application of pendingApplications(); track application.member.membershipId; let order = $index) {
+              <article class="application-card">
+                <span class="application-card__number">{{ (order + 1).toString().padStart(2, '0') }}</span>
+                <div class="application-card__player">
+                  <span class="application-card__avatar">
+                    @if (application.player?.avatarUrl) {
+                      <img [src]="application.player!.avatarUrl" [alt]="playerName(application)" />
+                    } @else { {{ playerInitials(application) }} }
+                  </span>
+                  <div>
+                    <p>New signing request</p>
+                    <h3>{{ playerName(application) }}</h3>
+                    <span>{{ application.player?.username ? '@' + application.player!.username : 'Hồ sơ người chơi' }} · {{ requestDate(application.member.requestedAt) }}</span>
+                  </div>
+                </div>
+                <blockquote>
+                  <span>Cover letter</span>
+                  <p>{{ application.member.introMessage || 'Người chơi chưa gửi lời giới thiệu cho yêu cầu này.' }}</p>
+                </blockquote>
+                <div class="application-card__actions">
+                  <button type="button" class="member-button member-button--outline"
+                    [disabled]="respondingIds().has(application.member.membershipId)"
+                    (click)="respondToApplication(application, false)">Từ chối</button>
+                  <button type="button" class="member-button member-button--primary"
+                    [disabled]="respondingIds().has(application.member.membershipId)"
+                    (click)="respondToApplication(application, true)">
+                    @if (respondingIds().has(application.member.membershipId)) { Đang xử lý... }
+                    @else { Duyệt vào đội <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon> }
+                  </button>
+                </div>
+              </article>
+            }
+          </div>
+        } @else {
+          <div class="membership-desk__empty">
+            <span><lucide-icon name="user-check" class="w-6 h-6"></lucide-icon></span>
+            <div><h3>Danh sách chờ đã được xử lý</h3><p>Yêu cầu mới sẽ xuất hiện ở đây ngay khi người chơi gửi.</p></div>
+          </div>
+        }
+      </section>
+    }
+
     <div class="clubhouse-layout">
       <section class="activity-editorial" aria-labelledby="upcoming-title">
         <header class="editorial-heading editorial-heading--rule"><div><p class="member-kicker">01 / ClubActivity</p><h2 id="upcoming-title">Nhịp hoạt động</h2></div><div class="editorial-heading__aside"><span>Admin tạo lời nhắc.</span><span>Thành viên chỉ cần xem lịch.</span></div>
@@ -46,7 +107,7 @@
           <section class="coach-note"><span class="coach-note__number">02</span><p class="member-kicker member-kicker--light">Recruitment desk</p><h2>Mở rộng<br />đội hình.</h2><p>Tìm người chơi phù hợp theo môn thể thao, khu vực và lịch hoạt động.</p>
             @if (isOwner()) { <button type="button" class="member-button member-button--signal" (click)="openPlayerSearch()">Mở scouting board <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></button> } @else { <span class="workspace-note">Chỉ chủ CLB có thể gửi lời mời.</span> }
           </section>
-          <section class="club-ledger"><header><p class="member-kicker">03 / Manager log</p><h2>Việc cần xử lý</h2></header><div><span>Yêu cầu tham gia</span><b>03</b></div><div><span>Lời mời đang chờ</span><b>05</b></div><div><span>Hồ sơ cần cập nhật</span><b>01</b></div></section>
+          <section class="club-ledger"><header><p class="member-kicker">03 / Manager log</p><h2>Việc cần xử lý</h2></header><div><span>Yêu cầu tham gia</span><b>{{ pendingApplications().length.toString().padStart(2, '0') }}</b></div><div><span>Thông báo duyệt</span><b>Live</b></div><div><span>Hồ sơ cần cập nhật</span><b>01</b></div></section>
         } @else {
           <section class="coach-note"><span class="coach-note__number">02</span><p class="member-kicker member-kicker--light">Next move</p><h2>Sẵn sàng<br />ra sân.</h2><p>Xem lời nhắc mới nhất và theo dõi lịch sinh hoạt của câu lạc bộ.</p><button type="button" class="member-button member-button--signal" (click)="mockAction('Đồng bộ lịch cá nhân')">Thêm vào lịch <lucide-icon name="calendar" class="w-4 h-4"></lucide-icon></button></section>
           <section class="club-ledger"><header><p class="member-kicker">03 / Club code</p><h2>Quy ước cộng đồng</h2></header><ol><li>Phản hồi lịch trước buổi sinh hoạt.</li><li>Có mặt sớm ít nhất 10 phút.</li><li>Tôn trọng đồng đội và đối thủ.</li></ol></section>

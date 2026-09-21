@@ -1,9 +1,11 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, computed, ElementRef, inject, OnDestroy, signal } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, computed, DestroyRef, ElementRef, inject, OnDestroy, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { filter, forkJoin } from 'rxjs';
 import { Club, ClubInvitation, CreateClubPayload, MyClubMembership, SportType } from '@application/dto/club/club.dto';
 import { ClubRepositoryPort } from '@application/ports/club.repository.port';
 import { AuthService } from '@presentation/services/auth.service';
+import { NotificationService } from '@presentation/services/notification.service';
 import { NotifyService } from '@shared/components/notify/notify.service';
 import gsap from 'gsap';
 import { ClubLocationDataService } from './club-location-data.service';
@@ -31,6 +33,8 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly repository = inject(ClubRepositoryPort);
   private readonly auth = inject(AuthService);
+  private readonly notifications = inject(NotificationService);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly locationData = inject(ClubLocationDataService);
   private readonly elementRef = inject(ElementRef<HTMLElement>);
   private animationContext?: ReturnType<typeof gsap.context>;
@@ -55,6 +59,7 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
   readonly sortMode = signal<ClubSortMode>('RELEVANCE');
   readonly showCreateModal = signal(false);
   readonly requestClub = signal<ClubCardView | null>(null);
+  readonly requestSubmitting = signal(false);
   readonly sports = CLUB_SPORTS;
   readonly provinces = this.locationData.provinces;
 
@@ -91,6 +96,11 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
 
   constructor() {
     this.load();
+    this.notifications.realtimeNotifications$
+      .pipe(
+        filter(notification => ['CLUB', 'CLUB_PUBLIC', 'CLUB_INVITATION'].includes(notification.referenceType ?? '')),
+        takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.load());
   }
 
   load(): void {
@@ -216,6 +226,10 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
     void this.router.navigate(['/clubs', club.clubId]);
   }
 
+  openMyClub(club: ClubCardView): void {
+    void this.router.navigate(['/clubs/my', club.clubId]);
+  }
+
   goToClubFromKeyboard(event: Event, club: ClubCardView): void {
     event.preventDefault();
     this.goToClub(club);
@@ -264,28 +278,32 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
     this.sendJoin(club);
   }
 
-  closeJoinRequest(): void { this.requestClub.set(null); }
+  closeJoinRequest(): void {
+    if (!this.requestSubmitting()) this.requestClub.set(null);
+  }
 
-  submitJoinRequest(): void {
+  submitJoinRequest(message: string): void {
     const club = this.requestClub();
-    if (club) this.sendJoin(club);
-    this.requestClub.set(null);
+    if (club) this.sendJoin(club, message);
   }
 
   /**
    * Một đường gửi duy nhất cho cả CLB tự duyệt lẫn CLB duyệt tay: backend tự quyết
    * vào thẳng hay chờ duyệt theo approvalMode, client không đoán thay.
    */
-  private sendJoin(club: ClubCardView): void {
+  private sendJoin(club: ClubCardView, message?: string): void {
     if (this.mutating()) return;
     if (!this.signedIn()) {
       this.notify.info('Bạn cần đăng nhập để tham gia câu lạc bộ.');
       return;
     }
     this.mutating.set(true);
-    this.repository.joinClub(club.clubId).subscribe({
+    this.requestSubmitting.set(Boolean(message));
+    this.repository.joinClub(club.clubId, message).subscribe({
       next: member => {
         this.mutating.set(false);
+        this.requestSubmitting.set(false);
+        this.requestClub.set(null);
         this.notify.success(member.status === 'ACTIVE'
           ? `Đã tham gia ${club.name}.`
           : `Đã gửi yêu cầu tham gia ${club.name}, chờ ban quản trị duyệt.`);
@@ -293,6 +311,7 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
       },
       error: error => {
         this.mutating.set(false);
+        this.requestSubmitting.set(false);
         this.notify.error(error?.error?.message ?? 'Không gửi được yêu cầu tham gia.');
       }
     });

@@ -313,7 +313,7 @@ export class StompWebSocketService implements WebSocketService {
           this.isConnected = true;
           this.reconnectAttempts = 0;
           this.sendSubscribeFrame();
-          this.startNotificationHeartbeat();
+          this.startNotificationHeartbeat(frame.headers['heart-beat']);
           break;
         case 'MESSAGE':
           const currentUserId = this.currentUserProvider.getCurrentUserId();
@@ -357,18 +357,26 @@ export class StompWebSocketService implements WebSocketService {
     this.scheduleReconnect();
   }
 
-  private startNotificationHeartbeat(): void {
+  private startNotificationHeartbeat(serverHeartbeat?: string): void {
     this.stopNotificationHeartbeat();
+    const serverOutgoingMs = Number(serverHeartbeat?.split(',')[0] ?? 0);
+    // A CONNECTED heart-beat of 0,x means the server will not send heartbeats.
+    // Do not treat that valid STOMP negotiation as a dead connection every 25s.
+    if (!Number.isFinite(serverOutgoingMs) || serverOutgoingMs <= 0) return;
+
     this.lastNotificationActivityAt = Date.now();
+    const timeoutMs = Math.max(
+      StompWebSocketService.HEARTBEAT_TIMEOUT_MS,
+      serverOutgoingMs * 2.5
+    );
     this.notificationHeartbeatInterval = setInterval(() => {
       if (!this.socket || this.socket.readyState !== WebSocket.OPEN) return;
-      if (Date.now() - this.lastNotificationActivityAt > StompWebSocketService.HEARTBEAT_TIMEOUT_MS) {
+      if (Date.now() - this.lastNotificationActivityAt > timeoutMs) {
         console.warn('WebSocket notification heartbeat timed out; forcing reconnect.');
         this.socket.close();
         return;
       }
-      this.socket.send('\n');
-    }, StompWebSocketService.HEARTBEAT_INTERVAL_MS);
+    }, Math.max(StompWebSocketService.HEARTBEAT_INTERVAL_MS, serverOutgoingMs));
   }
 
   private stopNotificationHeartbeat(): void {
@@ -450,7 +458,7 @@ export class StompWebSocketService implements WebSocketService {
       this.publishPresence(true);
       this.stopPresenceHeartbeat();
       this.presenceHeartbeatInterval = setInterval(() => this.publishPresence(true), 15_000);
-      this.startSocialStompHeartbeat();
+      this.startSocialStompHeartbeat(frame.headers['heart-beat']);
       this.activeRoomSubscriptions.forEach(roomId => {
         this.socialSubscribe(`sub-social-room-${roomId}`, `/topic/conversations/${roomId}`);
         this.socialSubscribe(`sub-social-typing-${roomId}`, `/topic/conversations/${roomId}/typing`);
@@ -556,18 +564,23 @@ export class StompWebSocketService implements WebSocketService {
     this.presenceHeartbeatInterval = null;
   }
 
-  private startSocialStompHeartbeat(): void {
+  private startSocialStompHeartbeat(serverHeartbeat?: string): void {
     this.stopSocialStompHeartbeat();
+    const serverOutgoingMs = Number(serverHeartbeat?.split(',')[0] ?? 0);
+    if (!Number.isFinite(serverOutgoingMs) || serverOutgoingMs <= 0) return;
+
     this.lastSocialActivityAt = Date.now();
+    const timeoutMs = Math.max(
+      StompWebSocketService.HEARTBEAT_TIMEOUT_MS,
+      serverOutgoingMs * 2.5
+    );
     this.socialStompHeartbeatInterval = setInterval(() => {
       if (!this.socialSocket || this.socialSocket.readyState !== WebSocket.OPEN) return;
-      if (Date.now() - this.lastSocialActivityAt > StompWebSocketService.HEARTBEAT_TIMEOUT_MS) {
+      if (Date.now() - this.lastSocialActivityAt > timeoutMs) {
         console.warn('Social WebSocket heartbeat timed out; forcing reconnect.');
         this.socialSocket.close();
-        return;
       }
-      this.socialSocket.send('\n');
-    }, StompWebSocketService.HEARTBEAT_INTERVAL_MS);
+    }, Math.max(StompWebSocketService.HEARTBEAT_INTERVAL_MS, serverOutgoingMs));
   }
 
   private stopSocialStompHeartbeat(): void {
