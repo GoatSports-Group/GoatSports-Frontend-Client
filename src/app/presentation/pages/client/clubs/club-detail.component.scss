@@ -408,3 +408,37 @@
   .member-actions, .act-actions { margin-left: 0; width: 100%; }
   .member-actions button, .act-actions button { flex: 1; }
 }
+
+/* Mời thành viên: thanh công cụ, danh sách kết quả và dòng trạng thái rỗng. */
+.members-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+
+.empty-note {
+  margin: 12px 0;
+  color: #617086;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.invite-results {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid #e3e8ef;
+  border-radius: 10px;
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+
+    + li { border-top: 1px solid #eef1f6; }
+  }
+}

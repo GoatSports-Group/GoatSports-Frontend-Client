@@ -5,7 +5,7 @@ import { ClubRepositoryPort } from '@application/ports/club.repository.port';
 import { BaseResponse, PagedModelResponse } from '@application/dto/base/base-response';
 import {
   ClubActivityModel, ClubFeeModel, ClubFeePaymentModel, ClubMemberModel, ClubModel, ClubRole,
-  MyClubMembership,
+  MyClubMembership, ClubInvitationModel,
   CreateClubActivityPayload, CreateClubFeePayload, CreateClubPayload, SportType, UpdateClubPayload
 } from '@domain/models/club.model';
 import { API_ENDPOINTS } from '@infrastructure/config/api-endpoints';
@@ -35,6 +35,23 @@ export class ClubRepository extends ClubRepositoryPort {
     return this.http.get<BaseResponse<ClubActivityModel[]>>(`${this.baseUrl}/me/activities`,
       { params: new HttpParams().set('limit', limit) })
       .pipe(map(response => response.data ?? []));
+  }
+  override getMyInvitations(): Observable<ClubInvitationModel[]> {
+    return this.http.get<BaseResponse<ClubInvitationModel[]>>(`${this.baseUrl}/me/invitations`)
+      .pipe(map(response => response.data ?? []));
+  }
+  override acceptInvitation(invitationId: string): Observable<ClubMemberModel> {
+    return this.http.post<BaseResponse<ClubMemberModel>>(
+      `${this.baseUrl}/invitations/${invitationId}/accept`, {})
+      .pipe(map(response => response.data));
+  }
+  override declineInvitation(invitationId: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/invitations/${invitationId}/decline`, {});
+  }
+  override inviteMember(clubId: string, inviteeId: string, message?: string): Observable<ClubInvitationModel> {
+    return this.http.post<BaseResponse<ClubInvitationModel>>(
+      `${this.baseUrl}/${clubId}/invitations`, { inviteeId, message })
+      .pipe(map(response => response.data));
   }
   override getClubDetails(clubId: string): Observable<ClubModel> {
     return this.http.get<BaseResponse<ClubModel>>(`${this.baseUrl}/${clubId}`).pipe(map(response => response.data));

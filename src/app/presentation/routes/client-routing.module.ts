@@ -16,6 +16,9 @@ import { ClubListComponent } from '@presentation/pages/client/clubs/club-list.co
 import { ClubDetailComponent } from '@presentation/pages/client/clubs/club-detail.component';
 import { ClubFeaturedComponent } from '@presentation/pages/client/clubs/club-featured.component';
 import { ClubExploreComponent } from '@presentation/pages/client/clubs/club-explore.component';
+import { MyClubsComponent } from '@presentation/pages/client/clubs/my-clubs.component';
+import { ClubMemberWorkspaceComponent } from '@presentation/pages/client/clubs/club-member-workspace.component';
+import { ClubPlayerSearchComponent } from '@presentation/pages/client/clubs/club-player-search.component';
 import { TournamentListComponent } from '@presentation/pages/client/tournaments/tournament-list.component';
 import { TournamentDetailComponent } from '@presentation/pages/client/tournaments/tournament-detail.component';
 import { MatchmakingComponent } from '@presentation/pages/client/matchmaking/matchmaking.component';
@@ -51,6 +54,9 @@ const routes: Routes = [
       { path: 'clubs', component: ClubListComponent, title: 'Câu lạc bộ | GOAT Sports' },
       { path: 'clubs/featured', component: ClubFeaturedComponent, title: 'Câu lạc bộ nổi bật | GOAT Sports' },
       { path: 'clubs/explore', component: ClubExploreComponent, title: 'Khám phá câu lạc bộ | GOAT Sports' },
+      { path: 'clubs/my/:clubId/players', component: ClubPlayerSearchComponent, pathMatch: 'full', title: 'Tìm người chơi | GOAT Sports' },
+      { path: 'clubs/my/:clubId', component: ClubMemberWorkspaceComponent, pathMatch: 'full', title: 'Không gian câu lạc bộ | GOAT Sports' },
+      { path: 'clubs/my', component: MyClubsComponent, pathMatch: 'full', title: 'Câu lạc bộ của bạn | GOAT Sports' },
       { path: 'clubs/:clubId', component: ClubDetailComponent, title: 'Chi tiết câu lạc bộ | GOAT Sports' },
       { path: 'tournaments', component: TournamentListComponent, title: 'Giải đấu | GOAT Sports' },
       { path: 'tournaments/:id', component: TournamentDetailComponent, title: 'Chi tiết giải đấu | GOAT Sports' },

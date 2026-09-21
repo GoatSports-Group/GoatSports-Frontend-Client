@@ -1,0 +1,57 @@
+<main class="member-space-page member-space-page--workspace">
+  <nav class="member-breadcrumb" aria-label="Điều hướng phụ"><a routerLink="/clubs/my"><lucide-icon name="arrow-left" class="w-4 h-4"></lucide-icon>CLB của bạn</a><span aria-hidden="true">/</span><strong>Clubhouse</strong></nav>
+
+  @if (loading()) {
+    <section class="member-loading"><app-loading-skeleton height="360px"></app-loading-skeleton><app-loading-skeleton height="180px"></app-loading-skeleton></section>
+  } @else if (!isAuthenticated()) {
+    <section class="member-state"><span class="member-state__index">01</span><span class="member-state__icon"><lucide-icon name="lock" class="w-7 h-7"></lucide-icon></span><div><p class="member-kicker">Không gian riêng</p><h1>Đăng nhập để mở clubhouse</h1><p>Vai trò và công cụ quản lý chỉ hiển thị cho thành viên đã đăng nhập.</p></div><button type="button" class="member-button member-button--primary" (click)="login()">Đăng nhập <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></button></section>
+  } @else if (error()) {
+    <section class="member-state" role="alert"><span class="member-state__index">!</span><span class="member-state__icon"><lucide-icon name="search-x" class="w-7 h-7"></lucide-icon></span><div><h1>Chưa tải được câu lạc bộ</h1><p>{{ error() }}</p></div><button type="button" class="member-button member-button--outline" (click)="load()">Thử lại</button></section>
+  } @else if (!membership()) {
+    <section class="member-state"><span class="member-state__index">403</span><span class="member-state__icon"><lucide-icon name="users" class="w-7 h-7"></lucide-icon></span><div><p class="member-kicker">Quyền truy cập</p><h1>Bạn chưa thuộc câu lạc bộ này</h1><p>Không gian này chỉ dành cho chủ CLB, quản trị viên và thành viên đang hoạt động.</p></div><a class="member-button member-button--primary" routerLink="/clubs/explore">Khám phá CLB khác</a></section>
+  } @else if (club(); as currentClub) {
+    <header class="clubhouse-hero">
+      <img [src]="defaultClubBanner" (error)="useBannerFallback($event)" [alt]="'Banner ' + currentClub.name" />
+      <span class="clubhouse-hero__scrim" aria-hidden="true"></span><span class="clubhouse-hero__tape" aria-hidden="true">{{ sportLabel(currentClub.sportType) }} · {{ currentClub.privacy === 'PRIVATE' ? 'PRIVATE CLUB' : 'OPEN CLUB' }} · SEASON 2026</span>
+      <div class="clubhouse-hero__identity"><span class="member-club-logo member-club-logo--hero"><img [src]="currentClub.logoUrl || defaultClubLogo" (error)="useLogoFallback($event)" [alt]="'Logo ' + currentClub.name" /></span>
+        <div><div class="clubhouse-tags"><span>{{ sportLabel(currentClub.sportType) }}</span><span>{{ currentClub.privacy === 'PRIVATE' ? 'Riêng tư' : 'Công khai' }}</span><strong>{{ roleLabel(membership()!.role) }}</strong></div><h1>{{ currentClub.name }}</h1><p><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>{{ currentClub.location || 'Chưa cập nhật địa điểm sinh hoạt' }}</p></div></div>
+      <div class="clubhouse-hero__actions">
+        <span class="clubhouse-hero__action-label">Club control</span>
+        @if (isOwner()) { <button type="button" class="member-button member-button--primary" (click)="openPlayerSearch()"><lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon>Tìm người chơi</button> }
+        @if (isManager()) { <button type="button" class="member-button member-button--glass" (click)="mockAction('Chỉnh sửa thông tin CLB')"><lucide-icon name="settings" class="w-4 h-4"></lucide-icon>Thiết lập</button> } @else { <button type="button" class="member-button member-button--glass" (click)="mockAction('Mở nhóm chat')"><lucide-icon name="message-circle" class="w-4 h-4"></lucide-icon>Nhóm chat</button> }
+      </div>
+    </header>
+
+    <section class="club-statline" aria-label="Thông tin câu lạc bộ">
+      <div class="club-statline__lead"><small>Season report</small><strong>{{ currentClub.winRate }}%</strong><span>tỉ lệ thắng</span></div>
+      <div><span>01</span><b>{{ currentClub.memberCount }}</b><small>Thành viên</small></div><div><span>02</span><b>{{ currentClub.matchCount }}</b><small>Trận đã đấu</small></div><div><span>03</span><b>{{ currentClub.approvalMode === 'AUTO' ? 'Tự động' : 'Xét duyệt' }}</b><small>Cách tham gia</small></div>
+    </section>
+
+    <div class="clubhouse-layout">
+      <section class="activity-editorial" aria-labelledby="upcoming-title">
+        <header class="editorial-heading editorial-heading--rule"><div><p class="member-kicker">01 / ClubActivity</p><h2 id="upcoming-title">Nhịp hoạt động</h2></div><div class="editorial-heading__aside"><span>Admin tạo lời nhắc.</span><span>Thành viên chỉ cần xem lịch.</span></div>
+          @if (isManager()) { <button type="button" class="member-button member-button--outline" (click)="addMockReminder()">Tạo lời nhắc <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></button> }
+        </header>
+        <div class="fixture-list">
+          @for (reminder of reminders(); track reminder.id; let order = $index) {
+            <article class="fixture-row"><span class="fixture-row__number">0{{ order + 1 }}</span><time><b>{{ reminder.date }}</b><span>{{ reminder.time }}</span></time><div class="fixture-row__body"><p>Next session</p><h3>{{ reminder.title }}</h3><span><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>{{ reminder.location }}</span></div><p class="fixture-row__note">{{ reminder.note }}</p>
+              @if (isManager()) { <button type="button" aria-label="Sửa lời nhắc" (click)="mockAction('Chỉnh sửa lời nhắc')"><lucide-icon name="settings" class="w-4 h-4"></lucide-icon></button> }
+            </article>
+          }
+        </div>
+      </section>
+
+      <aside class="clubhouse-rail">
+        @if (isManager()) {
+          <section class="coach-note"><span class="coach-note__number">02</span><p class="member-kicker member-kicker--light">Recruitment desk</p><h2>Mở rộng<br />đội hình.</h2><p>Tìm người chơi phù hợp theo môn thể thao, khu vực và lịch hoạt động.</p>
+            @if (isOwner()) { <button type="button" class="member-button member-button--signal" (click)="openPlayerSearch()">Mở scouting board <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></button> } @else { <span class="workspace-note">Chỉ chủ CLB có thể gửi lời mời.</span> }
+          </section>
+          <section class="club-ledger"><header><p class="member-kicker">03 / Manager log</p><h2>Việc cần xử lý</h2></header><div><span>Yêu cầu tham gia</span><b>03</b></div><div><span>Lời mời đang chờ</span><b>05</b></div><div><span>Hồ sơ cần cập nhật</span><b>01</b></div></section>
+        } @else {
+          <section class="coach-note"><span class="coach-note__number">02</span><p class="member-kicker member-kicker--light">Next move</p><h2>Sẵn sàng<br />ra sân.</h2><p>Xem lời nhắc mới nhất và theo dõi lịch sinh hoạt của câu lạc bộ.</p><button type="button" class="member-button member-button--signal" (click)="mockAction('Đồng bộ lịch cá nhân')">Thêm vào lịch <lucide-icon name="calendar" class="w-4 h-4"></lucide-icon></button></section>
+          <section class="club-ledger"><header><p class="member-kicker">03 / Club code</p><h2>Quy ước cộng đồng</h2></header><ol><li>Phản hồi lịch trước buổi sinh hoạt.</li><li>Có mặt sớm ít nhất 10 phút.</li><li>Tôn trọng đồng đội và đối thủ.</li></ol></section>
+        }
+      </aside>
+    </div>
+  }
+</main>

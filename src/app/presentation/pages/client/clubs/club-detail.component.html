@@ -64,6 +64,14 @@
           }
         </div> } @else { <div class="empty-state"><p>Chưa có hoạt động nào.</p></div> }
       } @else if (activeTab() === 'MEMBERS') {
+        @if (isManager()) {
+          <div class="members-toolbar">
+            <button type="button" class="btn-join-main" (click)="openInviteModal()">Mời thành viên</button>
+          </div>
+        }
+        @if (!members().length) {
+          <p class="empty-note">Câu lạc bộ chưa có thành viên nào.</p>
+        }
         <div class="members-grid">
           @for (member of members(); track member.membershipId) {
             <article class="member-card">
@@ -177,6 +185,33 @@
           <div class="form-group"><label for="activity-end">Kết thúc *</label><input id="activity-end" type="datetime-local" [(ngModel)]="activityForm.endAt" /></div></div>
         <div class="modal-footer"><button type="button" class="btn-secondary" (click)="closeActivityModal()">Hủy</button>
           <button type="button" class="btn-join-main" [disabled]="mutating() || !activityForm.title || !activityForm.startAt || !activityForm.endAt" (click)="createActivity()">{{ editingActivityId() ? 'Lưu thay đổi' : 'Tạo hoạt động' }}</button></div>
+      </section></div>
+    }
+
+    @if (showInviteModal()) {
+      <div class="modal-overlay" (click)="showInviteModal.set(false)"><section class="modal-card" appAccessibleDialog aria-labelledby="invite-modal-title" (dialogClosed)="showInviteModal.set(false)" (click)="$event.stopPropagation()">
+        <h2 id="invite-modal-title">Mời thành viên</h2>
+        <div class="form-group"><label for="invite-query">Tìm người chơi</label>
+          <input id="invite-query" [(ngModel)]="inviteQuery" (input)="runInviteSearch()" placeholder="Nhập tên hoặc email" /></div>
+        <div class="form-group"><label for="invite-message">Lời nhắn (không bắt buộc)</label>
+          <textarea id="invite-message" [(ngModel)]="inviteMessage" rows="2" placeholder="Vài dòng giới thiệu câu lạc bộ..."></textarea></div>
+        @if (inviteSearching()) {
+          <p class="empty-note">Đang tìm...</p>
+        } @else if (inviteQuery.trim().length < 2) {
+          <p class="empty-note">Nhập ít nhất 2 ký tự để tìm người chơi.</p>
+        } @else if (!inviteResults().length) {
+          <p class="empty-note">Không tìm thấy người chơi nào khớp.</p>
+        } @else {
+          <ul class="invite-results">
+            @for (player of inviteResults(); track player.userId) {
+              <li>
+                <span>{{ player.fullName || player.username }}</span>
+                <button type="button" class="btn-join-main" [disabled]="mutating()" (click)="invite(player)">Mời</button>
+              </li>
+            }
+          </ul>
+        }
+        <div class="modal-footer"><button type="button" class="btn-secondary" (click)="showInviteModal.set(false)">Đóng</button></div>
       </section></div>
     }
 

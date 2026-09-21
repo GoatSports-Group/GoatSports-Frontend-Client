@@ -9,6 +9,8 @@ import { Club as ClubModel, ClubActivity as ClubActivityModel, ClubFee as ClubFe
   UpdateClubPayload, ClubPrivacy, ClubApprovalMode } from '@application/dto/club/club.dto';
 import { AuthService } from '@presentation/services/auth.service';
 import { PlayerDirectoryService } from '@presentation/services/player-directory.service';
+import { SearchPlayersUseCase } from '@application/usecase/user/search-players.usecase';
+import { PlayerSummary } from '@application/dto/user/user.dto';
 import { NotifyService } from '@shared/components/notify/notify.service';
 
 type ClubTab = 'OVERVIEW' | 'ACTIVITIES' | 'MEMBERS' | 'FEES';
@@ -23,6 +25,7 @@ export class ClubDetailComponent {
   private readonly repository = inject(ClubRepositoryPort);
   private readonly auth = inject(AuthService);
   private readonly directory = inject(PlayerDirectoryService);
+  private readonly searchPlayers = inject(SearchPlayersUseCase);
   private readonly notify = inject(NotifyService);
   readonly clubId = this.route.snapshot.paramMap.get('id') ?? '';
 
@@ -37,6 +40,9 @@ export class ClubDetailComponent {
   readonly mutating = signal(false);
   readonly showActivityModal = signal(false);
   readonly showFeeModal = signal(false);
+  readonly showInviteModal = signal(false);
+  readonly inviteResults = signal<PlayerSummary[]>([]);
+  readonly inviteSearching = signal(false);
   readonly showClubModal = signal(false);
   readonly fees = signal<ClubFeeModel[]>([]);
   readonly feePayments = signal<ReadonlyMap<string, ClubFeePaymentModel[]>>(new Map());
@@ -47,6 +53,8 @@ export class ClubDetailComponent {
   readonly isActiveMember = computed(() => this.membership()?.status === 'ACTIVE');
   activityForm: CreateClubActivityPayload = { title: '', description: '', startAt: '', endAt: '' };
   feeForm: CreateClubFeePayload = { name: '', amount: 0, dueDate: '', required: true };
+  inviteQuery = '';
+  inviteMessage = '';
   clubForm: UpdateClubPayload = { name: '', description: '', privacy: 'PUBLIC', approvalMode: 'AUTO' };
 
   constructor() { if (this.clubId) this.load(); else this.error.set('Mã câu lạc bộ không hợp lệ.'); }
@@ -293,6 +301,43 @@ export class ClubDetailComponent {
 
   setPrivacy(value: string): void { this.clubForm.privacy = value as ClubPrivacy; }
   setApprovalMode(value: string): void { this.clubForm.approvalMode = value as ClubApprovalMode; }
+
+  openInviteModal(): void {
+    this.inviteQuery = '';
+    this.inviteMessage = '';
+    this.inviteResults.set([]);
+    this.showInviteModal.set(true);
+  }
+
+  /** Tìm người chơi theo tên hoặc email; chỉ ban quản trị mới thấy nút mở ô này. */
+  runInviteSearch(): void {
+    const query = this.inviteQuery.trim();
+    if (query.length < 2) {
+      this.inviteResults.set([]);
+      return;
+    }
+    this.inviteSearching.set(true);
+    this.searchPlayers.execute(query).subscribe({
+      next: players => { this.inviteResults.set(players); this.inviteSearching.set(false); },
+      error: () => { this.inviteResults.set([]); this.inviteSearching.set(false); }
+    });
+  }
+
+  invite(player: PlayerSummary): void {
+    if (this.mutating()) return;
+    this.mutating.set(true);
+    this.repository.inviteMember(this.clubId, player.userId, this.inviteMessage.trim() || undefined).subscribe({
+      next: () => {
+        this.mutating.set(false);
+        this.showInviteModal.set(false);
+        this.notify.success(`Đã gửi lời mời tới ${player.fullName || player.username}.`);
+      },
+      error: error => {
+        this.mutating.set(false);
+        this.notify.error(error?.error?.message ?? 'Không gửi được lời mời.');
+      }
+    });
+  }
 
   openChat(): void { const id = this.club()?.conversationId; if (id) void this.router.navigate(['/chat', id]); }
   displayName(userId: string): string { return this.users().get(userId)?.fullName || this.users().get(userId)?.email || `Người dùng ${userId.slice(0, 8)}`; }

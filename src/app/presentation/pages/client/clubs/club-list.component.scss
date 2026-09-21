@@ -1267,6 +1267,22 @@ textarea:focus-visible {
   line-height: 1.55;
 }
 
+/* Nut dang nhap nam ngay trong cau van cua trang thai rong. */
+.link-action {
+  margin-left: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #0f7b4f;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+
+  &:hover { color: #0b5c3b; }
+  &:focus-visible { outline: 2px solid #0f7b4f; outline-offset: 2px; border-radius: 2px; }
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -1358,6 +1374,30 @@ textarea:focus-visible {
   justify-content: flex-end;
   gap: 10px;
   margin-top: 18px;
+}
+
+.modal-form {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+
+  &[disabled] {
+    opacity: .68;
+  }
+}
+
+.button-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: club-button-spin .7s linear infinite;
+}
+
+@keyframes club-button-spin {
+  to { transform: rotate(360deg); }
 }
 
 .sr-only {

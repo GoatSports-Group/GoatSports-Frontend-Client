@@ -27,6 +27,9 @@ import { ClubDetailComponent } from '@presentation/pages/client/clubs/club-detai
 import { ClubFeaturedComponent } from '@presentation/pages/client/clubs/club-featured.component';
 import { ClubExploreComponent } from '@presentation/pages/client/clubs/club-explore.component';
 import { ClubJoinRequestModalComponent } from '@presentation/pages/client/clubs/club-join-request-modal.component';
+import { MyClubsComponent } from '@presentation/pages/client/clubs/my-clubs.component';
+import { ClubMemberWorkspaceComponent } from '@presentation/pages/client/clubs/club-member-workspace.component';
+import { ClubPlayerSearchComponent } from '@presentation/pages/client/clubs/club-player-search.component';
 import { TournamentListComponent } from '@presentation/pages/client/tournaments/tournament-list.component';
 import { TournamentDetailComponent } from '@presentation/pages/client/tournaments/tournament-detail.component';
 import { MatchmakingComponent } from '@presentation/pages/client/matchmaking/matchmaking.component';
@@ -58,6 +61,9 @@ import { AiAssistantModalComponent } from '@presentation/shared/components/ai-as
     ClubFeaturedComponent,
     ClubExploreComponent,
     ClubJoinRequestModalComponent,
+    MyClubsComponent,
+    ClubMemberWorkspaceComponent,
+    ClubPlayerSearchComponent,
     TournamentListComponent,
     TournamentDetailComponent,
     MatchmakingComponent,

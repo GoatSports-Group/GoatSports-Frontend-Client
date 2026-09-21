@@ -2,6 +2,7 @@ export {
   ClubModel as Club,
   ClubMemberModel as ClubMember,
   MyClubMembership,
+  ClubInvitationModel as ClubInvitation,
   ClubActivityModel as ClubActivity,
   CreateClubPayload,
   CreateClubActivityPayload,

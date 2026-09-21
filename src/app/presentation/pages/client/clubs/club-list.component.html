@@ -2,7 +2,8 @@
   <div class="club-layout">
     <section class="club-main" aria-label="Khám phá câu lạc bộ">
       <section class="club-banner" aria-labelledby="club-page-title">
-        <img class="club-banner__media" [src]="defaultClubBanner" alt="Cộng đồng vận động viên GOAT Sports cùng tập luyện" />
+        <img class="club-banner__media" [src]="defaultClubBanner"
+          alt="Cộng đồng vận động viên GOAT Sports cùng tập luyện" />
         <span class="club-banner__scrim" aria-hidden="true"></span>
         <div class="club-banner__content">
           <p class="page-kicker">Cộng đồng thể thao dành cho bạn</p>
@@ -27,9 +28,10 @@
           <label class="filter-select">
             <lucide-icon name="trophy" class="w-4 h-4"></lucide-icon>
             <span class="sr-only">Môn thể thao</span>
-            <select [ngModel]="selectedSport()" (ngModelChange)="selectSport($event)" aria-label="Lọc theo môn thể thao">
+            <select [ngModel]="selectedSport()" (ngModelChange)="selectSport($event)"
+              aria-label="Lọc theo môn thể thao">
               @for (sport of sports; track sport.value) {
-                <option [ngValue]="sport.value">{{ sport.label }}</option>
+              <option [ngValue]="sport.value">{{ sport.label }}</option>
               }
             </select>
             <lucide-icon name="chevron-down" class="w-4 h-4"></lucide-icon>
@@ -40,7 +42,7 @@
             <select [ngModel]="selectedCity()" (ngModelChange)="updateCity($event)" aria-label="Lọc theo thành phố">
               <option value="ALL">Tất cả thành phố và tỉnh</option>
               @for (province of provinces(); track province.code) {
-                <option [value]="province.code">{{ province.name }}</option>
+              <option [value]="province.code">{{ province.name }}</option>
               }
             </select>
             <lucide-icon name="chevron-down" class="w-4 h-4"></lucide-icon>
@@ -60,48 +62,56 @@
         </header>
 
         @if (featuredClub(); as club) {
-          <article class="featured-club" role="link" tabindex="0" [attr.aria-label]="'Xem ' + club.name"
-            (click)="goToClub(club)" (keydown.enter)="goToClubFromKeyboard($event, club)">
-            <div class="featured-club__photo">
-              <img [src]="club.bannerUrl || defaultClubBanner" (error)="useBannerFallback($event)" [alt]="'Banner ' + club.name" />
-            </div>
-            <div class="featured-club__content">
-              <div class="featured-club__topline">
-                <div class="featured-club__identity">
-                  <span class="club-logo club-logo--large">
-                    <img [src]="club.logoUrl || defaultClubLogo" (error)="useLogoFallback($event)" [alt]="'Logo ' + club.name" />
-                  </span>
-                  <div>
-                    <span class="eyebrow">{{ sportLabel(club.sportType) }}</span>
-                    <h3>{{ club.name }}</h3>
-                  </div>
-                </div>
-                @if (club.action === 'JOIN' || club.action === 'REQUEST') {
-                  <button type="button" class="primary-action featured-club__action" (click)="handleClubAction($event, club)">
-                    {{ club.privacy === 'PRIVATE' ? 'Gửi yêu cầu' : 'Tham gia' }}
-                    <lucide-icon name="arrow-right" class="w-5 h-5"></lucide-icon>
-                  </button>
-                } @else if (club.action === 'PENDING') {
-                  <span class="card-status">Đang chờ duyệt</span>
-                } @else {
-                  <span class="card-status card-status--joined">Đã tham gia</span>
-                }
-              </div>
-              <p class="club-location"><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>{{ club.location }}</p>
-              <p class="featured-club__description">{{ club.description }}</p>
-              <div class="club-stats">
-                <span><lucide-icon name="users" class="w-5 h-5"></lucide-icon><b>{{ club.memberCount }}</b> thành viên</span>
-                <span><lucide-icon name="trophy" class="w-5 h-5"></lucide-icon><b>{{ club.winRate }}%</b> tỉ lệ thắng</span>
-                <span><lucide-icon name="activity" class="w-5 h-5"></lucide-icon>{{ club.activityLabel }}</span>
-              </div>
-            </div>
-          </article>
-        } @else {
-          <div class="empty-state">
-            <lucide-icon name="search-x" class="w-9 h-9"></lucide-icon>
-            <div><h3>Chưa có câu lạc bộ phù hợp</h3><p>Hãy thử đổi môn thể thao hoặc thành phố.</p></div>
-            <button type="button" class="secondary-action" (click)="clearFilters()">Xóa bộ lọc</button>
+        <article class="featured-club" role="link" tabindex="0" [attr.aria-label]="'Xem ' + club.name"
+          (click)="goToClub(club)" (keydown.enter)="goToClubFromKeyboard($event, club)">
+          <div class="featured-club__photo">
+            <img [src]="club.bannerUrl || defaultClubBanner" (error)="useBannerFallback($event)"
+              [alt]="'Banner ' + club.name" />
           </div>
+          <div class="featured-club__content">
+            <div class="featured-club__topline">
+              <div class="featured-club__identity">
+                <span class="club-logo club-logo--large">
+                  <img [src]="club.logoUrl || defaultClubLogo" (error)="useLogoFallback($event)"
+                    [alt]="'Logo ' + club.name" />
+                </span>
+                <div>
+                  <span class="eyebrow">{{ sportLabel(club.sportType) }}</span>
+                  <h3>{{ club.name }}</h3>
+                </div>
+              </div>
+              @if (club.action === 'JOIN' || club.action === 'REQUEST') {
+              <button type="button" class="primary-action featured-club__action"
+                (click)="handleClubAction($event, club)">
+                {{ club.privacy === 'PRIVATE' ? 'Gửi yêu cầu' : 'Tham gia' }}
+                <lucide-icon name="arrow-right" class="w-5 h-5"></lucide-icon>
+              </button>
+              } @else if (club.action === 'PENDING') {
+              <span class="card-status">Đang chờ duyệt</span>
+              } @else {
+              <span class="card-status card-status--joined">Đã tham gia</span>
+              }
+            </div>
+            <p class="club-location"><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>{{ club.location }}</p>
+            <p class="featured-club__description">{{ club.description }}</p>
+            <div class="club-stats">
+              <span><lucide-icon name="users" class="w-5 h-5"></lucide-icon><b>{{ club.memberCount }}</b> thành
+                viên</span>
+              <span><lucide-icon name="trophy" class="w-5 h-5"></lucide-icon><b>{{ club.winRate }}%</b> tỉ lệ
+                thắng</span>
+              <span><lucide-icon name="activity" class="w-5 h-5"></lucide-icon>{{ club.activityLabel }}</span>
+            </div>
+          </div>
+        </article>
+        } @else {
+        <div class="empty-state">
+          <lucide-icon name="search-x" class="w-9 h-9"></lucide-icon>
+          <div>
+            <h3>Chưa có câu lạc bộ phù hợp</h3>
+            <p>Hãy thử đổi môn thể thao hoặc thành phố.</p>
+          </div>
+          <button type="button" class="secondary-action" (click)="clearFilters()">Xóa bộ lọc</button>
+        </div>
         }
       </section>
 
@@ -112,7 +122,8 @@
             <p>Nhấn vào card để xem đầy đủ thông tin câu lạc bộ.</p>
           </div>
           <div class="discovery-controls">
-            <a class="text-action" routerLink="/clubs/explore">Xem tất cả <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a>
+            <a class="text-action" routerLink="/clubs/explore">Xem tất cả <lucide-icon name="arrow-right"
+                class="w-4 h-4"></lucide-icon></a>
             <label class="sort-select">
               <span class="sr-only">Sắp xếp câu lạc bộ</span>
               <select [ngModel]="sortMode()" (ngModelChange)="updateSortMode($event)" aria-label="Sắp xếp câu lạc bộ">
@@ -126,144 +137,225 @@
         </header>
 
         @if (discoveryClubs().length) {
-          <div class="club-grid">
-            @for (club of discoveryClubs(); track club.clubId) {
-              <article class="club-card" role="link" tabindex="0" [attr.aria-label]="'Xem chi tiết ' + club.name"
-                (click)="goToClub(club)" (keydown.enter)="goToClubFromKeyboard($event, club)">
-                <div class="club-card__cover">
-                  <img [src]="club.bannerUrl || defaultClubBanner" (error)="useBannerFallback($event)" [alt]="'Banner ' + club.name" />
-                  <span class="privacy-label"><lucide-icon [name]="club.privacy === 'PRIVATE' ? 'lock' : 'globe'" class="w-4 h-4"></lucide-icon>{{ club.privacy === 'PRIVATE' ? 'Riêng tư' : 'Công khai' }}</span>
+        <div class="club-grid">
+          @for (club of discoveryClubs(); track club.clubId) {
+          <article class="club-card" role="link" tabindex="0" [attr.aria-label]="'Xem chi tiết ' + club.name"
+            (click)="goToClub(club)" (keydown.enter)="goToClubFromKeyboard($event, club)">
+            <div class="club-card__cover">
+              <img [src]="club.bannerUrl || defaultClubBanner" (error)="useBannerFallback($event)"
+                [alt]="'Banner ' + club.name" />
+              <span class="privacy-label"><lucide-icon [name]="club.privacy === 'PRIVATE' ? 'lock' : 'globe'"
+                  class="w-4 h-4"></lucide-icon>{{ club.privacy === 'PRIVATE' ? 'Riêng tư' : 'Công khai' }}</span>
+            </div>
+            <div class="club-card__body">
+              <div class="club-card__identity">
+                <span class="club-logo">
+                  <img [src]="club.logoUrl || defaultClubLogo" (error)="useLogoFallback($event)"
+                    [alt]="'Logo ' + club.name" />
+                </span>
+                <div>
+                  <h3>{{ club.name }}</h3>
+                  <p>{{ sportLabel(club.sportType) }} <i aria-hidden="true">|</i> {{ club.location }}</p>
                 </div>
-                <div class="club-card__body">
-                  <div class="club-card__identity">
-                    <span class="club-logo">
-                      <img [src]="club.logoUrl || defaultClubLogo" (error)="useLogoFallback($event)" [alt]="'Logo ' + club.name" />
-                    </span>
-                    <div><h3>{{ club.name }}</h3><p>{{ sportLabel(club.sportType) }} <i aria-hidden="true">|</i> {{ club.location }}</p></div>
-                  </div>
-                  <p class="club-card__description">{{ club.description }}</p>
-                  <footer class="club-card__footer">
-                    <div class="club-card__metrics">
-                      <span><lucide-icon name="users" class="w-4 h-4"></lucide-icon>{{ club.memberCount }} thành viên</span>
-                      <span><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon>{{ club.winRate }}% thắng</span>
-                    </div>
-                    @if (club.action === 'JOIN' || club.action === 'REQUEST') {
-                      <button type="button" [class.button-outline]="club.privacy === 'PRIVATE'" (click)="handleClubAction($event, club)">
-                        {{ club.privacy === 'PRIVATE' ? 'Gửi yêu cầu' : 'Tham gia' }}
-                        <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon>
-                      </button>
-                    } @else if (club.action === 'PENDING') {
-                      <span class="card-status">Đang chờ duyệt</span>
-                    } @else {
-                      <span class="card-status card-status--joined">Đã tham gia</span>
-                    }
-                  </footer>
+              </div>
+              <p class="club-card__description">{{ club.description }}</p>
+              <footer class="club-card__footer">
+                <div class="club-card__metrics">
+                  <span><lucide-icon name="users" class="w-4 h-4"></lucide-icon>{{ club.memberCount }} thành viên</span>
+                  <span><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon>{{ club.winRate }}% thắng</span>
                 </div>
-              </article>
-            }
-          </div>
+                @if (club.action === 'JOIN' || club.action === 'REQUEST') {
+                <button type="button" [class.button-outline]="club.privacy === 'PRIVATE'"
+                  (click)="handleClubAction($event, club)">
+                  {{ club.privacy === 'PRIVATE' ? 'Gửi yêu cầu' : 'Tham gia' }}
+                  <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon>
+                </button>
+                } @else if (club.action === 'PENDING') {
+                <span class="card-status">Đang chờ duyệt</span>
+                } @else {
+                <span class="card-status card-status--joined">Đã tham gia</span>
+                }
+              </footer>
+            </div>
+          </article>
+          }
+        </div>
         } @else if (featuredClub()) {
-          <div class="empty-state empty-state--compact">
-            <lucide-icon name="users" class="w-8 h-8"></lucide-icon>
-            <div><h3>Đây là kết quả phù hợp duy nhất</h3><p>Đổi bộ lọc để khám phá thêm câu lạc bộ khác.</p></div>
+        <div class="empty-state empty-state--compact">
+          <lucide-icon name="users" class="w-8 h-8"></lucide-icon>
+          <div>
+            <h3>Đây là kết quả phù hợp duy nhất</h3>
+            <p>Đổi bộ lọc để khám phá thêm câu lạc bộ khác.</p>
           </div>
+        </div>
         }
       </section>
     </section>
 
     <aside class="community-rail" aria-label="Thông tin câu lạc bộ của bạn">
       <div class="community-rail__grid">
-      <section class="rail-section">
-        <header class="rail-header">
-          <div><p class="page-kicker">Cộng đồng</p><h2>CLB của bạn</h2></div>
-          <button type="button" class="text-action" (click)="comingSoon()">Xem tất cả <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></button>
-        </header>
-        <div class="rail-list">
-          @for (club of myClubs(); track club.clubId) {
+        <section class="rail-section">
+          <header class="rail-header">
+            <div>
+              <p class="page-kicker">Cộng đồng</p>
+              <h2>CLB của bạn</h2>
+            </div>
+            <a class="text-action" routerLink="/clubs/my">Xem tất cả <lucide-icon name="arrow-right"
+                class="w-4 h-4"></lucide-icon></a>
+          </header>
+          @if (!signedIn()) {
+          <p class="rail-empty">Đăng nhập để xem câu lạc bộ bạn đang sinh hoạt.
+            <button type="button" class="link-action" (click)="goToLogin()">Đăng nhập</button>
+          </p>
+          } @else if (!myClubs().length) {
+          <p class="rail-empty">Bạn chưa tham gia câu lạc bộ nào. Chọn một câu lạc bộ bên trái để bắt đầu.</p>
+          }
+          <div class="rail-list">
+            @for (club of myClubs(); track club.clubId) {
             <button type="button" class="compact-club" (click)="goToClub(club)">
-              <span class="compact-logo"><img [src]="club.logoUrl || defaultClubLogo" (error)="useLogoFallback($event)" [alt]="'Logo ' + club.name" /></span>
-              <span class="compact-club__content"><strong>{{ club.name }}</strong><small>{{ sportLabel(club.sportType) }} <i aria-hidden="true">|</i> {{ club.location }}</small><small><lucide-icon name="users" class="w-3 h-3"></lucide-icon>{{ club.memberCount }} thành viên</small></span>
+              <span class="compact-logo"><img [src]="club.logoUrl || defaultClubLogo" (error)="useLogoFallback($event)"
+                  [alt]="'Logo ' + club.name" /></span>
+              <span class="compact-club__content"><strong>{{ club.name }}</strong><small>{{ sportLabel(club.sportType)
+                  }} <i aria-hidden="true">|</i> {{ club.location }}</small><small><lucide-icon name="users"
+                    class="w-3 h-3"></lucide-icon>{{ club.memberCount }} thành viên</small></span>
               <span class="member-label">{{ club.activityLabel }}</span>
               <lucide-icon name="chevron-right" class="w-5 h-5"></lucide-icon>
             </button>
-          }
-        </div>
-      </section>
-
-      <section class="rail-section">
-        <header class="rail-header">
-          <div class="rail-title-row"><h2>Yêu cầu của bạn</h2><span class="count-badge">{{ pendingRequests().length }}</span></div>
-        </header>
-        @if (pendingRequests().length) {
-          <div class="rail-list">
-            @for (request of pendingRequests(); track request.clubId) {
-              <article class="invitation-row">
-                <span class="compact-logo"><img [src]="request.logoUrl || defaultClubLogo" (error)="useLogoFallback($event)" [alt]="'Logo ' + request.name" /></span>
-                <span class="invitation-row__content"><strong>{{ request.name }}</strong><small>{{ sportLabel(request.sportType) }}</small><small>Đang chờ ban quản trị duyệt</small></span>
-                <span class="pending-label">Đang chờ</span>
-              </article>
             }
           </div>
-        } @else {
-          <p class="rail-empty">Bạn không có yêu cầu nào đang chờ duyệt.</p>
-        }
-      </section>
+        </section>
 
-      <section class="rail-section">
-        <header class="rail-header">
-          <h2>Hoạt động sắp tới</h2>
-          <button type="button" class="text-action" (click)="comingSoon()">Xem tất cả <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></button>
-        </header>
-        @if (!upcomingActivities().length) {
-          <p class="rail-empty">Chưa có hoạt động nào sắp diễn ra.</p>
-        }
-        <div class="activity-list">
-          @for (activity of upcomingActivities(); track activity.activityId) {
+        <section class="rail-section">
+          <header class="rail-header">
+            <div class="rail-title-row">
+              <h2>Lời mời & Yêu cầu</h2><span class="count-badge">{{ invitations().length + pendingRequests().length
+                }}</span>
+            </div>
+          </header>
+          @if (!signedIn()) {
+          <p class="rail-empty">Đăng nhập để xem lời mời và yêu cầu tham gia của bạn.
+            <button type="button" class="link-action" (click)="goToLogin()">Đăng nhập</button>
+          </p>
+          } @else if (invitations().length || pendingRequests().length) {
+          <div class="rail-list">
+            @for (invitation of invitations(); track invitation.invitationId) {
+            <article class="invitation-row">
+              <span class="compact-logo"><img [src]="invitation.club.logoUrl || defaultClubLogo"
+                  (error)="useLogoFallback($event)" [alt]="'Logo ' + invitation.club.name" /></span>
+              <span class="invitation-row__content"><strong>{{ invitation.club.name }}</strong><small>Đã mời bạn tham
+                  gia</small>@if (invitation.message) {<small>{{ invitation.message }}</small>}</span>
+              <span class="invitation-actions">
+                <button type="button" class="accept-button" [disabled]="mutating()"
+                  (click)="acceptInvitation(invitation)">Chấp nhận</button>
+                <button type="button" class="decline-button" aria-label="Từ chối lời mời" [disabled]="mutating()"
+                  (click)="declineInvitation(invitation)"><lucide-icon name="x" class="w-4 h-4"></lucide-icon></button>
+              </span>
+            </article>
+            }
+            @for (request of pendingRequests(); track request.clubId) {
+            <article class="invitation-row">
+              <span class="compact-logo"><img [src]="request.logoUrl || defaultClubLogo"
+                  (error)="useLogoFallback($event)" [alt]="'Logo ' + request.name" /></span>
+              <span class="invitation-row__content"><strong>{{ request.name }}</strong><small>{{
+                  sportLabel(request.sportType) }}</small><small>Đang chờ ban quản trị duyệt</small></span>
+              <span class="pending-label">Đang chờ</span>
+            </article>
+            }
+          </div>
+          } @else {
+          <p class="rail-empty">Bạn không có lời mời hay yêu cầu nào đang chờ.</p>
+          }
+        </section>
+
+        <section class="rail-section">
+          <header class="rail-header">
+            <h2>Hoạt động sắp tới</h2>
+            <button type="button" class="text-action" (click)="comingSoon()">Xem tất cả <lucide-icon name="arrow-right"
+                class="w-4 h-4"></lucide-icon></button>
+          </header>
+          @if (!signedIn()) {
+          <p class="rail-empty">Đăng nhập để xem lịch hoạt động của câu lạc bộ bạn tham gia.
+            <button type="button" class="link-action" (click)="goToLogin()">Đăng nhập</button>
+          </p>
+          } @else if (!upcomingActivities().length) {
+          <p class="rail-empty">Chưa có hoạt động nào sắp diễn ra. Ban quản trị câu lạc bộ sẽ đăng lời nhắc ở đây.</p>
+          }
+          <div class="activity-list">
+            @for (activity of upcomingActivities(); track activity.activityId) {
             <button type="button" class="activity-row" (click)="comingSoon()">
               <time><span>{{ activity.day }}</span><b>{{ activity.date }}</b><small>{{ activity.month }}</small></time>
-              <span class="activity-row__content"><strong>{{ activity.title }}</strong><small>{{ activity.clubName }}</small><small><lucide-icon name="map-pin" class="w-3 h-3"></lucide-icon>{{ activity.location }}</small><small><lucide-icon name="clock" class="w-3 h-3"></lucide-icon>{{ activity.time }}</small></span>
+              <span class="activity-row__content"><strong>{{ activity.title }}</strong><small>{{ activity.clubName
+                  }}</small><small><lucide-icon name="map-pin" class="w-3 h-3"></lucide-icon>{{ activity.location
+                  }}</small><small><lucide-icon name="clock" class="w-3 h-3"></lucide-icon>{{ activity.time
+                  }}</small></span>
             </button>
-          }
-        </div>
-      </section>
+            }
+          </div>
+        </section>
 
-      <section class="rail-section">
-        <header class="rail-header">
-          <h2>Trận đấu mở</h2>
-        </header>
-        <p class="rail-empty">Chức năng đang phát triển.</p>
-      </section>
+        <section class="rail-section">
+          <header class="rail-header">
+            <h2>Trận đấu mở</h2>
+          </header>
+          <p class="rail-empty">Chức năng đang phát triển.</p>
+        </section>
       </div>
     </aside>
   </div>
 
   @if (showCreateModal()) {
-    <div class="modal-overlay" role="presentation" (click)="closeCreateModal()">
-      <section class="modal-card" appAccessibleDialog aria-labelledby="create-club-title" (dialogClosed)="closeCreateModal()" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-          <div><p class="page-kicker">Dữ liệu xem trước</p><h2 id="create-club-title">Tạo câu lạc bộ mẫu</h2></div>
-          <button type="button" class="icon-button" aria-label="Đóng" (click)="closeCreateModal()"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button>
+  <div class="modal-overlay" role="presentation" (click)="closeCreateModal()">
+    <section class="modal-card" appAccessibleDialog aria-labelledby="create-club-title" [attr.aria-busy]="creating()"
+      (dialogClosed)="closeCreateModal()" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h2 id="create-club-title">Tạo câu lạc bộ mẫu</h2>
         </div>
-        <p class="modal-note"><lucide-icon name="info" class="w-4 h-4"></lucide-icon>Bạn sẽ là chủ câu lạc bộ này và có thể mời thêm thành viên sau khi tạo.</p>
-        <div class="modal-body">
-          <div class="form-group"><label for="club-name">Tên câu lạc bộ *</label><input id="club-name" [(ngModel)]="createForm.name" placeholder="Ví dụ: GOAT Weekend Club" /></div>
-          <div class="form-group"><label for="club-description">Mô tả</label><textarea id="club-description" rows="3" [(ngModel)]="createForm.description" placeholder="Mô tả ngắn về cộng đồng..."></textarea></div>
-          <div class="form-row">
-            <div class="form-group"><label for="club-sport">Môn thể thao</label><select id="club-sport" [(ngModel)]="createForm.sportType">@for (sport of sports.slice(1); track sport.value) { <option [ngValue]="sport.value">{{ sport.label }}</option> }</select></div>
-            <div class="form-group"><label for="club-privacy">Quyền riêng tư</label><select id="club-privacy" [(ngModel)]="createForm.privacy"><option value="PUBLIC">Công khai</option><option value="PRIVATE">Riêng tư</option></select></div>
-          </div>
-          <div class="form-row">
-            <div class="form-group"><label for="club-approval">Duyệt thành viên</label><select id="club-approval" [(ngModel)]="createForm.approvalMode"><option value="AUTO">Tự động</option><option value="MANUAL">Chủ CLB duyệt</option></select></div>
-            <div class="form-group"><label for="club-city">Tỉnh/Thành phố</label><select id="club-city" [(ngModel)]="createForm.city"><option value="">Chưa chọn</option>@for (province of provinces(); track province.code) { <option [value]="province.code">{{ province.name }}</option> }</select></div>
-          </div>
-          <div class="form-group"><label for="club-location">Địa điểm sinh hoạt</label><input id="club-location" [(ngModel)]="createForm.location" placeholder="Ví dụ: Quận 7, TP. Hồ Chí Minh" /></div>
+        <button type="button" class="icon-button" aria-label="Đóng" [disabled]="creating()" (click)="closeCreateModal()"><lucide-icon name="x"
+            class="w-5 h-5"></lucide-icon></button>
+      </div>
+      <p class="modal-note"><lucide-icon name="info" class="w-4 h-4"></lucide-icon>Bạn sẽ là chủ câu lạc bộ này và có
+        thể mời thêm thành viên sau khi tạo.</p>
+      <fieldset class="modal-body modal-form" [disabled]="creating()">
+        <div class="form-group"><label for="club-name">Tên câu lạc bộ *</label><input id="club-name"
+            [(ngModel)]="createForm.name" placeholder="Ví dụ: GOAT Weekend Club" /></div>
+        <div class="form-group"><label for="club-description">Mô tả</label><textarea id="club-description" rows="3"
+            [(ngModel)]="createForm.description" placeholder="Mô tả ngắn về cộng đồng..."></textarea></div>
+        <div class="form-row">
+          <div class="form-group"><label for="club-sport">Môn thể thao</label><select id="club-sport"
+              [(ngModel)]="createForm.sportType">@for (sport of sports.slice(1); track sport.value) { <option
+                [ngValue]="sport.value">{{ sport.label }}</option> }</select></div>
+          <div class="form-group"><label for="club-privacy">Quyền riêng tư</label><select id="club-privacy"
+              [(ngModel)]="createForm.privacy">
+              <option value="PUBLIC">Công khai</option>
+              <option value="PRIVATE">Riêng tư</option>
+            </select></div>
         </div>
-        <div class="modal-footer"><button type="button" class="secondary-action" (click)="closeCreateModal()">Hủy</button><button type="button" class="primary-action" [disabled]="!createForm.name.trim()" (click)="createClub()">Tạo câu lạc bộ</button></div>
-      </section>
-    </div>
+        <div class="form-row">
+          <div class="form-group"><label for="club-approval">Duyệt thành viên</label><select id="club-approval"
+              [(ngModel)]="createForm.approvalMode">
+              <option value="AUTO">Tự động</option>
+              <option value="MANUAL">Chủ CLB duyệt</option>
+            </select></div>
+          <div class="form-group"><label for="club-city">Tỉnh/Thành phố</label><select id="club-city"
+              [(ngModel)]="createForm.city">
+              <option value="">Chưa chọn</option>@for (province of provinces(); track province.code) { <option
+                [value]="province.code">{{ province.name }}</option> }
+            </select></div>
+        </div>
+        <div class="form-group"><label for="club-location">Địa điểm sinh hoạt</label><input id="club-location"
+            [(ngModel)]="createForm.location" placeholder="Ví dụ: Quận 7, TP. Hồ Chí Minh" /></div>
+      </fieldset>
+      <div class="modal-footer"><button type="button" class="secondary-action"
+          [disabled]="creating()" (click)="closeCreateModal()">Hủy</button><button type="button" class="primary-action"
+          [disabled]="!createForm.name.trim() || creating()" (click)="createClub()">
+          @if (creating()) { <span class="button-spinner" aria-hidden="true"></span> Đang tạo... } @else { Tạo câu lạc bộ }
+        </button></div>
+    </section>
+  </div>
   }
 
   @if (requestClub(); as club) {
-    <app-club-join-request-modal [club]="club" (cancelled)="closeJoinRequest()" (submitted)="submitJoinRequest()" />
+  <app-club-join-request-modal [club]="club" (cancelled)="closeJoinRequest()" (submitted)="submitJoinRequest()" />
   }
 </main>

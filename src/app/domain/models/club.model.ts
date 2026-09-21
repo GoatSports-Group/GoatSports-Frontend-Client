@@ -50,6 +50,20 @@ export interface MyClubMembership {
   club: ClubModel;
 }
 
+export type ClubInvitationStatus = 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'CANCELLED';
+
+/** Loi moi CLB gui cho toi. */
+export interface ClubInvitationModel {
+  invitationId: string;
+  inviteeId: string;
+  invitedBy: string;
+  status: ClubInvitationStatus;
+  message?: string;
+  createdAt?: string;
+  respondedAt?: string;
+  club: ClubModel;
+}
+
 export interface ClubMemberModel {
   membershipId: string;
   clubId: string;

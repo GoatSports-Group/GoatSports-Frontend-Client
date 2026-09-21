@@ -1,0 +1,71 @@
+<main class="member-space-page member-space-page--roster">
+  <nav class="member-breadcrumb" aria-label="Điều hướng phụ">
+    <a routerLink="/clubs"><lucide-icon name="arrow-left" class="w-4 h-4"></lucide-icon>Quay lại Câu lạc bộ</a>
+    <span aria-hidden="true">/</span><strong>CLB của bạn</strong>
+  </nav>
+
+  <header class="roster-masthead">
+    <img [src]="defaultClubBanner" alt="Cộng đồng câu lạc bộ GOAT Sports" />
+    <span class="roster-masthead__scrim" aria-hidden="true"></span>
+    <span class="roster-masthead__tape" aria-hidden="true">MY CLUBS · GOAT SPORTS · MY CLUBS</span>
+    <div class="roster-masthead__copy">
+      <p class="member-kicker member-kicker--light"><span>Clubhouse</span> / Mùa giải 2026</p>
+      <h1><span>Câu lạc bộ</span><em>của bạn.</em></h1>
+      <p>Nơi bạn dẫn dắt một tập thể, giữ nhịp cộng đồng và tiếp tục hành trình cùng những đội bóng mình thuộc về.</p>
+    </div>
+    @if (isAuthenticated()) {
+      <aside class="roster-scoreboard" aria-label="Thống kê câu lạc bộ">
+        <div class="roster-scoreboard__total"><small>Tổng đội hình</small><strong>{{ memberships().length }}</strong><span>câu lạc bộ</span></div>
+        <div class="roster-scoreboard__split"><span><b>{{ ownerCount() }}</b><small>Đang dẫn dắt</small></span><span><b>{{ memberCount() }}</b><small>Đang thi đấu</small></span></div>
+      </aside>
+    }
+  </header>
+
+  @if (loading()) {
+    <section class="member-loading" aria-label="Đang tải câu lạc bộ"><app-loading-skeleton height="146px"></app-loading-skeleton><app-loading-skeleton height="146px"></app-loading-skeleton><app-loading-skeleton height="146px"></app-loading-skeleton></section>
+  } @else if (!isAuthenticated()) {
+    <section class="member-state" aria-labelledby="login-required-title"><span class="member-state__index">01</span><span class="member-state__icon"><lucide-icon name="lock" class="w-7 h-7"></lucide-icon></span>
+      <div><p class="member-kicker">Nội dung dành cho thành viên</p><h2 id="login-required-title">Đăng nhập để mở clubhouse</h2><p>Danh sách vai trò, hoạt động quản lý và lời mời chỉ hiển thị sau khi bạn đăng nhập.</p></div>
+      <button type="button" class="member-button member-button--primary" (click)="login()">Đăng nhập <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></button></section>
+  } @else if (error()) {
+    <section class="member-state" role="alert"><span class="member-state__index">!</span><span class="member-state__icon"><lucide-icon name="search-x" class="w-7 h-7"></lucide-icon></span>
+      <div><p class="member-kicker">Kết nối gián đoạn</p><h2>Chưa tải được danh sách</h2><p>{{ error() }}</p></div><button type="button" class="member-button member-button--outline" (click)="load()">Thử lại</button></section>
+  } @else {
+    <section class="roster-command" aria-label="Lọc câu lạc bộ của bạn">
+      <div class="roster-command__label"><span>01</span><div><small>Roster control</small><strong>Lọc đội hình</strong></div></div>
+      <label class="member-search"><lucide-icon name="search" class="w-5 h-5"></lucide-icon><span class="sr-only">Tìm câu lạc bộ</span><input type="search" [ngModel]="keyword()" (ngModelChange)="updateKeyword($event)" placeholder="Tên câu lạc bộ hoặc địa điểm..." /></label>
+      <label class="member-select"><span class="sr-only">Lọc theo vai trò</span><select [ngModel]="selectedRole()" (ngModelChange)="updateRole($event)"><option value="ALL">Mọi vai trò</option><option value="OWNER">Chủ CLB</option><option value="ADMIN">Quản trị viên</option><option value="MEMBER">Thành viên</option></select><lucide-icon name="chevron-down" class="w-4 h-4"></lucide-icon></label>
+      <label class="member-select"><span class="sr-only">Lọc theo môn thể thao</span><select [ngModel]="selectedSport()" (ngModelChange)="updateSport($event)">@for (sport of sports; track sport.value) { <option [value]="sport.value">{{ sport.label }}</option> }</select><lucide-icon name="chevron-down" class="w-4 h-4"></lucide-icon></label>
+    </section>
+
+    <section class="roster-section" aria-labelledby="my-clubs-title">
+      <header class="editorial-heading"><div><p class="member-kicker">Your line-up</p><h2 id="my-clubs-title">Đội hình hiện tại</h2></div><p><b>{{ filteredMemberships().length }}</b> câu lạc bộ · Chọn một đội để mở đúng công cụ theo vai trò.</p></header>
+
+      @if (pagedMemberships().length) {
+        <div class="roster-grid" aria-label="Danh sách câu lạc bộ của bạn">
+          @for (item of pagedMemberships(); track item.membershipId; let rank = $index) {
+            <article class="roster-card" tabindex="0" role="link" [attr.aria-label]="'Mở ' + item.club.name" (click)="openClub(item)" (keydown.enter)="openClub(item)">
+              <div class="roster-card__visual"><img [src]="defaultClubBanner" (error)="useBannerFallback($event)" [alt]="'Banner ' + item.club.name" />
+                <span class="roster-card__number" aria-hidden="true">{{ pageIndex() * pageSize + rank + 1 }}</span>
+                <span class="role-flag" [class.role-flag--owner]="item.role === 'OWNER'"><lucide-icon [name]="item.role === 'OWNER' ? 'shield-check' : 'users'" class="w-4 h-4"></lucide-icon>{{ roleLabel(item.role) }}</span>
+              </div>
+              <div class="roster-card__content">
+                <header><span class="member-club-logo"><img [src]="item.club.logoUrl || defaultClubLogo" (error)="useLogoFallback($event)" [alt]="'Logo ' + item.club.name" /></span><div><p>{{ sportLabel(item.club.sportType) }}</p><h3>{{ item.club.name }}</h3></div></header>
+                <p class="roster-card__location"><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>{{ item.club.location || 'Chưa cập nhật địa điểm' }}</p>
+                <p class="roster-card__description">{{ item.club.description || 'Câu lạc bộ chưa cập nhật phần giới thiệu.' }}</p>
+                <footer><div class="club-inline-stats"><span><b>{{ item.club.memberCount }}</b><small>thành viên</small></span><i></i><span><b>{{ item.club.winRate }}%</b><small>tỉ lệ thắng</small></span></div>
+                  <button type="button" class="member-button member-button--arrow" (click)="$event.stopPropagation(); openClub(item)"><span>{{ item.role === 'OWNER' || item.role === 'ADMIN' ? 'Quản lý CLB' : 'Vào clubhouse' }}</span><lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></button></footer>
+              </div>
+            </article>
+          }
+        </div>
+        <app-pagination [pageIndex]="pageIndex()" [pageSize]="pageSize" [totalItems]="filteredMemberships().length" (pageChange)="changePage($event)"></app-pagination>
+      } @else {
+        <section class="member-state member-state--center"><span class="member-state__index">00</span><span class="member-state__icon"><lucide-icon name="search-x" class="w-7 h-7"></lucide-icon></span>
+          <div><h2>{{ hasFilters() ? 'Không có đội phù hợp' : 'Đội hình đang trống' }}</h2><p>{{ hasFilters() ? 'Thử đổi từ khóa, vai trò hoặc môn thể thao.' : 'Khám phá cộng đồng phù hợp và bắt đầu tham gia.' }}</p></div>
+          @if (hasFilters()) { <button type="button" class="member-button member-button--outline" (click)="clearFilters()">Xóa bộ lọc</button> } @else { <a class="member-button member-button--primary" routerLink="/clubs/explore">Khám phá CLB</a> }
+        </section>
+      }
+    </section>
+  }
+</main>

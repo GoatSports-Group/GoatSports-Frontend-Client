@@ -1,8 +1,9 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, computed, ElementRef, inject, OnDestroy, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
-import { Club, CreateClubPayload, MyClubMembership, SportType } from '@application/dto/club/club.dto';
+import { Club, ClubInvitation, CreateClubPayload, MyClubMembership, SportType } from '@application/dto/club/club.dto';
 import { ClubRepositoryPort } from '@application/ports/club.repository.port';
+import { AuthService } from '@presentation/services/auth.service';
 import { NotifyService } from '@shared/components/notify/notify.service';
 import gsap from 'gsap';
 import { ClubLocationDataService } from './club-location-data.service';
@@ -29,6 +30,7 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
   private readonly notify = inject(NotifyService);
   private readonly router = inject(Router);
   private readonly repository = inject(ClubRepositoryPort);
+  private readonly auth = inject(AuthService);
   private readonly locationData = inject(ClubLocationDataService);
   private readonly elementRef = inject(ElementRef<HTMLElement>);
   private animationContext?: ReturnType<typeof gsap.context>;
@@ -40,9 +42,13 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
   readonly myClubs = signal<ClubCardView[]>([]);
   readonly pendingRequests = signal<ClubCardView[]>([]);
   readonly upcomingActivities = signal<ActivityView[]>([]);
+  readonly invitations = signal<ClubInvitation[]>([]);
+  /** Ba khối bên phải chỉ có nghĩa khi biết bạn là ai, nên hỏi trước khi gọi API. */
+  readonly signedIn = signal(false);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly mutating = signal(false);
+  readonly creating = signal(false);
 
   readonly selectedSport = signal<SportType | 'ALL'>('ALL');
   readonly selectedCity = signal<string | 'ALL'>('ALL');
@@ -90,15 +96,40 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
   load(): void {
     this.loading.set(true);
     this.error.set(null);
+    this.signedIn.set(this.auth.isAuthenticated);
+
     const sport = this.selectedSport();
     const city = this.selectedCity();
+    const search = this.repository.searchClubs(
+      sport === 'ALL' ? undefined : sport,
+      undefined,
+      city === 'ALL' ? undefined : city);
+
+    // Khách chưa đăng nhập vẫn xem được danh sách CLB; gọi /me lúc này chỉ tổ 401.
+    if (!this.signedIn()) {
+      this.memberships = new Map();
+      this.myClubs.set([]);
+      this.pendingRequests.set([]);
+      this.invitations.set([]);
+      this.upcomingActivities.set([]);
+      search.subscribe({
+        next: clubs => {
+          this.clubs.set(clubs.map(club => toCardView(club)));
+          this.loading.set(false);
+        },
+        error: () => {
+          this.error.set('Không tải được danh sách câu lạc bộ. Vui lòng thử lại.');
+          this.loading.set(false);
+        }
+      });
+      return;
+    }
+
     forkJoin({
-      clubs: this.repository.searchClubs(
-        sport === 'ALL' ? undefined : sport,
-        undefined,
-        city === 'ALL' ? undefined : city),
+      clubs: search,
       mine: this.repository.getMyClubs(),
       pending: this.repository.getMyPendingRequests(),
+      invitations: this.repository.getMyInvitations(),
       activities: this.repository.getMyUpcomingActivities(5)
     }).subscribe({
       next: data => {
@@ -107,6 +138,7 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
         this.clubs.set(data.clubs.map(club => toCardView(club, this.memberships.get(club.clubId))));
         this.myClubs.set(data.mine.map(item => toCardView(item.club, item)));
         this.pendingRequests.set(data.pending.map(item => toCardView(item.club, item)));
+        this.invitations.set(data.invitations);
 
         const clubNames = new Map(data.mine.map(item => [item.club.clubId, item.club.name]));
         this.upcomingActivities.set(data.activities.map(activity =>
@@ -118,6 +150,42 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
         this.loading.set(false);
       }
     });
+  }
+
+  acceptInvitation(invitation: ClubInvitation): void {
+    if (this.mutating()) return;
+    this.mutating.set(true);
+    this.repository.acceptInvitation(invitation.invitationId).subscribe({
+      next: () => {
+        this.mutating.set(false);
+        this.notify.success(`Đã tham gia ${invitation.club.name}.`);
+        this.load();
+      },
+      error: error => {
+        this.mutating.set(false);
+        this.notify.error(error?.error?.message ?? 'Không nhận được lời mời.');
+      }
+    });
+  }
+
+  declineInvitation(invitation: ClubInvitation): void {
+    if (this.mutating()) return;
+    this.mutating.set(true);
+    this.repository.declineInvitation(invitation.invitationId).subscribe({
+      next: () => {
+        this.mutating.set(false);
+        this.notify.info(`Đã từ chối lời mời từ ${invitation.club.name}.`);
+        this.load();
+      },
+      error: error => {
+        this.mutating.set(false);
+        this.notify.error(error?.error?.message ?? 'Không từ chối được lời mời.');
+      }
+    });
+  }
+
+  goToLogin(): void {
+    void this.router.navigate(['/login']);
   }
 
   ngAfterViewInit(): void {
@@ -139,7 +207,10 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
   updateSortMode(value: string): void { this.sortMode.set(value as ClubSortMode); }
   clearFilters(): void { this.selectedSport.set('ALL'); this.selectedCity.set('ALL'); this.load(); }
   openCreateModal(): void { this.showCreateModal.set(true); }
-  closeCreateModal(): void { this.showCreateModal.set(false); }
+  closeCreateModal(): void {
+    if (this.creating()) return;
+    this.showCreateModal.set(false);
+  }
 
   goToClub(club: ClubCardView): void {
     void this.router.navigate(['/clubs', club.clubId]);
@@ -152,11 +223,22 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
 
   createClub(): void {
     const name = this.createForm.name.trim();
-    if (!name || this.mutating()) return;
-    this.mutating.set(true);
-    this.repository.createClub({ ...this.createForm, name }).subscribe({
+    if (!name || this.creating()) return;
+    if (!this.signedIn()) {
+      this.notify.info('Bạn cần đăng nhập để tạo câu lạc bộ.');
+      return;
+    }
+    const payload: CreateClubPayload = {
+      ...this.createForm,
+      name,
+      description: this.createForm.description?.trim() || undefined,
+      city: this.createForm.city?.trim() || undefined,
+      location: this.createForm.location?.trim() || undefined
+    };
+    this.creating.set(true);
+    this.repository.createClub(payload).subscribe({
       next: (club: Club) => {
-        this.mutating.set(false);
+        this.creating.set(false);
         this.showCreateModal.set(false);
         this.createForm = {
           name: '', description: '', sportType: 'BADMINTON',
@@ -166,7 +248,7 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
         this.load();
       },
       error: error => {
-        this.mutating.set(false);
+        this.creating.set(false);
         this.notify.error(error?.error?.message ?? 'Không tạo được câu lạc bộ.');
       }
     });
@@ -196,6 +278,10 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
    */
   private sendJoin(club: ClubCardView): void {
     if (this.mutating()) return;
+    if (!this.signedIn()) {
+      this.notify.info('Bạn cần đăng nhập để tham gia câu lạc bộ.');
+      return;
+    }
     this.mutating.set(true);
     this.repository.joinClub(club.clubId).subscribe({
       next: member => {
