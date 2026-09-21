@@ -30,3 +30,22 @@ app-my-club-role-badge { position: absolute; top: 12px; left: 12px; }
 .card-action:hover, .my-club-card--manager .card-action { background: #087a57; color: #fff; }
 .my-club-card--manager { border-top-color: #087a57; }
 @media (max-width: 390px) { .my-club-card__body footer { align-items: stretch; flex-direction: column; } .card-action { width: 100%; } }
+
+/* Chip nhãn dưới phần mô tả, cùng nhịp với thẻ ở trang khám phá. */
+.my-club-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.my-club-card__tags li {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #eef4f1;
+  color: #46615a;
+  font-size: 11px;
+  font-weight: 700;
+}

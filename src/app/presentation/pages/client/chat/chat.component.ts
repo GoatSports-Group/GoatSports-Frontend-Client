@@ -298,11 +298,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     }
     if (!this.typing) {
       this.typing = true;
-      this.wsService.sendTyping(
-        room.roomId,
-        this.userProvider.getCurrentUserName() || 'Người chơi GoatSports',
-        true
-      );
+      this.wsService.sendTyping(room.roomId, true);
     }
     if (this.typingTimeout) clearTimeout(this.typingTimeout);
     this.typingTimeout = setTimeout(() => this.onTypingStop(), 2500);
@@ -316,11 +312,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     const room = this.activeRoom();
     if (!room || !this.typing) return;
     this.typing = false;
-    this.wsService.sendTyping(
-      room.roomId,
-      this.userProvider.getCurrentUserName() || 'Người chơi GoatSports',
-      false
-    );
+    this.wsService.sendTyping(room.roomId, false);
   }
 
   getTypingParticipants(roomId: string): ChatTypingEvent[] {
@@ -330,16 +322,32 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   getTypingLabel(roomId: string): string {
     const participants = this.getTypingParticipants(roomId);
     if (!participants.length) return '';
-    if (participants.length === 1) return `${participants[0].senderName || 'Một thành viên'} đang nhập`;
+    if (participants.length === 1) return `${this.getTypingParticipantName(roomId, participants[0])} đang nhập`;
     if (participants.length === 2) {
-      return `${participants[0].senderName || 'Một thành viên'} và ${participants[1].senderName || 'một thành viên'} đang nhập`;
+      return `${this.getTypingParticipantName(roomId, participants[0])} và ${this.getTypingParticipantName(roomId, participants[1])} đang nhập`;
     }
-    return `${participants[0].senderName || 'Một thành viên'} và ${participants.length - 1} người khác đang nhập`;
+    return `${this.getTypingParticipantName(roomId, participants[0])} và ${participants.length - 1} người khác đang nhập`;
   }
 
   getTypingAvatar(event: ChatTypingEvent): string {
-    return this.activeRoom()?.participants.find(participant => participant.userId === event.senderId)?.userAvatar ||
+    return this.findRoom(event.roomId)?.participants.find(participant => participant.userId === event.senderId)?.userAvatar ||
       'assets/images/default-avatar.svg';
+  }
+
+  getTypingParticipantName(roomId: string, event: ChatTypingEvent): string {
+    const room = this.findRoom(roomId);
+    const participantName = room?.participants
+      .find(participant => participant.userId === event.senderId)
+      ?.userName
+      ?.trim();
+    if (participantName) return participantName;
+
+    if (room && this.isPairRoom(room) && event.senderId !== this.currentUserId) {
+      const roomName = room.name?.trim();
+      if (roomName) return roomName;
+    }
+
+    return event.senderName?.trim() || 'Một thành viên';
   }
 
   isUserOnline(userId: string): boolean {
@@ -726,6 +734,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     const timerKey = `${event.roomId}:${event.senderId}`;
     const existingTimeout = this.remoteTypingTimeouts.get(timerKey);
     if (existingTimeout) clearTimeout(existingTimeout);
+    const followTyping = this.activeRoom()?.roomId === event.roomId && this.isMessagesNearBottom();
 
     this.typingByRoom.update(state => {
       const roomTyping = (state[event.roomId] || []).filter(item => item.senderId !== event.senderId);
@@ -739,6 +748,8 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       this.remoteTypingTimeouts.delete(timerKey);
       return;
     }
+
+    if (followTyping) this.shouldScrollBottom = true;
 
     this.remoteTypingTimeouts.set(timerKey, setTimeout(() => {
       this.removeTypingParticipant(event.roomId, event.senderId);
@@ -754,6 +765,18 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       ...state,
       [roomId]: (state[roomId] || []).filter(item => item.senderId !== senderId)
     }));
+  }
+
+  private findRoom(roomId: string): ChatRoom | undefined {
+    const active = this.activeRoom();
+    if (active?.roomId === roomId) return active;
+    return this.rooms().find(room => room.roomId === roomId);
+  }
+
+  private isMessagesNearBottom(): boolean {
+    const element = this.scrollContainer?.nativeElement;
+    if (!element) return false;
+    return element.scrollHeight - element.scrollTop - element.clientHeight < 120;
   }
 
   private insertMessage(message: ChatMessage): void {

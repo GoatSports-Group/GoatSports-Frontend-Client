@@ -27,6 +27,9 @@
     </header>
     <p class="my-club-card__location"><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>{{ item.club.location || item.club.city || 'Chưa cập nhật địa điểm' }}</p>
     <p class="my-club-card__description">{{ item.club.description || 'Câu lạc bộ chưa cập nhật phần giới thiệu.' }}</p>
+    <ul class="my-club-card__tags">
+      @for (tag of tags; track tag) { <li>{{ tag }}</li> }
+    </ul>
     <footer>
       <div class="my-club-card__metrics">
         <span><lucide-icon name="users" class="w-4 h-4"></lucide-icon><b>{{ item.club.memberCount }}</b><small>Thành viên</small></span>

@@ -209,14 +209,13 @@
               <div class="typing-indicator" role="status" aria-live="polite">
                 <span class="typing-avatars">
                   @for (participant of getTypingParticipants(room.roomId).slice(0, 2); track participant.senderId) {
-                    <img [src]="getTypingAvatar(participant)" [alt]="participant.senderName || 'Thành viên đang nhập'" (error)="useDefaultAvatar($event)" />
+                    <img [src]="getTypingAvatar(participant)" [alt]="getTypingParticipantName(room.roomId, participant)" (error)="useDefaultAvatar($event)" />
                   }
                 </span>
-                <span>
+                <span class="typing-status">
+                  <i class="typing-dots" aria-hidden="true"><b></b><b></b><b></b></i>
                   <strong>{{ getTypingLabel(room.roomId) }}</strong>
-                  <small>Đang soạn tin nhắn</small>
                 </span>
-                <i class="typing-dots" aria-hidden="true"><b></b><b></b><b></b></i>
               </div>
             }
           </div>

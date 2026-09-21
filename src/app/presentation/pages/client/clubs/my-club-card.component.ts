@@ -22,6 +22,18 @@ export class MyClubCardComponent {
   get isManager(): boolean { return this.item.role === 'OWNER' || this.item.role === 'ADMIN'; }
   get actionLabel(): string { return this.isManager ? 'Quản lý CLB' : 'Xem CLB'; }
 
+  /**
+   * Chip chỉ lấy từ dữ liệu có thật: môn thể thao, quyền riêng tư và cách duyệt thành viên.
+   * Không bịa thêm nhãn kiểu "Giao lưu" vì backend không có trường nào như vậy.
+   */
+  get tags(): string[] {
+    return [
+      sportLabel(this.item.club.sportType),
+      this.item.club.privacy === 'PRIVATE' ? 'Riêng tư' : 'Công khai',
+      this.item.club.approvalMode === 'MANUAL' ? 'Duyệt thành viên' : 'Tự động duyệt'
+    ];
+  }
+
   sportLabel(value: SportType): string { return sportLabel(value); }
   toggleMenu(event: Event): void { event.stopPropagation(); this.menuOpen.update(value => !value); }
   closeMenu(): void { this.menuOpen.set(false); }

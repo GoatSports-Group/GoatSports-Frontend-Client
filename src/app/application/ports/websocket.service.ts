@@ -13,7 +13,7 @@ export interface WebSocketService {
   subscribeToRoom(roomId: string): void;
   unsubscribeFromRoom(roomId: string): void;
   sendChatMessage(payload: any): void;
-  sendTyping(roomId: string, senderName: string, isTyping: boolean): void;
+  sendTyping(roomId: string, isTyping: boolean): void;
 }
 
 export const WEBSOCKET_SERVICE_TOKEN = new InjectionToken<WebSocketService>('WebSocketService');

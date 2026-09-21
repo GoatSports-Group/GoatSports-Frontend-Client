@@ -45,6 +45,7 @@ export class MyClubsComponent {
   readonly keyword = signal('');
   readonly selectedTab = signal<ClubTab>('ALL');
   readonly selectedSport = signal<SportType | 'ALL'>('ALL');
+  readonly selectedCity = signal<string | 'ALL'>('ALL');
   readonly selectedSort = signal<ClubSort>('NEWEST');
   readonly pageIndex = signal(0);
   readonly pageSize = 6;
@@ -61,10 +62,11 @@ export class MyClubsComponent {
         || (this.selectedTab() === 'MANAGED' && (item.role === 'OWNER' || item.role === 'ADMIN'))
         || (this.selectedTab() === 'MEMBER' && item.role === 'MEMBER');
       const sportMatches = this.selectedSport() === 'ALL' || item.club.sportType === this.selectedSport();
+      const cityMatches = this.selectedCity() === 'ALL' || item.club.city === this.selectedCity();
       const textMatches = !query || [item.club.name, item.club.location, item.club.city]
         .filter(Boolean)
         .some(value => value!.toLocaleLowerCase('vi').includes(query));
-      return tabMatches && sportMatches && textMatches;
+      return tabMatches && sportMatches && cityMatches && textMatches;
     });
 
     return filtered.sort((left, right) => {
@@ -77,7 +79,14 @@ export class MyClubsComponent {
     const start = this.pageIndex() * this.pageSize;
     return this.filteredMemberships().slice(start, start + this.pageSize);
   });
-  readonly hasToolbarFilters = computed(() => Boolean(this.keyword().trim()) || this.selectedSport() !== 'ALL');
+  readonly hasToolbarFilters = computed(() => Boolean(this.keyword().trim())
+    || this.selectedSport() !== 'ALL' || this.selectedCity() !== 'ALL');
+
+  /** Dòng "Hiển thị 1–6 trong tổng số 8" dưới lưới thẻ. */
+  readonly rangeStart = computed(() =>
+    this.filteredMemberships().length ? this.pageIndex() * this.pageSize + 1 : 0);
+  readonly rangeEnd = computed(() =>
+    Math.min((this.pageIndex() + 1) * this.pageSize, this.filteredMemberships().length));
   readonly showPagination = computed(() => this.filteredMemberships().length > this.pageSize);
   readonly emptyTitle = computed(() => {
     if (this.hasToolbarFilters()) return 'Không tìm thấy câu lạc bộ phù hợp';
@@ -140,11 +149,18 @@ export class MyClubsComponent {
   updateKeyword(value: string): void { this.keyword.set(value); this.pageIndex.set(0); }
   updateSport(value: string): void { this.selectedSport.set(value as SportType | 'ALL'); this.pageIndex.set(0); }
   updateSort(value: string): void { this.selectedSort.set(value as ClubSort); this.pageIndex.set(0); }
+  updateCity(value: string): void { this.selectedCity.set(value); this.pageIndex.set(0); }
   changePage(page: number): void {
     this.pageIndex.set(page);
     document.getElementById('my-clubs-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
-  clearFilters(): void { this.keyword.set(''); this.selectedSport.set('ALL'); this.pageIndex.set(0); }
+  clearFilters(): void {
+    this.keyword.set('');
+    this.selectedSport.set('ALL');
+    this.selectedCity.set('ALL');
+    this.selectedTab.set('ALL');
+    this.pageIndex.set(0);
+  }
   login(): void { this.auth.redirectToLogin(window.location.href); }
 
   openClub(item: MyClubMembership): void { void this.router.navigate(['/clubs/my', item.club.clubId]); }

@@ -252,13 +252,10 @@ export class StompWebSocketService implements WebSocketService {
     this.sendSocialFrame(new StompFrame('SEND', { destination: '/app/social/chat.send' }, JSON.stringify(body)));
   }
 
-  public sendTyping(roomId: string, senderName: string, isTyping: boolean): void {
+  public sendTyping(roomId: string, isTyping: boolean): void {
     if (!this.socialSocket || !this.isSocialConnected) return;
-    const currentUserId = this.currentUserProvider.getCurrentUserId();
     const payload = {
       conversationId: roomId,
-      userId: currentUserId,
-      userName: senderName || this.currentUserProvider.getCurrentUserName() || 'Người chơi GoatSports',
       typing: isTyping
     };
     this.sendSocialFrame(new StompFrame('SEND', { destination: '/app/social/chat.typing' }, JSON.stringify(payload)));

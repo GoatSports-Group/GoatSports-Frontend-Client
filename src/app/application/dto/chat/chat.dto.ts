@@ -23,7 +23,7 @@ export interface SendMessageRequest {
 export interface ChatTypingEvent {
   roomId: string;
   senderId: string;
-  senderName: string;
+  senderName?: string;
   isTyping: boolean;
 }
 

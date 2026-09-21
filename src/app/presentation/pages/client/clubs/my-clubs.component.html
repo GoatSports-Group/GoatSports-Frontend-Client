@@ -11,14 +11,15 @@
       <p>GOAT Sports · Clubhouse</p>
       <h1>CLB <em>CỦA BẠN</em></h1>
       <span>Quản lý các câu lạc bộ bạn đang tham gia hoặc sở hữu.</span>
+      @if (isAuthenticated()) {
+        <dl class="my-clubs-stats" aria-label="Thống kê câu lạc bộ">
+          <div><span><lucide-icon name="shield" class="w-5 h-5"></lucide-icon></span><dt>{{ memberships().length }}</dt><dd>Tổng số CLB</dd></div>
+          <div><span><lucide-icon name="shield-check" class="w-5 h-5"></lucide-icon></span><dt>{{ managedCount() }}</dt><dd>Bạn quản lý</dd></div>
+          <div><span><lucide-icon name="users" class="w-5 h-5"></lucide-icon></span><dt>{{ memberCount() }}</dt><dd>Đang tham gia</dd></div>
+        </dl>
+      }
     </div>
-    @if (isAuthenticated()) {
-      <div class="my-clubs-stats" aria-label="Thống kê câu lạc bộ">
-        <div><span><lucide-icon name="shield" class="w-5 h-5"></lucide-icon></span><strong>{{ memberships().length }}</strong><small>Tổng số CLB</small></div>
-        <div><span><lucide-icon name="shield-check" class="w-5 h-5"></lucide-icon></span><strong>{{ managedCount() }}</strong><small>Bạn quản lý</small></div>
-        <div><span><lucide-icon name="users" class="w-5 h-5"></lucide-icon></span><strong>{{ memberCount() }}</strong><small>Đang tham gia</small></div>
-      </div>
-    }
+    <blockquote class="my-clubs-hero__quote">“Bóng đá kết nối những con người cùng chung nhịp đập.”</blockquote>
   </header>
 
   @if (loading()) {
@@ -49,31 +50,67 @@
 
       <div class="my-clubs-toolbar">
         <label class="my-clubs-search"><lucide-icon name="search" class="w-5 h-5"></lucide-icon><span class="sr-only">Tìm kiếm câu lạc bộ</span><input type="search" [ngModel]="keyword()" (ngModelChange)="updateKeyword($event)" placeholder="Tìm kiếm câu lạc bộ..." /></label>
-        <label class="my-clubs-select"><span class="sr-only">Lọc môn thể thao</span><select [ngModel]="selectedSport()" (ngModelChange)="updateSport($event)">@for (sport of sports; track sport.value) { <option [value]="sport.value">{{ sport.label }}</option> }</select><lucide-icon name="chevron-down" class="w-4 h-4"></lucide-icon></label>
-        <label class="my-clubs-select"><span class="sr-only">Sắp xếp danh sách</span><select [ngModel]="selectedSort()" (ngModelChange)="updateSort($event)"><option value="NEWEST">Mới nhất</option><option value="NAME">Tên A–Z</option><option value="MEMBERS">Nhiều thành viên</option></select><lucide-icon name="chevron-down" class="w-4 h-4"></lucide-icon></label>
+        <label class="my-clubs-select"><span class="sr-only">Sắp xếp danh sách</span><lucide-icon name="arrow-up-down" class="w-4 h-4"></lucide-icon><select [ngModel]="selectedSort()" (ngModelChange)="updateSort($event)"><option value="NEWEST">Mới nhất</option><option value="NAME">Tên A–Z</option><option value="MEMBERS">Nhiều thành viên</option></select><lucide-icon name="chevron-down" class="w-4 h-4"></lucide-icon></label>
         <button type="button" class="my-clubs-create" (click)="openCreateModal()"><lucide-icon name="plus" class="w-5 h-5"></lucide-icon>Tạo câu lạc bộ</button>
       </div>
     </section>
 
-    <section class="my-clubs-results" id="my-clubs-grid" aria-labelledby="my-clubs-results-title">
-      <header>
-        <div><p>Club roster</p><h2 id="my-clubs-results-title">Danh sách câu lạc bộ</h2></div>
-        <span>Hiển thị <b>{{ pagedMemberships().length }}</b> / {{ filteredMemberships().length }} câu lạc bộ</span>
-      </header>
+    <div class="my-clubs-body">
+      <aside class="my-clubs-filters" aria-label="Bộ lọc câu lạc bộ">
+        <h2>Bộ lọc</h2>
 
+        <section>
+          <h3 id="filter-role-title">Vai trò của bạn</h3>
+          <ul role="group" aria-labelledby="filter-role-title">
+            <li><button type="button" [class.is-active]="selectedTab() === 'ALL'" [attr.aria-pressed]="selectedTab() === 'ALL'" (click)="selectTab('ALL')"><i aria-hidden="true"><lucide-icon name="check" class="w-3 h-3"></lucide-icon></i>Tất cả</button></li>
+            <li><button type="button" [class.is-active]="selectedTab() === 'MANAGED'" [attr.aria-pressed]="selectedTab() === 'MANAGED'" (click)="selectTab('MANAGED')"><i aria-hidden="true"><lucide-icon name="check" class="w-3 h-3"></lucide-icon></i>Chủ CLB</button></li>
+            <li><button type="button" [class.is-active]="selectedTab() === 'MEMBER'" [attr.aria-pressed]="selectedTab() === 'MEMBER'" (click)="selectTab('MEMBER')"><i aria-hidden="true"><lucide-icon name="check" class="w-3 h-3"></lucide-icon></i>Thành viên</button></li>
+          </ul>
+        </section>
+
+        <section>
+          <h3 id="filter-sport-title">Môn thể thao</h3>
+          <ul role="group" aria-labelledby="filter-sport-title">
+            @for (sport of sports; track sport.value) {
+              <li><button type="button" [class.is-active]="selectedSport() === sport.value" [attr.aria-pressed]="selectedSport() === sport.value" (click)="updateSport(sport.value)"><i aria-hidden="true"><lucide-icon [name]="sport.icon" class="w-3 h-3"></lucide-icon></i>{{ sport.label }}</button></li>
+            }
+          </ul>
+        </section>
+
+        <section>
+          <h3 id="filter-area-title">Khu vực</h3>
+          <label class="my-clubs-filters__select">
+            <span class="sr-only">Chọn tỉnh hoặc thành phố</span>
+            <select [ngModel]="selectedCity()" (ngModelChange)="updateCity($event)" aria-labelledby="filter-area-title">
+              <option value="ALL">Tất cả tỉnh/thành</option>
+              @for (province of provinces(); track province.code) { <option [value]="province.code">{{ province.name }}</option> }
+            </select>
+            <lucide-icon name="chevron-down" class="w-4 h-4"></lucide-icon>
+          </label>
+        </section>
+
+        <button type="button" class="my-clubs-filters__reset" (click)="clearFilters()"><lucide-icon name="rotate-ccw" class="w-4 h-4"></lucide-icon>Xóa bộ lọc</button>
+      </aside>
+
+      <section class="my-clubs-results" id="my-clubs-grid" aria-labelledby="my-clubs-results-title">
+        <h2 id="my-clubs-results-title" class="sr-only">Danh sách câu lạc bộ</h2>
       @if (pagedMemberships().length) {
         <div class="my-clubs-grid">
           @for (item of pagedMemberships(); track item.membershipId) {
             <app-my-club-card [item]="item" (opened)="openClub($event)" (publicOpened)="openPublicClub($event)" (playerSearchOpened)="openPlayerSearch($event)"></app-my-club-card>
           }
         </div>
-        @if (showPagination()) {
-          <app-pagination [pageIndex]="pageIndex()" [pageSize]="pageSize" [totalItems]="filteredMemberships().length" (pageChange)="changePage($event)"></app-pagination>
-        }
+        <footer class="my-clubs-footer">
+          <p>Hiển thị {{ rangeStart() }} – {{ rangeEnd() }} trong tổng số {{ filteredMemberships().length }} câu lạc bộ</p>
+          @if (showPagination()) {
+            <app-pagination [pageIndex]="pageIndex()" [pageSize]="pageSize" [totalItems]="filteredMemberships().length" (pageChange)="changePage($event)"></app-pagination>
+          }
+        </footer>
       } @else {
         <app-my-clubs-empty-state [title]="emptyTitle()" [description]="emptyDescription()" [actionLabel]="emptyActionLabel()" (action)="handleEmptyAction()"></app-my-clubs-empty-state>
       }
-    </section>
+      </section>
+    </div>
   }
 
   @if (showCreateModal()) {

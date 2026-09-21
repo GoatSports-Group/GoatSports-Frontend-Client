@@ -12,9 +12,9 @@ export const CLUB_SPORTS: ReadonlyArray<{ label: string; value: SportType | 'ALL
   { label: 'Bóng đá', value: 'FOOTBALL', icon: 'circle-dot' },
   { label: 'Cầu lông', value: 'BADMINTON', icon: 'zap' },
   { label: 'Tennis', value: 'TENNIS', icon: 'circle' },
-  { label: 'Bóng rổ', value: 'BASKETBALL', icon: 'dribbble' },
+  { label: 'Bóng rổ', value: 'BASKETBALL', icon: 'circle-dot-dashed' },
   { label: 'Pickleball', value: 'PICKLEBALL', icon: 'target' },
-  { label: 'Bóng chuyền', value: 'VOLLEYBALL', icon: 'volleyball' }
+  { label: 'Bóng chuyền', value: 'VOLLEYBALL', icon: 'circle' }
 ];
 
 const SPORT_LABELS: Record<SportType, string> = {
