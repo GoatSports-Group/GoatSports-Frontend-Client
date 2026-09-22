@@ -80,6 +80,9 @@ export class ClubDetailComponent implements OnDestroy {
   readonly isOwner = computed(() => this.club()?.ownerId === this.auth.currentUser?.userId);
   readonly showDisbandConfirm = signal(false);
   readonly transferTarget = signal<ClubMemberModel | null>(null);
+  readonly showOwnerLeaveNotice = signal(false);
+  /** Chu CLB mot minh thi khong co ai de trao quyen; memberCount luon co san, con members() chi nap khi mo tab. */
+  readonly hasSuccessorCandidate = computed(() => (this.club()?.memberCount ?? 0) > 1);
   readonly disbandConfirmText = signal('');
   readonly isDisbanded = computed(() => !!this.club()?.disbandedAt || this.club()?.active === false);
   /** Go dung ten CLB moi mo duoc nut: giai tan khong hoan tac duoc. */
@@ -710,7 +713,23 @@ export class ClubDetailComponent implements OnDestroy {
   }
   requestLeave(): void {
     this.showMemberMenu.set(false);
+    this.showManagerMenu.set(false);
+    // Backend tu choi chu CLB roi di, nen khuyen truoc thay vi de ho bam roi an loi.
+    if (this.isOwner()) {
+      this.showOwnerLeaveNotice.set(true);
+      return;
+    }
     this.showLeaveConfirm.set(true);
+  }
+
+  pickSuccessor(): void {
+    this.showOwnerLeaveNotice.set(false);
+    this.setTab('MEMBERS');
+  }
+
+  disbandFromLeaveNotice(): void {
+    this.showOwnerLeaveNotice.set(false);
+    this.requestDisband();
   }
 
   leave(): void {

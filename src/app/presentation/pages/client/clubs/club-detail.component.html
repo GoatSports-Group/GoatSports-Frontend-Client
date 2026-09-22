@@ -73,6 +73,9 @@
             <button type="button" (click)="showManagerMenu.set(false); openPlayerSearch()">
               <lucide-icon name="search" class="w-4 h-4"></lucide-icon> Tìm người chơi
             </button>
+            <button type="button" [disabled]="mutating()" (click)="requestLeave()">
+              <lucide-icon name="log-out" class="w-4 h-4"></lucide-icon> Rời câu lạc bộ
+            </button>
             @if (isOwner()) {
             <button type="button" class="manager-danger-action" (click)="requestDisband()">
               <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon> Giải tán
@@ -1052,6 +1055,39 @@
       <footer class="modal-footer"><button type="button" class="button button--secondary"
           (click)="closeMatchDetails()">Đóng</button><a [routerLink]="['/tournaments', match.tournamentId]"
           class="button button--primary" (click)="closeMatchDetails()">Xem giải đấu</a></footer>
+    </section>
+  </div>
+  }
+
+  @if (showOwnerLeaveNotice()) {
+  <div class="modal-overlay" (click)="showOwnerLeaveNotice.set(false)">
+    <section class="modal-card confirm-leave-modal" appAccessibleDialog aria-labelledby="owner-leave-title"
+      (dialogClosed)="showOwnerLeaveNotice.set(false)" (click)="$event.stopPropagation()">
+      <span class="confirm-leave-modal__icon confirm-leave-modal__icon--info">
+        <lucide-icon name="crown" class="w-7 h-7"></lucide-icon>
+      </span>
+      <h2 id="owner-leave-title">Bạn đang là chủ {{ currentClub.name }}</h2>
+      @if (hasSuccessorCandidate()) {
+      <p>
+        Bạn nên trao quyền chủ cho người khác trong nhóm trước khi rời câu lạc bộ.
+        Trao quyền xong, bạn có thể bấm lại "Rời câu lạc bộ" và rời như một thành viên bình thường.
+      </p>
+      <footer class="modal-footer">
+        <button type="button" class="button button--secondary"
+          (click)="showOwnerLeaveNotice.set(false)">Để sau</button>
+        <button type="button" class="button button--primary" (click)="pickSuccessor()">Chọn người nhận quyền</button>
+      </footer>
+      } @else {
+      <p>
+        Câu lạc bộ chưa có thành viên nào khác để nhận quyền chủ, nên bạn chưa thể rời.
+        Hãy mời thêm thành viên rồi trao quyền, hoặc giải tán câu lạc bộ.
+      </p>
+      <footer class="modal-footer">
+        <button type="button" class="button button--secondary"
+          (click)="showOwnerLeaveNotice.set(false)">Để sau</button>
+        <button type="button" class="button button--danger" (click)="disbandFromLeaveNotice()">Giải tán câu lạc bộ</button>
+      </footer>
+      }
     </section>
   </div>
   }
