@@ -4,7 +4,7 @@ import { map, Observable } from 'rxjs';
 import { ClubRepositoryPort } from '@application/ports/club.repository.port';
 import { BaseResponse, PageResult, PagedModelResponse } from '@application/dto/base/base-response';
 import {
-  ClubActivityModel, ClubPhotoModel, ClubRecentMatchModel, ClubMemberModel, ClubModel, ClubRole,
+  ClubActivityModel, ClubPhotoModel, ClubRecentMatchModel, ClubMemberModel, ClubModel, ClubRole, ScoutedPlayerModel,
   MyClubMembership, ClubInvitationModel,
   CreateClubActivityPayload, CreateClubPayload, SportType, UpdateClubPayload
 } from '@domain/models/club.model';
@@ -67,8 +67,15 @@ export class ClubRepository extends ClubRepositoryPort {
     return this.http.patch<BaseResponse<ClubMemberModel>>(`${this.baseUrl}/${clubId}/owner`, {},
       { params: { membershipId } }).pipe(map(response => response.data));
   }
-  override disbandClub(clubId: string): Observable<void> {
-    return this.http.post(`${this.baseUrl}/${clubId}/disband`, {}).pipe(map(() => void 0));
+  override getScoutingCandidates(clubId: string, radiusKm?: number, limit?: number)
+    : Observable<ScoutedPlayerModel[]> {
+    let params = new HttpParams();
+    if (radiusKm != null) params = params.set('radiusKm', radiusKm);
+    if (limit != null) params = params.set('limit', limit);
+    return this.http.get<BaseResponse<ScoutedPlayerModel[]>>(`${this.baseUrl}/${clubId}/scouting`, { params })
+      .pipe(map(response => response.data ?? []));
+  }
+  override disbandClub(clubId: string): Observable<void> {    return this.http.post(`${this.baseUrl}/${clubId}/disband`, {}).pipe(map(() => void 0));
   }
   override leaveClub(clubId: string): Observable<void> {
     return this.http.delete(`${this.baseUrl}/${clubId}/leave`).pipe(map(() => void 0));

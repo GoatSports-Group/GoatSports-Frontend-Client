@@ -124,6 +124,25 @@ export interface CreateClubActivityPayload {
   endAt: string;
 }
 
+export type SkillLevel = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'PRO';
+
+/** Ung vien scouting: nguoi choi cung bo mon, trong ban kinh quanh diem neo cua CLB. */
+export interface ScoutedPlayerModel {
+  userId: string;
+  username: string;
+  fullName: string;
+  avatarUrl?: string;
+  skillLevel?: SkillLevel;
+  eloRating?: number;
+  matchCount?: number;
+  winRate?: number;
+  distanceKm: number;
+  /** 0-100, cang cao cang hop voi CLB. */
+  fitScore: number;
+  /** CLB nam trong ban kinh nguoi choi san sang di. */
+  withinPlayerRadius: boolean;
+}
+
 export interface UpdateClubPayload {
   name?: string;
   city?: string;

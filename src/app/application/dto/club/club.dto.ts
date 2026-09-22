@@ -8,6 +8,7 @@ export {
   ClubRecentMatchModel as ClubRecentMatch,
   CreateClubPayload,
   CreateClubActivityPayload,
-  UpdateClubPayload
+  UpdateClubPayload,
+  ScoutedPlayerModel
 } from '@domain/models/club.model';
-export type { SportType, ClubRole, ClubPrivacy, ClubApprovalMode, ClubMemberStatus } from '@domain/models/club.model';
+export type { SportType, SkillLevel, ClubRole, ClubPrivacy, ClubApprovalMode, ClubMemberStatus } from '@domain/models/club.model';

@@ -7,6 +7,7 @@ import {
   ClubActivityModel,
   ClubRecentMatchModel,
   ClubMemberModel,
+  ScoutedPlayerModel,
   ClubModel,
   CreateClubActivityPayload,
   ClubRole,
@@ -41,6 +42,8 @@ export abstract class ClubRepositoryPort {
   abstract createClub(payload: CreateClubPayload): Observable<ClubModel>;
   abstract joinClub(clubId: string, message?: string): Observable<ClubMemberModel>;
   abstract disbandClub(clubId: string): Observable<void>;
+  abstract getScoutingCandidates(clubId: string, radiusKm?: number, limit?: number)
+    : Observable<ScoutedPlayerModel[]>;
   abstract transferOwnership(clubId: string, membershipId: string): Observable<ClubMemberModel>;
   abstract leaveClub(clubId: string): Observable<void>;
   abstract getMyMembership(clubId: string): Observable<ClubMemberModel | null>;
