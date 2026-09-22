@@ -69,8 +69,8 @@
             <button type="button" (click)="showManagerMenu.set(false); openPlayerSearch()">
               <lucide-icon name="search" class="w-4 h-4"></lucide-icon> Tìm người chơi
             </button>
-            <button type="button" (click)="showManagerMenu.set(false); openInviteModal()">
-              <lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon> Mời thành viên
+            <button type="button" class="manager-danger-action" (click)="showDissolveComingSoon()">
+              <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon> Giải tán
             </button>
           </div>
           }
@@ -149,11 +149,6 @@
     <button type="button" role="tab" [class.active]="activeTab() === 'GALLERY'" (click)="setTab('GALLERY')">
       <lucide-icon name="image" class="w-4 h-4"></lucide-icon> Thư viện
     </button>
-    @if (isManager()) {
-    <button type="button" role="tab" [class.active]="activeTab() === 'SETTINGS'" (click)="setTab('SETTINGS')">
-      <lucide-icon name="settings" class="w-4 h-4"></lucide-icon> Cài đặt
-    </button>
-    }
   </nav>
 
   @if (activeTab() === 'OVERVIEW') {
@@ -561,7 +556,7 @@
         }
       </div>
       } @else { <div class="panel-empty panel-empty--compact"><span>Danh sách thành viên chưa có dữ liệu.</span></div> }
-      <button type="button" class="button button--outline button--block" (click)="openInviteModal()"><lucide-icon
+      <button type="button" class="button button--outline button--block" (click)="openPlayerSearch()"><lucide-icon
           name="user-plus" class="w-4 h-4"></lucide-icon>Mời thành viên</button>
     </article>
 
@@ -636,7 +631,7 @@
         <h2>Thành viên đang hoạt động</h2>
         <p>{{ memberTotal() }} thành viên trong danh sách.</p>
       </div>@if (isManager()) { <button type="button" class="button button--primary"
-        (click)="openInviteModal()"><lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon>Mời thành viên</button>
+        (click)="openPlayerSearch()"><lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon>Mời thành viên</button>
       }
     </header>
     @if (activeMembers().length) {
@@ -829,16 +824,6 @@
     <div class="detail-empty detail-empty--inline"><lucide-icon name="image" class="w-9 h-9"></lucide-icon>
       <h2>Thư viện chưa có ảnh</h2>
       <p>Những khoảnh khắc của câu lạc bộ sẽ được lưu giữ tại đây.</p>
-    </div>
-  </section>
-  } @else if (activeTab() === 'SETTINGS') {
-  <section class="content-panel">
-    <div class="settings-cta">
-      <div><span class="panel__eyebrow">Quản trị câu lạc bộ</span>
-        <h2>Cập nhật thông tin và quyền tham gia</h2>
-        <p>Chỉnh sửa tên, giới thiệu, logo, quyền riêng tư và chế độ duyệt thành viên.</p>
-      </div><button type="button" class="button button--primary" (click)="openClubModal()"><lucide-icon name="settings"
-          class="w-4 h-4"></lucide-icon>Mở cài đặt</button>
     </div>
   </section>
   }
@@ -1034,32 +1019,6 @@
           (click)="closeActivityModal()">Hủy</button><button type="button" class="button button--primary"
           [disabled]="mutating() || !activityForm.title || !activityForm.startAt || !activityForm.endAt"
           (click)="createActivity()">{{ editingActivityId() ? 'Lưu thay đổi' : 'Tạo lời nhắc' }}</button></footer>
-    </section>
-  </div>
-  }
-
-  @if (showInviteModal()) {
-  <div class="modal-overlay" (click)="showInviteModal.set(false)">
-    <section class="modal-card" appAccessibleDialog aria-labelledby="invite-modal-title"
-      (dialogClosed)="showInviteModal.set(false)" (click)="$event.stopPropagation()">
-      <header class="modal-title">
-        <div><span>Tuyển thành viên</span>
-          <h2 id="invite-modal-title">Mời người chơi vào CLB</h2>
-        </div><button type="button" class="icon-action" aria-label="Đóng"
-          (click)="showInviteModal.set(false)"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button>
-      </header>
-      <div class="form-group"><label for="invite-query">Tìm người chơi</label><input id="invite-query"
-          [(ngModel)]="inviteQuery" (input)="runInviteSearch()" placeholder="Nhập tên hoặc email" /></div>
-      <div class="form-group"><label for="invite-message">Lời nhắn (không bắt buộc)</label><textarea id="invite-message"
-          [(ngModel)]="inviteMessage" rows="2" placeholder="Vài dòng giới thiệu câu lạc bộ..."></textarea></div>
-      @if (inviteSearching()) { <p class="form-note">Đang tìm người chơi...</p> } @else if (inviteQuery.trim().length <
-        2) { <p class="form-note">Nhập ít nhất 2 ký tự để bắt đầu tìm.</p> } @else if (!inviteResults().length) { <p
-          class="form-note">Không tìm thấy người chơi phù hợp.</p> } @else { <ul class="invite-results">@for (player of
-          inviteResults(); track player.userId) { <li><span>{{ player.fullName || player.username }}</span><button
-              type="button" class="button button--primary" [disabled]="mutating()" (click)="invite(player)">Mời</button>
-          </li> }</ul> }
-        <footer class="modal-footer"><button type="button" class="button button--secondary"
-            (click)="showInviteModal.set(false)">Đóng</button></footer>
     </section>
   </div>
   }

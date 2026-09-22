@@ -12,8 +12,6 @@ import {
 } from '@application/dto/club/club.dto';
 import { AuthService } from '@presentation/services/auth.service';
 import { PlayerDirectoryService } from '@presentation/services/player-directory.service';
-import { SearchPlayersUseCase } from '@application/usecase/user/search-players.usecase';
-import { PlayerSummary } from '@application/dto/user/user.dto';
 import { NotifyService } from '@shared/components/notify/notify.service';
 import { StorageService } from '@presentation/services/storage.service';
 import { TournamentRepositoryPort } from '@application/ports/tournament.repository.port';
@@ -23,7 +21,7 @@ import {
 } from '@application/dto/tournament/tournament.dto';
 import { ClubCardView, DEFAULT_CLUB_BANNER, DEFAULT_CLUB_LOGO, sportLabel, toCardView } from './club-view.model';
 
-type ClubTab = 'OVERVIEW' | 'MEMBERS' | 'REQUESTS' | 'ACTIVITIES' | 'TOURNAMENTS' | 'GALLERY' | 'SETTINGS';
+type ClubTab = 'OVERVIEW' | 'MEMBERS' | 'REQUESTS' | 'ACTIVITIES' | 'TOURNAMENTS' | 'GALLERY';
 type ClubViewerState = 'MANAGER' | 'MEMBER' | 'PENDING' | 'GUEST';
 @Component({
   selector: 'app-club-detail', templateUrl: './club-detail.component.html',
@@ -36,7 +34,6 @@ export class ClubDetailComponent implements OnDestroy {
   private readonly tournamentRepository = inject(TournamentRepositoryPort);
   private readonly auth = inject(AuthService);
   private readonly directory = inject(PlayerDirectoryService);
-  private readonly searchPlayers = inject(SearchPlayersUseCase);
   private readonly notify = inject(NotifyService);
   private readonly storage = inject(StorageService);
   readonly clubId = this.route.snapshot.paramMap.get('clubId') ?? '';
@@ -51,15 +48,12 @@ export class ClubDetailComponent implements OnDestroy {
   readonly error = signal<string | null>(null);
   readonly mutating = signal(false);
   readonly showActivityModal = signal(false);
-  readonly showInviteModal = signal(false);
   readonly showJoinRequestModal = signal(false);
   readonly showLeaveConfirm = signal(false);
   readonly selectedActivity = signal<ClubActivityModel | null>(null);
   readonly selectedMatch = signal<ClubRecentMatchModel | null>(null);
   readonly showMemberMenu = signal(false);
   readonly showManagerMenu = signal(false);
-  readonly inviteResults = signal<PlayerSummary[]>([]);
-  readonly inviteSearching = signal(false);
   readonly showClubModal = signal(false);
   readonly clubLogoPreview = signal<string | null>(null);
   readonly clubBannerPreview = signal<string | null>(null);
@@ -108,8 +102,6 @@ export class ClubDetailComponent implements OnDestroy {
     return current ? toCardView(current) : null;
   });
   activityForm: CreateClubActivityPayload = { title: '', description: '', startAt: '', endAt: '' };
-  inviteQuery = '';
-  inviteMessage = '';
   clubForm: UpdateClubPayload = { name: '', description: '', tags: [], privacy: 'PUBLIC', approvalMode: 'AUTO' };
   private clubLogoFile: File | null = null;
   private clubBannerFile: File | null = null;
@@ -322,6 +314,11 @@ export class ClubDetailComponent implements OnDestroy {
   hasAuthenticatedUser(): boolean { return Boolean(this.auth.currentUser); }
 
   openPlayerSearch(): void { void this.router.navigate(['/clubs/my', this.clubId, 'players']); }
+
+  showDissolveComingSoon(): void {
+    this.showManagerMenu.set(false);
+    this.notify.warning('Tính năng giải tán câu lạc bộ sẽ được bổ sung sau.');
+  }
 
   goToMyClubs(): void { void this.router.navigate(['/clubs/my']); }
 
@@ -666,43 +663,6 @@ export class ClubDetailComponent implements OnDestroy {
       this.persistedClubBannerObjectUrl = null;
     }
     URL.revokeObjectURL(previewUrl);
-  }
-
-  openInviteModal(): void {
-    this.inviteQuery = '';
-    this.inviteMessage = '';
-    this.inviteResults.set([]);
-    this.showInviteModal.set(true);
-  }
-
-  /** Tìm người chơi theo tên hoặc email; chỉ ban quản trị mới thấy nút mở ô này. */
-  runInviteSearch(): void {
-    const query = this.inviteQuery.trim();
-    if (query.length < 2) {
-      this.inviteResults.set([]);
-      return;
-    }
-    this.inviteSearching.set(true);
-    this.searchPlayers.execute(query).subscribe({
-      next: players => { this.inviteResults.set(players); this.inviteSearching.set(false); },
-      error: () => { this.inviteResults.set([]); this.inviteSearching.set(false); }
-    });
-  }
-
-  invite(player: PlayerSummary): void {
-    if (this.mutating()) return;
-    this.mutating.set(true);
-    this.repository.inviteMember(this.clubId, player.userId, this.inviteMessage.trim() || undefined).subscribe({
-      next: () => {
-        this.mutating.set(false);
-        this.showInviteModal.set(false);
-        this.notify.success(`Đã gửi lời mời tới ${player.fullName || player.username}.`);
-      },
-      error: error => {
-        this.mutating.set(false);
-        this.notify.error(error?.error?.message ?? 'Không gửi được lời mời.');
-      }
-    });
   }
 
   openChat(): void {
