@@ -89,7 +89,7 @@ export function toCardView(club: Club, membership?: MyClubMembership): ClubCardV
     winRate: Math.round((club.winRate ?? 0) * 100) / 100,
     privacy: club.privacy,
     logoUrl: club.logoUrl ?? null,
-    bannerUrl: null,
+    bannerUrl: club.bannerUrl ?? null,
     action: resolveAction(club, membership),
     activityLabel: membership?.status === 'ACTIVE' ? ROLE_LABELS[membership.role] : ''
   };

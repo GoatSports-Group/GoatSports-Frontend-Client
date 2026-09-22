@@ -2,7 +2,7 @@
   tabindex="0" role="link" [attr.aria-label]="actionLabel + ' ' + item.club.name"
   (click)="open()" (keydown.enter)="open()">
   <div class="my-club-card__cover">
-    <img [src]="defaultClubBanner" (error)="useBannerFallback($event)" [alt]="'Ảnh bìa ' + item.club.name" />
+    <img [src]="item.club.bannerUrl || defaultClubBanner" (error)="useBannerFallback($event)" [alt]="'Ảnh bìa ' + item.club.name" />
     <span class="my-club-card__shade" aria-hidden="true"></span>
     <app-my-club-role-badge [role]="item.role"></app-my-club-role-badge>
     @if (isManager && pendingRequestCount > 0) {

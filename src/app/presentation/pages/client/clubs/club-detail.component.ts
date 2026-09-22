@@ -1,20 +1,26 @@
-import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { ClubRepositoryPort } from '@application/ports/club.repository.port';
 import { User } from '@application/dto/user/user.dto';
-import { Club as ClubModel, ClubActivity as ClubActivityModel, ClubMember as ClubMemberModel,
+import {
+  Club as ClubModel, ClubActivity as ClubActivityModel, ClubMember as ClubMemberModel,
   ClubRecentMatch as ClubRecentMatchModel,
   CreateClubActivityPayload, ClubRole,
-  UpdateClubPayload, ClubPrivacy, ClubApprovalMode } from '@application/dto/club/club.dto';
+  UpdateClubPayload, ClubPrivacy, ClubApprovalMode
+} from '@application/dto/club/club.dto';
 import { AuthService } from '@presentation/services/auth.service';
 import { PlayerDirectoryService } from '@presentation/services/player-directory.service';
 import { SearchPlayersUseCase } from '@application/usecase/user/search-players.usecase';
 import { PlayerSummary } from '@application/dto/user/user.dto';
 import { NotifyService } from '@shared/components/notify/notify.service';
+import { StorageService } from '@presentation/services/storage.service';
 import { TournamentRepositoryPort } from '@application/ports/tournament.repository.port';
-import { Tournament as TournamentModel, TournamentRegistration as TournamentRegistrationModel,
-  TournamentStanding as TournamentStandingModel } from '@application/dto/tournament/tournament.dto';
+import {
+  Tournament as TournamentModel, TournamentRegistration as TournamentRegistrationModel,
+  TournamentStanding as TournamentStandingModel
+} from '@application/dto/tournament/tournament.dto';
 import { ClubCardView, DEFAULT_CLUB_BANNER, DEFAULT_CLUB_LOGO, sportLabel, toCardView } from './club-view.model';
 
 type ClubTab = 'OVERVIEW' | 'MEMBERS' | 'REQUESTS' | 'ACTIVITIES' | 'TOURNAMENTS' | 'GALLERY' | 'SETTINGS';
@@ -23,7 +29,7 @@ type ClubViewerState = 'MANAGER' | 'MEMBER' | 'PENDING' | 'GUEST';
   selector: 'app-club-detail', templateUrl: './club-detail.component.html',
   styleUrls: ['./club-detail.component.scss'], changeDetection: ChangeDetectionStrategy.OnPush, standalone: false
 })
-export class ClubDetailComponent {
+export class ClubDetailComponent implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly repository = inject(ClubRepositoryPort);
@@ -32,6 +38,7 @@ export class ClubDetailComponent {
   private readonly directory = inject(PlayerDirectoryService);
   private readonly searchPlayers = inject(SearchPlayersUseCase);
   private readonly notify = inject(NotifyService);
+  private readonly storage = inject(StorageService);
   readonly clubId = this.route.snapshot.paramMap.get('clubId') ?? '';
 
   readonly club = signal<ClubModel | null>(null);
@@ -54,9 +61,15 @@ export class ClubDetailComponent {
   readonly inviteResults = signal<PlayerSummary[]>([]);
   readonly inviteSearching = signal(false);
   readonly showClubModal = signal(false);
+  readonly clubLogoPreview = signal<string | null>(null);
+  readonly clubBannerPreview = signal<string | null>(null);
   readonly editingActivityId = signal<string | null>(null);
   readonly defaultClubLogo = DEFAULT_CLUB_LOGO;
   readonly defaultClubBanner = DEFAULT_CLUB_BANNER;
+  private readonly optimisticClubLogo = signal<string | null>(null);
+  private readonly optimisticClubBanner = signal<string | null>(null);
+  readonly displayedClubLogo = computed(() => this.optimisticClubLogo() || this.club()?.logoUrl || this.defaultClubLogo);
+  readonly displayedClubBanner = computed(() => this.optimisticClubBanner() || this.club()?.bannerUrl || this.defaultClubBanner);
   readonly isOwner = computed(() => this.club()?.ownerId === this.auth.currentUser?.userId);
   readonly isManager = computed(() => this.isOwner() || (this.membership()?.status === 'ACTIVE' && this.membership()?.role === 'ADMIN'));
   readonly isActiveMember = computed(() => this.isOwner() || this.membership()?.status === 'ACTIVE');
@@ -98,6 +111,12 @@ export class ClubDetailComponent {
   inviteQuery = '';
   inviteMessage = '';
   clubForm: UpdateClubPayload = { name: '', description: '', tags: [], privacy: 'PUBLIC', approvalMode: 'AUTO' };
+  private clubLogoFile: File | null = null;
+  private clubBannerFile: File | null = null;
+  private clubLogoObjectUrl: string | null = null;
+  private clubBannerObjectUrl: string | null = null;
+  private persistedClubLogoObjectUrl: string | null = null;
+  private persistedClubBannerObjectUrl: string | null = null;
   private readonly memberLoadSentinel = viewChild<ElementRef<HTMLElement>>('memberLoadSentinel');
   private readonly activityLoadSentinel = viewChild<ElementRef<HTMLElement>>('activityLoadSentinel');
   private readonly matchLoadSentinel = viewChild<ElementRef<HTMLElement>>('matchLoadSentinel');
@@ -146,6 +165,13 @@ export class ClubDetailComponent {
 
     this.error.set('Mã câu lạc bộ không hợp lệ.');
     this.loading.set(false);
+  }
+
+  ngOnDestroy(): void {
+    this.revokeClubLogoPreview();
+    this.revokeClubBannerPreview();
+    this.releasePersistedMediaPreview('logo');
+    this.releasePersistedMediaPreview('banner');
   }
 
   load(): void {
@@ -469,29 +495,178 @@ export class ClubDetailComponent {
       name: current.name,
       description: current.description ?? '',
       logoUrl: current.logoUrl ?? '',
+      bannerUrl: current.bannerUrl ?? '',
       tags: [...(current.tags ?? [])],
       privacy: current.privacy,
       approvalMode: current.approvalMode
     };
+    this.clubLogoPreview.set(this.displayedClubLogo());
+    this.clubBannerPreview.set(this.displayedClubBanner());
+    this.clubLogoFile = null;
+    this.clubBannerFile = null;
     this.showClubModal.set(true);
   }
 
   saveClub(): void {
     if (this.mutating() || !this.clubForm.name?.trim()) return;
+    const pendingLogoPreview = this.clubLogoFile ? this.clubLogoObjectUrl : null;
+    const pendingBannerPreview = this.clubBannerFile ? this.clubBannerObjectUrl : null;
     this.mutating.set(true);
-    this.repository.updateClub(this.clubId, { ...this.clubForm, name: this.clubForm.name.trim() }).subscribe({
+    forkJoin({
+      logoUrl: this.clubLogoFile
+        ? this.storage.uploadImage(this.clubLogoFile, 'clubs/logos')
+        : of(this.clubForm.logoUrl),
+      bannerUrl: this.clubBannerFile
+        ? this.storage.uploadImage(this.clubBannerFile, 'clubs/banners')
+        : of(this.clubForm.bannerUrl)
+    }).pipe(
+      switchMap(media => this.repository.updateClub(this.clubId, {
+        ...this.clubForm,
+        name: this.clubForm.name!.trim(),
+        logoUrl: media.logoUrl,
+        bannerUrl: media.bannerUrl
+      }))
+    ).subscribe({
       next: club => {
         this.club.set(club);
+        if (pendingLogoPreview && club.logoUrl) {
+          this.persistMediaPreviewUntilReady('logo', pendingLogoPreview, club.logoUrl);
+        }
+        if (pendingBannerPreview && club.bannerUrl) {
+          this.persistMediaPreviewUntilReady('banner', pendingBannerPreview, club.bannerUrl);
+        }
         this.mutating.set(false);
-        this.showClubModal.set(false);
-        this.notify.success('Da cap nhat cau lac bo.');
+        this.closeClubModal();
+        this.notify.success('Đã cập nhật câu lạc bộ.');
       },
-      error: error => { this.mutating.set(false); this.notify.error(error?.error?.message ?? 'Khong the cap nhat cau lac bo.'); }
+      error: error => { this.mutating.set(false); this.notify.error(error?.error?.message ?? 'Không thể cập nhật câu lạc bộ.'); }
     });
+  }
+
+  onClubMediaSelected(event: Event, kind: 'logo' | 'banner'): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
+    const maxSize = 2 * 1024 * 1024;
+    if (!allowedTypes.has(file.type)) {
+      this.notify.error('Chỉ hỗ trợ ảnh JPG, PNG hoặc WebP.');
+      input.value = '';
+      return;
+    }
+    if (!file.size || file.size > maxSize) {
+      this.notify.error('Ảnh phải nhỏ hơn 2 MB.');
+      input.value = '';
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+    if (kind === 'logo') {
+      this.releasePersistedMediaPreview('logo');
+      this.revokeClubLogoPreview();
+      this.clubLogoFile = file;
+      this.clubLogoObjectUrl = previewUrl;
+      this.clubLogoPreview.set(previewUrl);
+      this.optimisticClubLogo.set(previewUrl);
+    } else {
+      this.releasePersistedMediaPreview('banner');
+      this.revokeClubBannerPreview();
+      this.clubBannerFile = file;
+      this.clubBannerObjectUrl = previewUrl;
+      this.clubBannerPreview.set(previewUrl);
+      this.optimisticClubBanner.set(previewUrl);
+    }
+    input.value = '';
+  }
+
+  closeClubModal(): void {
+    this.showClubModal.set(false);
+    this.revokeClubLogoPreview();
+    this.revokeClubBannerPreview();
+    this.clubLogoPreview.set(null);
+    this.clubBannerPreview.set(null);
+    this.clubLogoFile = null;
+    this.clubBannerFile = null;
   }
 
   setPrivacy(value: string): void { this.clubForm.privacy = value as ClubPrivacy; }
   setApprovalMode(value: string): void { this.clubForm.approvalMode = value as ClubApprovalMode; }
+
+  private revokeClubLogoPreview(): void {
+    if (this.clubLogoObjectUrl) {
+      if (this.optimisticClubLogo() === this.clubLogoObjectUrl) this.optimisticClubLogo.set(null);
+      URL.revokeObjectURL(this.clubLogoObjectUrl);
+    }
+    this.clubLogoObjectUrl = null;
+  }
+
+  private revokeClubBannerPreview(): void {
+    if (this.clubBannerObjectUrl) {
+      if (this.optimisticClubBanner() === this.clubBannerObjectUrl) this.optimisticClubBanner.set(null);
+      URL.revokeObjectURL(this.clubBannerObjectUrl);
+    }
+    this.clubBannerObjectUrl = null;
+  }
+
+  private persistMediaPreviewUntilReady(kind: 'logo' | 'banner', previewUrl: string, remoteUrl: string): void {
+    this.releasePersistedMediaPreview(kind);
+    if (kind === 'logo') {
+      this.clubLogoObjectUrl = null;
+      this.persistedClubLogoObjectUrl = previewUrl;
+      this.optimisticClubLogo.set(previewUrl);
+    } else {
+      this.clubBannerObjectUrl = null;
+      this.persistedClubBannerObjectUrl = previewUrl;
+      this.optimisticClubBanner.set(previewUrl);
+    }
+    this.preloadPersistedMedia(kind, previewUrl, remoteUrl, 0);
+  }
+
+  private preloadPersistedMedia(
+    kind: 'logo' | 'banner',
+    previewUrl: string,
+    remoteUrl: string,
+    attempt: number
+  ): void {
+    const persistedPreview = kind === 'logo'
+      ? this.persistedClubLogoObjectUrl
+      : this.persistedClubBannerObjectUrl;
+    if (persistedPreview !== previewUrl) return;
+
+    const image = new Image();
+    image.onload = () => {
+      const currentPreview = kind === 'logo'
+        ? this.persistedClubLogoObjectUrl
+        : this.persistedClubBannerObjectUrl;
+      if (currentPreview !== previewUrl) return;
+      this.releasePersistedMediaPreview(kind);
+    };
+    image.onerror = () => {
+      if (attempt >= 3) return;
+      window.setTimeout(
+        () => this.preloadPersistedMedia(kind, previewUrl, remoteUrl, attempt + 1),
+        600 * 2 ** attempt
+      );
+    };
+    image.src = remoteUrl;
+  }
+
+  private releasePersistedMediaPreview(kind: 'logo' | 'banner'): void {
+    const previewUrl = kind === 'logo'
+      ? this.persistedClubLogoObjectUrl
+      : this.persistedClubBannerObjectUrl;
+    if (!previewUrl) return;
+
+    if (kind === 'logo') {
+      if (this.optimisticClubLogo() === previewUrl) this.optimisticClubLogo.set(null);
+      this.persistedClubLogoObjectUrl = null;
+    } else {
+      if (this.optimisticClubBanner() === previewUrl) this.optimisticClubBanner.set(null);
+      this.persistedClubBannerObjectUrl = null;
+    }
+    URL.revokeObjectURL(previewUrl);
+  }
 
   openInviteModal(): void {
     this.inviteQuery = '';

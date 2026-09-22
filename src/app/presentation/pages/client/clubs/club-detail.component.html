@@ -1,711 +1,1068 @@
 <main class="club-detail-page">
   @if (loading()) {
-    <section class="detail-loading" aria-label="Đang tải chi tiết câu lạc bộ">
-      <app-loading-skeleton height="520px"></app-loading-skeleton>
-    </section>
+  <section class="detail-loading" aria-label="Đang tải chi tiết câu lạc bộ">
+    <app-loading-skeleton height="520px"></app-loading-skeleton>
+  </section>
   } @else if (error()) {
-    <section class="detail-empty" role="alert">
-      <span class="detail-empty__icon"><lucide-icon name="alert-triangle" class="w-6 h-6"></lucide-icon></span>
-      <h1>Chưa tải được câu lạc bộ</h1>
-      <p>{{ error() }}</p>
-      <button type="button" class="button button--primary" (click)="load()">Thử lại</button>
-    </section>
+  <section class="detail-empty" role="alert">
+    <span class="detail-empty__icon"><lucide-icon name="alert-triangle" class="w-6 h-6"></lucide-icon></span>
+    <h1>Chưa tải được câu lạc bộ</h1>
+    <p>{{ error() }}</p>
+    <button type="button" class="button button--primary" (click)="load()">Thử lại</button>
+  </section>
   } @else if (club(); as currentClub) {
-    <nav class="club-breadcrumb" aria-label="Đường dẫn">
-      <a routerLink="/clubs">Câu lạc bộ</a>
-      <lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon>
+  <nav class="club-breadcrumb" aria-label="Đường dẫn">
+    <a routerLink="/clubs">Câu lạc bộ</a>
+    <lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon>
+    @if (isActiveMember()) {
+    <button type="button" (click)="goToMyClubs()">CLB của bạn</button>
+    <lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon>
+    }
+    <strong>{{ currentClub.name }}</strong>
+  </nav>
+
+  <section class="club-identity" [attr.data-viewer]="viewerState()"
+    [class.club-identity--guest]="viewerState() === 'GUEST' || viewerState() === 'PENDING'"
+    [class.club-identity--member]="viewerState() === 'MEMBER'"
+    [class.club-identity--manager]="viewerState() === 'MANAGER'">
+    <div class="club-cover">
+      <img [src]="displayedClubBanner()" [alt]="'Ảnh bìa ' + currentClub.name" />
+      <div class="club-cover__shade"></div>
       @if (isActiveMember()) {
-        <button type="button" (click)="goToMyClubs()">CLB của bạn</button>
-        <lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon>
+      <span class="club-cover__eyebrow">{{ sportName() }} · {{ currentClub.privacy === 'PRIVATE' ? 'CLB riêng tư' : 'CLB
+        công khai' }}</span>
       }
-      <strong>{{ currentClub.name }}</strong>
-    </nav>
+    </div>
 
-    <section class="club-identity" [attr.data-viewer]="viewerState()"
-      [class.club-identity--guest]="viewerState() === 'GUEST' || viewerState() === 'PENDING'"
-      [class.club-identity--member]="viewerState() === 'MEMBER'"
-      [class.club-identity--manager]="viewerState() === 'MANAGER'">
-      <div class="club-cover">
-        <img [src]="defaultClubBanner" [alt]="'Ảnh bìa ' + currentClub.name" />
-        <div class="club-cover__shade"></div>
-        @if (isActiveMember()) {
-          <span class="club-cover__eyebrow">{{ sportName() }} · {{ currentClub.privacy === 'PRIVATE' ? 'CLB riêng tư' : 'CLB công khai' }}</span>
-        }
+    <div class="club-summary">
+      <div class="club-summary__main">
+        <img class="club-logo" [src]="displayedClubLogo()" [alt]="'Logo ' + currentClub.name" />
+        <div class="club-heading">
+          <div class="club-heading__line">
+            <h1>{{ currentClub.name }}</h1>
+            <span class="role-chip" [class.role-chip--manager]="isManager()"
+              [class.role-chip--member]="viewerState() === 'MEMBER'"
+              [class.role-chip--pending]="viewerState() === 'PENDING'">
+              @if (isManager()) { <lucide-icon name="crown" class="w-4 h-4"></lucide-icon> }
+              @else { <lucide-icon name="users" class="w-4 h-4"></lucide-icon> }
+              {{ roleLabel() }}
+            </span>
+          </div>
+          <p class="club-location"><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>{{ locationLabel() }}</p>
+        </div>
       </div>
 
-      <div class="club-summary">
-        <div class="club-summary__main">
-          <img class="club-logo" [src]="currentClub.logoUrl || defaultClubLogo" [alt]="'Logo ' + currentClub.name" />
-          <div class="club-heading">
-            <div class="club-heading__line">
-              <h1>{{ currentClub.name }}</h1>
-              <span class="role-chip" [class.role-chip--manager]="isManager()" [class.role-chip--member]="viewerState() === 'MEMBER'"
-                [class.role-chip--pending]="viewerState() === 'PENDING'">
-                @if (isManager()) { <lucide-icon name="crown" class="w-4 h-4"></lucide-icon> }
-                @else { <lucide-icon name="users" class="w-4 h-4"></lucide-icon> }
-                {{ roleLabel() }}
-              </span>
-            </div>
-            <p class="club-location"><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>{{ locationLabel() }}</p>
-          </div>
-        </div>
-
-        <div class="club-actions">
-          @if (isManager()) {
-            <button type="button" class="button button--secondary" (click)="openChat()">
-              <lucide-icon name="message-circle" class="w-4 h-4"></lucide-icon> Tin nhắn
-            </button>
-            <button type="button" class="button button--secondary" (click)="openClubModal()">
-              <lucide-icon name="pencil" class="w-4 h-4"></lucide-icon> Chỉnh sửa
-            </button>
-            <div class="member-more">
-              <button type="button" class="icon-action" aria-label="Tùy chọn quản trị" [attr.aria-expanded]="showManagerMenu()"
-                (click)="showManagerMenu.update(value => !value)"><lucide-icon name="more-horizontal" class="w-5 h-5"></lucide-icon></button>
-              @if (showManagerMenu()) {
-                <div class="member-more__menu member-more__menu--manager">
-                  <button type="button" (click)="showManagerMenu.set(false); openPlayerSearch()">
-                    <lucide-icon name="search" class="w-4 h-4"></lucide-icon> Tìm người chơi
-                  </button>
-                  <button type="button" (click)="showManagerMenu.set(false); openInviteModal()">
-                    <lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon> Mời thành viên
-                  </button>
-                </div>
-              }
-            </div>
-          } @else if (viewerState() === 'MEMBER') {
-            <button type="button" class="button button--secondary" (click)="openChat()">
-              <lucide-icon name="message-circle" class="w-4 h-4"></lucide-icon> Tin nhắn
-            </button>
-            <button type="button" class="button button--joined" disabled>
-              <lucide-icon name="user-round-check" class="w-4 h-4"></lucide-icon> Đang tham gia
-            </button>
-            <div class="member-more">
-              <button type="button" class="icon-action" aria-label="Thêm tùy chọn" [attr.aria-expanded]="showMemberMenu()"
-                (click)="showMemberMenu.update(value => !value)"><lucide-icon name="more-horizontal" class="w-5 h-5"></lucide-icon></button>
-              @if (showMemberMenu()) {
-                <div class="member-more__menu">
-                  <button type="button" [disabled]="mutating()" (click)="showMemberMenu.set(false); requestLeave()">
-                    <lucide-icon name="log-out" class="w-4 h-4"></lucide-icon> Rời câu lạc bộ
-                  </button>
-                </div>
-              }
-            </div>
-          } @else if (viewerState() === 'PENDING') {
-            <button type="button" class="button button--pending" disabled>
-              <lucide-icon name="clock-3" class="w-4 h-4"></lucide-icon> Đang chờ duyệt
-            </button>
-          } @else {
-            <button type="button" class="button button--primary" [disabled]="mutating()" (click)="startJoin()">
-              <lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon>
-              {{ currentClub.approvalMode === 'MANUAL' ? 'Yêu cầu tham gia' : 'Tham gia CLB' }}
-            </button>
-          }
-        </div>
-
-        <div class="club-about">
-          <p class="club-description">{{ currentClub.description || 'Câu lạc bộ chưa cập nhật phần giới thiệu.' }}</p>
-          <div class="club-badges" aria-label="Đặc trưng câu lạc bộ">
-            <span class="club-badge club-badge--sport">{{ sportName() }}</span>
-            @for (tag of currentClub.tags ?? []; track tag) { <span class="club-badge">{{ tag }}</span> }
-          </div>
-        </div>
-        <div class="club-facts" aria-label="Thống kê câu lạc bộ">
-          <div><lucide-icon name="users" class="w-5 h-5"></lucide-icon><strong>{{ currentClub.memberCount }}</strong><span>Thành viên</span></div>
-          <div><lucide-icon name="calendar-days" class="w-5 h-5"></lucide-icon><strong>{{ currentClub.matchCount }}</strong><span>Trận đã đá</span></div>
-          <div><lucide-icon name="trophy" class="w-5 h-5"></lucide-icon><strong>{{ currentClub.tournamentCount ?? 0 }}</strong><span>Giải đấu</span></div>
-          <div><lucide-icon name="clock-3" class="w-5 h-5"></lucide-icon><strong>{{ currentClub.createdAt ? (currentClub.createdAt | date:'MM/yyyy') : '—' }}</strong><span>Thành lập</span></div>
-        </div>
-      </div>
-    </section>
-
-    <nav class="detail-tabs" [class.detail-tabs--manager]="isManager()" role="tablist" aria-label="Nội dung câu lạc bộ">
-      <button type="button" role="tab" [class.active]="activeTab() === 'OVERVIEW'" (click)="setTab('OVERVIEW')">
-        <lucide-icon name="layout-grid" class="w-4 h-4"></lucide-icon> Tổng quan
-      </button>
-      <button type="button" role="tab" [class.active]="activeTab() === 'MEMBERS'" (click)="setTab('MEMBERS')">
-        <lucide-icon name="users" class="w-4 h-4"></lucide-icon> Thành viên
-      </button>
-      @if (isManager()) {
-        <button type="button" role="tab" [class.active]="activeTab() === 'REQUESTS'" (click)="setTab('REQUESTS')">
-          <lucide-icon name="user-round-check" class="w-4 h-4"></lucide-icon> Yêu cầu tham gia
-          @if (pendingMembers().length) { <span class="tab-count">{{ pendingMembers().length }}</span> }
+      <div class="club-actions">
+        @if (isManager()) {
+        <button type="button" class="button button--secondary" (click)="openChat()">
+          <lucide-icon name="message-circle" class="w-4 h-4"></lucide-icon> Tin nhắn
         </button>
-      }
-      <button type="button" role="tab" [class.active]="activeTab() === 'ACTIVITIES'" (click)="setTab('ACTIVITIES')">
-        <lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon> Lịch hoạt động
-      </button>
-      <button type="button" role="tab" [class.active]="activeTab() === 'TOURNAMENTS'" (click)="setTab('TOURNAMENTS')">
-        <lucide-icon name="trophy" class="w-4 h-4"></lucide-icon> Giải đấu
-      </button>
-      <button type="button" role="tab" [class.active]="activeTab() === 'GALLERY'" (click)="setTab('GALLERY')">
-        <lucide-icon name="image" class="w-4 h-4"></lucide-icon> Thư viện
-      </button>
-      @if (isManager()) {
-        <button type="button" role="tab" [class.active]="activeTab() === 'SETTINGS'" (click)="setTab('SETTINGS')">
-          <lucide-icon name="settings" class="w-4 h-4"></lucide-icon> Cài đặt
+        <button type="button" class="button button--secondary" (click)="openClubModal()">
+          <lucide-icon name="pencil" class="w-4 h-4"></lucide-icon> Chỉnh sửa
         </button>
-      }
-    </nav>
-
-    @if (activeTab() === 'OVERVIEW') {
-      @if (viewerState() === 'GUEST' || viewerState() === 'PENDING') {
-        <section class="guest-overview" aria-label="Tổng quan câu lạc bộ">
-          <article class="panel guest-introduction">
-            <div class="guest-introduction__copy">
-              <header class="panel__header"><h2>Giới thiệu</h2></header>
-              <p class="intro-copy">{{ currentClub.description || 'Câu lạc bộ chưa cập nhật phần giới thiệu.' }}</p>
-              <dl class="club-information club-information--guest">
-                <div><dt><lucide-icon name="circle-dot" class="w-4 h-4"></lucide-icon>Môn thể thao</dt><dd>{{ sportName() }}</dd></div>
-                <div><dt><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>Địa điểm</dt><dd>{{ locationLabel() }}</dd></div>
-                <div><dt><lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon>Ngày thành lập</dt><dd>{{ currentClub.createdAt ? (currentClub.createdAt | date:'MM/yyyy') : 'Chưa cập nhật' }}</dd></div>
-                <div><dt><lucide-icon name="shield-check" class="w-4 h-4"></lucide-icon>Hình thức</dt><dd>{{ currentClub.privacy === 'PRIVATE' ? 'CLB riêng tư' : 'CLB công khai' }} · {{ currentClub.approvalMode === 'MANUAL' ? 'Duyệt thành viên' : 'Tự động duyệt' }}</dd></div>
-              </dl>
-            </div>
-            <figure class="guest-introduction__visual">
-              <img [src]="defaultClubBanner" [alt]="'Hình ảnh đại diện ' + currentClub.name" />
-              <figcaption>Cộng đồng {{ currentClub.name }}</figcaption>
-            </figure>
-          </article>
-
-          <aside class="panel guest-join-card">
-            <span class="callout-icon"><lucide-icon name="users" class="w-7 h-7"></lucide-icon></span>
-            <h2>{{ viewerState() === 'PENDING' ? 'Yêu cầu đã được gửi' : 'Tham gia cùng chúng tôi!' }}</h2>
-            <p>{{ viewerState() === 'PENDING' ? 'Ban quản trị đang xem lời giới thiệu của bạn. Kết quả sẽ được thông báo ngay khi có.' : 'Gửi yêu cầu tham gia để trở thành một phần của ' + currentClub.name + ' và cùng chung đam mê ' + sportName().toLowerCase() + '.' }}</p>
-            <button type="button" class="button button--primary button--block" [disabled]="mutating() || viewerState() === 'PENDING'" (click)="startJoin()">
-              <lucide-icon [name]="viewerState() === 'PENDING' ? 'clock-3' : 'send'" class="w-4 h-4"></lucide-icon>
-              {{ viewerState() === 'PENDING' ? 'Đang chờ duyệt' : (currentClub.approvalMode === 'MANUAL' ? 'Yêu cầu tham gia' : 'Tham gia CLB') }}
+        <div class="member-more">
+          <button type="button" class="icon-action" aria-label="Tùy chọn quản trị"
+            [attr.aria-expanded]="showManagerMenu()" (click)="showManagerMenu.update(value => !value)"><lucide-icon
+              name="more-horizontal" class="w-5 h-5"></lucide-icon></button>
+          @if (showManagerMenu()) {
+          <div class="member-more__menu member-more__menu--manager">
+            <button type="button" (click)="showManagerMenu.set(false); openPlayerSearch()">
+              <lucide-icon name="search" class="w-4 h-4"></lucide-icon> Tìm người chơi
             </button>
-            <ul class="guest-join-benefits">
-              <li><lucide-icon name="users" class="w-4 h-4"></lucide-icon>Kết nối với cộng đồng cùng đam mê</li>
-              <li><lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon>Theo dõi các buổi tập luyện và giao lưu</li>
-              <li><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon>Cơ hội tham gia các giải đấu phong trào</li>
-            </ul>
-          </aside>
-
-          <article class="panel guest-overview-card guest-recent-matches">
-            <header class="panel__header"><h2>Trận đấu gần đây</h2></header>
-            @if (recentMatches().length) {
-              <div class="recent-match-list recent-match-list--scroll" (scroll)="onMatchScroll($event)">
-                @for (match of recentMatches(); track match.matchId) {
-                  <button type="button" class="recent-match-row" (click)="openMatchDetails(match)">
-                    <span class="recent-match-mark"><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon></span>
-                    <div><strong>{{ currentClub.name }} vs {{ match.opponentName }}</strong><span>{{ match.playedAt | date:'dd/MM/yyyy' }}</span></div>
-                    <b>{{ match.clubScore }} - {{ match.opponentScore }}</b>
-                    <em [class.recent-match-result--win]="match.result === 'WIN'" [class.recent-match-result--loss]="match.result === 'LOSS'">{{ match.result === 'WIN' ? 'Thắng' : match.result === 'LOSS' ? 'Thua' : 'Hòa' }}</em>
-                  </button>
-                }
-                <div #matchLoadSentinel class="match-load-sentinel" aria-live="polite">
-                  @if (matchPageLoading()) { <span class="member-load-spinner" aria-hidden="true"></span><span>Đang tải thêm trận đấu...</span> }
-                  @else if (matchPageError()) { <button type="button" (click)="loadNextMatchPage()">Thử lại</button> }
-                  @else if (!matchHasMore()) { <span>Đã hiển thị toàn bộ {{ matchTotal() }} trận.</span> }
-                </div>
-              </div>
-            } @else {
-              <div class="guest-empty-state"><lucide-icon name="trophy" class="w-7 h-7"></lucide-icon><strong>Chưa có trận đấu nào</strong><span>Các trận từ giải đấu của câu lạc bộ sẽ xuất hiện tại đây.</span></div>
-            }
-          </article>
-
-          <article class="panel guest-overview-card guest-upcoming-activities">
-            <header class="panel__header"><h2>Hoạt động sắp tới</h2><button type="button" class="text-action" (click)="setTab('ACTIVITIES')">Xem tất cả</button></header>
-            @if (sortedActivities().length) {
-              <div class="guest-activity-list">
-                @for (activity of sortedActivities().slice(0, 3); track activity.activityId) {
-                  <div class="guest-activity-row">
-                    <span class="guest-activity-icon"><lucide-icon name="calendar-days" class="w-5 h-5"></lucide-icon></span>
-                    <div><strong>{{ activity.title }}</strong><span>{{ activity.description || 'Thông tin chi tiết sẽ được cập nhật.' }}</span><small>{{ activity.startAt | date:'dd/MM/yyyy · HH:mm' }}</small></div>
-                    <button type="button" class="mini-button" (click)="openActivityDetails(activity)">Xem chi tiết</button>
-                  </div>
-                }
-              </div>
-            } @else {
-              <div class="guest-empty-state"><lucide-icon name="calendar-days" class="w-7 h-7"></lucide-icon><strong>Chưa có hoạt động sắp tới</strong><span>Lịch mới sẽ được cập nhật tại đây.</span></div>
-            }
-          </article>
-
-          <article class="panel guest-overview-card guest-members">
-            <header class="panel__header"><h2>Thành viên ({{ currentClub.memberCount }})</h2><button type="button" class="text-action" (click)="setTab('MEMBERS')">Xem tất cả</button></header>
-            @if (!hasAuthenticatedUser()) {
-              <div class="guest-empty-state"><lucide-icon name="log-in" class="w-7 h-7"></lucide-icon><strong>Đăng nhập để xem thành viên</strong><span>Thông tin thành viên được bảo vệ và chỉ hiển thị cho người dùng đã đăng nhập.</span></div>
-            } @else if (activeMembers().length) {
-              <div class="guest-member-grid">
-                @for (member of memberPreview(); track member.membershipId) {
-                  <div class="guest-member">
-                    <div class="member-avatar">
-                      @if (avatar(member.userId); as avatarUrl) { <img [src]="avatarUrl" [alt]="displayName(member.userId)" /> }
-                      @else { {{ initials(displayName(member.userId)) }} }
-                    </div>
-                    <div><strong>{{ displayName(member.userId) }}</strong><span>{{ member.role === 'OWNER' ? 'Chủ CLB' : member.role === 'ADMIN' ? 'Quản lý' : 'Thành viên' }}</span></div>
-                  </div>
-                }
-                @if (memberOverflowCount() > 0) {
-                  <button type="button" class="member-overflow-badge" (click)="setTab('MEMBERS')"
-                    [attr.aria-label]="'Xem thêm ' + memberOverflowCount() + ' thành viên'">
-                    <span>+{{ memberOverflowCount() }}</span><strong>Xem thêm</strong>
-                  </button>
-                }
-              </div>
-            } @else {
-              <div class="guest-empty-state"><lucide-icon name="users" class="w-7 h-7"></lucide-icon><strong>Chưa có dữ liệu thành viên</strong></div>
-            }
-          </article>
-
-          <article class="panel guest-gallery">
-            <header class="panel__header"><h2>Thư viện ảnh</h2><button type="button" class="text-action" (click)="setTab('GALLERY')">Xem tất cả</button></header>
-            <div class="guest-gallery__placeholder">
-              <img [src]="defaultClubBanner" alt="Ảnh hệ thống GOAT Sports" />
-              <div><lucide-icon name="image" class="w-6 h-6"></lucide-icon><strong>Chưa có ảnh hoạt động</strong><span>Khoảnh khắc của câu lạc bộ sẽ được cập nhật tại đây.</span></div>
-            </div>
-          </article>
-        </section>
-      } @else if (viewerState() === 'MEMBER') {
-        <section class="member-overview" aria-label="Tổng quan dành cho thành viên">
-          <article class="panel member-introduction">
-            <header class="panel__header"><h2>Giới thiệu</h2></header>
-            <p class="intro-copy">{{ currentClub.description || 'Câu lạc bộ chưa cập nhật phần giới thiệu.' }}</p>
-            <dl class="club-information club-information--member">
-              <div><dt><lucide-icon name="circle-dot" class="w-4 h-4"></lucide-icon>Môn thể thao</dt><dd>{{ sportName() }}</dd></div>
-              <div><dt><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>Địa điểm</dt><dd>{{ locationLabel() }}</dd></div>
-              <div><dt><lucide-icon name="shield-check" class="w-4 h-4"></lucide-icon>Hình thức</dt><dd>{{ currentClub.privacy === 'PRIVATE' ? 'Riêng tư' : 'Công khai' }} · {{ currentClub.approvalMode === 'MANUAL' ? 'Duyệt thành viên' : 'Tự động duyệt' }}</dd></div>
-              <div><dt><lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon>Ngày thành lập</dt><dd>{{ currentClub.createdAt ? (currentClub.createdAt | date:'dd/MM/yyyy') : 'Chưa cập nhật' }}</dd></div>
-            </dl>
-          </article>
-
-          <article class="panel member-recent-matches">
-            <header class="panel__header"><h2>Trận đấu gần đây</h2><span class="panel-count">{{ matchTotal() }} trận</span></header>
-            @if (recentMatches().length) {
-              <div class="recent-match-list recent-match-list--scroll" (scroll)="onMatchScroll($event)">
-                @for (match of recentMatches(); track match.matchId) {
-                  <button type="button" class="recent-match-row" (click)="openMatchDetails(match)">
-                    <span class="recent-match-mark"><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon></span>
-                    <div><strong>{{ currentClub.name }} vs {{ match.opponentName }}</strong><span>{{ match.playedAt | date:'dd/MM/yyyy' }}</span></div>
-                    <b>{{ match.clubScore }} - {{ match.opponentScore }}</b>
-                    <em [class.recent-match-result--win]="match.result === 'WIN'" [class.recent-match-result--loss]="match.result === 'LOSS'">{{ match.result === 'WIN' ? 'Thắng' : match.result === 'LOSS' ? 'Thua' : 'Hòa' }}</em>
-                  </button>
-                }
-                <div #matchLoadSentinel class="match-load-sentinel" aria-live="polite">
-                  @if (matchPageLoading()) { <span class="member-load-spinner" aria-hidden="true"></span><span>Đang tải thêm trận đấu...</span> }
-                  @else if (matchPageError()) { <button type="button" (click)="loadNextMatchPage()">Thử lại</button> }
-                  @else if (!matchHasMore()) { <span>Đã hiển thị toàn bộ {{ matchTotal() }} trận.</span> }
-                </div>
-              </div>
-            } @else {
-              <div class="guest-empty-state"><lucide-icon name="trophy" class="w-7 h-7"></lucide-icon><strong>Chưa có trận đấu nào</strong><span>Các trận từ giải đấu của câu lạc bộ sẽ xuất hiện tại đây.</span></div>
-            }
-          </article>
-
-          <article class="panel member-roster">
-            <header class="panel__header"><h2>Thành viên ({{ currentClub.memberCount }})</h2><button type="button" class="text-action" (click)="setTab('MEMBERS')">Xem tất cả</button></header>
-            @if (activeMembers().length) {
-              <div class="member-preview member-preview--compact">
-                @for (member of memberPreview(); track member.membershipId) {
-                  <div class="member-preview__item">
-                    <div class="member-avatar">
-                      @if (avatar(member.userId); as avatarUrl) { <img [src]="avatarUrl" [alt]="displayName(member.userId)" /> }
-                      @else { {{ initials(displayName(member.userId)) }} }
-                    </div>
-                    <div><strong>{{ displayName(member.userId) }}</strong><span>{{ member.role === 'OWNER' ? 'Chủ CLB' : member.role === 'ADMIN' ? 'Quản lý' : 'Thành viên' }}</span></div>
-                  </div>
-                }
-                @if (memberOverflowCount() > 0) {
-                  <button type="button" class="member-overflow-badge" (click)="setTab('MEMBERS')"
-                    [attr.aria-label]="'Xem thêm ' + memberOverflowCount() + ' thành viên'">
-                    <span>+{{ memberOverflowCount() }}</span><strong>Xem thêm</strong>
-                  </button>
-                }
-              </div>
-            } @else {
-              <div class="panel-empty panel-empty--compact"><span>Danh sách thành viên chưa có dữ liệu.</span></div>
-            }
-          </article>
-
-          <aside class="panel member-invite-card">
-            <span class="callout-icon"><lucide-icon name="users" class="w-7 h-7"></lucide-icon></span>
-            <h2>Mời thêm bạn tham gia</h2>
-            <p>Cùng lan tỏa đam mê và xây dựng cộng đồng {{ currentClub.name }} lớn mạnh hơn.</p>
-            <button type="button" class="button button--outline button--block" (click)="shareClub()">
+            <button type="button" (click)="showManagerMenu.set(false); openInviteModal()">
               <lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon> Mời thành viên
             </button>
-          </aside>
-
-          <article class="panel member-activities">
-            <header class="panel__header"><h2>Hoạt động sắp tới</h2><button type="button" class="text-action" (click)="setTab('ACTIVITIES')">Xem tất cả</button></header>
-            @if (sortedActivities().length) {
-              <div class="activity-preview">
-                @for (activity of sortedActivities().slice(0, 3); track activity.activityId) {
-                  <div class="activity-row">
-                    <time><strong>{{ activity.startAt | date:'dd' }}</strong><span>THG {{ activity.startAt | date:'M' }}</span></time>
-                    <div><strong>{{ activity.title }}</strong><span>{{ activity.description || 'Thông tin chi tiết sẽ được cập nhật.' }}</span><small>{{ activity.startAt | date:'dd/MM/yyyy · HH:mm' }}</small></div>
-                    <button type="button" class="mini-button" (click)="openActivityDetails(activity)">Xem chi tiết</button>
-                  </div>
-                }
-              </div>
-            } @else {
-              <div class="panel-empty"><lucide-icon name="calendar-days" class="w-7 h-7"></lucide-icon><strong>Chưa có hoạt động sắp tới</strong><span>Lịch mới sẽ được cập nhật tại đây.</span></div>
-            }
-          </article>
-
-          <article class="panel member-gallery">
-            <header class="panel__header"><h2>Thư viện ảnh</h2><button type="button" class="text-action" (click)="setTab('GALLERY')">Xem tất cả</button></header>
-            <div class="gallery-placeholder"><img [src]="defaultClubBanner" alt="Ảnh hệ thống GOAT Sports" /><div><lucide-icon name="image" class="w-6 h-6"></lucide-icon><span>Ảnh hoạt động sẽ được cập nhật tại đây</span></div></div>
-          </article>
-
-          <article class="panel member-tournaments">
-            <header class="panel__header"><h2>Bảng xếp hạng / Giải đấu</h2><button type="button" class="text-action" (click)="setTab('TOURNAMENTS')">Xem tất cả</button></header>
-            @if (tournament(); as activeTournament) {
-              <div class="tournament-preview">
-                <div class="tournament-preview__title"><span class="recent-match-mark"><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon></span><div><strong>{{ activeTournament.name }}</strong><span>{{ tournamentTeams().length }} đội · {{ matchTotal() }} trận của CLB</span></div></div>
-                <div class="standing-preview">
-                  @for (standing of tournamentStandings().slice(0, 4); track standing.registrationId) {
-                    <div [class.is-club]="isClubStanding(standing)"><b>#{{ standing.rank }}</b><span>{{ tournamentTeamName(standing.registrationId) }}</span><strong>{{ standing.points }}đ</strong></div>
-                  }
-                </div>
-                <a [routerLink]="['/tournaments', activeTournament.tournamentId]" class="button button--outline button--block">Xem giải đấu</a>
-              </div>
-            } @else {
-              <div class="panel-empty panel-empty--accent"><lucide-icon name="trophy" class="w-8 h-8"></lucide-icon><strong>Chưa có giải đấu nào</strong><span>Câu lạc bộ chưa tham gia giải đấu nào. Hãy cùng tham gia để thử sức và khẳng định bản thân!</span><a routerLink="/tournaments" class="button button--outline">Khám phá giải đấu</a></div>
-            }
-          </article>
-        </section>
-      } @else {
-        <section class="manager-overview" aria-label="Tổng quan quản trị câu lạc bộ">
-          <article class="panel manager-introduction">
-            <header class="panel__header"><h2>Giới thiệu</h2></header>
-            <p class="intro-copy">{{ currentClub.description || 'Câu lạc bộ chưa cập nhật phần giới thiệu.' }}</p>
-            <dl class="club-information club-information--manager">
-              <div><dt><lucide-icon name="circle-dot" class="w-4 h-4"></lucide-icon>Môn thể thao</dt><dd>{{ sportName() }}</dd></div>
-              <div><dt><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>Địa điểm</dt><dd>{{ locationLabel() }}</dd></div>
-              <div><dt><lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon>Ngày thành lập</dt><dd>{{ currentClub.createdAt ? (currentClub.createdAt | date:'MM/yyyy') : 'Chưa cập nhật' }}</dd></div>
-              <div><dt><lucide-icon name="shield-check" class="w-4 h-4"></lucide-icon>Hình thức</dt><dd>{{ currentClub.privacy === 'PRIVATE' ? 'Riêng tư' : 'Công khai' }} · {{ currentClub.approvalMode === 'MANUAL' ? 'Duyệt thành viên' : 'Tự động duyệt' }}</dd></div>
-            </dl>
-          </article>
-
-          <article class="panel manager-recent-matches">
-            <header class="panel__header"><h2>Trận đấu gần đây</h2><span class="panel-count">{{ matchTotal() }} trận</span></header>
-            @if (recentMatches().length) {
-              <div class="recent-match-list recent-match-list--scroll" (scroll)="onMatchScroll($event)">
-                @for (match of recentMatches(); track match.matchId) {
-                  <button type="button" class="recent-match-row" (click)="openMatchDetails(match)">
-                    <span class="recent-match-mark"><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon></span>
-                    <div><strong>{{ currentClub.name }} vs {{ match.opponentName }}</strong><span>{{ match.playedAt | date:'dd/MM/yyyy' }}</span></div>
-                    <b>{{ match.clubScore }} - {{ match.opponentScore }}</b>
-                    <em [class.recent-match-result--win]="match.result === 'WIN'" [class.recent-match-result--loss]="match.result === 'LOSS'">{{ match.result === 'WIN' ? 'Thắng' : match.result === 'LOSS' ? 'Thua' : 'Hòa' }}</em>
-                  </button>
-                }
-                <div #matchLoadSentinel class="match-load-sentinel" aria-live="polite">
-                  @if (matchPageLoading()) { <span class="member-load-spinner" aria-hidden="true"></span><span>Đang tải thêm trận đấu...</span> }
-                  @else if (matchPageError()) { <button type="button" (click)="loadNextMatchPage()">Thử lại</button> }
-                  @else if (!matchHasMore()) { <span>Đã hiển thị toàn bộ {{ matchTotal() }} trận.</span> }
-                </div>
-              </div>
-            } @else {
-              <div class="guest-empty-state"><lucide-icon name="trophy" class="w-7 h-7"></lucide-icon><strong>Chưa có trận đấu nào</strong><span>Các trận từ giải đấu của câu lạc bộ sẽ xuất hiện tại đây.</span></div>
-            }
-          </article>
-
-          <article class="panel manager-requests" id="membership-requests">
-            <header class="panel__header"><h2>Yêu cầu tham gia ({{ pendingMembers().length }})</h2><button class="text-action" type="button" (click)="setTab('REQUESTS')">Xem tất cả</button></header>
-            @if (pendingMembers().length) {
-              <div class="request-list request-list--compact">
-                @for (member of pendingMembers().slice(0, 5); track member.membershipId) {
-                  <div class="request-row">
-                    <div class="member-avatar">@if (avatar(member.userId); as avatarUrl) { <img [src]="avatarUrl" [alt]="displayName(member.userId)" /> } @else { {{ initials(displayName(member.userId)) }} }</div>
-                    <div><strong>{{ displayName(member.userId) }}</strong><span>{{ member.requestedAt ? (member.requestedAt | date:'dd/MM, HH:mm') : 'Vừa gửi yêu cầu' }}</span></div>
-                    <div class="row-actions"><button class="mini-button mini-button--accept" [disabled]="mutating()" (click)="respond(member, true)">Duyệt</button><button class="mini-button mini-button--reject" [disabled]="mutating()" (click)="respond(member, false)">Từ chối</button></div>
-                  </div>
-                }
-              </div>
-            } @else {
-              <div class="panel-empty"><lucide-icon name="user-round-check" class="w-7 h-7"></lucide-icon><strong>Không có yêu cầu đang chờ</strong><span>Yêu cầu mới sẽ xuất hiện tại đây theo thời gian thực.</span></div>
-            }
-          </article>
-
-          <article class="panel manager-members">
-            <header class="panel__header"><h2>Thành viên ({{ currentClub.memberCount }})</h2><button type="button" class="text-action" (click)="setTab('MEMBERS')">Xem tất cả</button></header>
-            @if (activeMembers().length) {
-              <div class="member-preview member-preview--compact">
-                @for (member of memberPreview(); track member.membershipId) {
-                  <div class="member-preview__item">
-                    <div class="member-avatar">@if (avatar(member.userId); as avatarUrl) { <img [src]="avatarUrl" [alt]="displayName(member.userId)" /> } @else { {{ initials(displayName(member.userId)) }} }</div>
-                    <div><strong>{{ displayName(member.userId) }}</strong><span>{{ member.role === 'OWNER' ? 'Chủ CLB' : member.role === 'ADMIN' ? 'Quản lý' : 'Thành viên' }}</span></div>
-                  </div>
-                }
-                @if (memberOverflowCount() > 0) {
-                  <button type="button" class="member-overflow-badge" (click)="setTab('MEMBERS')"
-                    [attr.aria-label]="'Xem thêm ' + memberOverflowCount() + ' thành viên'">
-                    <span>+{{ memberOverflowCount() }}</span><strong>Xem thêm</strong>
-                  </button>
-                }
-              </div>
-            } @else { <div class="panel-empty panel-empty--compact"><span>Danh sách thành viên chưa có dữ liệu.</span></div> }
-            <button type="button" class="button button--outline button--block" (click)="openInviteModal()"><lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon>Mời thành viên</button>
-          </article>
-
-          <article class="panel manager-activities">
-            <header class="panel__header"><h2>Lịch hoạt động sắp tới</h2><button type="button" class="text-action" (click)="setTab('ACTIVITIES')">Xem tất cả</button></header>
-            @if (sortedActivities().length) {
-              <div class="activity-preview">
-                @for (activity of sortedActivities().slice(0, 3); track activity.activityId) {
-                  <div class="activity-row">
-                    <time><strong>{{ activity.startAt | date:'dd' }}</strong><span>THG {{ activity.startAt | date:'M' }}</span></time>
-                    <div><strong>{{ activity.title }}</strong><span>{{ activity.description || 'Thông tin chi tiết sẽ được cập nhật.' }}</span><small>{{ activity.startAt | date:'dd/MM/yyyy · HH:mm' }}</small></div>
-                    <button type="button" class="mini-button" (click)="editActivity(activity)">Chỉnh sửa</button>
-                  </div>
-                }
-              </div>
-            } @else {
-              <div class="panel-empty"><lucide-icon name="calendar-days" class="w-7 h-7"></lucide-icon><strong>Chưa có hoạt động sắp tới</strong><span>Hãy tạo lời nhắc đầu tiên cho thành viên.</span></div>
-            }
-            <button type="button" class="button button--outline button--block" (click)="showActivityModal.set(true)">Tạo lời nhắc hoạt động</button>
-          </article>
-
-          <article class="panel manager-tournaments">
-            <header class="panel__header"><h2>Bảng xếp hạng / Giải đấu</h2><button type="button" class="text-action" (click)="setTab('TOURNAMENTS')">Xem tất cả</button></header>
-            @if (tournament(); as activeTournament) {
-              <div class="tournament-preview">
-                <div class="tournament-preview__title"><span class="recent-match-mark"><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon></span><div><strong>{{ activeTournament.name }}</strong><span>{{ tournamentTeams().length }} đội · {{ matchTotal() }} trận của CLB</span></div></div>
-                <div class="standing-preview">
-                  @for (standing of tournamentStandings().slice(0, 4); track standing.registrationId) {
-                    <div [class.is-club]="isClubStanding(standing)"><b>#{{ standing.rank }}</b><span>{{ tournamentTeamName(standing.registrationId) }}</span><strong>{{ standing.points }}đ</strong></div>
-                  }
-                </div>
-                <a [routerLink]="['/tournaments', activeTournament.tournamentId]" class="button button--primary button--block">Quản lý giải đấu</a>
-              </div>
-            } @else {
-              <div class="panel-empty panel-empty--accent"><lucide-icon name="trophy" class="w-8 h-8"></lucide-icon><strong>Chưa có giải đấu nào</strong><span>Tạo giải đấu hoặc đăng ký tham gia để bắt đầu hành trình chinh phục.</span><a routerLink="/tournaments" class="button button--primary"><lucide-icon name="plus" class="w-4 h-4"></lucide-icon>Tạo giải đấu</a></div>
-            }
-          </article>
-
-          <article class="panel manager-gallery">
-            <header class="panel__header"><h2>Thư viện ảnh</h2><button type="button" class="text-action" (click)="setTab('GALLERY')">Xem tất cả</button></header>
-            <div class="gallery-placeholder"><img [src]="defaultClubBanner" alt="Ảnh hệ thống GOAT Sports" /><div><lucide-icon name="image" class="w-6 h-6"></lucide-icon><span>Ảnh hoạt động sẽ được cập nhật tại đây</span></div></div>
-          </article>
-        </section>
-      }
-    } @else if (activeTab() === 'MEMBERS') {
-      <section class="content-panel">
-        <header class="content-heading"><div><span class="panel__eyebrow">Đội hình câu lạc bộ</span><h2>Thành viên đang hoạt động</h2><p>{{ memberTotal() }} thành viên trong danh sách.</p></div>@if (isManager()) { <button type="button" class="button button--primary" (click)="openInviteModal()"><lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon>Mời thành viên</button> }</header>
-        @if (activeMembers().length) {
-          <div class="member-grid">
-            @for (member of activeMembers(); track member.membershipId) {
-              <article class="member-card">
-                <div class="member-avatar member-avatar--large">@if (avatar(member.userId); as avatarUrl) { <img [src]="avatarUrl" [alt]="displayName(member.userId)" /> } @else { {{ initials(displayName(member.userId)) }} }</div>
-                <div class="member-card__copy"><h3>{{ displayName(member.userId) }}</h3><span>{{ member.role === 'OWNER' ? 'Chủ CLB' : member.role === 'ADMIN' ? 'Quản lý CLB' : 'Thành viên' }}</span></div>
-                @if (isManager() && member.role !== 'OWNER') {
-                  <div class="member-card__actions">@if (isOwner()) { <button type="button" (click)="promote(member)">{{ member.role === 'ADMIN' ? 'Gỡ quản lý' : 'Phong quản lý' }}</button> }<button type="button" (click)="removeMember(member, false)">Xóa</button><button type="button" class="danger-link" (click)="removeMember(member, true)">Cấm</button></div>
-                }
-              </article>
-            }
           </div>
-          <div #memberLoadSentinel class="member-load-sentinel" aria-live="polite">
-            @if (memberPageLoading()) {
-              <span class="member-load-spinner" aria-hidden="true"></span><span>Đang tải thêm thành viên...</span>
-            } @else if (memberPageError()) {
-              <span>Không thể tải thêm thành viên.</span><button type="button" (click)="loadNextMemberPage()">Thử lại</button>
-            } @else if (!memberHasMore()) {
-              <span>Đã hiển thị toàn bộ {{ memberTotal() }} thành viên.</span>
-            }
+          }
+        </div>
+        } @else if (viewerState() === 'MEMBER') {
+        <button type="button" class="button button--secondary" (click)="openChat()">
+          <lucide-icon name="message-circle" class="w-4 h-4"></lucide-icon> Tin nhắn
+        </button>
+        <button type="button" class="button button--joined" disabled>
+          <lucide-icon name="user-round-check" class="w-4 h-4"></lucide-icon> Đang tham gia
+        </button>
+        <div class="member-more">
+          <button type="button" class="icon-action" aria-label="Thêm tùy chọn" [attr.aria-expanded]="showMemberMenu()"
+            (click)="showMemberMenu.update(value => !value)"><lucide-icon name="more-horizontal"
+              class="w-5 h-5"></lucide-icon></button>
+          @if (showMemberMenu()) {
+          <div class="member-more__menu">
+            <button type="button" [disabled]="mutating()" (click)="showMemberMenu.set(false); requestLeave()">
+              <lucide-icon name="log-out" class="w-4 h-4"></lucide-icon> Rời câu lạc bộ
+            </button>
           </div>
-        } @else if (memberPageLoading()) {
-          <div class="member-load-sentinel"><span class="member-load-spinner" aria-hidden="true"></span><span>Đang tải danh sách thành viên...</span></div>
-        } @else { <div class="detail-empty detail-empty--inline"><p>Chưa có thành viên nào trong câu lạc bộ.</p></div> }
-      </section>
-    } @else if (activeTab() === 'REQUESTS') {
-      <section class="content-panel">
-        <header class="content-heading"><div><span class="panel__eyebrow">Dành cho ban quản trị</span><h2>Duyệt yêu cầu tham gia</h2><p>Đọc lời giới thiệu trước khi đưa người chơi vào đội hình.</p></div></header>
-        @if (pendingMembers().length) {
-          <div class="request-list">
-            @for (member of pendingMembers(); track member.membershipId) {
-              <article class="request-card">
-                <div class="member-avatar member-avatar--large">@if (avatar(member.userId); as avatarUrl) { <img [src]="avatarUrl" [alt]="displayName(member.userId)" /> } @else { {{ initials(displayName(member.userId)) }} }</div>
-                <div><h3>{{ displayName(member.userId) }}</h3><span>{{ member.requestedAt ? (member.requestedAt | date:'dd/MM/yyyy · HH:mm') : 'Yêu cầu mới' }}</span><p>{{ member.introMessage || 'Người chơi chưa để lại lời giới thiệu.' }}</p></div>
-                <div class="row-actions"><button class="button button--approve" [disabled]="mutating()" (click)="respond(member, true)">Duyệt</button><button class="button button--danger" [disabled]="mutating()" (click)="respond(member, false)">Từ chối</button></div>
-              </article>
-            }
-          </div>
-        } @else { <div class="detail-empty detail-empty--inline"><lucide-icon name="user-round-check" class="w-8 h-8"></lucide-icon><h3>Không có yêu cầu đang chờ</h3><p>Yêu cầu mới sẽ xuất hiện tại đây theo thời gian thực.</p></div> }
-      </section>
-    } @else if (activeTab() === 'ACTIVITIES') {
-      <section class="content-panel">
-        <header class="content-heading"><div><span class="panel__eyebrow">Lịch cộng đồng</span><h2>Hoạt động câu lạc bộ</h2><p>Các lời nhắc và buổi sinh hoạt dành cho thành viên.</p></div>@if (isManager()) { <button type="button" class="button button--primary" (click)="showActivityModal.set(true)">Tạo lời nhắc</button> }</header>
-        @if (sortedActivities().length) {
-          <div class="activity-list">
-            @for (activity of sortedActivities(); track activity.activityId) {
-              <article class="activity-card activity-card--interactive" role="button" tabindex="0"
-                (click)="openActivityDetails(activity)" (keydown.enter)="openActivityDetails(activity)">
-                <time><strong>{{ activity.startAt | date:'dd' }}</strong><span>THG {{ activity.startAt | date:'M' }}</span></time>
-                <div><h3>{{ activity.title }}</h3><p>{{ activity.description || 'Không có mô tả.' }}</p><span>{{ activity.startAt | date:'dd/MM/yyyy · HH:mm' }} – {{ activity.endAt | date:'HH:mm' }}</span></div>
-                @if (isManager()) {
-                  <div class="row-actions">
-                    <button class="mini-button" (click)="$event.stopPropagation(); editActivity(activity)">Sửa</button>
-                    <button class="mini-button mini-button--reject" (click)="$event.stopPropagation(); deleteActivity(activity)">Xóa</button>
-                  </div>
-                }
-              </article>
-            }
-          </div>
-          <div #activityLoadSentinel class="member-load-sentinel" aria-live="polite">
-            @if (activityPageLoading()) {
-              <span class="member-load-spinner" aria-hidden="true"></span><span>Đang tải thêm hoạt động...</span>
-            } @else if (activityPageError()) {
-              <span>Không thể tải thêm hoạt động.</span><button type="button" (click)="loadNextActivityPage()">Thử lại</button>
-            } @else if (!activityHasMore()) {
-              <span>Đã hiển thị toàn bộ {{ activityTotal() }} hoạt động sắp tới.</span>
-            }
-          </div>
-        } @else { <div class="detail-empty detail-empty--inline"><p>Chưa có hoạt động nào. @if (isManager()) { Hãy tạo lời nhắc đầu tiên cho thành viên. }</p></div> }
-      </section>
-    } @else if (activeTab() === 'TOURNAMENTS') {
-      <section class="content-panel tournament-workspace">
-        @if (tournament(); as activeTournament) {
-          <header class="content-heading tournament-heading">
-            <div><span class="panel__eyebrow">Thi đấu câu lạc bộ</span><h2>{{ activeTournament.name }}</h2><p>{{ activeTournament.description || 'Hành trình thi đấu và thành tích của câu lạc bộ.' }}</p></div>
-            <a [routerLink]="['/tournaments', activeTournament.tournamentId]" class="button button--primary">Xem trang giải đấu</a>
-          </header>
-          <div class="tournament-summary">
-            <div><span>Thể thức</span><strong>{{ activeTournament.format === 'ROUND_ROBIN' ? 'Vòng tròn' : 'Loại trực tiếp' }}</strong></div>
-            <div><span>Số đội</span><strong>{{ tournamentTeams().length }}</strong></div>
-            <div><span>Trận đã đá</span><strong>{{ matchTotal() }}</strong></div>
-            <div><span>Thời gian</span><strong>{{ activeTournament.startDate | date:'dd/MM' }} – {{ activeTournament.endDate | date:'dd/MM/yyyy' }}</strong></div>
-          </div>
-          <div class="tournament-grid">
-            <article class="tournament-board">
-              <header><div><span class="panel__eyebrow">Bảng xếp hạng</span><h3>Thành tích các đội</h3></div></header>
-              <div class="standing-table" role="table" aria-label="Bảng xếp hạng giải đấu">
-                <div class="standing-table__head" role="row"><span>#</span><span>Đội</span><span>Trận</span><span>Thắng</span><span>Hòa</span><span>Thua</span><span>Điểm</span></div>
-                @for (standing of tournamentStandings(); track standing.registrationId) {
-                  <div class="standing-table__row" role="row" [class.is-club]="isClubStanding(standing)">
-                    <b>{{ standing.rank }}</b><strong>{{ tournamentTeamName(standing.registrationId) }}</strong><span>{{ standing.played }}</span><span>{{ standing.won }}</span><span>{{ standing.drawn }}</span><span>{{ standing.lost }}</span><b>{{ standing.points }}</b>
-                  </div>
-                }
-              </div>
-            </article>
-            <article class="tournament-matches">
-              <header><div><span class="panel__eyebrow">Lịch sử thi đấu</span><h3>{{ matchTotal() }} trận của {{ currentClub.name }}</h3></div></header>
-              <div class="recent-match-list recent-match-list--tournament" (scroll)="onMatchScroll($event)">
-                @for (match of recentMatches(); track match.matchId) {
-                  <button type="button" class="recent-match-row" (click)="openMatchDetails(match)">
-                    <span class="recent-match-mark"><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon></span>
-                    <div><strong>{{ currentClub.name }} vs {{ match.opponentName }}</strong><span>{{ match.playedAt | date:'dd/MM/yyyy' }}</span></div>
-                    <b>{{ match.clubScore }} - {{ match.opponentScore }}</b>
-                    <em [class.recent-match-result--win]="match.result === 'WIN'" [class.recent-match-result--loss]="match.result === 'LOSS'">{{ match.result === 'WIN' ? 'Thắng' : match.result === 'LOSS' ? 'Thua' : 'Hòa' }}</em>
-                  </button>
-                }
-                <div #matchLoadSentinel class="match-load-sentinel" aria-live="polite">
-                  @if (matchPageLoading()) { <span class="member-load-spinner" aria-hidden="true"></span><span>Đang tải thêm trận đấu...</span> }
-                  @else if (matchPageError()) { <button type="button" (click)="loadNextMatchPage()">Thử lại</button> }
-                  @else if (!matchHasMore()) { <span>Đã hiển thị toàn bộ {{ matchTotal() }} trận.</span> }
-                </div>
-              </div>
-            </article>
-          </div>
+          }
+        </div>
+        } @else if (viewerState() === 'PENDING') {
+        <button type="button" class="button button--pending" disabled>
+          <lucide-icon name="clock-3" class="w-4 h-4"></lucide-icon> Đang chờ duyệt
+        </button>
         } @else {
-          <div class="detail-empty detail-empty--inline"><lucide-icon name="trophy" class="w-9 h-9"></lucide-icon><h2>Chưa có dữ liệu giải đấu</h2><p>Thông tin giải đấu của câu lạc bộ sẽ hiển thị tại đây khi có dữ liệu.</p><a routerLink="/tournaments" class="button button--primary">Khám phá giải đấu</a></div>
+        <button type="button" class="button button--primary" [disabled]="mutating()" (click)="startJoin()">
+          <lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon>
+          {{ currentClub.approvalMode === 'MANUAL' ? 'Yêu cầu tham gia' : 'Tham gia CLB' }}
+        </button>
         }
-      </section>
-    } @else if (activeTab() === 'GALLERY') {
-      <section class="content-panel"><div class="detail-empty detail-empty--inline"><lucide-icon name="image" class="w-9 h-9"></lucide-icon><h2>Thư viện chưa có ảnh</h2><p>Những khoảnh khắc của câu lạc bộ sẽ được lưu giữ tại đây.</p></div></section>
-    } @else if (activeTab() === 'SETTINGS') {
-      <section class="content-panel"><div class="settings-cta"><div><span class="panel__eyebrow">Quản trị câu lạc bộ</span><h2>Cập nhật thông tin và quyền tham gia</h2><p>Chỉnh sửa tên, giới thiệu, logo, quyền riêng tư và chế độ duyệt thành viên.</p></div><button type="button" class="button button--primary" (click)="openClubModal()"><lucide-icon name="settings" class="w-4 h-4"></lucide-icon>Mở cài đặt</button></div></section>
-    }
-
-    @if (showJoinRequestModal() && joinRequestClub(); as requestClub) {
-      <app-club-join-request-modal [club]="requestClub" [submitting]="mutating()"
-        (cancelled)="showJoinRequestModal.set(false)" (submitted)="join($event)"></app-club-join-request-modal>
-    }
-
-    @if (selectedActivity(); as activity) {
-      <div class="modal-overlay" (click)="closeActivityDetails()">
-        <section class="modal-card activity-detail-modal" appAccessibleDialog aria-labelledby="activity-detail-title"
-          (dialogClosed)="closeActivityDetails()" (click)="$event.stopPropagation()">
-          <header class="modal-title">
-            <div><span>Hoạt động câu lạc bộ</span><h2 id="activity-detail-title">{{ activity.title }}</h2></div>
-            <button type="button" class="icon-action" aria-label="Đóng" (click)="closeActivityDetails()"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button>
-          </header>
-          <div class="activity-detail-modal__hero">
-            <time><strong>{{ activity.startAt | date:'dd' }}</strong><span>THG {{ activity.startAt | date:'M' }}</span></time>
-            <div><span>Lịch cộng đồng</span><strong>{{ currentClub.name }}</strong><small>{{ sportName() }} · {{ locationLabel() }}</small></div>
-          </div>
-          <dl class="activity-detail-modal__facts">
-            <div><dt><lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon>Ngày diễn ra</dt><dd>{{ activity.startAt | date:'dd/MM/yyyy' }}</dd></div>
-            <div><dt><lucide-icon name="clock-3" class="w-4 h-4"></lucide-icon>Thời gian</dt><dd>{{ activity.startAt | date:'HH:mm' }} – {{ activity.endAt | date:'HH:mm' }}</dd></div>
-            <div><dt><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>Khu vực CLB</dt><dd>{{ locationLabel() }}</dd></div>
-          </dl>
-          <div class="activity-detail-modal__description">
-            <span>Nội dung nhắc</span>
-            <p>{{ activity.description || 'Ban quản trị chưa bổ sung nội dung chi tiết cho hoạt động này.' }}</p>
-          </div>
-          <footer class="modal-footer">
-            <button type="button" class="button button--secondary" (click)="closeActivityDetails()">Đóng</button>
-            @if (isManager()) { <button type="button" class="button button--primary" (click)="closeActivityDetails(); editActivity(activity)">Chỉnh sửa hoạt động</button> }
-          </footer>
-        </section>
       </div>
-    }
 
-    @if (selectedMatch(); as match) {
-      <div class="modal-overlay" (click)="closeMatchDetails()">
-        <section class="modal-card match-detail-modal" appAccessibleDialog aria-labelledby="match-detail-title"
-          (dialogClosed)="closeMatchDetails()" (click)="$event.stopPropagation()">
-          <header class="modal-title">
-            <div><span>{{ match.tournamentName }}</span><h2 id="match-detail-title">Chi tiết trận đấu</h2></div>
-            <button type="button" class="icon-action" aria-label="Đóng" (click)="closeMatchDetails()"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button>
-          </header>
-          <div class="match-scoreboard">
-            <div><img [src]="currentClub.logoUrl || defaultClubLogo" [alt]="currentClub.name" /><strong>{{ currentClub.name }}</strong></div>
-            <div class="match-scoreboard__score"><span>{{ match.result === 'WIN' ? 'Chiến thắng' : match.result === 'LOSS' ? 'Thất bại' : 'Hòa' }}</span><b>{{ match.clubScore }} - {{ match.opponentScore }}</b><small>{{ match.playedAt | date:'dd/MM/yyyy · HH:mm' }}</small></div>
-            <div><span class="opponent-mark"><lucide-icon name="shield" class="w-7 h-7"></lucide-icon></span><strong>{{ match.opponentName }}</strong></div>
+      <div class="club-about">
+        <p class="club-description">{{ currentClub.description || 'Câu lạc bộ chưa cập nhật phần giới thiệu.' }}</p>
+        <div class="club-badges" aria-label="Đặc trưng câu lạc bộ">
+          <span class="club-badge club-badge--sport">{{ sportName() }}</span>
+          @for (tag of currentClub.tags ?? []; track tag) { @if(tag !== null) { <span class="club-badge">{{ tag
+            }}</span> } }
+        </div>
+      </div>
+      <div class="club-facts" aria-label="Thống kê câu lạc bộ">
+        <div><lucide-icon name="users" class="w-5 h-5"></lucide-icon><strong>{{ currentClub.memberCount
+            }}</strong><span>Thành viên</span></div>
+        <div><lucide-icon name="calendar-days" class="w-5 h-5"></lucide-icon><strong>{{ currentClub.matchCount
+            }}</strong><span>Trận đã đá</span></div>
+        <div><lucide-icon name="trophy" class="w-5 h-5"></lucide-icon><strong>{{ currentClub.tournamentCount ?? 0
+            }}</strong><span>Giải đấu</span></div>
+        <div><lucide-icon name="clock-3" class="w-5 h-5"></lucide-icon><strong>{{ currentClub.createdAt ?
+            (currentClub.createdAt | date:'MM/yyyy') : '—' }}</strong><span>Thành lập</span></div>
+      </div>
+    </div>
+  </section>
+
+  <nav class="detail-tabs" [class.detail-tabs--manager]="isManager()" role="tablist" aria-label="Nội dung câu lạc bộ">
+    <button type="button" role="tab" [class.active]="activeTab() === 'OVERVIEW'" (click)="setTab('OVERVIEW')">
+      <lucide-icon name="layout-grid" class="w-4 h-4"></lucide-icon> Tổng quan
+    </button>
+    <button type="button" role="tab" [class.active]="activeTab() === 'MEMBERS'" (click)="setTab('MEMBERS')">
+      <lucide-icon name="users" class="w-4 h-4"></lucide-icon> Thành viên
+    </button>
+    @if (isManager()) {
+    <button type="button" role="tab" [class.active]="activeTab() === 'REQUESTS'" (click)="setTab('REQUESTS')">
+      <lucide-icon name="user-round-check" class="w-4 h-4"></lucide-icon> Yêu cầu tham gia
+      @if (pendingMembers().length) { <span class="tab-count">{{ pendingMembers().length }}</span> }
+    </button>
+    }
+    <button type="button" role="tab" [class.active]="activeTab() === 'ACTIVITIES'" (click)="setTab('ACTIVITIES')">
+      <lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon> Lịch hoạt động
+    </button>
+    <button type="button" role="tab" [class.active]="activeTab() === 'TOURNAMENTS'" (click)="setTab('TOURNAMENTS')">
+      <lucide-icon name="trophy" class="w-4 h-4"></lucide-icon> Giải đấu
+    </button>
+    <button type="button" role="tab" [class.active]="activeTab() === 'GALLERY'" (click)="setTab('GALLERY')">
+      <lucide-icon name="image" class="w-4 h-4"></lucide-icon> Thư viện
+    </button>
+    @if (isManager()) {
+    <button type="button" role="tab" [class.active]="activeTab() === 'SETTINGS'" (click)="setTab('SETTINGS')">
+      <lucide-icon name="settings" class="w-4 h-4"></lucide-icon> Cài đặt
+    </button>
+    }
+  </nav>
+
+  @if (activeTab() === 'OVERVIEW') {
+  @if (viewerState() === 'GUEST' || viewerState() === 'PENDING') {
+  <section class="guest-overview" aria-label="Tổng quan câu lạc bộ">
+    <article class="panel guest-introduction">
+      <div class="guest-introduction__copy">
+        <header class="panel__header">
+          <h2>Giới thiệu</h2>
+        </header>
+        <p class="intro-copy">{{ currentClub.description || 'Câu lạc bộ chưa cập nhật phần giới thiệu.' }}</p>
+        <dl class="club-information club-information--guest">
+          <div>
+            <dt><lucide-icon name="circle-dot" class="w-4 h-4"></lucide-icon>Môn thể thao</dt>
+            <dd>{{ sportName() }}</dd>
           </div>
-          <dl class="activity-detail-modal__facts">
-            <div><dt><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon>Giải đấu</dt><dd>{{ match.tournamentName }}</dd></div>
-            <div><dt><lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon>Ngày thi đấu</dt><dd>{{ match.playedAt | date:'dd/MM/yyyy' }}</dd></div>
-            <div><dt><lucide-icon name="activity" class="w-4 h-4"></lucide-icon>Kết quả</dt><dd>{{ match.result === 'WIN' ? 'Thắng' : match.result === 'LOSS' ? 'Thua' : 'Hòa' }}</dd></div>
-          </dl>
-          <footer class="modal-footer"><button type="button" class="button button--secondary" (click)="closeMatchDetails()">Đóng</button><a [routerLink]="['/tournaments', match.tournamentId]" class="button button--primary" (click)="closeMatchDetails()">Xem giải đấu</a></footer>
-        </section>
+          <div>
+            <dt><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>Địa điểm</dt>
+            <dd>{{ locationLabel() }}</dd>
+          </div>
+          <div>
+            <dt><lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon>Ngày thành lập</dt>
+            <dd>{{ currentClub.createdAt ? (currentClub.createdAt | date:'MM/yyyy') : 'Chưa cập nhật' }}</dd>
+          </div>
+          <div>
+            <dt><lucide-icon name="shield-check" class="w-4 h-4"></lucide-icon>Hình thức</dt>
+            <dd>{{ currentClub.privacy === 'PRIVATE' ? 'CLB riêng tư' : 'CLB công khai' }} · {{ currentClub.approvalMode
+              === 'MANUAL' ? 'Duyệt thành viên' : 'Tự động duyệt' }}</dd>
+          </div>
+        </dl>
       </div>
-    }
+      <figure class="guest-introduction__visual">
+        <img [src]="displayedClubBanner()" [alt]="'Hình ảnh đại diện ' + currentClub.name" />
+        <figcaption>Cộng đồng {{ currentClub.name }}</figcaption>
+      </figure>
+    </article>
 
-    @if (showLeaveConfirm()) {
-      <div class="modal-overlay" (click)="showLeaveConfirm.set(false)">
-        <section class="modal-card confirm-leave-modal" appAccessibleDialog aria-labelledby="leave-club-title"
-          (dialogClosed)="showLeaveConfirm.set(false)" (click)="$event.stopPropagation()">
-          <span class="confirm-leave-modal__icon"><lucide-icon name="log-out" class="w-7 h-7"></lucide-icon></span>
-          <h2 id="leave-club-title">Rời {{ currentClub.name }}?</h2>
-          <p>Bạn sẽ không còn nhận lịch hoạt động và tin nhắn của câu lạc bộ. Bạn có thể gửi yêu cầu tham gia lại sau.</p>
-          <footer class="modal-footer"><button type="button" class="button button--secondary" (click)="showLeaveConfirm.set(false)">Ở lại CLB</button><button type="button" class="button button--danger" [disabled]="mutating()" (click)="leave()">{{ mutating() ? 'Đang xử lý...' : 'Rời câu lạc bộ' }}</button></footer>
-        </section>
+    <aside class="panel guest-join-card">
+      <span class="callout-icon"><lucide-icon name="users" class="w-7 h-7"></lucide-icon></span>
+      <h2>{{ viewerState() === 'PENDING' ? 'Yêu cầu đã được gửi' : 'Tham gia cùng chúng tôi!' }}</h2>
+      <p>{{ viewerState() === 'PENDING' ? 'Ban quản trị đang xem lời giới thiệu của bạn. Kết quả sẽ được thông báo ngay
+        khi có.' : 'Gửi yêu cầu tham gia để trở thành một phần của ' + currentClub.name + ' và cùng chung đam mê ' +
+        sportName().toLowerCase() + '.' }}</p>
+      <button type="button" class="button button--primary button--block"
+        [disabled]="mutating() || viewerState() === 'PENDING'" (click)="startJoin()">
+        <lucide-icon [name]="viewerState() === 'PENDING' ? 'clock-3' : 'send'" class="w-4 h-4"></lucide-icon>
+        {{ viewerState() === 'PENDING' ? 'Đang chờ duyệt' : (currentClub.approvalMode === 'MANUAL' ? 'Yêu cầu tham gia'
+        : 'Tham gia CLB') }}
+      </button>
+      <ul class="guest-join-benefits">
+        <li><lucide-icon name="users" class="w-4 h-4"></lucide-icon>Kết nối với cộng đồng cùng đam mê</li>
+        <li><lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon>Theo dõi các buổi tập luyện và giao lưu</li>
+        <li><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon>Cơ hội tham gia các giải đấu phong trào</li>
+      </ul>
+    </aside>
+
+    <article class="panel guest-overview-card guest-recent-matches">
+      <header class="panel__header">
+        <h2>Trận đấu gần đây</h2>
+      </header>
+      @if (recentMatches().length) {
+      <div class="recent-match-list recent-match-list--scroll" (scroll)="onMatchScroll($event)">
+        @for (match of recentMatches(); track match.matchId) {
+        <button type="button" class="recent-match-row" (click)="openMatchDetails(match)">
+          <span class="recent-match-mark"><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon></span>
+          <div><strong>{{ currentClub.name }} vs {{ match.opponentName }}</strong><span>{{ match.playedAt |
+              date:'dd/MM/yyyy' }}</span></div>
+          <b>{{ match.clubScore }} - {{ match.opponentScore }}</b>
+          <em [class.recent-match-result--win]="match.result === 'WIN'"
+            [class.recent-match-result--loss]="match.result === 'LOSS'">{{ match.result === 'WIN' ? 'Thắng' :
+            match.result === 'LOSS' ? 'Thua' : 'Hòa' }}</em>
+        </button>
+        }
+        <div #matchLoadSentinel class="match-load-sentinel" aria-live="polite">
+          @if (matchPageLoading()) { <span class="member-load-spinner" aria-hidden="true"></span><span>Đang tải thêm
+            trận đấu...</span> }
+          @else if (matchPageError()) { <button type="button" (click)="loadNextMatchPage()">Thử lại</button> }
+          @else if (!matchHasMore()) { <span>Đã hiển thị toàn bộ {{ matchTotal() }} trận.</span> }
+        </div>
       </div>
-    }
+      } @else {
+      <div class="guest-empty-state"><lucide-icon name="trophy" class="w-7 h-7"></lucide-icon><strong>Chưa có trận đấu
+          nào</strong><span>Các trận từ giải đấu của câu lạc bộ sẽ xuất hiện tại đây.</span></div>
+      }
+    </article>
 
-    @if (showClubModal()) {
-      <div class="modal-overlay" (click)="showClubModal.set(false)"><section class="modal-card" appAccessibleDialog aria-labelledby="club-modal-title" (dialogClosed)="showClubModal.set(false)" (click)="$event.stopPropagation()">
-        <header class="modal-title"><div><span>Quản trị CLB</span><h2 id="club-modal-title">Chỉnh sửa câu lạc bộ</h2></div><button type="button" class="icon-action" aria-label="Đóng" (click)="showClubModal.set(false)"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button></header>
-        <div class="form-group"><label for="club-name">Tên câu lạc bộ *</label><input id="club-name" [(ngModel)]="clubForm.name" /></div>
-        <div class="form-group"><label for="club-description">Giới thiệu</label><textarea id="club-description" [(ngModel)]="clubForm.description"></textarea></div>
-        <div class="form-group"><label for="club-logo">Ảnh đại diện (URL)</label><input id="club-logo" [(ngModel)]="clubForm.logoUrl" /></div>
-        <app-club-tag-editor [tags]="clubForm.tags ?? []" (tagsChange)="clubForm.tags = $event"
-          [sportLabel]="sportName()" [disabled]="mutating()"></app-club-tag-editor>
-        <div class="form-row"><div class="form-group"><label for="club-privacy">Quyền riêng tư</label><select id="club-privacy" [value]="clubForm.privacy" (change)="setPrivacy($any($event.target).value)"><option value="PUBLIC">Công khai</option><option value="PRIVATE">Riêng tư</option></select></div><div class="form-group"><label for="club-approval">Duyệt thành viên</label><select id="club-approval" [value]="clubForm.approvalMode" (change)="setApprovalMode($any($event.target).value)"><option value="AUTO">Tự động</option><option value="MANUAL">Ban quản trị duyệt</option></select></div></div>
-        <footer class="modal-footer"><button type="button" class="button button--secondary" (click)="showClubModal.set(false)">Hủy</button><button type="button" class="button button--primary" [disabled]="mutating() || !clubForm.name" (click)="saveClub()">Lưu thay đổi</button></footer>
-      </section></div>
-    }
+    <article class="panel guest-overview-card guest-upcoming-activities">
+      <header class="panel__header">
+        <h2>Hoạt động sắp tới</h2><button type="button" class="text-action" (click)="setTab('ACTIVITIES')">Xem tất
+          cả</button>
+      </header>
+      @if (sortedActivities().length) {
+      <div class="guest-activity-list">
+        @for (activity of sortedActivities().slice(0, 3); track activity.activityId) {
+        <div class="guest-activity-row">
+          <span class="guest-activity-icon"><lucide-icon name="calendar-days" class="w-5 h-5"></lucide-icon></span>
+          <div><strong>{{ activity.title }}</strong><span>{{ activity.description || 'Thông tin chi tiết sẽ được cập
+              nhật.' }}</span><small>{{ activity.startAt | date:'dd/MM/yyyy · HH:mm' }}</small></div>
+          <button type="button" class="mini-button" (click)="openActivityDetails(activity)">Xem chi tiết</button>
+        </div>
+        }
+      </div>
+      } @else {
+      <div class="guest-empty-state"><lucide-icon name="calendar-days" class="w-7 h-7"></lucide-icon><strong>Chưa có
+          hoạt động sắp tới</strong><span>Lịch mới sẽ được cập nhật tại đây.</span></div>
+      }
+    </article>
 
-    @if (showActivityModal()) {
-      <div class="modal-overlay" (click)="closeActivityModal()"><section class="modal-card" appAccessibleDialog aria-labelledby="activity-modal-title" (dialogClosed)="closeActivityModal()" (click)="$event.stopPropagation()">
-        <header class="modal-title"><div><span>Lịch cộng đồng</span><h2 id="activity-modal-title">{{ editingActivityId() ? 'Sửa lời nhắc' : 'Tạo lời nhắc hoạt động' }}</h2></div><button type="button" class="icon-action" aria-label="Đóng" (click)="closeActivityModal()"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button></header>
-        <div class="form-group"><label for="activity-title">Tiêu đề *</label><input id="activity-title" [(ngModel)]="activityForm.title" /></div><div class="form-group"><label for="activity-description">Nội dung nhắc</label><textarea id="activity-description" [(ngModel)]="activityForm.description"></textarea></div><div class="form-row"><div class="form-group"><label for="activity-start">Bắt đầu *</label><input id="activity-start" type="datetime-local" [(ngModel)]="activityForm.startAt" /></div><div class="form-group"><label for="activity-end">Kết thúc *</label><input id="activity-end" type="datetime-local" [(ngModel)]="activityForm.endAt" /></div></div>
-        <footer class="modal-footer"><button type="button" class="button button--secondary" (click)="closeActivityModal()">Hủy</button><button type="button" class="button button--primary" [disabled]="mutating() || !activityForm.title || !activityForm.startAt || !activityForm.endAt" (click)="createActivity()">{{ editingActivityId() ? 'Lưu thay đổi' : 'Tạo lời nhắc' }}</button></footer>
-      </section></div>
-    }
+    <article class="panel guest-overview-card guest-members">
+      <header class="panel__header">
+        <h2>Thành viên ({{ currentClub.memberCount }})</h2><button type="button" class="text-action"
+          (click)="setTab('MEMBERS')">Xem tất cả</button>
+      </header>
+      @if (!hasAuthenticatedUser()) {
+      <div class="guest-empty-state"><lucide-icon name="log-in" class="w-7 h-7"></lucide-icon><strong>Đăng nhập để xem
+          thành viên</strong><span>Thông tin thành viên được bảo vệ và chỉ hiển thị cho người dùng đã đăng nhập.</span>
+      </div>
+      } @else if (activeMembers().length) {
+      <div class="guest-member-grid">
+        @for (member of memberPreview(); track member.membershipId) {
+        <div class="guest-member">
+          <div class="member-avatar">
+            @if (avatar(member.userId); as avatarUrl) { <img [src]="avatarUrl" [alt]="displayName(member.userId)" /> }
+            @else { {{ initials(displayName(member.userId)) }} }
+          </div>
+          <div><strong>{{ displayName(member.userId) }}</strong><span>{{ member.role === 'OWNER' ? 'Chủ CLB' :
+              member.role === 'ADMIN' ? 'Quản lý' : 'Thành viên' }}</span></div>
+        </div>
+        }
+        @if (memberOverflowCount() > 0) {
+        <button type="button" class="member-overflow-badge" (click)="setTab('MEMBERS')"
+          [attr.aria-label]="'Xem thêm ' + memberOverflowCount() + ' thành viên'">
+          <span>+{{ memberOverflowCount() }}</span><strong>Xem thêm</strong>
+        </button>
+        }
+      </div>
+      } @else {
+      <div class="guest-empty-state"><lucide-icon name="users" class="w-7 h-7"></lucide-icon><strong>Chưa có dữ liệu
+          thành viên</strong></div>
+      }
+    </article>
 
-    @if (showInviteModal()) {
-      <div class="modal-overlay" (click)="showInviteModal.set(false)"><section class="modal-card" appAccessibleDialog aria-labelledby="invite-modal-title" (dialogClosed)="showInviteModal.set(false)" (click)="$event.stopPropagation()">
-        <header class="modal-title"><div><span>Tuyển thành viên</span><h2 id="invite-modal-title">Mời người chơi vào CLB</h2></div><button type="button" class="icon-action" aria-label="Đóng" (click)="showInviteModal.set(false)"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button></header>
-        <div class="form-group"><label for="invite-query">Tìm người chơi</label><input id="invite-query" [(ngModel)]="inviteQuery" (input)="runInviteSearch()" placeholder="Nhập tên hoặc email" /></div><div class="form-group"><label for="invite-message">Lời nhắn (không bắt buộc)</label><textarea id="invite-message" [(ngModel)]="inviteMessage" rows="2" placeholder="Vài dòng giới thiệu câu lạc bộ..."></textarea></div>
-        @if (inviteSearching()) { <p class="form-note">Đang tìm người chơi...</p> } @else if (inviteQuery.trim().length < 2) { <p class="form-note">Nhập ít nhất 2 ký tự để bắt đầu tìm.</p> } @else if (!inviteResults().length) { <p class="form-note">Không tìm thấy người chơi phù hợp.</p> } @else { <ul class="invite-results">@for (player of inviteResults(); track player.userId) { <li><span>{{ player.fullName || player.username }}</span><button type="button" class="button button--primary" [disabled]="mutating()" (click)="invite(player)">Mời</button></li> }</ul> }
-        <footer class="modal-footer"><button type="button" class="button button--secondary" (click)="showInviteModal.set(false)">Đóng</button></footer>
-      </section></div>
+    <article class="panel guest-gallery">
+      <header class="panel__header">
+        <h2>Thư viện ảnh</h2><button type="button" class="text-action" (click)="setTab('GALLERY')">Xem tất cả</button>
+      </header>
+      <div class="guest-gallery__placeholder">
+        <img [src]="displayedClubBanner()" [alt]="'Ảnh hoạt động ' + currentClub.name" />
+        <div><lucide-icon name="image" class="w-6 h-6"></lucide-icon><strong>Chưa có ảnh hoạt động</strong><span>Khoảnh
+            khắc của câu lạc bộ sẽ được cập nhật tại đây.</span></div>
+      </div>
+    </article>
+  </section>
+  } @else if (viewerState() === 'MEMBER') {
+  <section class="member-overview" aria-label="Tổng quan dành cho thành viên">
+    <article class="panel member-introduction">
+      <header class="panel__header">
+        <h2>Giới thiệu</h2>
+      </header>
+      <p class="intro-copy">{{ currentClub.description || 'Câu lạc bộ chưa cập nhật phần giới thiệu.' }}</p>
+      <dl class="club-information club-information--member">
+        <div>
+          <dt><lucide-icon name="circle-dot" class="w-4 h-4"></lucide-icon>Môn thể thao</dt>
+          <dd>{{ sportName() }}</dd>
+        </div>
+        <div>
+          <dt><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>Địa điểm</dt>
+          <dd>{{ locationLabel() }}</dd>
+        </div>
+        <div>
+          <dt><lucide-icon name="shield-check" class="w-4 h-4"></lucide-icon>Hình thức</dt>
+          <dd>{{ currentClub.privacy === 'PRIVATE' ? 'Riêng tư' : 'Công khai' }} · {{ currentClub.approvalMode ===
+            'MANUAL' ? 'Duyệt thành viên' : 'Tự động duyệt' }}</dd>
+        </div>
+        <div>
+          <dt><lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon>Ngày thành lập</dt>
+          <dd>{{ currentClub.createdAt ? (currentClub.createdAt | date:'dd/MM/yyyy') : 'Chưa cập nhật' }}</dd>
+        </div>
+      </dl>
+    </article>
+
+    <article class="panel member-recent-matches">
+      <header class="panel__header">
+        <h2>Trận đấu gần đây</h2><span class="panel-count">{{ matchTotal() }} trận</span>
+      </header>
+      @if (recentMatches().length) {
+      <div class="recent-match-list recent-match-list--scroll" (scroll)="onMatchScroll($event)">
+        @for (match of recentMatches(); track match.matchId) {
+        <button type="button" class="recent-match-row" (click)="openMatchDetails(match)">
+          <span class="recent-match-mark"><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon></span>
+          <div><strong>{{ currentClub.name }} vs {{ match.opponentName }}</strong><span>{{ match.playedAt |
+              date:'dd/MM/yyyy' }}</span></div>
+          <b>{{ match.clubScore }} - {{ match.opponentScore }}</b>
+          <em [class.recent-match-result--win]="match.result === 'WIN'"
+            [class.recent-match-result--loss]="match.result === 'LOSS'">{{ match.result === 'WIN' ? 'Thắng' :
+            match.result === 'LOSS' ? 'Thua' : 'Hòa' }}</em>
+        </button>
+        }
+        <div #matchLoadSentinel class="match-load-sentinel" aria-live="polite">
+          @if (matchPageLoading()) { <span class="member-load-spinner" aria-hidden="true"></span><span>Đang tải thêm
+            trận đấu...</span> }
+          @else if (matchPageError()) { <button type="button" (click)="loadNextMatchPage()">Thử lại</button> }
+          @else if (!matchHasMore()) { <span>Đã hiển thị toàn bộ {{ matchTotal() }} trận.</span> }
+        </div>
+      </div>
+      } @else {
+      <div class="guest-empty-state"><lucide-icon name="trophy" class="w-7 h-7"></lucide-icon><strong>Chưa có trận đấu
+          nào</strong><span>Các trận từ giải đấu của câu lạc bộ sẽ xuất hiện tại đây.</span></div>
+      }
+    </article>
+
+    <article class="panel member-roster">
+      <header class="panel__header">
+        <h2>Thành viên ({{ currentClub.memberCount }})</h2><button type="button" class="text-action"
+          (click)="setTab('MEMBERS')">Xem tất cả</button>
+      </header>
+      @if (activeMembers().length) {
+      <div class="member-preview member-preview--compact">
+        @for (member of memberPreview(); track member.membershipId) {
+        <div class="member-preview__item">
+          <div class="member-avatar">
+            @if (avatar(member.userId); as avatarUrl) { <img [src]="avatarUrl" [alt]="displayName(member.userId)" /> }
+            @else { {{ initials(displayName(member.userId)) }} }
+          </div>
+          <div><strong>{{ displayName(member.userId) }}</strong><span>{{ member.role === 'OWNER' ? 'Chủ CLB' :
+              member.role === 'ADMIN' ? 'Quản lý' : 'Thành viên' }}</span></div>
+        </div>
+        }
+        @if (memberOverflowCount() > 0) {
+        <button type="button" class="member-overflow-badge" (click)="setTab('MEMBERS')"
+          [attr.aria-label]="'Xem thêm ' + memberOverflowCount() + ' thành viên'">
+          <span>+{{ memberOverflowCount() }}</span><strong>Xem thêm</strong>
+        </button>
+        }
+      </div>
+      } @else {
+      <div class="panel-empty panel-empty--compact"><span>Danh sách thành viên chưa có dữ liệu.</span></div>
+      }
+    </article>
+
+    <article class="panel member-activities">
+      <header class="panel__header">
+        <h2>Hoạt động sắp tới</h2><button type="button" class="text-action" (click)="setTab('ACTIVITIES')">Xem tất
+          cả</button>
+      </header>
+      @if (sortedActivities().length) {
+      <div class="activity-preview">
+        @for (activity of sortedActivities().slice(0, 3); track activity.activityId) {
+        <div class="activity-row">
+          <time><strong>{{ activity.startAt | date:'dd' }}</strong><span>THG {{ activity.startAt | date:'M'
+              }}</span></time>
+          <div><strong>{{ activity.title }}</strong><span>{{ activity.description || 'Thông tin chi tiết sẽ được cập
+              nhật.' }}</span><small>{{ activity.startAt | date:'dd/MM/yyyy · HH:mm' }}</small></div>
+          <button type="button" class="mini-button" (click)="openActivityDetails(activity)">Xem chi tiết</button>
+        </div>
+        }
+      </div>
+      } @else {
+      <div class="panel-empty"><lucide-icon name="calendar-days" class="w-7 h-7"></lucide-icon><strong>Chưa có hoạt động
+          sắp tới</strong><span>Lịch mới sẽ được cập nhật tại đây.</span></div>
+      }
+    </article>
+
+    <article class="panel member-gallery">
+      <header class="panel__header">
+        <h2>Thư viện ảnh</h2><button type="button" class="text-action" (click)="setTab('GALLERY')">Xem tất cả</button>
+      </header>
+      <div class="gallery-placeholder"><img [src]="displayedClubBanner()"
+          [alt]="'Ảnh hoạt động ' + currentClub.name" />
+        <div><lucide-icon name="image" class="w-6 h-6"></lucide-icon><span>Ảnh hoạt động sẽ được cập nhật tại đây</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="panel member-tournaments">
+      <header class="panel__header">
+        <h2>Bảng xếp hạng / Giải đấu</h2><button type="button" class="text-action" (click)="setTab('TOURNAMENTS')">Xem
+          tất cả</button>
+      </header>
+      @if (tournament(); as activeTournament) {
+      <div class="tournament-preview">
+        <div class="tournament-preview__title"><span class="recent-match-mark"><lucide-icon name="trophy"
+              class="w-4 h-4"></lucide-icon></span>
+          <div><strong>{{ activeTournament.name }}</strong><span>{{ tournamentTeams().length }} đội · {{ matchTotal() }}
+              trận của CLB</span></div>
+        </div>
+        <div class="standing-preview">
+          @for (standing of tournamentStandings().slice(0, 4); track standing.registrationId) {
+          <div [class.is-club]="isClubStanding(standing)"><b>#{{ standing.rank }}</b><span>{{
+              tournamentTeamName(standing.registrationId) }}</span><strong>{{ standing.points }}đ</strong></div>
+          }
+        </div>
+        <a [routerLink]="['/tournaments', activeTournament.tournamentId]"
+          class="button button--outline button--block">Xem giải đấu</a>
+      </div>
+      } @else {
+      <div class="panel-empty panel-empty--accent"><lucide-icon name="trophy" class="w-8 h-8"></lucide-icon><strong>Chưa
+          tham gia giải đấu nào</strong><span>Các giải đấu câu lạc bộ đã tham gia sẽ được hiển thị tại đây.</span></div>
+      }
+    </article>
+  </section>
+  } @else {
+  <section class="manager-overview" aria-label="Tổng quan quản trị câu lạc bộ">
+    <article class="panel manager-introduction">
+      <header class="panel__header">
+        <h2>Giới thiệu</h2>
+      </header>
+      <p class="intro-copy">{{ currentClub.description || 'Câu lạc bộ chưa cập nhật phần giới thiệu.' }}</p>
+      <dl class="club-information club-information--manager">
+        <div>
+          <dt><lucide-icon name="circle-dot" class="w-4 h-4"></lucide-icon>Môn thể thao</dt>
+          <dd>{{ sportName() }}</dd>
+        </div>
+        <div>
+          <dt><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>Địa điểm</dt>
+          <dd>{{ locationLabel() }}</dd>
+        </div>
+        <div>
+          <dt><lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon>Ngày thành lập</dt>
+          <dd>{{ currentClub.createdAt ? (currentClub.createdAt | date:'MM/yyyy') : 'Chưa cập nhật' }}</dd>
+        </div>
+        <div>
+          <dt><lucide-icon name="shield-check" class="w-4 h-4"></lucide-icon>Hình thức</dt>
+          <dd>{{ currentClub.privacy === 'PRIVATE' ? 'Riêng tư' : 'Công khai' }} · {{ currentClub.approvalMode ===
+            'MANUAL' ? 'Duyệt thành viên' : 'Tự động duyệt' }}</dd>
+        </div>
+      </dl>
+    </article>
+
+    <article class="panel manager-recent-matches">
+      <header class="panel__header">
+        <h2>Trận đấu gần đây</h2><span class="panel-count">{{ matchTotal() }} trận</span>
+      </header>
+      @if (recentMatches().length) {
+      <div class="recent-match-list recent-match-list--scroll" (scroll)="onMatchScroll($event)">
+        @for (match of recentMatches(); track match.matchId) {
+        <button type="button" class="recent-match-row" (click)="openMatchDetails(match)">
+          <span class="recent-match-mark"><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon></span>
+          <div><strong>{{ currentClub.name }} vs {{ match.opponentName }}</strong><span>{{ match.playedAt |
+              date:'dd/MM/yyyy' }}</span></div>
+          <b>{{ match.clubScore }} - {{ match.opponentScore }}</b>
+          <em [class.recent-match-result--win]="match.result === 'WIN'"
+            [class.recent-match-result--loss]="match.result === 'LOSS'">{{ match.result === 'WIN' ? 'Thắng' :
+            match.result === 'LOSS' ? 'Thua' : 'Hòa' }}</em>
+        </button>
+        }
+        <div #matchLoadSentinel class="match-load-sentinel" aria-live="polite">
+          @if (matchPageLoading()) { <span class="member-load-spinner" aria-hidden="true"></span><span>Đang tải thêm
+            trận đấu...</span> }
+          @else if (matchPageError()) { <button type="button" (click)="loadNextMatchPage()">Thử lại</button> }
+          @else if (!matchHasMore()) { <span>Đã hiển thị toàn bộ {{ matchTotal() }} trận.</span> }
+        </div>
+      </div>
+      } @else {
+      <div class="guest-empty-state"><lucide-icon name="trophy" class="w-7 h-7"></lucide-icon><strong>Chưa có trận đấu
+          nào</strong><span>Các trận từ giải đấu của câu lạc bộ sẽ xuất hiện tại đây.</span></div>
+      }
+    </article>
+
+    <article class="panel manager-requests" id="membership-requests">
+      <header class="panel__header">
+        <h2>Yêu cầu tham gia ({{ pendingMembers().length }})</h2><button class="text-action" type="button"
+          (click)="setTab('REQUESTS')">Xem tất cả</button>
+      </header>
+      @if (pendingMembers().length) {
+      <div class="request-list request-list--compact">
+        @for (member of pendingMembers().slice(0, 5); track member.membershipId) {
+        <div class="request-row">
+          <div class="member-avatar">@if (avatar(member.userId); as avatarUrl) { <img [src]="avatarUrl"
+              [alt]="displayName(member.userId)" /> } @else { {{ initials(displayName(member.userId)) }} }</div>
+          <div><strong>{{ displayName(member.userId) }}</strong><span>{{ member.requestedAt ? (member.requestedAt |
+              date:'dd/MM, HH:mm') : 'Vừa gửi yêu cầu' }}</span></div>
+          <div class="row-actions"><button class="mini-button mini-button--accept" [disabled]="mutating()"
+              (click)="respond(member, true)">Duyệt</button><button class="mini-button mini-button--reject"
+              [disabled]="mutating()" (click)="respond(member, false)">Từ chối</button></div>
+        </div>
+        }
+      </div>
+      } @else {
+      <div class="panel-empty"><lucide-icon name="user-round-check" class="w-7 h-7"></lucide-icon><strong>Không có yêu
+          cầu đang chờ</strong><span>Yêu cầu mới sẽ xuất hiện tại đây theo thời gian thực.</span></div>
+      }
+    </article>
+
+    <article class="panel manager-members">
+      <header class="panel__header">
+        <h2>Thành viên ({{ currentClub.memberCount }})</h2><button type="button" class="text-action"
+          (click)="setTab('MEMBERS')">Xem tất cả</button>
+      </header>
+      @if (activeMembers().length) {
+      <div class="member-preview member-preview--compact">
+        @for (member of memberPreview(); track member.membershipId) {
+        <div class="member-preview__item">
+          <div class="member-avatar">@if (avatar(member.userId); as avatarUrl) { <img [src]="avatarUrl"
+              [alt]="displayName(member.userId)" /> } @else { {{ initials(displayName(member.userId)) }} }</div>
+          <div><strong>{{ displayName(member.userId) }}</strong><span>{{ member.role === 'OWNER' ? 'Chủ CLB' :
+              member.role === 'ADMIN' ? 'Quản lý' : 'Thành viên' }}</span></div>
+        </div>
+        }
+        @if (memberOverflowCount() > 0) {
+        <button type="button" class="member-overflow-badge" (click)="setTab('MEMBERS')"
+          [attr.aria-label]="'Xem thêm ' + memberOverflowCount() + ' thành viên'">
+          <span>+{{ memberOverflowCount() }}</span><strong>Xem thêm</strong>
+        </button>
+        }
+      </div>
+      } @else { <div class="panel-empty panel-empty--compact"><span>Danh sách thành viên chưa có dữ liệu.</span></div> }
+      <button type="button" class="button button--outline button--block" (click)="openInviteModal()"><lucide-icon
+          name="user-plus" class="w-4 h-4"></lucide-icon>Mời thành viên</button>
+    </article>
+
+    <article class="panel manager-activities">
+      <header class="panel__header">
+        <h2>Lịch hoạt động sắp tới</h2><button type="button" class="text-action" (click)="setTab('ACTIVITIES')">Xem tất
+          cả</button>
+      </header>
+      @if (sortedActivities().length) {
+      <div class="activity-preview">
+        @for (activity of sortedActivities().slice(0, 3); track activity.activityId) {
+        <div class="activity-row">
+          <time><strong>{{ activity.startAt | date:'dd' }}</strong><span>THG {{ activity.startAt | date:'M'
+              }}</span></time>
+          <div><strong>{{ activity.title }}</strong><span>{{ activity.description || 'Thông tin chi tiết sẽ được cập
+              nhật.' }}</span><small>{{ activity.startAt | date:'dd/MM/yyyy · HH:mm' }}</small></div>
+          <button type="button" class="mini-button" (click)="editActivity(activity)">Chỉnh sửa</button>
+        </div>
+        }
+      </div>
+      } @else {
+      <div class="panel-empty"><lucide-icon name="calendar-days" class="w-7 h-7"></lucide-icon><strong>Chưa có hoạt động
+          sắp tới</strong><span>Hãy tạo lời nhắc đầu tiên cho thành viên.</span></div>
+      }
+      <button type="button" class="button button--outline button--block" (click)="showActivityModal.set(true)">Tạo lời
+        nhắc hoạt động</button>
+    </article>
+
+    <article class="panel manager-tournaments">
+      <header class="panel__header">
+        <h2>Bảng xếp hạng / Giải đấu</h2><button type="button" class="text-action" (click)="setTab('TOURNAMENTS')">Xem
+          tất cả</button>
+      </header>
+      @if (tournament(); as activeTournament) {
+      <div class="tournament-preview">
+        <div class="tournament-preview__title"><span class="recent-match-mark"><lucide-icon name="trophy"
+              class="w-4 h-4"></lucide-icon></span>
+          <div><strong>{{ activeTournament.name }}</strong><span>{{ tournamentTeams().length }} đội · {{ matchTotal() }}
+              trận của CLB</span></div>
+        </div>
+        <div class="standing-preview">
+          @for (standing of tournamentStandings().slice(0, 4); track standing.registrationId) {
+          <div [class.is-club]="isClubStanding(standing)"><b>#{{ standing.rank }}</b><span>{{
+              tournamentTeamName(standing.registrationId) }}</span><strong>{{ standing.points }}đ</strong></div>
+          }
+        </div>
+        <a [routerLink]="['/tournaments', activeTournament.tournamentId]"
+          class="button button--outline button--block">Xem giải đấu</a>
+      </div>
+      } @else {
+      <div class="panel-empty panel-empty--accent"><lucide-icon name="trophy" class="w-8 h-8"></lucide-icon><strong>Chưa
+          tham gia giải đấu nào</strong><span>Các giải đấu câu lạc bộ đã tham gia sẽ được hiển thị tại đây.</span></div>
+      }
+    </article>
+
+    <article class="panel manager-gallery">
+      <header class="panel__header">
+        <h2>Thư viện ảnh</h2><button type="button" class="text-action" (click)="setTab('GALLERY')">Xem tất cả</button>
+      </header>
+      <div class="gallery-placeholder"><img [src]="displayedClubBanner()"
+          [alt]="'Ảnh hoạt động ' + currentClub.name" />
+        <div><lucide-icon name="image" class="w-6 h-6"></lucide-icon><span>Ảnh hoạt động sẽ được cập nhật tại đây</span>
+        </div>
+      </div>
+    </article>
+  </section>
+  }
+  } @else if (activeTab() === 'MEMBERS') {
+  <section class="content-panel">
+    <header class="content-heading">
+      <div><span class="panel__eyebrow">Đội hình câu lạc bộ</span>
+        <h2>Thành viên đang hoạt động</h2>
+        <p>{{ memberTotal() }} thành viên trong danh sách.</p>
+      </div>@if (isManager()) { <button type="button" class="button button--primary"
+        (click)="openInviteModal()"><lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon>Mời thành viên</button>
+      }
+    </header>
+    @if (activeMembers().length) {
+    <div class="member-grid">
+      @for (member of activeMembers(); track member.membershipId) {
+      <article class="member-card">
+        <div class="member-avatar member-avatar--large">@if (avatar(member.userId); as avatarUrl) { <img
+            [src]="avatarUrl" [alt]="displayName(member.userId)" /> } @else { {{ initials(displayName(member.userId)) }}
+          }</div>
+        <div class="member-card__copy">
+          <h3>{{ displayName(member.userId) }}</h3><span>{{ member.role === 'OWNER' ? 'Chủ CLB' : member.role ===
+            'ADMIN' ? 'Quản lý CLB' : 'Thành viên' }}</span>
+        </div>
+        @if (isManager() && member.role !== 'OWNER') {
+        <div class="member-card__actions">@if (isOwner()) { <button type="button" (click)="promote(member)">{{
+            member.role === 'ADMIN' ? 'Gỡ quản lý' : 'Phong quản lý' }}</button> }<button type="button"
+            (click)="removeMember(member, false)">Xóa</button><button type="button" class="danger-link"
+            (click)="removeMember(member, true)">Cấm</button></div>
+        }
+      </article>
+      }
+    </div>
+    <div #memberLoadSentinel class="member-load-sentinel" aria-live="polite">
+      @if (memberPageLoading()) {
+      <span class="member-load-spinner" aria-hidden="true"></span><span>Đang tải thêm thành viên...</span>
+      } @else if (memberPageError()) {
+      <span>Không thể tải thêm thành viên.</span><button type="button" (click)="loadNextMemberPage()">Thử lại</button>
+      } @else if (!memberHasMore()) {
+      <span>Đã hiển thị toàn bộ {{ memberTotal() }} thành viên.</span>
+      }
+    </div>
+    } @else if (memberPageLoading()) {
+    <div class="member-load-sentinel"><span class="member-load-spinner" aria-hidden="true"></span><span>Đang tải danh
+        sách thành viên...</span></div>
+    } @else { <div class="detail-empty detail-empty--inline">
+      <p>Chưa có thành viên nào trong câu lạc bộ.</p>
+    </div> }
+  </section>
+  } @else if (activeTab() === 'REQUESTS') {
+  <section class="content-panel">
+    <header class="content-heading">
+      <div><span class="panel__eyebrow">Dành cho ban quản trị</span>
+        <h2>Duyệt yêu cầu tham gia</h2>
+        <p>Đọc lời giới thiệu trước khi đưa người chơi vào đội hình.</p>
+      </div>
+    </header>
+    @if (pendingMembers().length) {
+    <div class="request-list">
+      @for (member of pendingMembers(); track member.membershipId) {
+      <article class="request-card">
+        <div class="member-avatar member-avatar--large">@if (avatar(member.userId); as avatarUrl) { <img
+            [src]="avatarUrl" [alt]="displayName(member.userId)" /> } @else { {{ initials(displayName(member.userId)) }}
+          }</div>
+        <div>
+          <h3>{{ displayName(member.userId) }}</h3><span>{{ member.requestedAt ? (member.requestedAt | date:'dd/MM/yyyy
+            · HH:mm') : 'Yêu cầu mới' }}</span>
+          <p>{{ member.introMessage || 'Người chơi chưa để lại lời giới thiệu.' }}</p>
+        </div>
+        <div class="row-actions"><button class="button button--approve" [disabled]="mutating()"
+            (click)="respond(member, true)">Duyệt</button><button class="button button--danger" [disabled]="mutating()"
+            (click)="respond(member, false)">Từ chối</button></div>
+      </article>
+      }
+    </div>
+    } @else { <div class="detail-empty detail-empty--inline"><lucide-icon name="user-round-check"
+        class="w-8 h-8"></lucide-icon>
+      <h3>Không có yêu cầu đang chờ</h3>
+      <p>Yêu cầu mới sẽ xuất hiện tại đây theo thời gian thực.</p>
+    </div> }
+  </section>
+  } @else if (activeTab() === 'ACTIVITIES') {
+  <section class="content-panel">
+    <header class="content-heading">
+      <div><span class="panel__eyebrow">Lịch cộng đồng</span>
+        <h2>Hoạt động câu lạc bộ</h2>
+        <p>Các lời nhắc và buổi sinh hoạt dành cho thành viên.</p>
+      </div>@if (isManager()) { <button type="button" class="button button--primary"
+        (click)="showActivityModal.set(true)">Tạo lời nhắc</button> }
+    </header>
+    @if (sortedActivities().length) {
+    <div class="activity-list">
+      @for (activity of sortedActivities(); track activity.activityId) {
+      <article class="activity-card activity-card--interactive" role="button" tabindex="0"
+        (click)="openActivityDetails(activity)" (keydown.enter)="openActivityDetails(activity)">
+        <time><strong>{{ activity.startAt | date:'dd' }}</strong><span>THG {{ activity.startAt | date:'M'
+            }}</span></time>
+        <div>
+          <h3>{{ activity.title }}</h3>
+          <p>{{ activity.description || 'Không có mô tả.' }}</p><span>{{ activity.startAt | date:'dd/MM/yyyy · HH:mm' }}
+            – {{ activity.endAt | date:'HH:mm' }}</span>
+        </div>
+        @if (isManager()) {
+        <div class="row-actions">
+          <button class="mini-button" (click)="$event.stopPropagation(); editActivity(activity)">Sửa</button>
+          <button class="mini-button mini-button--reject"
+            (click)="$event.stopPropagation(); deleteActivity(activity)">Xóa</button>
+        </div>
+        }
+      </article>
+      }
+    </div>
+    <div #activityLoadSentinel class="member-load-sentinel" aria-live="polite">
+      @if (activityPageLoading()) {
+      <span class="member-load-spinner" aria-hidden="true"></span><span>Đang tải thêm hoạt động...</span>
+      } @else if (activityPageError()) {
+      <span>Không thể tải thêm hoạt động.</span><button type="button" (click)="loadNextActivityPage()">Thử lại</button>
+      } @else if (!activityHasMore()) {
+      <span>Đã hiển thị toàn bộ {{ activityTotal() }} hoạt động sắp tới.</span>
+      }
+    </div>
+    } @else { <div class="detail-empty detail-empty--inline">
+      <p>Chưa có hoạt động nào. @if (isManager()) { Hãy tạo lời nhắc đầu tiên cho thành viên. }</p>
+    </div> }
+  </section>
+  } @else if (activeTab() === 'TOURNAMENTS') {
+  <section class="content-panel tournament-workspace">
+    @if (tournament(); as activeTournament) {
+    <header class="content-heading tournament-heading">
+      <div><span class="panel__eyebrow">Thi đấu câu lạc bộ</span>
+        <h2>{{ activeTournament.name }}</h2>
+        <p>{{ activeTournament.description || 'Hành trình thi đấu và thành tích của câu lạc bộ.' }}</p>
+      </div>
+      <a [routerLink]="['/tournaments', activeTournament.tournamentId]" class="button button--primary">Xem trang giải
+        đấu</a>
+    </header>
+    <div class="tournament-summary">
+      <div><span>Thể thức</span><strong>{{ activeTournament.format === 'ROUND_ROBIN' ? 'Vòng tròn' : 'Loại trực tiếp'
+          }}</strong></div>
+      <div><span>Số đội</span><strong>{{ tournamentTeams().length }}</strong></div>
+      <div><span>Trận đã đá</span><strong>{{ matchTotal() }}</strong></div>
+      <div><span>Thời gian</span><strong>{{ activeTournament.startDate | date:'dd/MM' }} – {{ activeTournament.endDate |
+          date:'dd/MM/yyyy' }}</strong></div>
+    </div>
+    <div class="tournament-grid">
+      <article class="tournament-board">
+        <header>
+          <div><span class="panel__eyebrow">Bảng xếp hạng</span>
+            <h3>Thành tích các đội</h3>
+          </div>
+        </header>
+        <div class="standing-table" role="table" aria-label="Bảng xếp hạng giải đấu">
+          <div class="standing-table__head" role="row">
+            <span>#</span><span>Đội</span><span>Trận</span><span>Thắng</span><span>Hòa</span><span>Thua</span><span>Điểm</span>
+          </div>
+          @for (standing of tournamentStandings(); track standing.registrationId) {
+          <div class="standing-table__row" role="row" [class.is-club]="isClubStanding(standing)">
+            <b>{{ standing.rank }}</b><strong>{{ tournamentTeamName(standing.registrationId) }}</strong><span>{{
+              standing.played }}</span><span>{{ standing.won }}</span><span>{{ standing.drawn }}</span><span>{{
+              standing.lost }}</span><b>{{ standing.points }}</b>
+          </div>
+          }
+        </div>
+      </article>
+      <article class="tournament-matches">
+        <header>
+          <div><span class="panel__eyebrow">Lịch sử thi đấu</span>
+            <h3>{{ matchTotal() }} trận của {{ currentClub.name }}</h3>
+          </div>
+        </header>
+        <div class="recent-match-list recent-match-list--tournament" (scroll)="onMatchScroll($event)">
+          @for (match of recentMatches(); track match.matchId) {
+          <button type="button" class="recent-match-row" (click)="openMatchDetails(match)">
+            <span class="recent-match-mark"><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon></span>
+            <div><strong>{{ currentClub.name }} vs {{ match.opponentName }}</strong><span>{{ match.playedAt |
+                date:'dd/MM/yyyy' }}</span></div>
+            <b>{{ match.clubScore }} - {{ match.opponentScore }}</b>
+            <em [class.recent-match-result--win]="match.result === 'WIN'"
+              [class.recent-match-result--loss]="match.result === 'LOSS'">{{ match.result === 'WIN' ? 'Thắng' :
+              match.result === 'LOSS' ? 'Thua' : 'Hòa' }}</em>
+          </button>
+          }
+          <div #matchLoadSentinel class="match-load-sentinel" aria-live="polite">
+            @if (matchPageLoading()) { <span class="member-load-spinner" aria-hidden="true"></span><span>Đang tải thêm
+              trận đấu...</span> }
+            @else if (matchPageError()) { <button type="button" (click)="loadNextMatchPage()">Thử lại</button> }
+            @else if (!matchHasMore()) { <span>Đã hiển thị toàn bộ {{ matchTotal() }} trận.</span> }
+          </div>
+        </div>
+      </article>
+    </div>
+    } @else {
+    <div class="detail-empty detail-empty--inline"><lucide-icon name="trophy" class="w-9 h-9"></lucide-icon>
+      <h2>Chưa tham gia giải đấu nào</h2>
+      <p>Thông tin các giải đấu câu lạc bộ đã tham gia sẽ hiển thị tại đây.</p>
+    </div>
     }
+  </section>
+  } @else if (activeTab() === 'GALLERY') {
+  <section class="content-panel">
+    <div class="detail-empty detail-empty--inline"><lucide-icon name="image" class="w-9 h-9"></lucide-icon>
+      <h2>Thư viện chưa có ảnh</h2>
+      <p>Những khoảnh khắc của câu lạc bộ sẽ được lưu giữ tại đây.</p>
+    </div>
+  </section>
+  } @else if (activeTab() === 'SETTINGS') {
+  <section class="content-panel">
+    <div class="settings-cta">
+      <div><span class="panel__eyebrow">Quản trị câu lạc bộ</span>
+        <h2>Cập nhật thông tin và quyền tham gia</h2>
+        <p>Chỉnh sửa tên, giới thiệu, logo, quyền riêng tư và chế độ duyệt thành viên.</p>
+      </div><button type="button" class="button button--primary" (click)="openClubModal()"><lucide-icon name="settings"
+          class="w-4 h-4"></lucide-icon>Mở cài đặt</button>
+    </div>
+  </section>
+  }
+
+  @if (showJoinRequestModal() && joinRequestClub(); as requestClub) {
+  <app-club-join-request-modal [club]="requestClub" [submitting]="mutating()"
+    (cancelled)="showJoinRequestModal.set(false)" (submitted)="join($event)"></app-club-join-request-modal>
+  }
+
+  @if (selectedActivity(); as activity) {
+  <div class="modal-overlay" (click)="closeActivityDetails()">
+    <section class="modal-card activity-detail-modal" appAccessibleDialog aria-labelledby="activity-detail-title"
+      (dialogClosed)="closeActivityDetails()" (click)="$event.stopPropagation()">
+      <header class="modal-title">
+        <div><span>Hoạt động câu lạc bộ</span>
+          <h2 id="activity-detail-title">{{ activity.title }}</h2>
+        </div>
+        <button type="button" class="icon-action" aria-label="Đóng" (click)="closeActivityDetails()"><lucide-icon
+            name="x" class="w-5 h-5"></lucide-icon></button>
+      </header>
+      <div class="activity-detail-modal__hero">
+        <time><strong>{{ activity.startAt | date:'dd' }}</strong><span>THG {{ activity.startAt | date:'M'
+            }}</span></time>
+        <div><span>Lịch cộng đồng</span><strong>{{ currentClub.name }}</strong><small>{{ sportName() }} · {{
+            locationLabel() }}</small></div>
+      </div>
+      <dl class="activity-detail-modal__facts">
+        <div>
+          <dt><lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon>Ngày diễn ra</dt>
+          <dd>{{ activity.startAt | date:'dd/MM/yyyy' }}</dd>
+        </div>
+        <div>
+          <dt><lucide-icon name="clock-3" class="w-4 h-4"></lucide-icon>Thời gian</dt>
+          <dd>{{ activity.startAt | date:'HH:mm' }} – {{ activity.endAt | date:'HH:mm' }}</dd>
+        </div>
+        <div>
+          <dt><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>Khu vực CLB</dt>
+          <dd>{{ locationLabel() }}</dd>
+        </div>
+      </dl>
+      <div class="activity-detail-modal__description">
+        <span>Nội dung nhắc</span>
+        <p>{{ activity.description || 'Ban quản trị chưa bổ sung nội dung chi tiết cho hoạt động này.' }}</p>
+      </div>
+      <footer class="modal-footer">
+        <button type="button" class="button button--secondary" (click)="closeActivityDetails()">Đóng</button>
+        @if (isManager()) { <button type="button" class="button button--primary"
+          (click)="closeActivityDetails(); editActivity(activity)">Chỉnh sửa hoạt động</button> }
+      </footer>
+    </section>
+  </div>
+  }
+
+  @if (selectedMatch(); as match) {
+  <div class="modal-overlay" (click)="closeMatchDetails()">
+    <section class="modal-card match-detail-modal" appAccessibleDialog aria-labelledby="match-detail-title"
+      (dialogClosed)="closeMatchDetails()" (click)="$event.stopPropagation()">
+      <header class="modal-title">
+        <div><span>{{ match.tournamentName }}</span>
+          <h2 id="match-detail-title">Chi tiết trận đấu</h2>
+        </div>
+        <button type="button" class="icon-action" aria-label="Đóng" (click)="closeMatchDetails()"><lucide-icon name="x"
+            class="w-5 h-5"></lucide-icon></button>
+      </header>
+      <div class="match-scoreboard">
+        <div><img [src]="displayedClubLogo()" [alt]="currentClub.name" /><strong>{{ currentClub.name
+            }}</strong></div>
+        <div class="match-scoreboard__score"><span>{{ match.result === 'WIN' ? 'Chiến thắng' : match.result === 'LOSS' ?
+            'Thất bại' : 'Hòa' }}</span><b>{{ match.clubScore }} - {{ match.opponentScore }}</b><small>{{ match.playedAt
+            | date:'dd/MM/yyyy · HH:mm' }}</small></div>
+        <div><span class="opponent-mark"><lucide-icon name="shield" class="w-7 h-7"></lucide-icon></span><strong>{{
+            match.opponentName }}</strong></div>
+      </div>
+      <dl class="activity-detail-modal__facts">
+        <div>
+          <dt><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon>Giải đấu</dt>
+          <dd>{{ match.tournamentName }}</dd>
+        </div>
+        <div>
+          <dt><lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon>Ngày thi đấu</dt>
+          <dd>{{ match.playedAt | date:'dd/MM/yyyy' }}</dd>
+        </div>
+        <div>
+          <dt><lucide-icon name="activity" class="w-4 h-4"></lucide-icon>Kết quả</dt>
+          <dd>{{ match.result === 'WIN' ? 'Thắng' : match.result === 'LOSS' ? 'Thua' : 'Hòa' }}</dd>
+        </div>
+      </dl>
+      <footer class="modal-footer"><button type="button" class="button button--secondary"
+          (click)="closeMatchDetails()">Đóng</button><a [routerLink]="['/tournaments', match.tournamentId]"
+          class="button button--primary" (click)="closeMatchDetails()">Xem giải đấu</a></footer>
+    </section>
+  </div>
+  }
+
+  @if (showLeaveConfirm()) {
+  <div class="modal-overlay" (click)="showLeaveConfirm.set(false)">
+    <section class="modal-card confirm-leave-modal" appAccessibleDialog aria-labelledby="leave-club-title"
+      (dialogClosed)="showLeaveConfirm.set(false)" (click)="$event.stopPropagation()">
+      <span class="confirm-leave-modal__icon"><lucide-icon name="log-out" class="w-7 h-7"></lucide-icon></span>
+      <h2 id="leave-club-title">Rời {{ currentClub.name }}?</h2>
+      <p>Bạn sẽ không còn nhận lịch hoạt động và tin nhắn của câu lạc bộ. Bạn có thể gửi yêu cầu tham gia lại sau.</p>
+      <footer class="modal-footer"><button type="button" class="button button--secondary"
+          (click)="showLeaveConfirm.set(false)">Ở lại CLB</button><button type="button" class="button button--danger"
+          [disabled]="mutating()" (click)="leave()">{{ mutating() ? 'Đang xử lý...' : 'Rời câu lạc bộ' }}</button>
+      </footer>
+    </section>
+  </div>
+  }
+
+  @if (showClubModal()) {
+  <div class="modal-overlay" (click)="closeClubModal()">
+    <section class="modal-card" appAccessibleDialog aria-labelledby="club-modal-title" (dialogClosed)="closeClubModal()"
+      (click)="$event.stopPropagation()">
+      <header class="modal-title">
+        <div><span>Quản trị CLB</span>
+          <h2 id="club-modal-title">Chỉnh sửa câu lạc bộ</h2>
+        </div><button type="button" class="icon-action" aria-label="Đóng" (click)="closeClubModal()"><lucide-icon
+            name="x" class="w-5 h-5"></lucide-icon></button>
+      </header>
+      <div class="form-group"><label for="club-name">Tên câu lạc bộ *</label><input id="club-name"
+          [(ngModel)]="clubForm.name" /></div>
+      <div class="form-group"><label for="club-description">Giới thiệu</label><textarea id="club-description"
+          [(ngModel)]="clubForm.description"></textarea></div>
+      <div class="club-media-editor">
+        <div class="club-media-field club-media-field--logo">
+          <div class="club-media-field__heading">
+            <div><strong>Ảnh đại diện</strong><span>JPG, PNG hoặc WebP · tối đa 2 MB</span></div>
+          </div>
+          <div class="club-media-field__body">
+            <img [src]="clubLogoPreview() || defaultClubLogo" alt="Xem trước ảnh đại diện câu lạc bộ" />
+            <label for="club-logo-file" class="button button--secondary"><lucide-icon name="upload"
+                class="w-4 h-4"></lucide-icon>Chọn ảnh</label>
+            <input #clubLogoInput id="club-logo-file" class="visually-hidden" type="file"
+              accept="image/jpeg,image/png,image/webp" (change)="onClubMediaSelected($event, 'logo')" />
+          </div>
+        </div>
+        <div class="club-media-field club-media-field--banner">
+          <div class="club-media-field__heading">
+            <div><strong>Ảnh bìa</strong><span>Tỷ lệ ngang 16:7 · tối đa 2 MB</span></div>
+          </div>
+          <div class="club-media-field__body">
+            <img [src]="clubBannerPreview() || defaultClubBanner" alt="Xem trước ảnh bìa câu lạc bộ" />
+            <label for="club-banner-file" class="button button--secondary"><lucide-icon name="upload"
+                class="w-4 h-4"></lucide-icon>Chọn ảnh</label>
+            <input #clubBannerInput id="club-banner-file" class="visually-hidden" type="file"
+              accept="image/jpeg,image/png,image/webp" (change)="onClubMediaSelected($event, 'banner')" />
+          </div>
+        </div>
+      </div>
+      <app-club-tag-editor [tags]="clubForm.tags ?? []" (tagsChange)="clubForm.tags = $event" [sportLabel]="sportName()"
+        [disabled]="mutating()"></app-club-tag-editor>
+      <div class="form-row">
+        <div class="form-group"><label for="club-privacy">Quyền riêng tư</label><select id="club-privacy"
+            [value]="clubForm.privacy" (change)="setPrivacy($any($event.target).value)">
+            <option value="PUBLIC">Công khai</option>
+            <option value="PRIVATE">Riêng tư</option>
+          </select></div>
+        <div class="form-group"><label for="club-approval">Duyệt thành viên</label><select id="club-approval"
+            [value]="clubForm.approvalMode" (change)="setApprovalMode($any($event.target).value)">
+            <option value="AUTO">Tự động</option>
+            <option value="MANUAL">Ban quản trị duyệt</option>
+          </select></div>
+      </div>
+      <footer class="modal-footer"><button type="button" class="button button--secondary" [disabled]="mutating()"
+          (click)="closeClubModal()">Hủy</button><button type="button" class="button button--primary"
+          [disabled]="mutating() || !clubForm.name" (click)="saveClub()">{{ mutating() ? 'Đang tải ảnh và lưu...' : 'Lưu
+          thay đổi' }}</button></footer>
+    </section>
+  </div>
+  }
+
+  @if (showActivityModal()) {
+  <div class="modal-overlay" (click)="closeActivityModal()">
+    <section class="modal-card" appAccessibleDialog aria-labelledby="activity-modal-title"
+      (dialogClosed)="closeActivityModal()" (click)="$event.stopPropagation()">
+      <header class="modal-title">
+        <div><span>Lịch cộng đồng</span>
+          <h2 id="activity-modal-title">{{ editingActivityId() ? 'Sửa lời nhắc' : 'Tạo lời nhắc hoạt động' }}</h2>
+        </div><button type="button" class="icon-action" aria-label="Đóng" (click)="closeActivityModal()"><lucide-icon
+            name="x" class="w-5 h-5"></lucide-icon></button>
+      </header>
+      <div class="form-group"><label for="activity-title">Tiêu đề *</label><input id="activity-title"
+          [(ngModel)]="activityForm.title" /></div>
+      <div class="form-group"><label for="activity-description">Nội dung nhắc</label><textarea id="activity-description"
+          [(ngModel)]="activityForm.description"></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label for="activity-start">Bắt đầu *</label><input id="activity-start"
+            type="datetime-local" [(ngModel)]="activityForm.startAt" /></div>
+        <div class="form-group"><label for="activity-end">Kết thúc *</label><input id="activity-end"
+            type="datetime-local" [(ngModel)]="activityForm.endAt" /></div>
+      </div>
+      <footer class="modal-footer"><button type="button" class="button button--secondary"
+          (click)="closeActivityModal()">Hủy</button><button type="button" class="button button--primary"
+          [disabled]="mutating() || !activityForm.title || !activityForm.startAt || !activityForm.endAt"
+          (click)="createActivity()">{{ editingActivityId() ? 'Lưu thay đổi' : 'Tạo lời nhắc' }}</button></footer>
+    </section>
+  </div>
+  }
+
+  @if (showInviteModal()) {
+  <div class="modal-overlay" (click)="showInviteModal.set(false)">
+    <section class="modal-card" appAccessibleDialog aria-labelledby="invite-modal-title"
+      (dialogClosed)="showInviteModal.set(false)" (click)="$event.stopPropagation()">
+      <header class="modal-title">
+        <div><span>Tuyển thành viên</span>
+          <h2 id="invite-modal-title">Mời người chơi vào CLB</h2>
+        </div><button type="button" class="icon-action" aria-label="Đóng"
+          (click)="showInviteModal.set(false)"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button>
+      </header>
+      <div class="form-group"><label for="invite-query">Tìm người chơi</label><input id="invite-query"
+          [(ngModel)]="inviteQuery" (input)="runInviteSearch()" placeholder="Nhập tên hoặc email" /></div>
+      <div class="form-group"><label for="invite-message">Lời nhắn (không bắt buộc)</label><textarea id="invite-message"
+          [(ngModel)]="inviteMessage" rows="2" placeholder="Vài dòng giới thiệu câu lạc bộ..."></textarea></div>
+      @if (inviteSearching()) { <p class="form-note">Đang tìm người chơi...</p> } @else if (inviteQuery.trim().length <
+        2) { <p class="form-note">Nhập ít nhất 2 ký tự để bắt đầu tìm.</p> } @else if (!inviteResults().length) { <p
+          class="form-note">Không tìm thấy người chơi phù hợp.</p> } @else { <ul class="invite-results">@for (player of
+          inviteResults(); track player.userId) { <li><span>{{ player.fullName || player.username }}</span><button
+              type="button" class="button button--primary" [disabled]="mutating()" (click)="invite(player)">Mời</button>
+          </li> }</ul> }
+        <footer class="modal-footer"><button type="button" class="button button--secondary"
+            (click)="showInviteModal.set(false)">Đóng</button></footer>
+    </section>
+  </div>
+  }
 
   }
 </main>

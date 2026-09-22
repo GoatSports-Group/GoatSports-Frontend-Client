@@ -11,7 +11,7 @@
     <section class="member-state"><span class="member-state__index">403</span><span class="member-state__icon"><lucide-icon name="users" class="w-7 h-7"></lucide-icon></span><div><p class="member-kicker">Quyền truy cập</p><h1>Bạn chưa thuộc câu lạc bộ này</h1><p>Không gian này chỉ dành cho chủ CLB, quản trị viên và thành viên đang hoạt động.</p></div><a class="member-button member-button--primary" routerLink="/clubs/explore">Khám phá CLB khác</a></section>
   } @else if (club(); as currentClub) {
     <header class="clubhouse-hero">
-      <img [src]="defaultClubBanner" (error)="useBannerFallback($event)" [alt]="'Banner ' + currentClub.name" />
+      <img [src]="currentClub.bannerUrl || defaultClubBanner" (error)="useBannerFallback($event)" [alt]="'Banner ' + currentClub.name" />
       <span class="clubhouse-hero__scrim" aria-hidden="true"></span><span class="clubhouse-hero__tape" aria-hidden="true">{{ sportLabel(currentClub.sportType) }} · {{ currentClub.privacy === 'PRIVATE' ? 'PRIVATE CLUB' : 'OPEN CLUB' }} · SEASON 2026</span>
       <div class="clubhouse-hero__identity"><span class="member-club-logo member-club-logo--hero"><img [src]="currentClub.logoUrl || defaultClubLogo" (error)="useLogoFallback($event)" [alt]="'Logo ' + currentClub.name" /></span>
         <div><div class="clubhouse-tags"><span>{{ sportLabel(currentClub.sportType) }}</span><span>{{ currentClub.privacy === 'PRIVATE' ? 'Riêng tư' : 'Công khai' }}</span><strong>{{ roleLabel(membership()!.role) }}</strong></div><h1>{{ currentClub.name }}</h1><p><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>{{ currentClub.location || 'Chưa cập nhật địa điểm sinh hoạt' }}</p></div></div>

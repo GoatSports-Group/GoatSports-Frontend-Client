@@ -546,7 +546,12 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
   }
 
   private uploadAttachment(item: PendingAttachment, displayOrder: number) {
-    return this.storageRepository.getPresignedUrl(item.file.name, item.file.type || 'application/octet-stream', 'social-posts').pipe(
+    return this.storageRepository.getPresignedUrl(
+      item.file.name,
+      item.file.type || 'application/octet-stream',
+      'social-posts',
+      item.file.size
+    ).pipe(
       switchMap(urls => {
         const target = urls[0];
         if (!target?.uploadUrl || !target.objectKey) throw new Error('Storage service không trả về URL tải lên.');

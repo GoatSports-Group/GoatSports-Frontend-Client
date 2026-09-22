@@ -675,7 +675,6 @@ a {
   grid-template-columns: minmax(260px, .9fr) minmax(370px, 1.25fr) minmax(280px, .9fr);
   grid-template-areas:
     'intro matches members'
-    'intro matches invite'
     'activities gallery tournaments';
   gap: 14px;
   margin-top: 14px;
@@ -692,10 +691,6 @@ a {
 
 .member-roster {
   grid-area: members;
-}
-
-.member-invite-card {
-  grid-area: invite;
 }
 
 .member-activities {
@@ -748,33 +743,6 @@ a {
 .panel-empty--compact {
   min-height: 80px;
   padding: 10px;
-}
-
-.member-invite-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(145deg, #f7fcfa, #e7f6f0);
-  text-align: center;
-}
-
-.member-invite-card .callout-icon {
-  margin-bottom: 9px;
-}
-
-.member-invite-card h2 {
-  margin: 0;
-  font-size: 17px;
-  font-weight: 900;
-  letter-spacing: -.03em;
-}
-
-.member-invite-card p {
-  margin: 7px 0 13px;
-  color: #65758a;
-  font-size: 10px;
-  line-height: 1.55;
 }
 
 .member-activities .panel-empty,
@@ -2441,6 +2409,78 @@ a {
   gap: 12px;
 }
 
+.club-media-editor {
+  display: grid;
+  grid-template-columns: minmax(0, .72fr) minmax(0, 1.28fr);
+  gap: 12px;
+  margin: 4px 0 16px;
+}
+
+.club-media-field {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #d7e2de;
+  border-radius: 11px;
+  background: #f8fbfa;
+}
+
+.club-media-field__heading strong,
+.club-media-field__heading span {
+  display: block;
+}
+
+.club-media-field__heading strong {
+  color: #1d3349;
+  font-size: 12px;
+}
+
+.club-media-field__heading span {
+  margin-top: 3px;
+  color: #758597;
+  font-size: 9px;
+}
+
+.club-media-field__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 9px;
+  margin-top: 10px;
+}
+
+.club-media-field__body img {
+  width: 100%;
+  border: 1px solid #dce6e2;
+  border-radius: 9px;
+  background: #07192d;
+  object-fit: cover;
+}
+
+.club-media-field--logo .club-media-field__body img {
+  width: 74px;
+  height: 74px;
+  margin-inline: auto;
+}
+
+.club-media-field--banner .club-media-field__body img {
+  aspect-ratio: 16 / 7;
+}
+
+.club-media-field__body .button {
+  min-height: 38px;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+}
+
 .checkbox-field {
   display: flex;
   align-items: center;
@@ -2507,9 +2547,8 @@ a {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-areas:
       'intro matches'
-      'members invite'
-      'activities gallery'
-      'tournaments tournaments';
+      'members activities'
+      'gallery tournaments';
   }
 
   .manager-overview {
@@ -2654,7 +2693,7 @@ a {
 
   .member-overview {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'intro' 'matches' 'members' 'invite' 'activities' 'gallery' 'tournaments';
+    grid-template-areas: 'intro' 'matches' 'members' 'activities' 'gallery' 'tournaments';
   }
 
   .manager-overview {
@@ -2863,5 +2902,10 @@ a {
 
   .modal-card {
     padding: 18px;
+  }
+
+  .club-media-editor,
+  .form-row {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

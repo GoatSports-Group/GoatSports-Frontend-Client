@@ -188,7 +188,8 @@ import {
   LucideCalendarDays,
   LucideCalendarClock,
   LucideUserRoundCheck,
-  LucideCrown
+  LucideCrown,
+  LucideUpload
 } from '@lucide/angular';
 
 @NgModule({
@@ -366,7 +367,8 @@ import {
       LucideCalendarDays,
       LucideCalendarClock,
       LucideUserRoundCheck,
-      LucideCrown
+      LucideCrown,
+      LucideUpload
     )
   ],
   bootstrap: [AppComponent]

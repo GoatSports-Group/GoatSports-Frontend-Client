@@ -10,6 +10,7 @@ export interface ClubModel {
   name: string;
   description?: string;
   logoUrl?: string;
+  bannerUrl?: string;
   /** Ma tinh/thanh dung de loc, vi du "ho-chi-minh". */
   city?: string;
   /** Dong dia diem hien thi, vi du "Quan 7, TP. Ho Chi Minh". */
@@ -153,6 +154,7 @@ export interface UpdateClubPayload {
   tags?: string[];
   description?: string;
   logoUrl?: string;
+  bannerUrl?: string;
   privacy?: ClubPrivacy;
   approvalMode?: ClubApprovalMode;
 }

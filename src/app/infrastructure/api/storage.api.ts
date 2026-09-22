@@ -14,8 +14,13 @@ export class StorageApi {
   private bypassHttp = new HttpClient(this.httpBackend);
   private apiBase = environment.apiUrl;
 
-  getPresignedUrl(fileName: string, contentType: string, folder: string): Observable<BaseResponse<PresignedUrlResponse[]>> {
-    const payload = [{ fileName, contentType, folder }];
+  getPresignedUrl(
+    fileName: string,
+    contentType: string,
+    folder: string,
+    contentLength: number
+  ): Observable<BaseResponse<PresignedUrlResponse[]>> {
+    const payload = [{ fileName, contentType, folder, contentLength }];
     return this.http.post<BaseResponse<PresignedUrlResponse[]>>(
       `${this.apiBase}/storage-service/api/v1/files/presigned-url`,
       payload
