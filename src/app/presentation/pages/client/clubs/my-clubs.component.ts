@@ -167,13 +167,13 @@ export class MyClubsComponent {
 
   createClub(): void {
     const name = this.createForm.name.trim();
-    if (!name || this.creating()) return;
+    if (!this.isCreateFormComplete() || this.creating()) return;
     const payload: CreateClubPayload = {
       ...this.createForm,
       name,
-      description: this.createForm.description?.trim() || undefined,
-      city: this.createForm.city?.trim() || undefined,
-      location: this.createForm.location?.trim() || undefined
+      description: this.createForm.description?.trim(),
+      city: this.createForm.city?.trim(),
+      location: this.createForm.location?.trim()
     };
     this.creating.set(true);
     this.repository.createClub(payload).subscribe({
@@ -229,6 +229,18 @@ export class MyClubsComponent {
     ))).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(entries => {
       this.pendingRequestCounts.set(Object.fromEntries(entries));
     });
+  }
+
+  isCreateFormComplete(): boolean {
+    return !!(
+      this.createForm.name.trim()
+      && this.createForm.description?.trim()
+      && this.createForm.sportType
+      && this.createForm.privacy
+      && this.createForm.approvalMode
+      && this.createForm.city?.trim()
+      && this.createForm.location?.trim()
+    );
   }
 
   private resetCreateForm(): void {

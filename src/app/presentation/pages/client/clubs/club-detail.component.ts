@@ -23,6 +23,7 @@ import {
   TournamentStanding as TournamentStandingModel
 } from '@application/dto/tournament/tournament.dto';
 import { ClubCardView, DEFAULT_CLUB_BANNER, DEFAULT_CLUB_LOGO, sportLabel, toCardView } from './club-view.model';
+import { ClubLocationDataService } from './club-location-data.service';
 
 type ClubTab = 'OVERVIEW' | 'MEMBERS' | 'REQUESTS' | 'ACTIVITIES' | 'TOURNAMENTS' | 'GALLERY';
 type ClubViewerState = 'MANAGER' | 'MEMBER' | 'PENDING' | 'GUEST';
@@ -41,7 +42,9 @@ export class ClubDetailComponent implements OnDestroy {
   private readonly notify = inject(NotifyService);
   private readonly storage = inject(StorageService);
   private readonly notifications = inject(NotificationService);
+  private readonly locationData = inject(ClubLocationDataService);
   private readonly destroyRef = inject(DestroyRef);
+  readonly provinces = this.locationData.provinces;
   readonly clubId = this.route.snapshot.paramMap.get('clubId') ?? '';
 
   readonly club = signal<ClubModel | null>(null);
@@ -140,7 +143,9 @@ export class ClubDetailComponent implements OnDestroy {
     return current ? toCardView(current) : null;
   });
   activityForm: CreateClubActivityPayload = { title: '', description: '', startAt: '', endAt: '' };
-  clubForm: UpdateClubPayload = { name: '', description: '', tags: [], privacy: 'PUBLIC', approvalMode: 'AUTO' };
+  clubForm: UpdateClubPayload = {
+    name: '', description: '', city: '', location: '', tags: [], privacy: 'PUBLIC', approvalMode: 'AUTO'
+  };
   private clubLogoFile: File | null = null;
   private clubBannerFile: File | null = null;
   private clubLogoObjectUrl: string | null = null;
@@ -830,6 +835,8 @@ export class ClubDetailComponent implements OnDestroy {
       description: current.description ?? '',
       logoUrl: current.logoUrl ?? '',
       bannerUrl: current.bannerUrl ?? '',
+      city: current.city ?? '',
+      location: current.location ?? '',
       tags: [...(current.tags ?? [])],
       privacy: current.privacy,
       approvalMode: current.approvalMode
@@ -857,6 +864,9 @@ export class ClubDetailComponent implements OnDestroy {
       switchMap(media => this.repository.updateClub(this.clubId, {
         ...this.clubForm,
         name: this.clubForm.name!.trim(),
+        description: this.clubForm.description?.trim() ?? '',
+        city: this.clubForm.city?.trim() ?? '',
+        location: this.clubForm.location?.trim() ?? '',
         logoUrl: media.logoUrl,
         bannerUrl: media.bannerUrl
       }))

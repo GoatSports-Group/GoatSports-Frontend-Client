@@ -1168,6 +1168,15 @@
           [(ngModel)]="clubForm.name" /></div>
       <div class="form-group"><label for="club-description">Giới thiệu</label><textarea id="club-description"
           [(ngModel)]="clubForm.description"></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label for="club-city">Tỉnh/Thành phố</label><select id="club-city"
+            [(ngModel)]="clubForm.city">
+            <option value="">Chưa chọn</option>@for (province of provinces(); track province.code) { <option
+              [value]="province.code">{{ province.name }}</option> }
+          </select></div>
+        <div class="form-group"><label for="club-location">Địa chỉ sinh hoạt</label><input id="club-location"
+            [(ngModel)]="clubForm.location" maxlength="255" placeholder="Ví dụ: 123 Nguyễn Văn Linh, Quận 7" /></div>
+      </div>
       <div class="club-media-editor">
         <div class="club-media-field club-media-field--logo">
           <div class="club-media-field__heading">

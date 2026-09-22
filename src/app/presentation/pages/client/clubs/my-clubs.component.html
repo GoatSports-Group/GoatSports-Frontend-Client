@@ -175,7 +175,7 @@
       <fieldset [disabled]="creating()">
         <label><span>Tên câu lạc bộ *</span><input [(ngModel)]="createForm.name"
             placeholder="Ví dụ: GOAT Weekend Club" /></label>
-        <label><span>Mô tả</span><textarea rows="3" [(ngModel)]="createForm.description"
+        <label><span>Mô tả *</span><textarea rows="3" [(ngModel)]="createForm.description" required maxlength="2000"
             placeholder="Mô tả ngắn về cộng đồng..."></textarea></label>
         <app-club-tag-editor [(tags)]="createForm.tags" [sportLabel]="sportName(createForm.sportType)"
           [disabled]="creating()"></app-club-tag-editor>
@@ -192,17 +192,17 @@
               <option value="AUTO">Tự động</option>
               <option value="MANUAL">Chủ CLB duyệt</option>
             </select></label>
-          <label><span>Tỉnh/Thành phố</span><select [(ngModel)]="createForm.city">
+          <label><span>Tỉnh/Thành phố *</span><select [(ngModel)]="createForm.city" required>
               <option value="">Chưa chọn</option>@for (province of provinces(); track province.code) { <option
                 [value]="province.code">{{ province.name }}</option> }
             </select></label>
         </div>
-        <label><span>Địa điểm sinh hoạt</span><input [(ngModel)]="createForm.location"
-            placeholder="Ví dụ: Quận 7, TP. Hồ Chí Minh" /></label>
+        <label><span>Địa chỉ sinh hoạt *</span><input [(ngModel)]="createForm.location" required maxlength="255"
+            placeholder="Ví dụ: 123 Nguyễn Văn Linh, Quận 7" /></label>
       </fieldset>
       <footer><button type="button" class="my-clubs-modal__cancel" [disabled]="creating()"
           (click)="closeCreateModal()">Hủy</button><button type="button" class="my-clubs-modal__submit"
-          [disabled]="!createForm.name.trim() || creating()" (click)="createClub()">@if (creating()) { <span
+          [disabled]="!isCreateFormComplete() || creating()" (click)="createClub()">@if (creating()) { <span
             class="my-clubs-spinner"></span> Đang tạo... } @else { Tạo câu lạc bộ }</button></footer>
     </section>
   </div>

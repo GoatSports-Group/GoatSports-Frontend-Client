@@ -352,8 +352,8 @@
       <fieldset class="modal-body modal-form" [disabled]="creating()">
         <div class="form-group"><label for="club-name">Tên câu lạc bộ *</label><input id="club-name"
             [(ngModel)]="createForm.name" placeholder="Ví dụ: GOAT Weekend Club" /></div>
-        <div class="form-group"><label for="club-description">Mô tả</label><textarea id="club-description" rows="3"
-            [(ngModel)]="createForm.description" placeholder="Mô tả ngắn về cộng đồng..."></textarea></div>
+        <div class="form-group"><label for="club-description">Mô tả *</label><textarea id="club-description" rows="3"
+            [(ngModel)]="createForm.description" required maxlength="2000" placeholder="Mô tả ngắn về cộng đồng..."></textarea></div>
         <app-club-tag-editor [(tags)]="createForm.tags" [sportLabel]="sportLabel(createForm.sportType)"
           [disabled]="creating()"></app-club-tag-editor>
         <div class="form-row">
@@ -372,18 +372,18 @@
               <option value="AUTO">Tự động</option>
               <option value="MANUAL">Chủ CLB duyệt</option>
             </select></div>
-          <div class="form-group"><label for="club-city">Tỉnh/Thành phố</label><select id="club-city"
-              [(ngModel)]="createForm.city">
+          <div class="form-group"><label for="club-city">Tỉnh/Thành phố *</label><select id="club-city"
+              [(ngModel)]="createForm.city" required>
               <option value="">Chưa chọn</option>@for (province of provinces(); track province.code) { <option
                 [value]="province.code">{{ province.name }}</option> }
             </select></div>
         </div>
-        <div class="form-group"><label for="club-location">Địa điểm sinh hoạt</label><input id="club-location"
-            [(ngModel)]="createForm.location" placeholder="Ví dụ: Quận 7, TP. Hồ Chí Minh" /></div>
+        <div class="form-group"><label for="club-location">Địa chỉ sinh hoạt *</label><input id="club-location"
+            [(ngModel)]="createForm.location" required maxlength="255" placeholder="Ví dụ: 123 Nguyễn Văn Linh, Quận 7" /></div>
       </fieldset>
       <div class="modal-footer"><button type="button" class="secondary-action"
           [disabled]="creating()" (click)="closeCreateModal()">Hủy</button><button type="button" class="primary-action"
-          [disabled]="!createForm.name.trim() || creating()" (click)="createClub()">
+          [disabled]="!isCreateFormComplete() || creating()" (click)="createClub()">
           @if (creating()) { <span class="button-spinner" aria-hidden="true"></span> Đang tạo... } @else { Tạo câu lạc bộ }
         </button></div>
     </section>
