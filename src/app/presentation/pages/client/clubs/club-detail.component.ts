@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy, computed, effect, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, HostListener, OnDestroy, computed, effect, inject, signal, viewChild } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { catchError, forkJoin, of } from 'rxjs';
+import { catchError, filter, forkJoin, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { ClubRepositoryPort } from '@application/ports/club.repository.port';
 import { User } from '@application/dto/user/user.dto';
@@ -15,6 +16,7 @@ import { AuthService } from '@presentation/services/auth.service';
 import { PlayerDirectoryService } from '@presentation/services/player-directory.service';
 import { NotifyService } from '@shared/components/notify/notify.service';
 import { StorageService } from '@presentation/services/storage.service';
+import { NotificationService } from '@presentation/services/notification.service';
 import { TournamentRepositoryPort } from '@application/ports/tournament.repository.port';
 import {
   Tournament as TournamentModel, TournamentRegistration as TournamentRegistrationModel,
@@ -38,6 +40,8 @@ export class ClubDetailComponent implements OnDestroy {
   private readonly directory = inject(PlayerDirectoryService);
   private readonly notify = inject(NotifyService);
   private readonly storage = inject(StorageService);
+  private readonly notifications = inject(NotificationService);
+  private readonly destroyRef = inject(DestroyRef);
   readonly clubId = this.route.snapshot.paramMap.get('clubId') ?? '';
 
   readonly club = signal<ClubModel | null>(null);
@@ -77,7 +81,17 @@ export class ClubDetailComponent implements OnDestroy {
   readonly displayedClubBanner = computed(() => this.optimisticClubBanner() || this.club()?.bannerUrl || this.defaultClubBanner);
   readonly overviewClubPhotos = computed(() => this.clubPhotos().slice(0, 5));
   readonly photoOverflowCount = computed(() => Math.max(0, this.photoTotal() - 5));
-  readonly isOwner = computed(() => this.club()?.ownerId === this.auth.currentUser?.userId);
+  /**
+   * auth.currentUser la getter thuong, khong phai signal, nen computed() khong theo doi no:
+   * gia tri se bi ghim theo lan doc dau tien va chi tinh lai khi club() doi.
+   * Doc qua currentUser$ de quyen chu CLB cap nhat dung khi phien dang nhap san sang sau.
+   */
+  private readonly currentUser = toSignal(this.auth.currentUser$, { initialValue: null });
+  readonly isOwner = computed(() => {
+    const ownerId = this.club()?.ownerId;
+    const userId = this.currentUser()?.userId;
+    return !!ownerId && !!userId && ownerId === userId;
+  });
   readonly showDisbandConfirm = signal(false);
   readonly transferTarget = signal<ClubMemberModel | null>(null);
   readonly showOwnerLeaveNotice = signal(false);
@@ -147,6 +161,14 @@ export class ClubDetailComponent implements OnDestroy {
   private photoPage = 0;
 
   constructor() {
+    this.notifications.realtimeNotifications$
+      .pipe(
+        filter(notification => notification.referenceType === 'CLUB_DISBANDED'
+          && notification.referenceId === this.clubId),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => this.redirectFromDisband());
+
     effect(onCleanup => {
       const sentinel = this.memberLoadSentinel()?.nativeElement;
       if (this.activeTab() !== 'MEMBERS' || !sentinel) return;
@@ -222,6 +244,11 @@ export class ClubDetailComponent implements OnDestroy {
       membership: membershipRequest
     }).subscribe({
       next: data => {
+        if (data.club.active === false || !!data.club.disbandedAt) {
+          this.loading.set(false);
+          this.redirectFromDisband();
+          return;
+        }
         this.club.set(data.club); this.clubPhotos.set(data.photos.items); this.members.set([]); this.activities.set(data.activities.items);
         this.photoTotal.set(data.photos.total);
         this.photoPage = 1;
@@ -545,10 +572,25 @@ export class ClubDetailComponent implements OnDestroy {
 
   /** Khong ai tu xoa/cam chinh minh duoc; roi CLB la chuc nang rieng. */
   isSelf(member: ClubMemberModel): boolean {
-    return member.userId === this.auth.currentUser?.userId;
+    return member.userId === this.currentUser()?.userId;
   }
 
   openPlayerSearch(): void { void this.router.navigate(['/clubs/my', this.clubId, 'players']); }
+
+  /** Bam ra ngoai cum .member-more thi dong ca hai menu; bam trong cum de nut toggle con lam viec. */
+  @HostListener('document:click', ['$event'])
+  closeMenusOnOutsideClick(event: MouseEvent): void {
+    if (!this.showManagerMenu() && !this.showMemberMenu()) return;
+    if ((event.target as HTMLElement | null)?.closest('.member-more')) return;
+    this.showManagerMenu.set(false);
+    this.showMemberMenu.set(false);
+  }
+
+  @HostListener('document:keydown.escape')
+  closeMenusOnEscape(): void {
+    this.showManagerMenu.set(false);
+    this.showMemberMenu.set(false);
+  }
 
   requestDisband(): void {
     this.showManagerMenu.set(false);
@@ -564,7 +606,7 @@ export class ClubDetailComponent implements OnDestroy {
         this.mutating.set(false);
         this.showDisbandConfirm.set(false);
         this.notify.success('Đã giải tán câu lạc bộ.');
-        this.load();
+        void this.router.navigate(['/clubs'], { replaceUrl: true });
       },
       error: error => {
         this.mutating.set(false);
@@ -574,6 +616,10 @@ export class ClubDetailComponent implements OnDestroy {
   }
 
   goToMyClubs(): void { void this.router.navigate(['/clubs/my']); }
+
+  private redirectFromDisband(): void {
+    void this.router.navigate(['/clubs'], { replaceUrl: true });
+  }
 
   async shareClub(): Promise<void> {
     const current = this.club();

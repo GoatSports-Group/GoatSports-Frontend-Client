@@ -280,6 +280,7 @@ export class NotificationsComponent implements OnInit {
       case 'FRIENDSHIP': return ['/friends'];
       case 'MESSAGE': return ['/chat'];
       case 'CLUB': return id ? ['/clubs', id] : ['/clubs'];
+      case 'CLUB_DISBANDED': return ['/clubs'];
       case 'TOURNAMENT': return id ? ['/tournaments', id] : ['/tournaments'];
       case 'MATCHMAKING_SESSION': return ['/matchmaking'];
       default: return null;

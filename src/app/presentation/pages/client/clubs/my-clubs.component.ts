@@ -120,7 +120,8 @@ export class MyClubsComponent {
 
     this.notifications.realtimeNotifications$
       .pipe(
-        filter(notification => ['CLUB', 'CLUB_PUBLIC', 'CLUB_INVITATION'].includes(notification.referenceType ?? '')),
+        filter(notification => ['CLUB', 'CLUB_PUBLIC', 'CLUB_INVITATION', 'CLUB_DISBANDED']
+          .includes(notification.referenceType ?? '')),
         takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.load());
   }

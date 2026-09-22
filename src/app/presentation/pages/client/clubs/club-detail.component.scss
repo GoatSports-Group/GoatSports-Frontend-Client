@@ -63,7 +63,6 @@ a {
 }
 
 .club-identity {
-  overflow: hidden;
   border: 1px solid #dce5e1;
   border-radius: 16px;
   background: #fff;
@@ -74,6 +73,8 @@ a {
   position: relative;
   height: clamp(220px, 23vw, 330px);
   overflow: hidden;
+  /* Tu bo goc tren, vi the cha khong con overflow:hidden de lam viec do. */
+  border-radius: 15px 15px 0 0;
   background: #061b2e;
 }
 

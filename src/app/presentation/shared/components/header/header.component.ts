@@ -146,6 +146,9 @@ export class HeaderComponent implements OnInit {
       case 'CLUB_PUBLIC':
         void this.router.navigate(referenceId ? ['/clubs', referenceId] : ['/clubs']);
         break;
+      case 'CLUB_DISBANDED':
+        void this.router.navigate(['/clubs']);
+        break;
       case 'CLUB_INVITATION':
         void this.router.navigate(['/clubs']);
         break;
