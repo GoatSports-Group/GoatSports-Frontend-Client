@@ -690,19 +690,32 @@
     <div class="member-grid">
       @for (member of activeMembers(); track member.membershipId) {
       <article class="member-card">
-        <div class="member-avatar member-avatar--large">@if (avatar(member.userId); as avatarUrl) { <img
+        <div class="member-avatar">@if (avatar(member.userId); as avatarUrl) { <img
             [src]="avatarUrl" [alt]="displayName(member.userId)" /> } @else { {{ initials(displayName(member.userId)) }}
           }</div>
         <div class="member-card__copy">
-          <h3>{{ displayName(member.userId) }}</h3><span>{{ member.role === 'OWNER' ? 'Chủ CLB' : member.role ===
-            'ADMIN' ? 'Quản lý CLB' : 'Thành viên' }}</span>
+          <h3>{{ displayName(member.userId) }}</h3>
+          <p><span class="member-role" [attr.data-role]="member.role">{{ member.role === 'OWNER' ? 'Chủ CLB' :
+              member.role === 'ADMIN' ? 'Quản lý' : 'Thành viên' }}</span>@if (member.joinedAt) {<small>Từ {{
+              member.joinedAt | date:'MM/yyyy' }}</small>}</p>
         </div>
         @if (isManager() && member.role !== 'OWNER' && !isSelf(member)) {
-        <div class="member-card__actions">@if (isOwner()) { <button type="button" (click)="promote(member)">{{
-            member.role === 'ADMIN' ? 'Gỡ quản lý' : 'Phong quản lý' }}</button><button type="button"
-            (click)="requestTransferOwnership(member)">Trao quyền chủ</button> }<button type="button"
-            (click)="removeMember(member, false)">Xóa</button><button type="button" class="danger-link"
-            (click)="removeMember(member, true)">Cấm</button></div>
+        <button type="button" class="member-card__menu" [matMenuTriggerFor]="memberActions"
+          [attr.aria-label]="'Tác vụ với ' + displayName(member.userId)"><lucide-icon name="ellipsis"
+            class="w-5 h-5"></lucide-icon></button>
+        <mat-menu #memberActions="matMenu" xPosition="before" class="goat-action-menu">
+          @if (isOwner()) {
+          <button mat-menu-item type="button" (click)="promote(member)"><lucide-icon
+              [name]="member.role === 'ADMIN' ? 'shield-off' : 'shield-check'" class="w-4 h-4"></lucide-icon>{{
+            member.role === 'ADMIN' ? 'Gỡ quản lý' : 'Phong quản lý' }}</button>
+          <button mat-menu-item type="button" (click)="requestTransferOwnership(member)"><lucide-icon name="crown"
+              class="w-4 h-4"></lucide-icon>Trao quyền chủ</button>
+          }
+          <button mat-menu-item type="button" (click)="removeMember(member, false)"><lucide-icon name="user-minus"
+              class="w-4 h-4"></lucide-icon>Xóa khỏi CLB</button>
+          <button mat-menu-item type="button" class="is-danger" (click)="removeMember(member, true)"><lucide-icon
+              name="ban" class="w-4 h-4"></lucide-icon>Cấm thành viên</button>
+        </mat-menu>
         }
       </article>
       }

@@ -60,6 +60,9 @@ import {
   LucideBell,
   LucideUser,
   LucideBan,
+  LucideEllipsis,
+  LucideShieldOff,
+  LucideUserMinus,
   LucideHistory,
   LucideStore,
   LucideShieldCheck,
@@ -191,7 +194,8 @@ import {
   LucideCrown,
   LucideUpload,
   LucideArchive,
-  LucideGlobe2
+  LucideGlobe2,
+  LucideArrowDownAZ
 } from '@lucide/angular';
 
 @NgModule({
@@ -241,6 +245,9 @@ import {
       LucideBell,
       LucideUser,
       LucideBan,
+      LucideEllipsis,
+      LucideShieldOff,
+      LucideUserMinus,
       LucideHistory,
       LucideStore,
       LucideShieldCheck,
@@ -372,7 +379,8 @@ import {
       LucideCrown,
       LucideUpload,
       LucideArchive,
-      LucideGlobe2
+      LucideGlobe2,
+      LucideArrowDownAZ
     )
   ],
   bootstrap: [AppComponent]

@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, ElementRef, forwardRef, HostListener, Input, ViewChild, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, forwardRef, Input, ViewChild, inject } from '@angular/core';
+import { ConnectedPosition } from '@angular/cdk/overlay';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 export interface SelectOption {
@@ -36,7 +37,11 @@ export class SelectComponent implements ControlValueAccessor {
 
   public value: any = '';
   public open = false;
-  public openUpward = false;
+  public triggerWidth = 0;
+  public readonly panelPositions: ConnectedPosition[] = [
+    { originX: 'start', originY: 'bottom', overlayX: 'start', overlayY: 'top', offsetY: 6 },
+    { originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'bottom', offsetY: -6 }
+  ];
   public searchQuery = '';
   public activeIndex = -1;
 
@@ -65,8 +70,7 @@ export class SelectComponent implements ControlValueAccessor {
     this.open = !this.open;
     if (this.open) {
       this.searchQuery = '';
-      const bounds = this.elementRef.nativeElement.getBoundingClientRect();
-      this.openUpward = window.innerHeight - bounds.bottom < 280 && bounds.top > 280;
+      this.triggerWidth = this.elementRef.nativeElement.getBoundingClientRect().width;
       this.activeIndex = Math.max(0, this.filteredOptions.findIndex(option => option.value === this.value));
       if (this.searchable) {
         setTimeout(() => this.searchInput?.nativeElement.focus(), 50);
@@ -93,6 +97,7 @@ export class SelectComponent implements ControlValueAccessor {
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault();
       if (!this.open) {
+        this.triggerWidth = this.elementRef.nativeElement.getBoundingClientRect().width;
         this.open = true;
         this.activeIndex = Math.max(0, this.filteredOptions.findIndex(option => option.value === this.value));
         return;
@@ -103,11 +108,18 @@ export class SelectComponent implements ControlValueAccessor {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       if (!this.open) {
+        this.triggerWidth = this.elementRef.nativeElement.getBoundingClientRect().width;
         this.open = true;
       } else {
         const option = this.filteredOptions[this.activeIndex];
         if (option && !option.disabled) this.commitSelection(option);
       }
+    }
+  }
+
+  onOverlayKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+      this.open = false;
     }
   }
 
@@ -146,9 +158,9 @@ export class SelectComponent implements ControlValueAccessor {
     if (disabled) this.open = false;
   }
 
-  @HostListener('document:click', ['$event'])
-  onClickOutside(event: MouseEvent): void {
-    if (!this.elementRef.nativeElement.contains(event.target)) {
+  /** Capture-phase outside click from the CDK overlay: fires even when other components stop propagation. */
+  onOutsideClick(event: MouseEvent): void {
+    if (!this.elementRef.nativeElement.contains(event.target as Node)) {
       this.open = false;
     }
   }

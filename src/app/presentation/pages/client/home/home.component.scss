@@ -471,10 +471,6 @@
   background: #fff;
 }
 
-.radius-input:focus-within {
-  border-color: #0b9267;
-  box-shadow: 0 0 0 3px rgb(0 122 85 / 10%);
-}
 
 .radius-input input {
   width: 52px;
@@ -810,10 +806,6 @@
   background: #fff;
 }
 
-.location-picker__search:focus-within {
-  border-color: #159b75;
-  box-shadow: 0 0 0 3px rgb(21 155 117 / 10%);
-}
 
 .location-picker__search>lucide-icon {
   color: #68798a;

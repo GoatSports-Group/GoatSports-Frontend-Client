@@ -192,7 +192,7 @@
   padding: 4px 9px;
   border-radius: 5px;
   color: #fff;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 800;
   backdrop-filter: blur(6px);
 }
@@ -235,7 +235,7 @@
 
 .featured-card__identity div>span {
   color: #34465d;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 850;
   letter-spacing: .06em;
   text-transform: uppercase;
@@ -303,7 +303,7 @@
   align-items: center;
   gap: 16px;
   color: #667488;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .metrics span {
@@ -315,7 +315,7 @@
 
 .metrics b {
   color: var(--ink);
-  font-size: 12px;
+  font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -363,7 +363,7 @@
 
 .pending {
   color: #647287;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 750;
 }
 
@@ -468,7 +468,7 @@ app-pagination {
   .featured-card button {
     min-height: 40px;
     padding-inline: 11px;
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .metrics {
@@ -477,7 +477,7 @@ app-pagination {
   }
 
   .metrics span {
-    font-size: 11px;
+    font-size: 13px;
   }
 
   .featured-card button,

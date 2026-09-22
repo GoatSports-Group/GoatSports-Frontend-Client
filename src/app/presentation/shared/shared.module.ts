@@ -24,6 +24,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { A11yModule } from '@angular/cdk/a11y';
+import { OverlayModule } from '@angular/cdk/overlay';
 
 import { HeaderComponent } from '@shared/components/header/header.component';
 import { FooterComponent } from '@shared/components/footer/footer.component';
@@ -86,6 +87,7 @@ const COMPONENT_DECLARATIONS = [
     FormsModule,
     ReactiveFormsModule,
     RouterModule,
+    OverlayModule,
     LucideIconComponent,
     PaginationComponent,
     FormFieldComponent,

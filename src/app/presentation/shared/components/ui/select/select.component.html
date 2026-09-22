@@ -1,6 +1,8 @@
-<div class="app-select" [class.is-open]="open" [class.is-disabled]="disabled" [class.open-upward]="openUpward" [class]="'size-' + size">
+<div class="app-select" [class.is-open]="open" [class.is-disabled]="disabled" [class]="'size-' + size">
   <!-- Dropdown Trigger -->
   <button
+    #trigger="cdkOverlayOrigin"
+    cdkOverlayOrigin
     type="button"
     class="app-select__trigger"
     [disabled]="disabled"
@@ -21,8 +23,18 @@
     </svg>
   </button>
 
-  <!-- Dropdown Menu Panel -->
-  @if (open) {
+  <!-- Dropdown panel renders in the CDK overlay so parent stacking contexts and overflow never clip it. -->
+  <ng-template
+    cdkConnectedOverlay
+    [cdkConnectedOverlayOrigin]="trigger"
+    [cdkConnectedOverlayOpen]="open"
+    [cdkConnectedOverlayWidth]="triggerWidth"
+    [cdkConnectedOverlayPositions]="panelPositions"
+    [cdkConnectedOverlayViewportMargin]="16"
+    (detach)="open = false"
+    (overlayOutsideClick)="onOutsideClick($event)"
+    (overlayKeydown)="onOverlayKeydown($event)"
+  >
     <div class="app-select__panel" role="listbox" (click)="$event.stopPropagation()">
       <!-- Optional Search Bar -->
       @if (searchable) {
@@ -71,5 +83,5 @@
         }
       </div>
     </div>
-  }
+  </ng-template>
 </div>

@@ -1,15 +1,16 @@
 :host {
   display: block;
-  background: #f8faf9;
+  background: var(--bg-body);
 }
 
+/* Local aliases of the GOAT-DESIGN.md tokens. */
 .clubs-page {
-  --club-ink: #071426;
-  --club-muted: #5d6b7e;
-  --club-border: #d8e1de;
-  --club-soft: #f3f7f5;
-  --club-green: #087a57;
-  --club-green-dark: #056447;
+  --club-ink: var(--text-dark);
+  --club-muted: var(--text-muted);
+  --club-border: var(--border-color);
+  --club-soft: #f8faf9;
+  --club-green: var(--primary);
+  --club-green-dark: var(--primary-hover);
   width: min(100%, var(--page-max));
   margin: 0 auto;
   padding: 24px var(--page-gutter) 24px;
@@ -24,10 +25,7 @@ textarea {
   font: inherit;
 }
 
-button:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible {
+button:focus-visible {
   outline: 3px solid rgba(8, 122, 87, .2);
   outline-offset: 2px;
 }
@@ -134,17 +132,17 @@ textarea:focus-visible {
 
 .primary-action,
 .secondary-action {
-  min-height: 48px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 9px;
+  gap: 8px;
   padding: 0 20px;
   border: 1px solid var(--club-green);
-  border-radius: 5px;
+  border-radius: 12px;
   background: var(--club-green);
   color: #fff;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 800;
   cursor: pointer;
   transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
@@ -156,24 +154,24 @@ textarea:focus-visible {
   }
 
   &:active:not(:disabled) {
-    transform: translateY(1px) scale(.985);
+    transform: translateY(1px);
   }
 
   &:disabled {
-    opacity: .52;
+    opacity: .55;
     cursor: not-allowed;
   }
 }
 
 .secondary-action {
-  border-color: #17334d;
+  border-color: var(--club-border);
   background: #fff;
-  color: #102b44;
+  color: var(--club-ink);
 
   &:hover:not(:disabled) {
-    border-color: #102b44;
-    background: #102b44;
-    color: #fff;
+    border-color: var(--border-strong);
+    background: #fff;
+    color: var(--club-green);
   }
 }
 
@@ -295,7 +293,6 @@ textarea:focus-visible {
   overflow-x: auto;
   border: 1px solid var(--club-border);
   border-radius: 5px;
-  scrollbar-width: thin;
 
   button {
     min-width: max-content;
@@ -619,7 +616,7 @@ textarea:focus-visible {
   border-radius: 4px;
   background: rgba(7, 20, 38, .86);
   color: #fff;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   backdrop-filter: blur(5px);
 }
@@ -654,7 +651,7 @@ textarea:focus-visible {
     display: -webkit-box;
     overflow: hidden;
     color: #69778a;
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.45;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
@@ -691,31 +688,39 @@ textarea:focus-visible {
   border-top: 1px solid #e1e7e5;
 
   >button {
-    min-height: 38px;
+    min-height: 44px;
+    flex: none;
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 0 10px;
-    border: 1px solid #0d2740;
-    border-radius: 4px;
-    background: #0d2740;
+    padding: 0 14px;
+    border: 1px solid var(--club-green);
+    border-radius: 12px;
+    background: var(--club-green);
     color: #fff;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 800;
     white-space: nowrap;
     cursor: pointer;
-    transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
+    transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
   }
 
   >button:hover {
-    border-color: var(--club-green);
-    background: var(--club-green);
+    border-color: var(--club-green-dark);
+    background: var(--club-green-dark);
     transform: translateY(-1px);
   }
 
   >button.button-outline {
+    border-color: var(--club-border);
     background: #fff;
-    color: #0d2740;
+    color: var(--club-ink);
+  }
+
+  >button.button-outline:hover {
+    border-color: var(--border-strong);
+    background: #fff;
+    color: var(--club-green);
   }
 
   >button.button-muted {
@@ -727,7 +732,7 @@ textarea:focus-visible {
 
 .card-status {
   color: #667487;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 750;
   white-space: nowrap;
 }
@@ -740,16 +745,17 @@ textarea:focus-visible {
   min-width: 0;
   flex: 1 1 auto;
   display: flex;
-  align-items: center;
-  flex-wrap: nowrap;
-  gap: 8px;
+  flex-direction: column; /* two one-line metrics stacked, so neither slides under the action button */
+  align-items: flex-start;
+  gap: 2px;
+  overflow: hidden;
 
   span {
     display: inline-flex;
     align-items: center;
     gap: 4px;
     color: #5f6e82;
-    font-size: 11px;
+    font-size: 13px;
     line-height: 1.2;
     white-space: nowrap;
   }
@@ -797,12 +803,12 @@ textarea:focus-visible {
 
   small {
     color: #586679;
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .secondary-action {
-    min-height: 42px;
-    font-size: 12px;
+    min-height: 44px;
+    font-size: 14px;
   }
 }
 
@@ -878,25 +884,12 @@ textarea:focus-visible {
 .community-rail__grid > .rail-section > .rail-list,
 .community-rail__grid > .rail-section > .activity-list,
 .community-rail__grid > .rail-section > .open-match-list {
+  min-width: 0;
   min-height: 0;
   flex: 1 1 auto;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-color: #a9bbb5 transparent;
-  scrollbar-width: thin;
-}
-
-.community-rail__grid > .rail-section > .rail-list::-webkit-scrollbar,
-.community-rail__grid > .rail-section > .activity-list::-webkit-scrollbar,
-.community-rail__grid > .rail-section > .open-match-list::-webkit-scrollbar {
-  width: 6px;
-}
-
-.community-rail__grid > .rail-section > .rail-list::-webkit-scrollbar-thumb,
-.community-rail__grid > .rail-section > .activity-list::-webkit-scrollbar-thumb,
-.community-rail__grid > .rail-section > .open-match-list::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-  background: #a9bbb5;
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
 }
 
 .rail-header {
@@ -917,7 +910,7 @@ textarea:focus-visible {
   .page-kicker {
     margin-bottom: 2px;
     color: var(--club-green);
-    font-size: 10px;
+    font-size: 13px;
   }
 }
 
@@ -935,7 +928,7 @@ textarea:focus-visible {
   border-radius: 50%;
   background: #e11d48;
   color: #fff !important;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 800;
 }
 
@@ -995,7 +988,7 @@ textarea:focus-visible {
     gap: 5px;
     overflow: hidden;
     color: #617086;
-    font-size: 11px;
+    font-size: 13px;
     line-height: 1.35;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1014,7 +1007,7 @@ textarea:focus-visible {
   border-radius: 4px;
   background: #e7f5ef;
   color: var(--club-green);
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 800;
   white-space: nowrap;
 }
@@ -1049,7 +1042,7 @@ textarea:focus-visible {
 
   small {
     color: #617086;
-    font-size: 11px;
+    font-size: 13px;
   }
 }
 
@@ -1062,18 +1055,18 @@ textarea:focus-visible {
 .decline-button,
 .match-action,
 .icon-button {
-  min-height: 38px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
-  font-size: 11px;
+  border-radius: 12px;
+  font-size: 14px;
   font-weight: 800;
   cursor: pointer;
-  transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
 
   &:active {
-    transform: scale(.98);
+    transform: translateY(1px);
   }
 }
 
@@ -1086,7 +1079,7 @@ textarea:focus-visible {
 
 .decline-button,
 .icon-button {
-  width: 38px;
+  width: 44px;
   border: 1px solid var(--club-border);
   background: #fff;
   color: #526178;
@@ -1099,8 +1092,9 @@ textarea:focus-visible {
 
 .decline-button:hover,
 .icon-button:hover {
-  border-color: #9aaba5;
-  color: var(--club-ink);
+  border-color: var(--border-strong);
+  background: var(--primary-light);
+  color: var(--club-green);
 }
 
 .activity-row {
@@ -1128,14 +1122,14 @@ textarea:focus-visible {
     min-height: 68px;
     display: grid;
     place-content: center;
-    border-radius: 4px;
-    background: #f1f5f3;
-    color: #526178;
+    border-radius: 12px;
+    background: #f8faf9;
+    color: var(--club-muted);
     text-align: center;
   }
 
   time span {
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 800;
     text-transform: uppercase;
   }
@@ -1143,13 +1137,15 @@ textarea:focus-visible {
   time b {
     margin: 2px 0;
     color: var(--club-ink);
-    font-size: 21px;
+    font-size: 22px;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
     line-height: 1;
   }
 
   time small {
-    font-size: 9px;
-    font-weight: 800;
+    font-size: 13px;
+    font-weight: 700;
   }
 
   >i {
@@ -1164,24 +1160,34 @@ textarea:focus-visible {
   }
 }
 
+/* Block-level lines inside a min-width:0 grid cell, so long titles/locations ellipsize instead of being clipped. */
 .activity-row__content {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+
   strong {
+    display: block;
     overflow: hidden;
-    font-size: 13px;
+    font-size: 14px;
+    font-weight: 700;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   small {
-    display: flex;
-    align-items: center;
-    gap: 5px;
+    display: block;
     overflow: hidden;
-    color: #617086;
-    font-size: 10px;
-    line-height: 1.35;
+    color: var(--club-muted);
+    font-size: 13px;
+    line-height: 1.5;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  small lucide-icon {
+    margin-right: 4px;
+    vertical-align: -2px;
   }
 }
 
@@ -1189,8 +1195,8 @@ textarea:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #526178;
-  font-size: 10px;
+  color: var(--club-muted);
+  font-size: 13px;
   white-space: nowrap;
 }
 
@@ -1222,7 +1228,7 @@ textarea:focus-visible {
     align-items: center;
     gap: 4px;
     color: #617086;
-    font-size: 10px;
+    font-size: 13px;
     line-height: 1.35;
   }
 
@@ -1239,7 +1245,7 @@ textarea:focus-visible {
   border-radius: 3px;
   background: var(--club-green);
   color: #fff;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 800;
   text-transform: uppercase;
 }
@@ -1298,11 +1304,11 @@ textarea:focus-visible {
   width: min(100%, 620px);
   max-height: 90dvh;
   overflow: auto;
-  padding: 22px;
+  padding: 24px;
   border: 1px solid var(--club-border);
-  border-radius: var(--border-radius);
+  border-radius: 24px;
   background: #fff;
-  box-shadow: 0 26px 70px rgba(7, 20, 38, .26);
+  box-shadow: var(--shadow-lg);
 }
 
 .modal-header {
@@ -1318,20 +1324,22 @@ textarea:focus-visible {
 
   h2 {
     margin: 4px 0 0;
-    font-size: 25px;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -.025em;
   }
 }
 
 .modal-note {
   display: flex;
   align-items: center;
-  gap: 7px;
-  margin: 0 0 18px;
-  padding: 10px 12px;
-  border-left: 3px solid var(--club-green);
-  background: #edf7f3;
-  color: #3d5a50;
-  font-size: 13px;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--primary-light);
+  color: var(--primary-strong);
+  font-size: 14px;
 }
 
 .form-group {
@@ -1681,7 +1689,7 @@ textarea:focus-visible {
   gap: 8px;
   padding: 8px 12px;
   color: #68788a;
-  font-size: 11px;
+  font-size: 13px;
   text-align: center;
 }
 
@@ -1707,7 +1715,7 @@ textarea:focus-visible {
 .activity-detail-copy>span,
 .activity-detail-hero>div>span {
   color: var(--club-green);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 900;
   letter-spacing: .09em;
   text-transform: uppercase;
@@ -1750,7 +1758,7 @@ textarea:focus-visible {
 }
 
 .activity-detail-hero time strong { font-size: 27px; line-height: 1; }
-.activity-detail-hero time span { margin-top: 4px; font-size: 9px; font-weight: 900; }
+.activity-detail-hero time span { margin-top: 4px; font-size: 13px; font-weight: 900; }
 .activity-detail-hero>div { display: grid; gap: 4px; }
 .activity-detail-hero>div>strong { color: var(--club-ink); font-size: 17px; }
 .activity-detail-hero>div>small { color: #6b7a8c; }
@@ -1763,7 +1771,7 @@ textarea:focus-visible {
 }
 
 .activity-detail-facts>div { padding: 12px; border: 1px solid var(--club-border); border-radius: 10px; }
-.activity-detail-facts dt { display: flex; align-items: center; gap: 7px; color: #68788a; font-size: 11px; }
+.activity-detail-facts dt { display: flex; align-items: center; gap: 7px; color: #68788a; font-size: 13px; }
 .activity-detail-facts dd { margin: 6px 0 0; color: var(--club-ink); font-size: 13px; font-weight: 800; }
 .activity-detail-copy { padding: 15px; border-radius: 10px; background: #f6f9f8; }
 .activity-detail-copy p { margin: 7px 0 0; color: #526178; line-height: 1.65; }
@@ -1823,13 +1831,17 @@ app-select.sort-select {
   font-size: 14px;
 }
 
+/* Header, note and footer keep their size; only the body scrolls, so nothing hides under the footer. */
 .modal-card:has(#create-club-title) {
-  width: min(100%, 690px);
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 680px);
+  max-height: min(88dvh, 880px);
   padding: 0;
   overflow: hidden;
-  border: 1px solid rgba(205, 219, 214, .95);
-  border-radius: 20px;
-  box-shadow: 0 34px 90px rgba(3, 19, 33, .32);
+  border: 1px solid var(--club-border);
+  border-radius: 24px;
+  box-shadow: var(--shadow-lg);
 }
 
 .modal-card:has(#create-club-title) .modal-header,
@@ -1840,9 +1852,7 @@ app-select.sort-select {
 }
 
 .modal-card:has(#create-club-title) .modal-header {
-  position: sticky;
-  z-index: 3;
-  top: 0;
+  flex: none;
   align-items: center;
   margin: 0;
   padding-block: 22px 17px;
@@ -1852,43 +1862,48 @@ app-select.sort-select {
 }
 
 .modal-eyebrow {
-  color: #00865f;
-  font-size: 10px;
-  font-weight: 900;
-  letter-spacing: .14em;
+  color: var(--club-green);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .12em;
   text-transform: uppercase;
 }
 
 .modal-card:has(#create-club-title) .modal-header h2 {
   margin: 4px 0 0;
-  color: #07192d;
-  font-size: 29px;
-  line-height: 1.08;
-  letter-spacing: -.045em;
+  color: var(--club-ink);
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -.025em;
 }
 
 .modal-card:has(#create-club-title) .modal-header p {
-  margin: 5px 0 0;
-  color: #6a798b;
-  font-size: 13px;
+  margin: 4px 0 0;
+  color: var(--club-muted);
+  font-size: 14px;
 }
 
 .modal-card:has(#create-club-title) .modal-note {
   margin: 16px 26px 4px;
   padding-block: 12px;
-  border: 1px solid #d7ebe3;
-  border-left: 3px solid #00865f;
-  border-radius: 10px;
-  background: #f0f9f5;
-  font-size: 13px;
+  border-radius: 12px;
+  background: var(--primary-light);
+  font-size: 14px;
 }
 
+/* A div scrolls, not the fieldset: Chrome does not pass a flexed height into a fieldset's content box. */
 .modal-card:has(#create-club-title) .modal-body {
-  max-height: calc(88dvh - 222px);
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
   overflow-y: auto;
-  padding-block: 12px 4px;
-  scrollbar-width: thin;
-  scrollbar-color: #b8cdc5 transparent;
+  overscroll-behavior: contain;
+  padding-block: 12px 20px;
+}
+
+.modal-card:has(#create-club-title) .modal-note {
+  flex: none;
 }
 
 .form-section-title {
@@ -1907,15 +1922,16 @@ app-select.sort-select {
 
 .form-section-title > span {
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   place-items: center;
-  flex: 0 0 34px;
-  border-radius: 10px;
-  background: #e7f5ef;
-  color: #00865f;
-  font-size: 11px;
-  font-weight: 900;
+  flex: 0 0 36px;
+  border-radius: 12px;
+  background: var(--primary-light);
+  color: var(--club-green);
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 
 .form-section-title div {
@@ -1924,13 +1940,14 @@ app-select.sort-select {
 }
 
 .form-section-title strong {
-  color: #12283c;
-  font-size: 14px;
+  color: var(--club-ink);
+  font-size: 16px;
+  font-weight: 800;
 }
 
 .form-section-title small {
-  color: #788696;
-  font-size: 11px;
+  color: var(--club-muted);
+  font-size: 13px;
 }
 
 .modal-card:has(#create-club-title) .form-group {
@@ -1939,38 +1956,32 @@ app-select.sort-select {
 }
 
 .modal-card:has(#create-club-title) .form-group label {
-  color: #2f4358;
+  color: var(--club-ink);
   font-size: 13px;
+  font-weight: 800;
 }
 
 .modal-card:has(#create-club-title) .form-group input,
 .modal-card:has(#create-club-title) .form-group textarea {
-  min-height: 50px;
-  padding: 12px 14px;
-  border-color: #cfdbd6;
+  min-height: 44px;
+  padding: 10px 14px;
+  border-color: var(--club-border);
   border-radius: 12px;
   outline: 0;
-  font-size: 15px;
-  transition: border-color .16s ease, box-shadow .16s ease;
+  font-size: 14px;
+  font-weight: 700;
+  transition: border-color .18s ease;
 }
 
 .modal-card:has(#create-club-title) .form-group textarea {
   min-height: 94px;
 }
 
-.modal-card:has(#create-club-title) .form-group input:focus,
-.modal-card:has(#create-club-title) .form-group textarea:focus {
-  border-color: #00865f;
-  box-shadow: 0 0 0 4px rgba(0, 134, 95, .1);
-}
-
 .modal-card:has(#create-club-title) .modal-footer {
-  position: sticky;
-  z-index: 3;
-  bottom: 0;
+  flex: none;
   margin: 0;
-  padding-block: 15px;
-  border-top: 1px solid #e3eae7;
+  padding-block: 16px;
+  border-top: 1px solid var(--club-border);
   background: rgba(255, 255, 255, .97);
   backdrop-filter: blur(12px);
 }
@@ -1981,4 +1992,14 @@ app-select.sort-select {
   .modal-card:has(#create-club-title) .modal-footer { padding-inline: 18px; }
   .modal-card:has(#create-club-title) .modal-note { margin-inline: 18px; }
   .form-section-title small { display: none; }
+}
+
+/* One-line rule (GOAT-DESIGN §4): controls and badges never wrap. */
+.primary-action,
+.secondary-action,
+.text-action,
+.link-action,
+.accept-button,
+.count-badge {
+  white-space: nowrap;
 }

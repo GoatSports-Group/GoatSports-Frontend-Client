@@ -76,7 +76,7 @@
 .my-clubs-hero__copy p {
   margin: 0 0 10px;
   color: #087a57;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 900;
   letter-spacing: .15em;
   text-transform: uppercase;
@@ -140,7 +140,7 @@
 .my-clubs-stats dd {
   margin: 3px 0 0;
   color: #5d6e82;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
 }
 
@@ -204,9 +204,9 @@
 .my-clubs-tabs button b {
   min-width: 22px;
   padding: 2px 6px;
-  border-radius: 5px;
+  border-radius: 6px;
   background: #edf2ef;
-  font-size: 11px;
+  font-size: 13px;
   text-align: center;
 }
 
@@ -303,6 +303,7 @@
   position: sticky;
   top: 90px;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 22px;
   padding: 20px 18px;
   border: 1px solid #dbe4e0;
@@ -320,6 +321,7 @@
 
 .my-clubs-filters section {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
 }
 
@@ -361,7 +363,7 @@
   width: 18px;
   height: 18px;
   border: 1px solid #cbd7d2;
-  border-radius: 5px;
+  border-radius: 6px;
   color: transparent;
   background: #fff;
   transition: 160ms ease;
@@ -412,7 +414,9 @@
 }
 
 .my-clubs-filters__reset {
-  min-height: 42px;
+  min-height: 44px;
+  border-radius: 12px !important;
+  white-space: nowrap;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -457,7 +461,7 @@
 .my-clubs-results>header p {
   margin: 0 0 5px;
   color: #087a57;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 900;
   letter-spacing: .14em;
   text-transform: uppercase;
@@ -473,7 +477,7 @@
 
 .my-clubs-results>header>span {
   color: #6b7889;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .my-clubs-results>header>span b {
@@ -519,7 +523,7 @@
 .my-clubs-modal>header p {
   margin: 0;
   color: #087a57;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 900;
   letter-spacing: .14em;
   text-transform: uppercase;
@@ -554,7 +558,7 @@
   border-left: 3px solid #087a57;
   background: #eef8f4;
   color: #416257;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .my-clubs-modal fieldset {
@@ -577,7 +581,7 @@
 
 .my-clubs-modal label>span {
   color: #43546a;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 800;
 }
 
@@ -600,12 +604,6 @@
   resize: vertical;
 }
 
-.my-clubs-modal input:focus,
-.my-clubs-modal select:focus,
-.my-clubs-modal textarea:focus {
-  border-color: #087a57;
-  box-shadow: 0 0 0 3px rgba(8, 122, 87, .1);
-}
 
 .my-clubs-modal__row {
   display: grid;
@@ -629,7 +627,7 @@
   padding: 0 17px;
   border-radius: 8px;
   font: inherit;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 850;
   cursor: pointer;
 }
@@ -833,13 +831,22 @@ app-select.my-clubs-filters__select {
   align-items: stretch;
 }
 
+/* Header, note and footer keep their size; only the fieldset scrolls, so nothing hides under the footer. */
 .my-clubs-modal {
-  width: min(100%, 690px);
-  max-height: 90dvh;
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 680px);
+  max-height: min(88dvh, 880px);
   padding: 0;
   overflow: hidden;
-  border-radius: 20px;
-  box-shadow: 0 34px 90px rgba(3, 19, 33, .32);
+  border-radius: 24px;
+  box-shadow: var(--shadow-lg);
+}
+
+.my-clubs-modal > header,
+.my-clubs-modal__note,
+.my-clubs-modal > footer {
+  flex: none;
 }
 
 .my-clubs-modal > header {
@@ -858,8 +865,9 @@ app-select.my-clubs-filters__select {
 }
 
 .my-clubs-modal > header h2 {
-  font-size: 29px;
-  line-height: 1.08;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.2;
 }
 
 .my-clubs-modal__note {
@@ -872,12 +880,14 @@ app-select.my-clubs-filters__select {
   font-size: 13px;
 }
 
-.my-clubs-modal fieldset {
-  max-height: calc(90dvh - 225px);
+/* A div scrolls, not the fieldset: Chrome does not pass a flexed height into a fieldset's content box. */
+.my-clubs-modal__body {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
   overflow-y: auto;
-  padding: 12px 26px 6px;
-  scrollbar-width: thin;
-  scrollbar-color: #b8cdc5 transparent;
+  overscroll-behavior: contain;
+  padding: 12px 26px 20px;
 }
 
 .my-clubs-modal__section {
@@ -903,7 +913,7 @@ app-select.my-clubs-filters__select {
   border-radius: 10px;
   background: #e7f5ef;
   color: #00865f;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .my-clubs-modal__section > div {
@@ -918,7 +928,7 @@ app-select.my-clubs-filters__select {
 
 .my-clubs-modal__section small {
   color: #788696;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .my-clubs-modal input,
@@ -951,8 +961,13 @@ app-select.my-clubs-filters__select {
 
 @media (max-width: 680px) {
   .my-clubs-modal > header,
-  .my-clubs-modal fieldset,
+  .my-clubs-modal__body,
   .my-clubs-modal > footer { padding-inline: 18px; }
   .my-clubs-modal__note { margin-inline: 18px; }
   .my-clubs-modal__section small { display: none; }
+}
+
+/* One-line rule (GOAT-DESIGN §4): modal actions never wrap. */
+.my-clubs-modal > footer button {
+  white-space: nowrap;
 }

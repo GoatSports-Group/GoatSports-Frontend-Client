@@ -1,8 +1,8 @@
 :host { display: block; }
 .my-clubs-empty { min-height: 250px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 22px; padding: clamp(28px, 4vw, 48px); border: 1px dashed #aec3bb; border-radius: 14px; background: #fff; }
 .my-clubs-empty__mark { width: 62px; height: 62px; display: grid; place-items: center; border-radius: 12px; background: #eaf6f1; color: #087a57; }
-.my-clubs-empty p { margin: 0 0 7px; color: #087a57; font-size: 10px; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
+.my-clubs-empty p { margin: 0 0 7px; color: #087a57; font-size: 12px; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
 .my-clubs-empty h2 { margin: 0 0 7px; color: #07192d; font-size: clamp(21px, 2.5vw, 30px); font-weight: 900; letter-spacing: -.04em; }
 .my-clubs-empty div > span { color: #607084; font-size: 13px; line-height: 1.6; }
-.my-clubs-empty button { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 16px; border: 1px solid #087a57; border-radius: 8px; background: #087a57; color: #fff; font: inherit; font-size: 12px; font-weight: 850; cursor: pointer; }
+.my-clubs-empty button { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 16px; border: 1px solid #087a57; border-radius: 8px; background: #087a57; color: #fff; font: inherit; font-size: 13px; font-weight: 850; cursor: pointer; }
 @media (max-width: 680px) { .my-clubs-empty { grid-template-columns: 1fr; text-align: center; } .my-clubs-empty__mark { margin: auto; } .my-clubs-empty button { width: 100%; } }

@@ -122,7 +122,7 @@
         <app-select class="my-clubs-filters__select" [options]="cityFilterOptions()"
           [ngModel]="selectedCity()" (ngModelChange)="updateCity($event)" leadingIcon="map-pin"
           ariaLabel="Chọn tỉnh hoặc thành phố" [searchable]="true"
-          searchPlaceholder="Tìm tỉnh, thành phố..."></app-select>
+          searchPlaceholder="Tìm tỉnh/thành..."></app-select>
       </section>
 
       <button type="button" class="my-clubs-filters__reset" (click)="clearFilters()"><lucide-icon name="rotate-ccw"
@@ -166,7 +166,7 @@
       </header>
       <p class="my-clubs-modal__note"><lucide-icon name="info" class="w-4 h-4"></lucide-icon>Bạn sẽ là chủ câu lạc bộ và
         có thể mời thành viên ngay sau khi tạo.</p>
-      <fieldset [disabled]="creating()">
+      <div class="my-clubs-modal__body"><fieldset [disabled]="creating()">
         <div class="my-clubs-modal__section"><b>01</b><div><strong>Thông tin câu lạc bộ</strong><small>Tên và câu chuyện giúp cộng đồng của bạn nổi bật.</small></div></div>
         <label><span>Tên câu lạc bộ *</span><input [(ngModel)]="createForm.name"
             placeholder="Ví dụ: GOAT Weekend Club" /></label>
@@ -188,11 +188,11 @@
               ariaLabel="Cách duyệt thành viên"></app-select></label>
           <label><span>Tỉnh/Thành phố *</span><app-select [options]="cityFormOptions()"
               [(ngModel)]="createForm.city" leadingIcon="map-pin" ariaLabel="Tỉnh hoặc thành phố"
-              [searchable]="true" searchPlaceholder="Tìm tỉnh, thành phố..."></app-select></label>
+              [searchable]="true" searchPlaceholder="Tìm tỉnh/thành..."></app-select></label>
         </div>
         <label><span>Địa chỉ sinh hoạt *</span><input [(ngModel)]="createForm.location" required maxlength="255"
             placeholder="Ví dụ: 123 Nguyễn Văn Linh, Quận 7" /></label>
-      </fieldset>
+      </fieldset></div>
       <footer><button type="button" class="my-clubs-modal__cancel" [disabled]="creating()"
           (click)="closeCreateModal()">Hủy</button><button type="button" class="my-clubs-modal__submit"
           [disabled]="!isCreateFormComplete() || creating()" (click)="createClub()">@if (creating()) { <span

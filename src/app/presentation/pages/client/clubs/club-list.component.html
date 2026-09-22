@@ -329,7 +329,7 @@
       </div>
       <p class="modal-note"><lucide-icon name="info" class="w-4 h-4"></lucide-icon>Bạn sẽ là chủ câu lạc bộ này và có
         thể mời thêm thành viên sau khi tạo.</p>
-      <fieldset class="modal-body modal-form" [disabled]="creating()">
+      <div class="modal-body"><fieldset class="modal-form" [disabled]="creating()">
         <div class="form-section-title"><span>01</span><div><strong>Thông tin câu lạc bộ</strong><small>Tên và câu chuyện giúp cộng đồng của bạn nổi bật.</small></div></div>
         <div class="form-group"><label for="club-name">Tên câu lạc bộ *</label><input id="club-name"
             [(ngModel)]="createForm.name" placeholder="Ví dụ: GOAT Weekend Club" /></div>
@@ -355,7 +355,7 @@
         </div>
         <div class="form-group"><label for="club-location">Địa chỉ sinh hoạt *</label><input id="club-location"
             [(ngModel)]="createForm.location" required maxlength="255" placeholder="Ví dụ: 123 Nguyễn Văn Linh, Quận 7" /></div>
-      </fieldset>
+      </fieldset></div>
       <div class="modal-footer"><button type="button" class="secondary-action"
           [disabled]="creating()" (click)="closeCreateModal()">Hủy</button><button type="button" class="primary-action"
           [disabled]="!isCreateFormComplete() || creating()" (click)="createClub()">

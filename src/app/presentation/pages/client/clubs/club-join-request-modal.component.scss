@@ -26,7 +26,7 @@
 }
 
 header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
-header p { margin: 0; color: var(--green); font-size: 11px; font-weight: 850; letter-spacing: .11em; text-transform: uppercase; }
+header p { margin: 0; color: var(--green); font-size: 12px; font-weight: 850; letter-spacing: .11em; text-transform: uppercase; }
 header h2 { margin: 5px 0 0; font-size: 28px; line-height: 1.15; letter-spacing: -.04em; }
 
 .icon-button { width: 42px; height: 42px; display: grid; place-items: center; flex: 0 0 42px; border: 1px solid var(--border); border-radius: 11px; background: #fff; color: #526178; cursor: pointer; }
@@ -38,12 +38,11 @@ header h2 { margin: 5px 0 0; font-size: 28px; line-height: 1.15; letter-spacing:
 
 label { display: block; margin-bottom: 7px; color: #45556b; font-size: 13px; font-weight: 800; }
 textarea { width: 100%; min-height: 150px; padding: 13px 14px; resize: vertical; border: 1px solid #c7d3cf; border-radius: 12px; outline: 0; background: #fff; color: var(--ink); font: inherit; font-size: 15px; line-height: 1.55; }
-textarea:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(8,122,87,.1); }
 
-.field-meta { display: flex; justify-content: space-between; gap: 12px; margin-top: 6px; color: var(--muted); font-size: 11px; }
+.field-meta { display: flex; justify-content: space-between; gap: 12px; margin-top: 6px; color: var(--muted); font-size: 13px; }
 footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
-.cancel-button, .submit-button { min-height: 46px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 0 18px; border-radius: 11px; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; transition: transform 180ms ease, background-color 180ms ease; }
-.cancel-button { border: 1px solid #17334d; background: #fff; color: #17334d; }
+.cancel-button, .submit-button { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 20px; border-radius: 12px; font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; transition: transform 180ms ease, background-color 180ms ease; }
+.cancel-button { border: 1px solid var(--border-color); background: #fff; color: var(--text-dark); }
 .submit-button { border: 1px solid var(--green); background: var(--green); color: #fff; }
 .submit-button:disabled { opacity: .5; cursor: not-allowed; }
 .cancel-button:disabled, .icon-button:disabled { opacity: .55; cursor: wait; }

@@ -51,7 +51,7 @@ export class MyClubsComponent {
   readonly approvalOptions = CLUB_APPROVAL_OPTIONS;
   readonly provinces = this.locationData.provinces;
   readonly cityFilterOptions = computed(() => [
-    { value: 'ALL', label: 'Tất cả tỉnh/thành', icon: 'map' },
+    { value: 'ALL', label: 'Toàn quốc', icon: 'map' },
     ...this.provinces().map(province => ({ value: province.code, label: province.name, icon: 'map-pin' }))
   ]);
   readonly cityFormOptions = computed(() => [

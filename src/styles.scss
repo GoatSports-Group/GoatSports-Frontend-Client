@@ -249,8 +249,8 @@ body.dark {
   transform: translateY(0);
 }
 
-:where(a, button, input, select, textarea, [tabindex]):focus-visible {
-  outline: 3px solid #0284c7 !important;
+:where(a, button, [tabindex]:not(input, select, textarea), input[type='checkbox'], input[type='radio']):focus-visible {
+  outline: 3px solid #13a879 !important;
   outline-offset: 3px !important;
   box-shadow: 0 0 0 2px #ffffff !important;
 }
@@ -459,17 +459,17 @@ a {
     }
   }
 
+  /* Design §6: focus never changes the field border or adds a ring. */
   &.mat-focused {
     .mdc-text-field {
-      box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.08) !important; /* Soft emerald ring shadow matching auth focus */
-      background-color: #ffffff !important; /* Turn pure white on focus */
+      background-color: #ffffff !important;
     }
 
     .mdc-notched-outline__leading,
     .mdc-notched-outline__notch,
     .mdc-notched-outline__trailing {
-      border-color: var(--primary) !important;
-      border-width: 2px !important;
+      border-color: var(--border-color) !important;
+      border-width: 1px !important;
     }
 
     .mdc-floating-label,
@@ -1053,9 +1053,7 @@ body.dark {
     }
 
     &:focus {
-      background-color: #ffffff !important; /* focus:bg-white */
-      border-color: #10b981 !important; /* focus:border-emerald-500 */
-      box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.05) !important; /* focus:ring-4 focus:ring-emerald-500/5 */
+      background-color: #ffffff !important;
     }
   }
 
@@ -1085,8 +1083,6 @@ body.dark {
 
     &:focus, &.mat-select-panel-open {
       background-color: #ffffff !important;
-      border-color: #10b981 !important;
-      box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.05) !important;
     }
 
     .mat-mdc-select-trigger {
@@ -1141,8 +1137,6 @@ body.dark {
       
       &:focus, &.mat-select-panel-open {
         background-color: #0f172a !important;
-        border-color: #10b981 !important;
-        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15) !important;
       }
     }
     
