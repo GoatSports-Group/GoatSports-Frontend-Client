@@ -190,7 +190,8 @@ import {
   LucideUserRoundCheck,
   LucideCrown,
   LucideUpload,
-  LucideArchive
+  LucideArchive,
+  LucideGlobe2
 } from '@lucide/angular';
 
 @NgModule({
@@ -370,7 +371,8 @@ import {
       LucideUserRoundCheck,
       LucideCrown,
       LucideUpload,
-      LucideArchive
+      LucideArchive,
+      LucideGlobe2
     )
   ],
   bootstrap: [AppComponent]

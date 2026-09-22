@@ -11,25 +11,11 @@
   </header>
 
   <section class="filter-bar" aria-label="Lọc câu lạc bộ nổi bật">
-    <label>
-      <lucide-icon name="trophy" class="w-4 h-4"></lucide-icon>
-      <span class="sr-only">Môn thể thao</span>
-      <select [ngModel]="selectedSport()" (ngModelChange)="selectSport($event)" aria-label="Lọc theo môn thể thao">
-        @for (sport of sports; track sport.value) { <option [ngValue]="sport.value">{{ sport.label }}</option> }
-      </select>
-      <lucide-icon name="chevron-down" class="w-4 h-4"></lucide-icon>
-    </label>
-    <label>
-      <lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>
-      <span class="sr-only">Thành phố</span>
-      <select [ngModel]="selectedCity()" (ngModelChange)="updateCity($event)" aria-label="Lọc theo thành phố">
-        <option value="ALL">Tất cả thành phố và tỉnh</option>
-        @for (province of provinces(); track province.code) {
-          <option [value]="province.code">{{ province.name }}</option>
-        }
-      </select>
-      <lucide-icon name="chevron-down" class="w-4 h-4"></lucide-icon>
-    </label>
+    <app-select [options]="sports" [ngModel]="selectedSport()" (ngModelChange)="selectSport($event)"
+      leadingIcon="trophy" ariaLabel="Lọc theo môn thể thao"></app-select>
+    <app-select [options]="cityOptions()" [ngModel]="selectedCity()" (ngModelChange)="updateCity($event)"
+      leadingIcon="map-pin" ariaLabel="Lọc theo thành phố" [searchable]="true"
+      searchPlaceholder="Tìm tỉnh, thành phố..."></app-select>
   </section>
 
   @if (filteredClubs().length) {

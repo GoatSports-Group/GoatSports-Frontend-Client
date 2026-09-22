@@ -811,3 +811,148 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+app-select.my-clubs-select,
+app-select.my-clubs-filters__select {
+  display: block;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.my-clubs-controls,
+.my-clubs-filters,
+.my-clubs-footer {
+  border-color: #d7e2de;
+  border-radius: 16px;
+  box-shadow: 0 10px 28px -30px rgba(7, 25, 45, .55);
+}
+
+.my-clubs-grid {
+  align-items: stretch;
+}
+
+.my-clubs-modal {
+  width: min(100%, 690px);
+  max-height: 90dvh;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 20px;
+  box-shadow: 0 34px 90px rgba(3, 19, 33, .32);
+}
+
+.my-clubs-modal > header {
+  position: relative;
+  z-index: 3;
+  align-items: center;
+  padding: 22px 26px 17px;
+  border-bottom: 1px solid #e3eae7;
+}
+
+.my-clubs-modal > header > div > span {
+  display: block;
+  margin-top: 5px;
+  color: #6a798b;
+  font-size: 13px;
+}
+
+.my-clubs-modal > header h2 {
+  font-size: 29px;
+  line-height: 1.08;
+}
+
+.my-clubs-modal__note {
+  margin: 16px 26px 4px;
+  padding: 12px 13px;
+  border: 1px solid #d7ebe3;
+  border-left: 3px solid #00865f;
+  border-radius: 10px;
+  background: #f0f9f5;
+  font-size: 13px;
+}
+
+.my-clubs-modal fieldset {
+  max-height: calc(90dvh - 225px);
+  overflow-y: auto;
+  padding: 12px 26px 6px;
+  scrollbar-width: thin;
+  scrollbar-color: #b8cdc5 transparent;
+}
+
+.my-clubs-modal__section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 9px 0 13px;
+  padding-top: 4px;
+}
+
+.my-clubs-modal__section:not(:first-child) {
+  margin-top: 19px;
+  padding-top: 17px;
+  border-top: 1px solid #e5ebe9;
+}
+
+.my-clubs-modal__section > b {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  flex: 0 0 34px;
+  border-radius: 10px;
+  background: #e7f5ef;
+  color: #00865f;
+  font-size: 11px;
+}
+
+.my-clubs-modal__section > div {
+  display: grid;
+  gap: 2px;
+}
+
+.my-clubs-modal__section strong {
+  color: #12283c;
+  font-size: 14px;
+}
+
+.my-clubs-modal__section small {
+  color: #788696;
+  font-size: 11px;
+}
+
+.my-clubs-modal input,
+.my-clubs-modal textarea {
+  min-height: 50px;
+  padding: 12px 14px;
+  border-color: #cfdbd6;
+  border-radius: 12px;
+  font-size: 15px;
+}
+
+.my-clubs-modal textarea {
+  min-height: 94px;
+}
+
+.my-clubs-modal > footer {
+  position: relative;
+  z-index: 3;
+  margin: 0;
+  padding: 15px 26px;
+  border-top: 1px solid #e3eae7;
+  background: rgba(255, 255, 255, .97);
+}
+
+.my-clubs-modal > footer button {
+  min-height: 46px;
+  border-radius: 11px;
+  font-size: 13px;
+}
+
+@media (max-width: 680px) {
+  .my-clubs-modal > header,
+  .my-clubs-modal fieldset,
+  .my-clubs-modal > footer { padding-inline: 18px; }
+  .my-clubs-modal__note { margin-inline: 18px; }
+  .my-clubs-modal__section small { display: none; }
+}

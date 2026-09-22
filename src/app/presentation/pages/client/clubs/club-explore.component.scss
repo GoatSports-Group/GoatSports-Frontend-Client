@@ -550,3 +550,35 @@
     }
   }
 }
+
+app-select.select-control {
+  display: block;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.filter-panel {
+  padding: 13px;
+  border-radius: 15px;
+  border-color: #d7e2de;
+  box-shadow: 0 12px 30px -30px rgba(7, 25, 45, .55);
+}
+
+.club-grid {
+  align-items: stretch;
+  gap: 16px;
+}
+
+.club-card {
+  height: 382px;
+  border-radius: 14px;
+  box-shadow: 0 5px 18px rgba(7, 25, 45, .035);
+}
+
+.club-card__body { padding: 15px 16px 14px; }
+.club-card__identity h2 { font-size: 18px; letter-spacing: -.025em; }
+.club-card__identity p,
+.club-card__description { font-size: 13.5px; }
+.club-card__footer { min-height: 52px; }

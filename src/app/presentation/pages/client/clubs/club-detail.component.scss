@@ -3056,3 +3056,101 @@ a {
   .overview-gallery-strip,
   .overview-gallery-strip.has-overflow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* Softer, more readable club detail surfaces. */
+.panel,
+.content-panel,
+.detail-tabs {
+  border-color: #d7e2de;
+  border-radius: 15px;
+}
+
+.panel {
+  padding: 21px;
+}
+
+.panel__header h2,
+.content-heading h2 {
+  font-size: 21px;
+}
+
+.intro-copy,
+.club-information dt,
+.club-information dd,
+.recent-match-row,
+.activity-preview__content p {
+  font-size: 13px;
+}
+
+.member-overview,
+.manager-overview,
+.guest-overview {
+  gap: 15px;
+}
+
+.modal-card:has(#club-modal-title) {
+  width: min(700px, 100%);
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #d2dfda;
+  border-radius: 20px;
+  box-shadow: 0 34px 90px rgba(3, 19, 33, .32);
+}
+
+.modal-card:has(#club-modal-title) .modal-title {
+  position: sticky;
+  z-index: 3;
+  top: 0;
+  align-items: center;
+  margin: 0 0 18px;
+  padding: 22px 26px 17px;
+  border-bottom: 1px solid #e3eae7;
+  background: rgba(255, 255, 255, .97);
+  backdrop-filter: blur(12px);
+}
+
+.modal-card:has(#club-modal-title) > .form-group,
+.modal-card:has(#club-modal-title) > .form-row,
+.modal-card:has(#club-modal-title) > .club-media-editor,
+.modal-card:has(#club-modal-title) > app-club-tag-editor {
+  margin-inline: 26px;
+}
+
+.modal-card:has(#club-modal-title) .form-group input,
+.modal-card:has(#club-modal-title) .form-group textarea {
+  min-height: 50px;
+  padding: 12px 14px;
+  border-color: #cfdbd6;
+  border-radius: 12px;
+  font-size: 15px;
+}
+
+.modal-card:has(#club-modal-title) .form-group textarea {
+  min-height: 96px;
+}
+
+.modal-card:has(#club-modal-title) .club-media-field {
+  border-color: #d7e2de;
+  border-radius: 14px;
+  background: #f8fbf9;
+}
+
+.modal-card:has(#club-modal-title) .modal-footer {
+  position: sticky;
+  z-index: 3;
+  bottom: 0;
+  margin: 18px 0 0;
+  padding: 15px 26px;
+  border-top: 1px solid #e3eae7;
+  background: rgba(255, 255, 255, .97);
+  backdrop-filter: blur(12px);
+}
+
+@media (max-width: 680px) {
+  .modal-card:has(#club-modal-title) .modal-title,
+  .modal-card:has(#club-modal-title) .modal-footer { padding-inline: 18px; }
+  .modal-card:has(#club-modal-title) > .form-group,
+  .modal-card:has(#club-modal-title) > .form-row,
+  .modal-card:has(#club-modal-title) > .club-media-editor,
+  .modal-card:has(#club-modal-title) > app-club-tag-editor { margin-inline: 18px; }
+}

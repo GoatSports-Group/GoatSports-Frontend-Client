@@ -1771,3 +1771,214 @@ textarea:focus-visible {
 .secondary-button { min-height: 42px; padding: 0 18px; border: 1px solid var(--club-border); border-radius: 8px; background: #fff; color: var(--club-ink); font-weight: 800; cursor: pointer; }
 
 @keyframes club-spin { to { transform: rotate(360deg); } }
+
+/* Shared visual polish for the club experience. */
+app-select.filter-select,
+app-select.sort-select {
+  display: block;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.club-finder,
+.club-section,
+.rail-section {
+  border-color: #d7e2de;
+  border-radius: 16px;
+  box-shadow: 0 10px 28px -30px rgba(7, 25, 45, .55);
+}
+
+.club-finder__top h2,
+.section-heading h2,
+.discovery-toolbar h2 {
+  font-size: clamp(23px, 2vw, 29px);
+  letter-spacing: -.045em;
+}
+
+.featured-club,
+.club-card {
+  border-radius: 14px;
+}
+
+.featured-club {
+  min-height: 275px;
+}
+
+.club-card {
+  height: 382px;
+}
+
+.club-card__body {
+  padding: 15px 16px 14px;
+}
+
+.club-card__identity h3 {
+  font-size: 18px;
+}
+
+.club-card__description,
+.featured-club__description {
+  font-size: 14px;
+}
+
+.modal-card:has(#create-club-title) {
+  width: min(100%, 690px);
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid rgba(205, 219, 214, .95);
+  border-radius: 20px;
+  box-shadow: 0 34px 90px rgba(3, 19, 33, .32);
+}
+
+.modal-card:has(#create-club-title) .modal-header,
+.modal-card:has(#create-club-title) .modal-note,
+.modal-card:has(#create-club-title) .modal-body,
+.modal-card:has(#create-club-title) .modal-footer {
+  padding-inline: 26px;
+}
+
+.modal-card:has(#create-club-title) .modal-header {
+  position: sticky;
+  z-index: 3;
+  top: 0;
+  align-items: center;
+  margin: 0;
+  padding-block: 22px 17px;
+  border-bottom: 1px solid #e3eae7;
+  background: rgba(255, 255, 255, .96);
+  backdrop-filter: blur(12px);
+}
+
+.modal-eyebrow {
+  color: #00865f;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.modal-card:has(#create-club-title) .modal-header h2 {
+  margin: 4px 0 0;
+  color: #07192d;
+  font-size: 29px;
+  line-height: 1.08;
+  letter-spacing: -.045em;
+}
+
+.modal-card:has(#create-club-title) .modal-header p {
+  margin: 5px 0 0;
+  color: #6a798b;
+  font-size: 13px;
+}
+
+.modal-card:has(#create-club-title) .modal-note {
+  margin: 16px 26px 4px;
+  padding-block: 12px;
+  border: 1px solid #d7ebe3;
+  border-left: 3px solid #00865f;
+  border-radius: 10px;
+  background: #f0f9f5;
+  font-size: 13px;
+}
+
+.modal-card:has(#create-club-title) .modal-body {
+  max-height: calc(88dvh - 222px);
+  overflow-y: auto;
+  padding-block: 12px 4px;
+  scrollbar-width: thin;
+  scrollbar-color: #b8cdc5 transparent;
+}
+
+.form-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 9px 0 13px;
+  padding-top: 4px;
+}
+
+.form-section-title:not(:first-child) {
+  margin-top: 19px;
+  padding-top: 17px;
+  border-top: 1px solid #e5ebe9;
+}
+
+.form-section-title > span {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  flex: 0 0 34px;
+  border-radius: 10px;
+  background: #e7f5ef;
+  color: #00865f;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.form-section-title div {
+  display: grid;
+  gap: 2px;
+}
+
+.form-section-title strong {
+  color: #12283c;
+  font-size: 14px;
+}
+
+.form-section-title small {
+  color: #788696;
+  font-size: 11px;
+}
+
+.modal-card:has(#create-club-title) .form-group {
+  gap: 8px;
+  margin-bottom: 13px;
+}
+
+.modal-card:has(#create-club-title) .form-group label {
+  color: #2f4358;
+  font-size: 13px;
+}
+
+.modal-card:has(#create-club-title) .form-group input,
+.modal-card:has(#create-club-title) .form-group textarea {
+  min-height: 50px;
+  padding: 12px 14px;
+  border-color: #cfdbd6;
+  border-radius: 12px;
+  outline: 0;
+  font-size: 15px;
+  transition: border-color .16s ease, box-shadow .16s ease;
+}
+
+.modal-card:has(#create-club-title) .form-group textarea {
+  min-height: 94px;
+}
+
+.modal-card:has(#create-club-title) .form-group input:focus,
+.modal-card:has(#create-club-title) .form-group textarea:focus {
+  border-color: #00865f;
+  box-shadow: 0 0 0 4px rgba(0, 134, 95, .1);
+}
+
+.modal-card:has(#create-club-title) .modal-footer {
+  position: sticky;
+  z-index: 3;
+  bottom: 0;
+  margin: 0;
+  padding-block: 15px;
+  border-top: 1px solid #e3eae7;
+  background: rgba(255, 255, 255, .97);
+  backdrop-filter: blur(12px);
+}
+
+@media (max-width: 680px) {
+  .modal-card:has(#create-club-title) .modal-header,
+  .modal-card:has(#create-club-title) .modal-body,
+  .modal-card:has(#create-club-title) .modal-footer { padding-inline: 18px; }
+  .modal-card:has(#create-club-title) .modal-note { margin-inline: 18px; }
+  .form-section-title small { display: none; }
+}

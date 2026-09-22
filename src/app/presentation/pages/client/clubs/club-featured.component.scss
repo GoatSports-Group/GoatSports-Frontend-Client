@@ -495,3 +495,37 @@ app-pagination {
     transition-duration: .01ms !important;
   }
 }
+
+.filter-bar {
+  padding: 13px;
+  border-radius: 15px;
+  border-color: #d7e2de;
+  box-shadow: 0 12px 30px -30px rgba(7, 25, 45, .55);
+}
+
+.featured-grid {
+  gap: 16px;
+}
+
+.featured-card {
+  min-height: 268px;
+  border-radius: 15px;
+  box-shadow: 0 6px 20px rgba(7, 25, 45, .035);
+}
+
+.featured-card__body {
+  padding: 22px 26px 19px;
+}
+
+.description {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 15px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.location,
+.metrics {
+  font-size: 13px;
+}

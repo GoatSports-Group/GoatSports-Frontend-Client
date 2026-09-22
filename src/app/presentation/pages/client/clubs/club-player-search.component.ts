@@ -25,6 +25,11 @@ export class ClubPlayerSearchComponent {
   readonly clubId = this.route.snapshot.paramMap.get('clubId') ?? '';
   readonly defaultClubLogo = DEFAULT_CLUB_LOGO;
   readonly radiusOptions = RADIUS_OPTIONS;
+  readonly radiusSelectOptions = RADIUS_OPTIONS.map(radius => ({
+    value: radius,
+    label: `Trong ${radius} km`,
+    icon: 'navigation'
+  }));
 
   readonly club = signal<Club | null>(null);
   readonly membership = signal<MyClubMembership | null>(null);

@@ -19,7 +19,9 @@
     <section class="scouting-command" aria-label="Bộ lọc người chơi">
       <div class="scouting-command__label"><span>Live<br />search</span><small>{{ sportLabel(currentClub.sportType) }} · {{ currentClub.location || currentClub.city || 'Chưa rõ khu vực' }}</small></div>
       <label class="member-search"><lucide-icon name="search" class="w-5 h-5"></lucide-icon><span class="sr-only">Tìm theo tên</span><input type="search" [ngModel]="keyword()" (ngModelChange)="updateKeyword($event)" placeholder="Lọc theo tên hoặc tài khoản..." /></label>
-      <label class="member-select"><span class="sr-only">Bán kính tìm kiếm</span><select [ngModel]="radiusKm()" (ngModelChange)="updateRadius($event)">@for (radius of radiusOptions; track radius) { <option [value]="radius">Trong {{ radius }} km</option> }</select><lucide-icon name="chevron-down" class="w-4 h-4"></lucide-icon></label>
+      <app-select class="member-select" [options]="radiusSelectOptions" [ngModel]="radiusKm()"
+        (ngModelChange)="updateRadius($event)" leadingIcon="navigation"
+        ariaLabel="Bán kính tìm kiếm"></app-select>
       <button type="button" class="member-button member-button--outline" [disabled]="searching()" (click)="search()"><lucide-icon name="refresh-cw" class="w-4 h-4"></lucide-icon>{{ searching() ? 'Đang tìm...' : 'Tìm lại' }}</button>
     </section>
 

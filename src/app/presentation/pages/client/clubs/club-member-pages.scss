@@ -520,3 +520,32 @@ app-pagination { display: block; margin-top: 20px; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+app-select.member-select {
+  display: block;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.member-search {
+  min-height: 48px;
+  border-color: #cfdbd6;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.roster-card,
+.application-card,
+.fixture-row,
+.player-row {
+  border-color: #d7e2de;
+  border-radius: 14px;
+}
+
+.roster-card__description,
+.application-card blockquote p,
+.player-row p {
+  font-size: 13.5px;
+}

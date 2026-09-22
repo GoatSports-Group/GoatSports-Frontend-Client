@@ -1,14 +1,18 @@
-<div class="app-select" [class.is-open]="open" [class.is-disabled]="disabled" [class]="'size-' + size">
+<div class="app-select" [class.is-open]="open" [class.is-disabled]="disabled" [class.open-upward]="openUpward" [class]="'size-' + size">
   <!-- Dropdown Trigger -->
   <button
     type="button"
     class="app-select__trigger"
     [disabled]="disabled"
     [attr.aria-expanded]="open"
+    [attr.aria-label]="ariaLabel"
     aria-haspopup="listbox"
     (click)="toggle($event)"
     (keydown)="handleKeydown($event)"
   >
+    @if (leadingIcon) {
+      <span class="app-select__leading" aria-hidden="true"><lucide-icon [name]="leadingIcon" class="w-4 h-4"></lucide-icon></span>
+    }
     <span class="app-select__label-text" [class.is-placeholder]="!selectedLabel">
       {{ selectedLabel || placeholder }}
     </span>
@@ -39,17 +43,21 @@
 
       <!-- Options List -->
       <div class="app-select__options-list">
-        @for (option of filteredOptions; track option.value) {
+        @for (option of filteredOptions; track option.value; let optionIndex = $index) {
           <button
             type="button"
             class="app-select__option"
             [class.is-selected]="option.value === value"
+            [class.is-active]="optionIndex === activeIndex"
             [disabled]="option.disabled"
             [attr.aria-selected]="option.value === value"
             role="option"
             (click)="select(option, $event)"
           >
-            <span class="option-label">{{ option.label }}</span>
+            <span class="option-content">
+              @if (option.icon) { <lucide-icon [name]="option.icon" class="w-4 h-4"></lucide-icon> }
+              <span class="option-label">{{ option.label }}</span>
+            </span>
             @if (option.value === value) {
               <svg class="option-check-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="m5 10 3.5 3.5L15 6" />

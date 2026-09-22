@@ -22,7 +22,15 @@ import {
   Tournament as TournamentModel, TournamentRegistration as TournamentRegistrationModel,
   TournamentStanding as TournamentStandingModel
 } from '@application/dto/tournament/tournament.dto';
-import { ClubCardView, DEFAULT_CLUB_BANNER, DEFAULT_CLUB_LOGO, sportLabel, toCardView } from './club-view.model';
+import {
+  CLUB_APPROVAL_OPTIONS,
+  CLUB_PRIVACY_OPTIONS,
+  ClubCardView,
+  DEFAULT_CLUB_BANNER,
+  DEFAULT_CLUB_LOGO,
+  sportLabel,
+  toCardView
+} from './club-view.model';
 import { ClubLocationDataService } from './club-location-data.service';
 
 type ClubTab = 'OVERVIEW' | 'MEMBERS' | 'REQUESTS' | 'ACTIVITIES' | 'TOURNAMENTS' | 'GALLERY';
@@ -45,6 +53,12 @@ export class ClubDetailComponent implements OnDestroy {
   private readonly locationData = inject(ClubLocationDataService);
   private readonly destroyRef = inject(DestroyRef);
   readonly provinces = this.locationData.provinces;
+  readonly privacyOptions = CLUB_PRIVACY_OPTIONS;
+  readonly approvalOptions = CLUB_APPROVAL_OPTIONS;
+  readonly cityFormOptions = computed(() => [
+    { value: '', label: 'Chọn tỉnh hoặc thành phố', icon: 'map' },
+    ...this.provinces().map(province => ({ value: province.code, label: province.name, icon: 'map-pin' }))
+  ]);
   readonly clubId = this.route.snapshot.paramMap.get('clubId') ?? '';
 
   readonly club = signal<ClubModel | null>(null);

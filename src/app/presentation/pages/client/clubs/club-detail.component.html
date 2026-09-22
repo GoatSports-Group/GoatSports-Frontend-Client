@@ -1169,11 +1169,9 @@
       <div class="form-group"><label for="club-description">Giới thiệu</label><textarea id="club-description"
           [(ngModel)]="clubForm.description"></textarea></div>
       <div class="form-row">
-        <div class="form-group"><label for="club-city">Tỉnh/Thành phố</label><select id="club-city"
-            [(ngModel)]="clubForm.city">
-            <option value="">Chưa chọn</option>@for (province of provinces(); track province.code) { <option
-              [value]="province.code">{{ province.name }}</option> }
-          </select></div>
+        <div class="form-group"><label>Tỉnh/Thành phố</label><app-select [options]="cityFormOptions()"
+            [(ngModel)]="clubForm.city" leadingIcon="map-pin" ariaLabel="Tỉnh hoặc thành phố"
+            [searchable]="true" searchPlaceholder="Tìm tỉnh, thành phố..."></app-select></div>
         <div class="form-group"><label for="club-location">Địa chỉ sinh hoạt</label><input id="club-location"
             [(ngModel)]="clubForm.location" maxlength="255" placeholder="Ví dụ: 123 Nguyễn Văn Linh, Quận 7" /></div>
       </div>
@@ -1206,16 +1204,12 @@
       <app-club-tag-editor [tags]="clubForm.tags ?? []" (tagsChange)="clubForm.tags = $event" [sportLabel]="sportName()"
         [disabled]="mutating()"></app-club-tag-editor>
       <div class="form-row">
-        <div class="form-group"><label for="club-privacy">Quyền riêng tư</label><select id="club-privacy"
-            [value]="clubForm.privacy" (change)="setPrivacy($any($event.target).value)">
-            <option value="PUBLIC">Công khai</option>
-            <option value="PRIVATE">Riêng tư</option>
-          </select></div>
-        <div class="form-group"><label for="club-approval">Duyệt thành viên</label><select id="club-approval"
-            [value]="clubForm.approvalMode" (change)="setApprovalMode($any($event.target).value)">
-            <option value="AUTO">Tự động</option>
-            <option value="MANUAL">Ban quản trị duyệt</option>
-          </select></div>
+        <div class="form-group"><label>Quyền riêng tư</label><app-select [options]="privacyOptions"
+            [ngModel]="clubForm.privacy" (ngModelChange)="setPrivacy($event)" leadingIcon="shield"
+            ariaLabel="Quyền riêng tư"></app-select></div>
+        <div class="form-group"><label>Duyệt thành viên</label><app-select [options]="approvalOptions"
+            [ngModel]="clubForm.approvalMode" (ngModelChange)="setApprovalMode($event)" leadingIcon="user-check"
+            ariaLabel="Cách duyệt thành viên"></app-select></div>
       </div>
       <footer class="modal-footer"><button type="button" class="button button--secondary" [disabled]="mutating()"
           (click)="closeClubModal()">Hủy</button><button type="button" class="button button--primary"

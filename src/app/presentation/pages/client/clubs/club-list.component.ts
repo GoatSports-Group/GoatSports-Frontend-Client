@@ -11,7 +11,10 @@ import gsap from 'gsap';
 import { ClubLocationDataService } from './club-location-data.service';
 import {
   ActivityView,
+  CLUB_APPROVAL_OPTIONS,
+  CLUB_PRIVACY_OPTIONS,
   CLUB_SPORTS,
+  CLUB_SORT_OPTIONS,
   ClubCardView,
   ClubSortMode,
   DEFAULT_CLUB_BANNER,
@@ -66,7 +69,19 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
   readonly requestClub = signal<ClubCardView | null>(null);
   readonly requestSubmitting = signal(false);
   readonly sports = CLUB_SPORTS;
+  readonly sportCreateOptions = CLUB_SPORTS.slice(1);
+  readonly sortOptions = CLUB_SORT_OPTIONS;
+  readonly privacyOptions = CLUB_PRIVACY_OPTIONS;
+  readonly approvalOptions = CLUB_APPROVAL_OPTIONS;
   readonly provinces = this.locationData.provinces;
+  readonly cityFilterOptions = computed(() => [
+    { value: 'ALL', label: 'Tất cả thành phố và tỉnh', icon: 'map' },
+    ...this.provinces().map(province => ({ value: province.code, label: province.name, icon: 'map-pin' }))
+  ]);
+  readonly cityFormOptions = computed(() => [
+    { value: '', label: 'Chọn tỉnh hoặc thành phố', icon: 'map' },
+    ...this.provinces().map(province => ({ value: province.code, label: province.name, icon: 'map-pin' }))
+  ]);
 
   /** Tư cách thành viên của tôi theo clubId, để mỗi thẻ biết hiện nút nào. */
   private memberships = new Map<string, MyClubMembership>();

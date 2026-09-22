@@ -13,7 +13,15 @@ import { AuthService } from '@presentation/services/auth.service';
 import { NotificationService } from '@presentation/services/notification.service';
 import { NotifyService } from '@shared/components/notify/notify.service';
 import { ClubLocationDataService } from './club-location-data.service';
-import { CLUB_SPORTS, DEFAULT_CLUB_BANNER, DEFAULT_CLUB_LOGO, sportLabel } from './club-view.model';
+import {
+  CLUB_APPROVAL_OPTIONS,
+  CLUB_PRIVACY_OPTIONS,
+  CLUB_SPORTS,
+  DEFAULT_CLUB_BANNER,
+  DEFAULT_CLUB_LOGO,
+  MY_CLUB_SORT_OPTIONS,
+  sportLabel
+} from './club-view.model';
 
 type ClubTab = 'ALL' | 'MANAGED' | 'MEMBER';
 type ClubSort = 'NEWEST' | 'NAME' | 'MEMBERS';
@@ -37,7 +45,19 @@ export class MyClubsComponent {
   readonly defaultClubLogo = DEFAULT_CLUB_LOGO;
   readonly defaultClubBanner = DEFAULT_CLUB_BANNER;
   readonly sports = CLUB_SPORTS;
+  readonly sportCreateOptions = CLUB_SPORTS.slice(1);
+  readonly sortOptions = MY_CLUB_SORT_OPTIONS;
+  readonly privacyOptions = CLUB_PRIVACY_OPTIONS;
+  readonly approvalOptions = CLUB_APPROVAL_OPTIONS;
   readonly provinces = this.locationData.provinces;
+  readonly cityFilterOptions = computed(() => [
+    { value: 'ALL', label: 'Tất cả tỉnh/thành', icon: 'map' },
+    ...this.provinces().map(province => ({ value: province.code, label: province.name, icon: 'map-pin' }))
+  ]);
+  readonly cityFormOptions = computed(() => [
+    { value: '', label: 'Chọn tỉnh hoặc thành phố', icon: 'map' },
+    ...this.provinces().map(province => ({ value: province.code, label: province.name, icon: 'map-pin' }))
+  ]);
   readonly memberships = signal<MyClubMembership[]>([]);
   readonly pendingRequestCounts = signal<Partial<Record<string, number>>>({});
   readonly loading = signal(true);

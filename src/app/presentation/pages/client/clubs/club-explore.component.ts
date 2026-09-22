@@ -5,6 +5,7 @@ import { ClubLocationDataService } from './club-location-data.service';
 import { ClubBrowseService } from './club-browse.service';
 import {
   CLUB_SPORTS,
+  CLUB_SORT_OPTIONS,
   ClubCardView,
   ClubSortMode,
   DEFAULT_CLUB_BANNER,
@@ -27,7 +28,12 @@ export class ClubExploreComponent {
   readonly defaultClubLogo = DEFAULT_CLUB_LOGO;
   readonly defaultClubBanner = DEFAULT_CLUB_BANNER;
   readonly sports = CLUB_SPORTS;
+  readonly sortOptions = CLUB_SORT_OPTIONS;
   readonly provinces = this.locationData.provinces;
+  readonly cityOptions = computed(() => [
+    { value: 'ALL', label: 'Tất cả thành phố và tỉnh', icon: 'map' },
+    ...this.provinces().map(province => ({ value: province.code, label: province.name, icon: 'map-pin' }))
+  ]);
   readonly clubs = this.browse.clubs;
   readonly loading = this.browse.loading;
   readonly error = this.browse.error;

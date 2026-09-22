@@ -78,12 +78,9 @@
       <label class="my-clubs-search"><lucide-icon name="search" class="w-5 h-5"></lucide-icon><span class="sr-only">Tìm
           kiếm câu lạc bộ</span><input type="search" [ngModel]="keyword()" (ngModelChange)="updateKeyword($event)"
           placeholder="Tìm kiếm câu lạc bộ..." /></label>
-      <label class="my-clubs-select"><span class="sr-only">Sắp xếp danh sách</span><lucide-icon name="arrow-up-down"
-          class="w-4 h-4"></lucide-icon><select [ngModel]="selectedSort()" (ngModelChange)="updateSort($event)">
-          <option value="NEWEST">Mới nhất</option>
-          <option value="NAME">Tên A–Z</option>
-          <option value="MEMBERS">Nhiều thành viên</option>
-        </select><lucide-icon name="chevron-down" class="w-4 h-4"></lucide-icon></label>
+      <app-select class="my-clubs-select" [options]="sortOptions" [ngModel]="selectedSort()"
+        (ngModelChange)="updateSort($event)" leadingIcon="arrow-up-down"
+        ariaLabel="Sắp xếp danh sách"></app-select>
       <button type="button" class="my-clubs-create" (click)="openCreateModal()"><lucide-icon name="plus"
           class="w-5 h-5"></lucide-icon>Tạo câu lạc bộ</button>
     </div>
@@ -122,15 +119,10 @@
 
       <section>
         <h3 id="filter-area-title">Khu vực</h3>
-        <label class="my-clubs-filters__select">
-          <span class="sr-only">Chọn tỉnh hoặc thành phố</span>
-          <select [ngModel]="selectedCity()" (ngModelChange)="updateCity($event)" aria-labelledby="filter-area-title">
-            <option value="ALL">Tất cả tỉnh/thành</option>
-            @for (province of provinces(); track province.code) { <option [value]="province.code">{{ province.name }}
-            </option> }
-          </select>
-          <lucide-icon name="chevron-down" class="w-4 h-4"></lucide-icon>
-        </label>
+        <app-select class="my-clubs-filters__select" [options]="cityFilterOptions()"
+          [ngModel]="selectedCity()" (ngModelChange)="updateCity($event)" leadingIcon="map-pin"
+          ariaLabel="Chọn tỉnh hoặc thành phố" [searchable]="true"
+          searchPlaceholder="Tìm tỉnh, thành phố..."></app-select>
       </section>
 
       <button type="button" class="my-clubs-filters__reset" (click)="clearFilters()"><lucide-icon name="rotate-ccw"
@@ -166,36 +158,37 @@
       [attr.aria-busy]="creating()" (dialogClosed)="closeCreateModal()" (click)="$event.stopPropagation()">
       <header>
         <div>
+          <p>Khởi tạo cộng đồng</p>
           <h2 id="my-create-club-title">Tạo câu lạc bộ</h2>
+          <span>Thiết lập hồ sơ cơ bản để bắt đầu kết nối thành viên.</span>
         </div><button type="button" aria-label="Đóng" [disabled]="creating()" (click)="closeCreateModal()"><lucide-icon
             name="x" class="w-5 h-5"></lucide-icon></button>
       </header>
       <p class="my-clubs-modal__note"><lucide-icon name="info" class="w-4 h-4"></lucide-icon>Bạn sẽ là chủ câu lạc bộ và
         có thể mời thành viên ngay sau khi tạo.</p>
       <fieldset [disabled]="creating()">
+        <div class="my-clubs-modal__section"><b>01</b><div><strong>Thông tin câu lạc bộ</strong><small>Tên và câu chuyện giúp cộng đồng của bạn nổi bật.</small></div></div>
         <label><span>Tên câu lạc bộ *</span><input [(ngModel)]="createForm.name"
             placeholder="Ví dụ: GOAT Weekend Club" /></label>
         <label><span>Mô tả *</span><textarea rows="3" [(ngModel)]="createForm.description" required maxlength="2000"
             placeholder="Mô tả ngắn về cộng đồng..."></textarea></label>
+        <div class="my-clubs-modal__section"><b>02</b><div><strong>Bản sắc cộng đồng</strong><small>Chọn môn và thêm các đặc trưng phù hợp.</small></div></div>
         <app-club-tag-editor [(tags)]="createForm.tags" [sportLabel]="sportName(createForm.sportType)"
           [disabled]="creating()"></app-club-tag-editor>
+        <div class="my-clubs-modal__section"><b>03</b><div><strong>Quyền tham gia & địa điểm</strong><small>Thiết lập cách thành viên tìm thấy và tham gia CLB.</small></div></div>
         <div class="my-clubs-modal__row">
-          <label><span>Môn thể thao</span><select [(ngModel)]="createForm.sportType">@for (sport of sports.slice(1);
-              track sport.value) { <option [ngValue]="sport.value">{{ sport.label }}</option> }</select></label>
-          <label><span>Quyền riêng tư</span><select [(ngModel)]="createForm.privacy">
-              <option value="PUBLIC">Công khai</option>
-              <option value="PRIVATE">Riêng tư</option>
-            </select></label>
+          <label><span>Môn thể thao</span><app-select [options]="sportCreateOptions"
+              [(ngModel)]="createForm.sportType" leadingIcon="trophy" ariaLabel="Môn thể thao"></app-select></label>
+          <label><span>Quyền riêng tư</span><app-select [options]="privacyOptions"
+              [(ngModel)]="createForm.privacy" leadingIcon="shield" ariaLabel="Quyền riêng tư"></app-select></label>
         </div>
         <div class="my-clubs-modal__row">
-          <label><span>Duyệt thành viên</span><select [(ngModel)]="createForm.approvalMode">
-              <option value="AUTO">Tự động</option>
-              <option value="MANUAL">Chủ CLB duyệt</option>
-            </select></label>
-          <label><span>Tỉnh/Thành phố *</span><select [(ngModel)]="createForm.city" required>
-              <option value="">Chưa chọn</option>@for (province of provinces(); track province.code) { <option
-                [value]="province.code">{{ province.name }}</option> }
-            </select></label>
+          <label><span>Duyệt thành viên</span><app-select [options]="approvalOptions"
+              [(ngModel)]="createForm.approvalMode" leadingIcon="user-check"
+              ariaLabel="Cách duyệt thành viên"></app-select></label>
+          <label><span>Tỉnh/Thành phố *</span><app-select [options]="cityFormOptions()"
+              [(ngModel)]="createForm.city" leadingIcon="map-pin" ariaLabel="Tỉnh hoặc thành phố"
+              [searchable]="true" searchPlaceholder="Tìm tỉnh, thành phố..."></app-select></label>
         </div>
         <label><span>Địa chỉ sinh hoạt *</span><input [(ngModel)]="createForm.location" required maxlength="255"
             placeholder="Ví dụ: 123 Nguyễn Văn Linh, Quận 7" /></label>

@@ -18,35 +18,13 @@
   </header>
 
   <section class="filter-panel" aria-label="Bộ lọc câu lạc bộ">
-    <label class="select-control">
-      <lucide-icon name="activity" class="w-5 h-5"></lucide-icon>
-      <span class="sr-only">Môn thể thao</span>
-      <select [ngModel]="selectedSport()" (ngModelChange)="selectSport($event)">
-        @for (sport of sports; track sport.value) { <option [value]="sport.value">{{ sport.label }}</option> }
-      </select>
-      <lucide-icon name="chevron-down" class="w-4 h-4"></lucide-icon>
-    </label>
-
-    <label class="select-control">
-      <lucide-icon name="map-pin" class="w-5 h-5"></lucide-icon>
-      <span class="sr-only">Thành phố hoặc tỉnh</span>
-      <select [ngModel]="selectedCity()" (ngModelChange)="updateCity($event)">
-        <option value="ALL">Tất cả thành phố và tỉnh</option>
-        @for (province of provinces(); track province.code) { <option [value]="province.code">{{ province.name }}</option> }
-      </select>
-      <lucide-icon name="chevron-down" class="w-4 h-4"></lucide-icon>
-    </label>
-
-    <label class="select-control select-control--sort">
-      <lucide-icon name="arrow-up-down" class="w-5 h-5"></lucide-icon>
-      <span class="sr-only">Sắp xếp</span>
-      <select [ngModel]="sortMode()" (ngModelChange)="updateSortMode($event)">
-        <option value="RELEVANCE">Nổi bật trước</option>
-        <option value="MEMBERS">Nhiều thành viên</option>
-        <option value="WIN_RATE">Tỉ lệ thắng cao</option>
-      </select>
-      <lucide-icon name="chevron-down" class="w-4 h-4"></lucide-icon>
-    </label>
+    <app-select class="select-control" [options]="sports" [ngModel]="selectedSport()"
+      (ngModelChange)="selectSport($event)" leadingIcon="activity" ariaLabel="Môn thể thao"></app-select>
+    <app-select class="select-control" [options]="cityOptions()" [ngModel]="selectedCity()"
+      (ngModelChange)="updateCity($event)" leadingIcon="map-pin" ariaLabel="Thành phố hoặc tỉnh"
+      [searchable]="true" searchPlaceholder="Tìm tỉnh, thành phố..."></app-select>
+    <app-select class="select-control select-control--sort" [options]="sortOptions" [ngModel]="sortMode()"
+      (ngModelChange)="updateSortMode($event)" leadingIcon="arrow-up-down" ariaLabel="Sắp xếp"></app-select>
   </section>
 
   @if (pagedClubs().length) {

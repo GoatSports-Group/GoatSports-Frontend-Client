@@ -17,6 +17,28 @@ export const CLUB_SPORTS: ReadonlyArray<{ label: string; value: SportType | 'ALL
   { label: 'Bóng chuyền', value: 'VOLLEYBALL', icon: 'circle' }
 ];
 
+export const CLUB_SORT_OPTIONS = [
+  { label: 'Nổi bật trước', value: 'RELEVANCE', icon: 'sparkles' },
+  { label: 'Nhiều thành viên', value: 'MEMBERS', icon: 'users' },
+  { label: 'Tỉ lệ thắng cao', value: 'WIN_RATE', icon: 'trophy' }
+] as const;
+
+export const MY_CLUB_SORT_OPTIONS = [
+  { label: 'Mới nhất', value: 'NEWEST', icon: 'clock-3' },
+  { label: 'Tên A–Z', value: 'NAME', icon: 'arrow-down-a-z' },
+  { label: 'Nhiều thành viên', value: 'MEMBERS', icon: 'users' }
+] as const;
+
+export const CLUB_PRIVACY_OPTIONS = [
+  { label: 'Công khai', value: 'PUBLIC', icon: 'globe-2' },
+  { label: 'Riêng tư', value: 'PRIVATE', icon: 'lock' }
+] as const;
+
+export const CLUB_APPROVAL_OPTIONS = [
+  { label: 'Tự động duyệt', value: 'AUTO', icon: 'circle-check' },
+  { label: 'Ban quản trị duyệt', value: 'MANUAL', icon: 'user-check' }
+] as const;
+
 const SPORT_LABELS: Record<SportType, string> = {
   FOOTBALL: 'Bóng đá',
   BADMINTON: 'Cầu lông',

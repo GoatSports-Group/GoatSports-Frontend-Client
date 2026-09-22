@@ -36,6 +36,10 @@ export class ClubFeaturedComponent {
   readonly requestClub = signal<ClubCardView | null>(null);
   readonly requestSubmitting = this.browse.mutating;
   readonly provinces = this.locationData.provinces;
+  readonly cityOptions = computed(() => [
+    { value: 'ALL', label: 'Tất cả thành phố và tỉnh', icon: 'map' },
+    ...this.provinces().map(province => ({ value: province.code, label: province.name, icon: 'map-pin' }))
+  ]);
 
   constructor() {
     this.reload();
