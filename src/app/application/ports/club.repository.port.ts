@@ -9,11 +9,8 @@ import {
   ClubMemberModel,
   ClubModel,
   CreateClubActivityPayload,
-  ClubFeeModel,
-  ClubFeePaymentModel,
   ClubRole,
   UpdateClubPayload,
-  CreateClubFeePayload,
   CreateClubPayload,
   SportType
 } from '@domain/models/club.model';
@@ -43,6 +40,8 @@ export abstract class ClubRepositoryPort {
   abstract getClubDetails(clubId: string): Observable<ClubModel>;
   abstract createClub(payload: CreateClubPayload): Observable<ClubModel>;
   abstract joinClub(clubId: string, message?: string): Observable<ClubMemberModel>;
+  abstract disbandClub(clubId: string): Observable<void>;
+  abstract transferOwnership(clubId: string, membershipId: string): Observable<ClubMemberModel>;
   abstract leaveClub(clubId: string): Observable<void>;
   abstract getMyMembership(clubId: string): Observable<ClubMemberModel | null>;
   abstract getClubMembers(clubId: string): Observable<ClubMemberModel[]>;
@@ -50,17 +49,13 @@ export abstract class ClubRepositoryPort {
     status?: 'ACTIVE' | 'PENDING'): Observable<PageResult<ClubMemberModel>>;
   abstract respondMembership(clubId: string, membershipId: string, accepted: boolean): Observable<ClubMemberModel>;
   abstract getClubActivities(clubId: string): Observable<ClubActivityModel[]>;
-  abstract getClubPhotos(clubId: string): Observable<ClubPhotoModel[]>;
+  abstract getClubPhotosPage(clubId: string, page: number, size: number): Observable<PageResult<ClubPhotoModel>>;
   abstract addClubPhotos(clubId: string, imageKeys: string[]): Observable<ClubPhotoModel[]>;
+  abstract deleteClubPhoto(clubId: string, photoId: string): Observable<void>;
   abstract getClubActivitiesPage(clubId: string, page: number, size: number): Observable<PageResult<ClubActivityModel>>;
   abstract getClubRecentMatches(clubId: string, limit?: number): Observable<ClubRecentMatchModel[]>;
   abstract getClubMatchesPage(clubId: string, page: number, size: number): Observable<PageResult<ClubRecentMatchModel>>;
   abstract createClubActivity(clubId: string, payload: CreateClubActivityPayload): Observable<ClubActivityModel>;
-  abstract getClubFees(clubId: string): Observable<ClubFeeModel[]>;
-  abstract createClubFee(clubId: string, payload: CreateClubFeePayload): Observable<ClubFeeModel>;
-  abstract getFeePayments(clubId: string, feeId: string): Observable<ClubFeePaymentModel[]>;
-  abstract initiateFeePayment(clubId: string, feeId: string): Observable<ClubFeePaymentModel>;
-  abstract waiveFee(clubId: string, feeId: string, membershipId: string): Observable<ClubFeePaymentModel>;
   abstract updateClub(clubId: string, payload: UpdateClubPayload): Observable<ClubModel>;
   abstract changeMemberRole(clubId: string, membershipId: string, role: ClubRole): Observable<ClubMemberModel>;
   abstract removeMember(clubId: string, membershipId: string, ban: boolean): Observable<void>;

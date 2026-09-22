@@ -17,7 +17,7 @@
         <div><div class="clubhouse-tags"><span>{{ sportLabel(currentClub.sportType) }}</span><span>{{ currentClub.privacy === 'PRIVATE' ? 'Riêng tư' : 'Công khai' }}</span><strong>{{ roleLabel(membership()!.role) }}</strong></div><h1>{{ currentClub.name }}</h1><p><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>{{ currentClub.location || 'Chưa cập nhật địa điểm sinh hoạt' }}</p></div></div>
       <div class="clubhouse-hero__actions">
         <span class="clubhouse-hero__action-label">Club control</span>
-        @if (isOwner()) { <button type="button" class="member-button member-button--primary" (click)="openPlayerSearch()"><lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon>Tìm người chơi</button> }
+        @if (isManager()) { <button type="button" class="member-button member-button--primary" (click)="openPlayerSearch()"><lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon>Tìm người chơi</button> }
         @if (isManager()) { <button type="button" class="member-button member-button--glass" (click)="mockAction('Chỉnh sửa thông tin CLB')"><lucide-icon name="settings" class="w-4 h-4"></lucide-icon>Thiết lập</button> } @else { <button type="button" class="member-button member-button--glass" (click)="mockAction('Mở nhóm chat')"><lucide-icon name="message-circle" class="w-4 h-4"></lucide-icon>Nhóm chat</button> }
       </div>
     </header>
@@ -105,7 +105,7 @@
       <aside class="clubhouse-rail">
         @if (isManager()) {
           <section class="coach-note"><span class="coach-note__number">02</span><p class="member-kicker member-kicker--light">Recruitment desk</p><h2>Mở rộng<br />đội hình.</h2><p>Tìm người chơi phù hợp theo môn thể thao, khu vực và lịch hoạt động.</p>
-            @if (isOwner()) { <button type="button" class="member-button member-button--signal" (click)="openPlayerSearch()">Mở scouting board <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></button> } @else { <span class="workspace-note">Chỉ chủ CLB có thể gửi lời mời.</span> }
+            @if (isManager()) { <button type="button" class="member-button member-button--signal" (click)="openPlayerSearch()">Mở scouting board <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></button> } @else { <span class="workspace-note">Chỉ chủ hoặc quản lý CLB có thể gửi lời mời.</span> }
           </section>
           <section class="club-ledger"><header><p class="member-kicker">03 / Manager log</p><h2>Việc cần xử lý</h2></header><div><span>Yêu cầu tham gia</span><b>{{ pendingApplications().length.toString().padStart(2, '0') }}</b></div><div><span>Thông báo duyệt</span><b>Live</b></div><div><span>Hồ sơ cần cập nhật</span><b>01</b></div></section>
         } @else {

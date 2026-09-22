@@ -9,7 +9,6 @@ export enum NotificationType {
   MESSAGE = 'MESSAGE',
   CONTENT_MODERATION = 'CONTENT_MODERATION',
   CLUB = 'CLUB',
-  CLUB_FEE = 'CLUB_FEE',
   TOURNAMENT = 'TOURNAMENT',
   SYSTEM = 'SYSTEM',
 }

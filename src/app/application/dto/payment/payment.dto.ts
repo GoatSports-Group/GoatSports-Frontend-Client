@@ -11,8 +11,8 @@ export type PaymentStatus =
 export interface Payment {
   paymentId: string;
   payerId: string;
-  purpose: 'BOOKING_DEPOSIT' | 'BOOKING_REMAINING' | 'CLUB_FEE' | 'TOURNAMENT_FEE';
-  referenceType: 'BOOKING' | 'CLUB_FEE' | 'TOURNAMENT_REGISTRATION';
+  purpose: 'BOOKING_DEPOSIT' | 'BOOKING_REMAINING' | 'TOURNAMENT_FEE';
+  referenceType: 'BOOKING' | 'TOURNAMENT_REGISTRATION';
   referenceId: string;
   amount: number;
   currency: string;
@@ -40,9 +40,9 @@ export interface PaymentAttempt {
 }
 
 export interface CreatePaymentRequest {
-  referenceType: 'BOOKING' | 'CLUB_FEE' | 'TOURNAMENT_REGISTRATION';
+  referenceType: 'BOOKING' | 'TOURNAMENT_REGISTRATION';
   referenceId: string;
-  purpose: 'BOOKING_DEPOSIT' | 'BOOKING_REMAINING' | 'CLUB_FEE' | 'TOURNAMENT_FEE';
+  purpose: 'BOOKING_DEPOSIT' | 'BOOKING_REMAINING' | 'TOURNAMENT_FEE';
   amount: number;
   currency: 'VND';
   description: string;

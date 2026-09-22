@@ -171,8 +171,6 @@ export class NotificationsComponent implements OnInit {
         return 'shield-alert';
       case NotificationType.CLUB:
         return 'swords';
-      case NotificationType.CLUB_FEE:
-        return 'receipt';
       case NotificationType.TOURNAMENT:
         return 'trophy';
       case NotificationType.SYSTEM:
@@ -193,7 +191,6 @@ export class NotificationsComponent implements OnInit {
       case NotificationType.MESSAGE: return 'Tin nhắn';
       case NotificationType.CONTENT_MODERATION: return 'Kiểm duyệt';
       case NotificationType.CLUB: return 'Câu lạc bộ';
-      case NotificationType.CLUB_FEE: return 'Phí câu lạc bộ';
       case NotificationType.TOURNAMENT: return 'Giải đấu';
       case NotificationType.SYSTEM:
       default: return 'Hệ thống';

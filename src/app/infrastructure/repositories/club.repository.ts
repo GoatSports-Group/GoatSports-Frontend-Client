@@ -4,9 +4,9 @@ import { map, Observable } from 'rxjs';
 import { ClubRepositoryPort } from '@application/ports/club.repository.port';
 import { BaseResponse, PageResult, PagedModelResponse } from '@application/dto/base/base-response';
 import {
-  ClubActivityModel, ClubPhotoModel, ClubRecentMatchModel, ClubFeeModel, ClubFeePaymentModel, ClubMemberModel, ClubModel, ClubRole,
+  ClubActivityModel, ClubPhotoModel, ClubRecentMatchModel, ClubMemberModel, ClubModel, ClubRole,
   MyClubMembership, ClubInvitationModel,
-  CreateClubActivityPayload, CreateClubFeePayload, CreateClubPayload, SportType, UpdateClubPayload
+  CreateClubActivityPayload, CreateClubPayload, SportType, UpdateClubPayload
 } from '@domain/models/club.model';
 import { API_ENDPOINTS } from '@infrastructure/config/api-endpoints';
 
@@ -63,6 +63,13 @@ export class ClubRepository extends ClubRepositoryPort {
     return this.http.post<BaseResponse<ClubMemberModel>>(`${this.baseUrl}/${clubId}/join`, { message })
       .pipe(map(response => response.data));
   }
+  override transferOwnership(clubId: string, membershipId: string): Observable<ClubMemberModel> {
+    return this.http.patch<BaseResponse<ClubMemberModel>>(`${this.baseUrl}/${clubId}/owner`, {},
+      { params: { membershipId } }).pipe(map(response => response.data));
+  }
+  override disbandClub(clubId: string): Observable<void> {
+    return this.http.post(`${this.baseUrl}/${clubId}/disband`, {}).pipe(map(() => void 0));
+  }
   override leaveClub(clubId: string): Observable<void> {
     return this.http.delete(`${this.baseUrl}/${clubId}/leave`).pipe(map(() => void 0));
   }
@@ -101,13 +108,15 @@ export class ClubRepository extends ClubRepositoryPort {
     return this.http.get<BaseResponse<ClubActivityModel[]>>(`${this.baseUrl}/${clubId}/activities`)
       .pipe(map(response => response.data ?? []));
   }
-  override getClubPhotos(clubId: string): Observable<ClubPhotoModel[]> {
-    return this.http.get<BaseResponse<ClubPhotoModel[]>>(`${this.baseUrl}/${clubId}/photos`)
-      .pipe(map(response => response.data ?? []));
+  override getClubPhotosPage(clubId: string, page: number, size: number): Observable<PageResult<ClubPhotoModel>> {
+    return this.getPage<ClubPhotoModel>(`${this.baseUrl}/${clubId}/photos`, page, size);
   }
   override addClubPhotos(clubId: string, imageKeys: string[]): Observable<ClubPhotoModel[]> {
     return this.http.post<BaseResponse<ClubPhotoModel[]>>(`${this.baseUrl}/${clubId}/photos`, { imageKeys })
       .pipe(map(response => response.data ?? []));
+  }
+  override deleteClubPhoto(clubId: string, photoId: string): Observable<void> {
+    return this.http.delete(`${this.baseUrl}/${clubId}/photos/${photoId}`).pipe(map(() => void 0));
   }
   override getClubActivitiesPage(clubId: string, page: number, size: number): Observable<PageResult<ClubActivityModel>> {
     return this.getPage<ClubActivityModel>(`${this.baseUrl}/${clubId}/activities/page`, page, size);
@@ -122,27 +131,6 @@ export class ClubRepository extends ClubRepositoryPort {
   }
   override createClubActivity(clubId: string, payload: CreateClubActivityPayload): Observable<ClubActivityModel> {
     return this.http.post<BaseResponse<ClubActivityModel>>(`${this.baseUrl}/${clubId}/activities`, payload)
-      .pipe(map(response => response.data));
-  }
-  override getClubFees(clubId: string): Observable<ClubFeeModel[]> {
-    return this.http.get<BaseResponse<ClubFeeModel[]>>(`${this.baseUrl}/${clubId}/fees`)
-      .pipe(map(response => response.data ?? []));
-  }
-  override createClubFee(clubId: string, payload: CreateClubFeePayload): Observable<ClubFeeModel> {
-    return this.http.post<BaseResponse<ClubFeeModel>>(`${this.baseUrl}/${clubId}/fees`, payload)
-      .pipe(map(response => response.data));
-  }
-  override getFeePayments(clubId: string, feeId: string): Observable<ClubFeePaymentModel[]> {
-    return this.http.get<BaseResponse<ClubFeePaymentModel[]>>(`${this.baseUrl}/${clubId}/fees/${feeId}/payments`)
-      .pipe(map(response => response.data ?? []));
-  }
-  override initiateFeePayment(clubId: string, feeId: string): Observable<ClubFeePaymentModel> {
-    return this.http.post<BaseResponse<ClubFeePaymentModel>>(`${this.baseUrl}/${clubId}/fees/${feeId}/payments`, {})
-      .pipe(map(response => response.data));
-  }
-  override waiveFee(clubId: string, feeId: string, membershipId: string): Observable<ClubFeePaymentModel> {
-    return this.http.patch<BaseResponse<ClubFeePaymentModel>>(
-      `${this.baseUrl}/${clubId}/fees/${feeId}/members/${membershipId}/waive`, {})
       .pipe(map(response => response.data));
   }
   override updateClub(clubId: string, payload: UpdateClubPayload): Observable<ClubModel> {

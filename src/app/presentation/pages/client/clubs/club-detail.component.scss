@@ -2350,6 +2350,45 @@ a {
 .confirm-leave-modal p { margin: 10px auto 0; color: #647589; font-size: 12px; line-height: 1.65; }
 .confirm-leave-modal .modal-footer { justify-content: center; }
 
+.confirm-leave-modal__field {
+  display: block;
+  margin: 18px 0 4px;
+  text-align: left;
+}
+
+.confirm-leave-modal__field span {
+  display: block;
+  margin-bottom: 6px;
+  color: #647589;
+  font-size: 12px;
+}
+
+.confirm-leave-modal__field input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d7dee8;
+  border-radius: 10px;
+  color: #0b1f35;
+  font-size: 14px;
+}
+
+.confirm-leave-modal__field input:focus {
+  border-color: #d52f44;
+  outline: none;
+}
+
+.club-disbanded-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #f1f3f6;
+  color: #647589;
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .form-group {
   display: grid;
   gap: 7px;
@@ -2925,6 +2964,71 @@ a {
   font-size: 10px; font-weight: 700; letter-spacing: .04em;
 }
 .club-gallery-grid time { font-weight: 500; opacity: .85; }
+.club-gallery-delete {
+  position: absolute;
+  z-index: 3;
+  top: 9px;
+  right: 9px;
+  display: grid;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .72);
+  border-radius: 50%;
+  background: rgba(5, 25, 42, .86);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(5, 25, 42, .22);
+  transition: background .18s ease, transform .18s ease;
+}
+.club-gallery-delete:hover:not(:disabled) { background: #d52f44; transform: scale(1.06); }
+.club-gallery-delete:disabled { cursor: wait; opacity: .72; }
+.club-gallery-delete .member-load-spinner { width: 14px; height: 14px; border-color: rgba(255, 255, 255, .35); border-top-color: #fff; }
+.club-gallery-sentinel {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  color: #738296;
+  font-size: 12px;
+}
+.overview-gallery-strip {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+.overview-gallery-strip.has-overflow { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.overview-gallery-strip button {
+  position: relative;
+  min-width: 0;
+  aspect-ratio: 16 / 8;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  border-radius: 9px;
+  background: #e8efec;
+  cursor: pointer;
+}
+.overview-gallery-strip img { width: 100%; height: 100%; object-fit: cover; transition: transform .28s ease; }
+.overview-gallery-strip button:hover img { transform: scale(1.045); }
+.overview-gallery-strip__more::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background: rgba(5, 25, 42, .65);
+}
+.overview-gallery-strip__more span,
+.overview-gallery-strip__more small {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  color: #fff;
+  transform: translateX(-50%);
+}
+.overview-gallery-strip__more span { top: 28%; font-size: 20px; font-weight: 850; line-height: 1; }
+.overview-gallery-strip__more small { bottom: 20%; font-size: 9px; font-weight: 750; white-space: nowrap; }
 .club-gallery-empty {
   min-height: 360px; border: 1px dashed #c7d6d1; border-radius: 14px; background: #fbfcfb;
 }
@@ -2933,6 +3037,8 @@ a {
 @media (max-width: 900px) {
   .club-gallery-preview-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .club-gallery-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .overview-gallery-strip,
+  .overview-gallery-strip.has-overflow { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 600px) {
   .club-gallery-heading, .club-gallery-composer__title, .club-gallery-composer footer {
@@ -2941,4 +3047,6 @@ a {
   .club-gallery-upload-button, .club-gallery-composer footer>div, .club-gallery-composer footer .button { width: 100%; }
   .club-gallery-preview-grid, .club-gallery-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .club-gallery-grid__featured { grid-column: span 2; grid-row: span 1; }
+  .overview-gallery-strip,
+  .overview-gallery-strip.has-overflow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

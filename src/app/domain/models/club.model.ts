@@ -22,6 +22,8 @@ export interface ClubModel {
   approvalMode: ClubApprovalMode;
   conversationId?: string;
   active: boolean;
+  /** Co gia tri khi CLB da giai tan; null nghia la dang hoat dong. */
+  disbandedAt?: string | null;
   winCount: number;
   lossCount: number;
   drawCount: number;
@@ -120,39 +122,6 @@ export interface CreateClubActivityPayload {
   venueId?: string;
   startAt: string;
   endAt: string;
-}
-
-export type FeePaymentStatus = 'PENDING' | 'SUCCEEDED' | 'FAILED' | 'WAIVED';
-
-export interface ClubFeeModel {
-  feeId: string;
-  clubId: string;
-  name: string;
-  amount: number;
-  dueDate: string;
-  required: boolean;
-  paidCount: number;
-  memberCount: number;
-  myStatus: FeePaymentStatus | null;
-  myPaidAt: string | null;
-}
-
-export interface ClubFeePaymentModel {
-  feePaymentId: string;
-  feeId: string;
-  membershipId: string;
-  userId: string | null;
-  amount: number;
-  paymentId: string | null;
-  status: FeePaymentStatus;
-  paidAt: string | null;
-}
-
-export interface CreateClubFeePayload {
-  name: string;
-  amount: number;
-  dueDate: string;
-  required: boolean;
 }
 
 export interface UpdateClubPayload {

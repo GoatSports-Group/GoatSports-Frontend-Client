@@ -40,7 +40,11 @@ export class ClubPlayerSearchComponent {
   readonly pageSize = 6;
   readonly cities = [...new Set(CLUB_PLAYER_MOCKS.map(player => player.city))];
 
-  readonly isOwner = computed(() => this.membership()?.role === 'OWNER');
+  readonly isManager = computed(() => {
+    const membership = this.membership();
+    return membership?.status === 'ACTIVE'
+      && (membership.role === 'OWNER' || membership.role === 'ADMIN');
+  });
   readonly filteredPlayers = computed(() => {
     const query = this.keyword().trim().toLocaleLowerCase('vi');
     return CLUB_PLAYER_MOCKS.filter(player => {

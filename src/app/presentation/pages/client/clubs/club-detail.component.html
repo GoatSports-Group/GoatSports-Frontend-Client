@@ -53,7 +53,11 @@
       </div>
 
       <div class="club-actions">
-        @if (isManager()) {
+        @if (isDisbanded()) {
+        <span class="club-disbanded-chip">
+          <lucide-icon name="archive" class="w-4 h-4"></lucide-icon> Câu lạc bộ đã giải tán
+        </span>
+        } @else if (isManager()) {
         <button type="button" class="button button--secondary" (click)="openChat()">
           <lucide-icon name="message-circle" class="w-4 h-4"></lucide-icon> Tin nhắn
         </button>
@@ -69,9 +73,11 @@
             <button type="button" (click)="showManagerMenu.set(false); openPlayerSearch()">
               <lucide-icon name="search" class="w-4 h-4"></lucide-icon> Tìm người chơi
             </button>
-            <button type="button" class="manager-danger-action" (click)="showDissolveComingSoon()">
+            @if (isOwner()) {
+            <button type="button" class="manager-danger-action" (click)="requestDisband()">
               <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon> Giải tán
             </button>
+            }
           </div>
           }
         </div>
@@ -295,14 +301,28 @@
       <header class="panel__header">
         <h2>Thư viện ảnh</h2><button type="button" class="text-action" (click)="setTab('GALLERY')">Xem tất cả</button>
       </header>
-      <div class="guest-gallery__placeholder">
-        <img [src]="clubPhotos()[0]?.imageUrl || displayedClubBanner()" [alt]="'Ảnh hoạt động ' + currentClub.name" />
-        <div><lucide-icon name="image" class="w-6 h-6"></lucide-icon>
-          <strong>{{ clubPhotos().length ? clubPhotos().length + ' ảnh hoạt động' : 'Chưa có ảnh hoạt động' }}</strong>
-          <span>{{ clubPhotos().length ? 'Nhấn Xem tất cả để khám phá khoảnh khắc của câu lạc bộ.' :
-            'Khoảnh khắc của câu lạc bộ sẽ được cập nhật tại đây.' }}</span>
-        </div>
+      @if (overviewClubPhotos().length) {
+      <div class="overview-gallery-strip" [class.has-overflow]="photoOverflowCount() > 0">
+        @for (photo of overviewClubPhotos(); track photo.photoId) {
+        <button type="button" (click)="setTab('GALLERY')">
+          <img [src]="clubPhotoUrl(photo)" [alt]="'Ảnh hoạt động ' + currentClub.name" loading="lazy"
+            (error)="retryClubPhotoImage($event, photo)">
+        </button>
+        }
+        @if (photoOverflowCount() > 0) {
+        <button type="button" class="overview-gallery-strip__more" (click)="setTab('GALLERY')">
+          <img [src]="clubPhotoUrl(clubPhotos()[5] || clubPhotos()[4])" alt="">
+          <span>+{{ photoOverflowCount() }}</span><small>Xem thêm</small>
+        </button>
+        }
       </div>
+      } @else {
+      <div class="guest-gallery__placeholder">
+        <img [src]="displayedClubBanner()" [alt]="'Ảnh hoạt động ' + currentClub.name" />
+        <div><lucide-icon name="image" class="w-6 h-6"></lucide-icon><strong>Chưa có ảnh hoạt động</strong>
+          <span>Khoảnh khắc của câu lạc bộ sẽ được cập nhật tại đây.</span></div>
+      </div>
+      }
     </article>
   </section>
   } @else if (viewerState() === 'MEMBER') {
@@ -419,12 +439,24 @@
       <header class="panel__header">
         <h2>Thư viện ảnh</h2><button type="button" class="text-action" (click)="setTab('GALLERY')">Xem tất cả</button>
       </header>
-      <div class="gallery-placeholder"><img [src]="clubPhotos()[0]?.imageUrl || displayedClubBanner()"
-          [alt]="'Ảnh hoạt động ' + currentClub.name" />
-        <div><lucide-icon name="image" class="w-6 h-6"></lucide-icon><span>{{ clubPhotos().length ?
-          clubPhotos().length + ' ảnh trong thư viện câu lạc bộ' : 'Ảnh hoạt động sẽ được cập nhật tại đây' }}</span>
-        </div>
+      @if (overviewClubPhotos().length) {
+      <div class="overview-gallery-strip" [class.has-overflow]="photoOverflowCount() > 0">
+        @for (photo of overviewClubPhotos(); track photo.photoId) {
+        <button type="button" (click)="setTab('GALLERY')"><img [src]="clubPhotoUrl(photo)"
+            [alt]="'Ảnh hoạt động ' + currentClub.name" loading="lazy" (error)="retryClubPhotoImage($event, photo)"></button>
+        }
+        @if (photoOverflowCount() > 0) {
+        <button type="button" class="overview-gallery-strip__more" (click)="setTab('GALLERY')">
+          <img [src]="clubPhotoUrl(clubPhotos()[5] || clubPhotos()[4])" alt="">
+          <span>+{{ photoOverflowCount() }}</span><small>Xem thêm</small>
+        </button>
+        }
       </div>
+      } @else {
+      <div class="gallery-placeholder"><img [src]="displayedClubBanner()" [alt]="'Ảnh hoạt động ' + currentClub.name" />
+        <div><lucide-icon name="image" class="w-6 h-6"></lucide-icon><span>Ảnh hoạt động sẽ được cập nhật tại đây</span></div>
+      </div>
+      }
     </article>
 
     <article class="panel member-tournaments">
@@ -620,12 +652,24 @@
       <header class="panel__header">
         <h2>Thư viện ảnh</h2><button type="button" class="text-action" (click)="setTab('GALLERY')">Xem tất cả</button>
       </header>
-      <div class="gallery-placeholder"><img [src]="clubPhotos()[0]?.imageUrl || displayedClubBanner()"
-          [alt]="'Ảnh hoạt động ' + currentClub.name" />
-        <div><lucide-icon name="image" class="w-6 h-6"></lucide-icon><span>{{ clubPhotos().length ?
-          clubPhotos().length + ' ảnh trong thư viện câu lạc bộ' : 'Đăng ảnh hoạt động tại tab Thư viện' }}</span>
-        </div>
+      @if (overviewClubPhotos().length) {
+      <div class="overview-gallery-strip" [class.has-overflow]="photoOverflowCount() > 0">
+        @for (photo of overviewClubPhotos(); track photo.photoId) {
+        <button type="button" (click)="setTab('GALLERY')"><img [src]="clubPhotoUrl(photo)"
+            [alt]="'Ảnh hoạt động ' + currentClub.name" loading="lazy" (error)="retryClubPhotoImage($event, photo)"></button>
+        }
+        @if (photoOverflowCount() > 0) {
+        <button type="button" class="overview-gallery-strip__more" (click)="setTab('GALLERY')">
+          <img [src]="clubPhotoUrl(clubPhotos()[5] || clubPhotos()[4])" alt="">
+          <span>+{{ photoOverflowCount() }}</span><small>Xem thêm</small>
+        </button>
+        }
       </div>
+      } @else {
+      <div class="gallery-placeholder"><img [src]="displayedClubBanner()" [alt]="'Ảnh hoạt động ' + currentClub.name" />
+        <div><lucide-icon name="image" class="w-6 h-6"></lucide-icon><span>Đăng ảnh hoạt động tại tab Thư viện</span></div>
+      </div>
+      }
     </article>
   </section>
   }
@@ -650,9 +694,10 @@
           <h3>{{ displayName(member.userId) }}</h3><span>{{ member.role === 'OWNER' ? 'Chủ CLB' : member.role ===
             'ADMIN' ? 'Quản lý CLB' : 'Thành viên' }}</span>
         </div>
-        @if (isManager() && member.role !== 'OWNER') {
+        @if (isManager() && member.role !== 'OWNER' && !isSelf(member)) {
         <div class="member-card__actions">@if (isOwner()) { <button type="button" (click)="promote(member)">{{
-            member.role === 'ADMIN' ? 'Gỡ quản lý' : 'Phong quản lý' }}</button> }<button type="button"
+            member.role === 'ADMIN' ? 'Gỡ quản lý' : 'Phong quản lý' }}</button><button type="button"
+            (click)="requestTransferOwnership(member)">Trao quyền chủ</button> }<button type="button"
             (click)="removeMember(member, false)">Xóa</button><button type="button" class="danger-link"
             (click)="removeMember(member, true)">Cấm</button></div>
         }
@@ -830,9 +875,9 @@
       <div>
         <span>Khoảnh khắc câu lạc bộ</span>
         <h2>Thư viện ảnh</h2>
-        <p>{{ clubPhotos().length }} ảnh đã được đăng tải.</p>
+        <p>{{ photoTotal() }} ảnh đã được đăng tải.</p>
       </div>
-      @if (isOwner()) {
+      @if (isManager()) {
       <label class="button button--primary club-gallery-upload-button" [class.is-disabled]="galleryUploading()">
         <lucide-icon name="upload" class="w-4 h-4"></lucide-icon>
         Chọn ảnh
@@ -879,7 +924,15 @@
     <div class="club-gallery-grid">
       @for (photo of clubPhotos(); track photo.photoId; let index = $index) {
       <figure [class.club-gallery-grid__featured]="index === 0">
-        <img [src]="photo.imageUrl" [alt]="'Ảnh hoạt động ' + currentClub.name" loading="lazy">
+        <img [src]="clubPhotoUrl(photo)" [alt]="'Ảnh hoạt động ' + currentClub.name" loading="lazy"
+          (error)="retryClubPhotoImage($event, photo)">
+        @if (isManager()) {
+        <button type="button" class="club-gallery-delete" [disabled]="deletingPhotoIds().has(photo.photoId)"
+          [attr.aria-label]="'Xóa ảnh khỏi thư viện ' + currentClub.name" (click)="deleteClubPhoto(photo, $event)">
+          @if (deletingPhotoIds().has(photo.photoId)) { <span class="member-load-spinner" aria-hidden="true"></span> }
+          @else { <lucide-icon name="x" class="w-4 h-4"></lucide-icon> }
+        </button>
+        }
         <figcaption>
           <span>GOAT SPORTS · {{ currentClub.name }}</span>
           @if (photo.createdAt) { <time>{{ photo.createdAt | date:'dd/MM/yyyy' }}</time> }
@@ -887,12 +940,21 @@
       </figure>
       }
     </div>
+    <div #photoLoadSentinel class="club-gallery-sentinel" aria-live="polite">
+      @if (photoPageLoading()) {
+      <span class="member-load-spinner" aria-hidden="true"></span><span>Đang tải thêm ảnh...</span>
+      } @else if (photoPageError()) {
+      <span>Không thể tải thêm ảnh.</span><button type="button" class="text-action" (click)="loadNextPhotoPage()">Thử lại</button>
+      } @else if (!photoHasMore()) {
+      <span>Đã hiển thị toàn bộ {{ photoTotal() }} ảnh.</span>
+      }
+    </div>
     } @else if (!pendingClubPhotos().length) {
     <div class="detail-empty detail-empty--inline club-gallery-empty"><lucide-icon name="image" class="w-9 h-9"></lucide-icon>
       <h2>Thư viện chưa có ảnh</h2>
-      <p>{{ isOwner() ? 'Đăng những khoảnh khắc tập luyện, thi đấu và giao lưu đầu tiên của câu lạc bộ.' :
+      <p>{{ isManager() ? 'Đăng những khoảnh khắc tập luyện, thi đấu và giao lưu đầu tiên của câu lạc bộ.' :
         'Những khoảnh khắc của câu lạc bộ sẽ được lưu giữ tại đây.' }}</p>
-      @if (isOwner()) {
+      @if (isManager()) {
       <label class="button button--secondary club-gallery-upload-button">
         <lucide-icon name="upload-cloud" class="w-4 h-4"></lucide-icon> Tải ảnh đầu tiên
         <input type="file" accept="image/jpeg,image/png,image/webp" multiple
@@ -990,6 +1052,53 @@
       <footer class="modal-footer"><button type="button" class="button button--secondary"
           (click)="closeMatchDetails()">Đóng</button><a [routerLink]="['/tournaments', match.tournamentId]"
           class="button button--primary" (click)="closeMatchDetails()">Xem giải đấu</a></footer>
+    </section>
+  </div>
+  }
+
+  @if (transferTarget(); as successor) {
+  <div class="modal-overlay" (click)="transferTarget.set(null)">
+    <section class="modal-card confirm-leave-modal" appAccessibleDialog aria-labelledby="transfer-owner-title"
+      (dialogClosed)="transferTarget.set(null)" (click)="$event.stopPropagation()">
+      <span class="confirm-leave-modal__icon"><lucide-icon name="crown" class="w-7 h-7"></lucide-icon></span>
+      <h2 id="transfer-owner-title">Trao quyền chủ cho {{ displayName(successor.userId) }}?</h2>
+      <p>
+        {{ displayName(successor.userId) }} sẽ trở thành chủ câu lạc bộ, còn bạn chuyển xuống quản lý.
+        Chỉ chủ mới có thể trao lại quyền cho bạn.
+      </p>
+      <footer class="modal-footer">
+        <button type="button" class="button button--secondary" (click)="transferTarget.set(null)">Hủy</button>
+        <button type="button" class="button button--danger" [disabled]="mutating()"
+          (click)="confirmTransferOwnership()">{{ mutating() ? 'Đang xử lý...' : 'Trao quyền chủ' }}</button>
+      </footer>
+    </section>
+  </div>
+  }
+
+  @if (showDisbandConfirm()) {
+  <div class="modal-overlay" (click)="showDisbandConfirm.set(false)">
+    <section class="modal-card confirm-leave-modal" appAccessibleDialog aria-labelledby="disband-club-title"
+      (dialogClosed)="showDisbandConfirm.set(false)" (click)="$event.stopPropagation()">
+      <span class="confirm-leave-modal__icon">
+        <lucide-icon name="trash-2" class="w-7 h-7"></lucide-icon>
+      </span>
+      <h2 id="disband-club-title">Giải tán {{ currentClub.name }}?</h2>
+      <p>
+        {{ currentClub.memberCount }} thành viên sẽ mất quyền truy cập câu lạc bộ. Lịch sử thi đấu, hoạt động
+        và tin nhắn vẫn được giữ lại, nhưng <strong>không thể khôi phục câu lạc bộ</strong> sau khi giải tán.
+      </p>
+      <label class="confirm-leave-modal__field">
+        <span>Nhập <strong>{{ currentClub.name }}</strong> để xác nhận</span>
+        <input type="text" [value]="disbandConfirmText()"
+          (input)="disbandConfirmText.set($any($event.target).value)"
+          [attr.aria-label]="'Nhập tên câu lạc bộ để xác nhận'" autocomplete="off" />
+      </label>
+      <footer class="modal-footer">
+        <button type="button" class="button button--secondary"
+          (click)="showDisbandConfirm.set(false)">Hủy</button>
+        <button type="button" class="button button--danger" [disabled]="mutating() || !disbandConfirmed()"
+          (click)="disband()">{{ mutating() ? 'Đang xử lý...' : 'Giải tán câu lạc bộ' }}</button>
+      </footer>
     </section>
   </div>
   }
