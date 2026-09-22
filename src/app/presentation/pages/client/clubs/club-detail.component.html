@@ -296,9 +296,12 @@
         <h2>Thư viện ảnh</h2><button type="button" class="text-action" (click)="setTab('GALLERY')">Xem tất cả</button>
       </header>
       <div class="guest-gallery__placeholder">
-        <img [src]="displayedClubBanner()" [alt]="'Ảnh hoạt động ' + currentClub.name" />
-        <div><lucide-icon name="image" class="w-6 h-6"></lucide-icon><strong>Chưa có ảnh hoạt động</strong><span>Khoảnh
-            khắc của câu lạc bộ sẽ được cập nhật tại đây.</span></div>
+        <img [src]="clubPhotos()[0]?.imageUrl || displayedClubBanner()" [alt]="'Ảnh hoạt động ' + currentClub.name" />
+        <div><lucide-icon name="image" class="w-6 h-6"></lucide-icon>
+          <strong>{{ clubPhotos().length ? clubPhotos().length + ' ảnh hoạt động' : 'Chưa có ảnh hoạt động' }}</strong>
+          <span>{{ clubPhotos().length ? 'Nhấn Xem tất cả để khám phá khoảnh khắc của câu lạc bộ.' :
+            'Khoảnh khắc của câu lạc bộ sẽ được cập nhật tại đây.' }}</span>
+        </div>
       </div>
     </article>
   </section>
@@ -416,9 +419,10 @@
       <header class="panel__header">
         <h2>Thư viện ảnh</h2><button type="button" class="text-action" (click)="setTab('GALLERY')">Xem tất cả</button>
       </header>
-      <div class="gallery-placeholder"><img [src]="displayedClubBanner()"
+      <div class="gallery-placeholder"><img [src]="clubPhotos()[0]?.imageUrl || displayedClubBanner()"
           [alt]="'Ảnh hoạt động ' + currentClub.name" />
-        <div><lucide-icon name="image" class="w-6 h-6"></lucide-icon><span>Ảnh hoạt động sẽ được cập nhật tại đây</span>
+        <div><lucide-icon name="image" class="w-6 h-6"></lucide-icon><span>{{ clubPhotos().length ?
+          clubPhotos().length + ' ảnh trong thư viện câu lạc bộ' : 'Ảnh hoạt động sẽ được cập nhật tại đây' }}</span>
         </div>
       </div>
     </article>
@@ -616,9 +620,10 @@
       <header class="panel__header">
         <h2>Thư viện ảnh</h2><button type="button" class="text-action" (click)="setTab('GALLERY')">Xem tất cả</button>
       </header>
-      <div class="gallery-placeholder"><img [src]="displayedClubBanner()"
+      <div class="gallery-placeholder"><img [src]="clubPhotos()[0]?.imageUrl || displayedClubBanner()"
           [alt]="'Ảnh hoạt động ' + currentClub.name" />
-        <div><lucide-icon name="image" class="w-6 h-6"></lucide-icon><span>Ảnh hoạt động sẽ được cập nhật tại đây</span>
+        <div><lucide-icon name="image" class="w-6 h-6"></lucide-icon><span>{{ clubPhotos().length ?
+          clubPhotos().length + ' ảnh trong thư viện câu lạc bộ' : 'Đăng ảnh hoạt động tại tab Thư viện' }}</span>
         </div>
       </div>
     </article>
@@ -820,11 +825,82 @@
     }
   </section>
   } @else if (activeTab() === 'GALLERY') {
-  <section class="content-panel">
-    <div class="detail-empty detail-empty--inline"><lucide-icon name="image" class="w-9 h-9"></lucide-icon>
-      <h2>Thư viện chưa có ảnh</h2>
-      <p>Những khoảnh khắc của câu lạc bộ sẽ được lưu giữ tại đây.</p>
+  <section class="content-panel club-gallery-panel">
+    <header class="club-gallery-heading">
+      <div>
+        <span>Khoảnh khắc câu lạc bộ</span>
+        <h2>Thư viện ảnh</h2>
+        <p>{{ clubPhotos().length }} ảnh đã được đăng tải.</p>
+      </div>
+      @if (isOwner()) {
+      <label class="button button--primary club-gallery-upload-button" [class.is-disabled]="galleryUploading()">
+        <lucide-icon name="upload" class="w-4 h-4"></lucide-icon>
+        Chọn ảnh
+        <input type="file" accept="image/jpeg,image/png,image/webp" multiple
+          [disabled]="galleryUploading()" (change)="onClubPhotosSelected($event)">
+      </label>
+      }
+    </header>
+
+    @if (pendingClubPhotos().length) {
+    <section class="club-gallery-composer" aria-label="Ảnh đang chờ đăng">
+      <div class="club-gallery-composer__title">
+        <div><strong>Xem trước ảnh</strong><span>Kiểm tra ảnh trước khi đăng vào thư viện.</span></div>
+        <b>{{ pendingClubPhotos().length }}/10</b>
+      </div>
+      <div class="club-gallery-preview-grid">
+        @for (item of pendingClubPhotos(); track item.previewUrl; let index = $index) {
+        <figure>
+          <img [src]="item.previewUrl" [alt]="item.file.name">
+          <figcaption>{{ item.file.name }}</figcaption>
+          <button type="button" aria-label="Bỏ ảnh" [disabled]="galleryUploading()"
+            (click)="removePendingClubPhoto(index)">
+            <lucide-icon name="x" class="w-4 h-4"></lucide-icon>
+          </button>
+        </figure>
+        }
+      </div>
+      <footer>
+        <span>JPG, PNG hoặc WebP · tối đa 5 MB mỗi ảnh</span>
+        <div>
+          <button type="button" class="button button--secondary" [disabled]="galleryUploading()"
+            (click)="cancelClubPhotoUpload()">Hủy</button>
+          <button type="button" class="button button--primary" [disabled]="galleryUploading()"
+            (click)="uploadClubPhotos()">
+            @if (galleryUploading()) { <span class="member-load-spinner" aria-hidden="true"></span> Đang đăng... }
+            @else { Đăng {{ pendingClubPhotos().length }} ảnh }
+          </button>
+        </div>
+      </footer>
+    </section>
+    }
+
+    @if (clubPhotos().length) {
+    <div class="club-gallery-grid">
+      @for (photo of clubPhotos(); track photo.photoId; let index = $index) {
+      <figure [class.club-gallery-grid__featured]="index === 0">
+        <img [src]="photo.imageUrl" [alt]="'Ảnh hoạt động ' + currentClub.name" loading="lazy">
+        <figcaption>
+          <span>GOAT SPORTS · {{ currentClub.name }}</span>
+          @if (photo.createdAt) { <time>{{ photo.createdAt | date:'dd/MM/yyyy' }}</time> }
+        </figcaption>
+      </figure>
+      }
     </div>
+    } @else if (!pendingClubPhotos().length) {
+    <div class="detail-empty detail-empty--inline club-gallery-empty"><lucide-icon name="image" class="w-9 h-9"></lucide-icon>
+      <h2>Thư viện chưa có ảnh</h2>
+      <p>{{ isOwner() ? 'Đăng những khoảnh khắc tập luyện, thi đấu và giao lưu đầu tiên của câu lạc bộ.' :
+        'Những khoảnh khắc của câu lạc bộ sẽ được lưu giữ tại đây.' }}</p>
+      @if (isOwner()) {
+      <label class="button button--secondary club-gallery-upload-button">
+        <lucide-icon name="upload-cloud" class="w-4 h-4"></lucide-icon> Tải ảnh đầu tiên
+        <input type="file" accept="image/jpeg,image/png,image/webp" multiple
+          (change)="onClubPhotosSelected($event)">
+      </label>
+      }
+    </div>
+    }
   </section>
   }
 

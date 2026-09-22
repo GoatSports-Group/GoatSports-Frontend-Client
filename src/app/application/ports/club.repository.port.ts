@@ -3,6 +3,7 @@ import { PageResult } from '@application/dto/base/base-response';
 import {
   MyClubMembership,
   ClubInvitationModel,
+  ClubPhotoModel,
   ClubActivityModel,
   ClubRecentMatchModel,
   ClubMemberModel,
@@ -49,6 +50,8 @@ export abstract class ClubRepositoryPort {
     status?: 'ACTIVE' | 'PENDING'): Observable<PageResult<ClubMemberModel>>;
   abstract respondMembership(clubId: string, membershipId: string, accepted: boolean): Observable<ClubMemberModel>;
   abstract getClubActivities(clubId: string): Observable<ClubActivityModel[]>;
+  abstract getClubPhotos(clubId: string): Observable<ClubPhotoModel[]>;
+  abstract addClubPhotos(clubId: string, imageKeys: string[]): Observable<ClubPhotoModel[]>;
   abstract getClubActivitiesPage(clubId: string, page: number, size: number): Observable<PageResult<ClubActivityModel>>;
   abstract getClubRecentMatches(clubId: string, limit?: number): Observable<ClubRecentMatchModel[]>;
   abstract getClubMatchesPage(clubId: string, page: number, size: number): Observable<PageResult<ClubRecentMatchModel>>;

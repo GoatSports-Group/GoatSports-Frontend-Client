@@ -95,6 +95,14 @@ export interface ClubActivityModel {
   createdAt?: string;
 }
 
+export interface ClubPhotoModel {
+  photoId: string;
+  clubId: string;
+  imageUrl: string;
+  uploadedByUserId: string;
+  createdAt?: string;
+}
+
 export interface ClubRecentMatchModel {
   matchId: string;
   tournamentId: string;

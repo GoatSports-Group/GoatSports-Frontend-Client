@@ -6,6 +6,7 @@ import { ClubRepositoryPort } from '@application/ports/club.repository.port';
 import { User } from '@application/dto/user/user.dto';
 import {
   Club as ClubModel, ClubActivity as ClubActivityModel, ClubMember as ClubMemberModel,
+  ClubPhoto as ClubPhotoModel,
   ClubRecentMatch as ClubRecentMatchModel,
   CreateClubActivityPayload, ClubRole,
   UpdateClubPayload, ClubPrivacy, ClubApprovalMode
@@ -23,6 +24,7 @@ import { ClubCardView, DEFAULT_CLUB_BANNER, DEFAULT_CLUB_LOGO, sportLabel, toCar
 
 type ClubTab = 'OVERVIEW' | 'MEMBERS' | 'REQUESTS' | 'ACTIVITIES' | 'TOURNAMENTS' | 'GALLERY';
 type ClubViewerState = 'MANAGER' | 'MEMBER' | 'PENDING' | 'GUEST';
+interface PendingClubPhoto { file: File; previewUrl: string; }
 @Component({
   selector: 'app-club-detail', templateUrl: './club-detail.component.html',
   styleUrls: ['./club-detail.component.scss'], changeDetection: ChangeDetectionStrategy.OnPush, standalone: false
@@ -41,6 +43,9 @@ export class ClubDetailComponent implements OnDestroy {
   readonly club = signal<ClubModel | null>(null);
   readonly members = signal<ClubMemberModel[]>([]);
   readonly activities = signal<ClubActivityModel[]>([]);
+  readonly clubPhotos = signal<ClubPhotoModel[]>([]);
+  readonly pendingClubPhotos = signal<PendingClubPhoto[]>([]);
+  readonly galleryUploading = signal(false);
   readonly membership = signal<ClubMemberModel | null>(null);
   readonly users = signal<ReadonlyMap<string, User>>(new Map());
   readonly activeTab = signal<ClubTab>('OVERVIEW');
@@ -160,6 +165,7 @@ export class ClubDetailComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.clearPendingClubPhotos();
     this.revokeClubLogoPreview();
     this.revokeClubBannerPreview();
     this.releasePersistedMediaPreview('logo');
@@ -174,12 +180,13 @@ export class ClubDetailComponent implements OnDestroy {
       ? this.repository.getMyMembership(this.clubId).pipe(catchError(() => of(null))) : of(null);
     forkJoin({
       club: this.repository.getClubDetails(this.clubId),
+      photos: this.repository.getClubPhotos(this.clubId).pipe(catchError(() => of([]))),
       activities: this.repository.getClubActivitiesPage(this.clubId, 0, this.activityPageSize),
       matches: this.repository.getClubMatchesPage(this.clubId, 0, this.matchPageSize),
       membership: membershipRequest
     }).subscribe({
       next: data => {
-        this.club.set(data.club); this.members.set([]); this.activities.set(data.activities.items);
+        this.club.set(data.club); this.clubPhotos.set(data.photos); this.members.set([]); this.activities.set(data.activities.items);
         this.activityTotal.set(data.activities.total);
         this.activityPage = 1;
         this.activityHasMore.set(this.activityPage < data.activities.totalPages);
@@ -211,6 +218,69 @@ export class ClubDetailComponent implements OnDestroy {
     if (tab === 'TOURNAMENTS' && this.recentMatches().length <= this.matchPageSize && this.matchHasMore()) {
       this.loadNextMatchPage();
     }
+  }
+
+  onClubPhotosSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+    input.value = '';
+    if (!this.isOwner() || !files.length) return;
+    if (files.length > 10) {
+      this.notify.error('Mỗi lần chỉ được đăng tối đa 10 ảnh.');
+      return;
+    }
+
+    const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
+    const maxSize = 5 * 1024 * 1024;
+    const invalidType = files.find(file => !allowedTypes.has(file.type));
+    if (invalidType) {
+      this.notify.error(`Ảnh ${invalidType.name} không đúng định dạng JPG, PNG hoặc WebP.`);
+      return;
+    }
+    const oversized = files.find(file => !file.size || file.size > maxSize);
+    if (oversized) {
+      this.notify.error(`Ảnh ${oversized.name} phải nhỏ hơn hoặc bằng 5 MB.`);
+      return;
+    }
+
+    this.clearPendingClubPhotos();
+    this.pendingClubPhotos.set(files.map(file => ({ file, previewUrl: URL.createObjectURL(file) })));
+  }
+
+  removePendingClubPhoto(index: number): void {
+    const pending = [...this.pendingClubPhotos()];
+    const removed = pending.splice(index, 1)[0];
+    if (removed) URL.revokeObjectURL(removed.previewUrl);
+    this.pendingClubPhotos.set(pending);
+  }
+
+  cancelClubPhotoUpload(): void {
+    if (!this.galleryUploading()) this.clearPendingClubPhotos();
+  }
+
+  uploadClubPhotos(): void {
+    const pending = this.pendingClubPhotos();
+    if (!this.isOwner() || !pending.length || this.galleryUploading()) return;
+    this.galleryUploading.set(true);
+    forkJoin(pending.map(item => this.storage.uploadImage(item.file, 'clubs/gallery'))).pipe(
+      switchMap(imageKeys => this.repository.addClubPhotos(this.clubId, imageKeys))
+    ).subscribe({
+      next: photos => {
+        this.clubPhotos.update(current => [...photos, ...current]);
+        this.galleryUploading.set(false);
+        this.clearPendingClubPhotos();
+        this.notify.success(`Đã đăng ${photos.length} ảnh vào thư viện câu lạc bộ.`);
+      },
+      error: error => {
+        this.galleryUploading.set(false);
+        this.notify.error(error?.error?.message ?? 'Không thể đăng ảnh câu lạc bộ. Vui lòng thử lại.');
+      }
+    });
+  }
+
+  private clearPendingClubPhotos(): void {
+    this.pendingClubPhotos().forEach(item => URL.revokeObjectURL(item.previewUrl));
+    this.pendingClubPhotos.set([]);
   }
 
   loadNextMemberPage(): void {

@@ -4,7 +4,7 @@ import { map, Observable } from 'rxjs';
 import { ClubRepositoryPort } from '@application/ports/club.repository.port';
 import { BaseResponse, PageResult, PagedModelResponse } from '@application/dto/base/base-response';
 import {
-  ClubActivityModel, ClubRecentMatchModel, ClubFeeModel, ClubFeePaymentModel, ClubMemberModel, ClubModel, ClubRole,
+  ClubActivityModel, ClubPhotoModel, ClubRecentMatchModel, ClubFeeModel, ClubFeePaymentModel, ClubMemberModel, ClubModel, ClubRole,
   MyClubMembership, ClubInvitationModel,
   CreateClubActivityPayload, CreateClubFeePayload, CreateClubPayload, SportType, UpdateClubPayload
 } from '@domain/models/club.model';
@@ -99,6 +99,14 @@ export class ClubRepository extends ClubRepositoryPort {
   }
   override getClubActivities(clubId: string): Observable<ClubActivityModel[]> {
     return this.http.get<BaseResponse<ClubActivityModel[]>>(`${this.baseUrl}/${clubId}/activities`)
+      .pipe(map(response => response.data ?? []));
+  }
+  override getClubPhotos(clubId: string): Observable<ClubPhotoModel[]> {
+    return this.http.get<BaseResponse<ClubPhotoModel[]>>(`${this.baseUrl}/${clubId}/photos`)
+      .pipe(map(response => response.data ?? []));
+  }
+  override addClubPhotos(clubId: string, imageKeys: string[]): Observable<ClubPhotoModel[]> {
+    return this.http.post<BaseResponse<ClubPhotoModel[]>>(`${this.baseUrl}/${clubId}/photos`, { imageKeys })
       .pipe(map(response => response.data ?? []));
   }
   override getClubActivitiesPage(clubId: string, page: number, size: number): Observable<PageResult<ClubActivityModel>> {

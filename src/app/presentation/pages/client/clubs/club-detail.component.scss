@@ -2870,3 +2870,75 @@ a {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.club-gallery-panel { display: grid; gap: 22px; }
+.club-gallery-heading {
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 20px;
+  padding-bottom: 18px; border-bottom: 1px solid #e2e8e5;
+}
+.club-gallery-heading>div>span {
+  display: block; margin-bottom: 5px; color: #07855f; font-size: 11px; font-weight: 800;
+  letter-spacing: .12em; text-transform: uppercase;
+}
+.club-gallery-heading h2 { margin: 0; color: #07192d; font-size: clamp(24px, 2.5vw, 34px); line-height: 1.05; }
+.club-gallery-heading p { margin: 7px 0 0; color: #65758b; font-size: 14px; }
+.club-gallery-upload-button { position: relative; cursor: pointer; white-space: nowrap; }
+.club-gallery-upload-button.is-disabled { cursor: wait; opacity: .65; }
+.club-gallery-upload-button input {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%);
+}
+.club-gallery-composer { padding: 18px; border: 1px solid #b9d9cf; border-radius: 14px; background: #f4faf7; }
+.club-gallery-composer__title, .club-gallery-composer footer {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+}
+.club-gallery-composer__title>div { display: grid; gap: 3px; }
+.club-gallery-composer__title strong { color: #07192d; font-size: 16px; }
+.club-gallery-composer__title span, .club-gallery-composer footer>span { color: #65758b; font-size: 12px; }
+.club-gallery-composer__title b { color: #07855f; font-size: 13px; }
+.club-gallery-preview-grid {
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin: 16px 0;
+}
+.club-gallery-preview-grid figure, .club-gallery-grid figure {
+  position: relative; min-width: 0; margin: 0; overflow: hidden; border-radius: 12px; background: #e8efec;
+}
+.club-gallery-preview-grid figure { aspect-ratio: 4 / 3; }
+.club-gallery-preview-grid img, .club-gallery-grid img { width: 100%; height: 100%; object-fit: cover; }
+.club-gallery-preview-grid figcaption {
+  position: absolute; inset: auto 0 0; overflow: hidden; padding: 20px 8px 7px; color: #fff;
+  background: linear-gradient(transparent, rgba(5, 25, 42, .82)); font-size: 10px; text-overflow: ellipsis; white-space: nowrap;
+}
+.club-gallery-preview-grid button {
+  position: absolute; top: 7px; right: 7px; display: grid; width: 28px; height: 28px; padding: 0;
+  place-items: center; color: #fff; border: 0; border-radius: 999px; background: rgba(5, 25, 42, .82); cursor: pointer;
+}
+.club-gallery-composer footer>div { display: flex; gap: 9px; }
+.club-gallery-grid {
+  display: grid; grid-auto-flow: dense; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;
+}
+.club-gallery-grid figure { aspect-ratio: 4 / 3; border: 1px solid #e2e8e5; }
+.club-gallery-grid__featured { grid-column: span 2; grid-row: span 2; }
+.club-gallery-grid img { transition: transform .35s ease; }
+.club-gallery-grid figure:hover img { transform: scale(1.035); }
+.club-gallery-grid figcaption {
+  position: absolute; inset: auto 0 0; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px;
+  padding: 36px 12px 11px; color: #fff; background: linear-gradient(transparent, rgba(5, 25, 42, .78));
+  font-size: 10px; font-weight: 700; letter-spacing: .04em;
+}
+.club-gallery-grid time { font-weight: 500; opacity: .85; }
+.club-gallery-empty {
+  min-height: 360px; border: 1px dashed #c7d6d1; border-radius: 14px; background: #fbfcfb;
+}
+.club-gallery-empty .club-gallery-upload-button { margin-top: 10px; }
+
+@media (max-width: 900px) {
+  .club-gallery-preview-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .club-gallery-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .club-gallery-heading, .club-gallery-composer__title, .club-gallery-composer footer {
+    align-items: stretch; flex-direction: column;
+  }
+  .club-gallery-upload-button, .club-gallery-composer footer>div, .club-gallery-composer footer .button { width: 100%; }
+  .club-gallery-preview-grid, .club-gallery-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .club-gallery-grid__featured { grid-column: span 2; grid-row: span 1; }
+}

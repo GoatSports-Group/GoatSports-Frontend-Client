@@ -4,6 +4,7 @@ export {
   MyClubMembership,
   ClubInvitationModel as ClubInvitation,
   ClubActivityModel as ClubActivity,
+  ClubPhotoModel as ClubPhoto,
   ClubRecentMatchModel as ClubRecentMatch,
   CreateClubPayload,
   CreateClubActivityPayload,
