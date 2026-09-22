@@ -1,8 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, forkJoin, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { StorageRepository } from '@application/ports/persistence/storage.repository';
-import { PresignedUrlResponse } from '@application/dto/storage/storage.dto';
+import { PresignedUrlRequest, PresignedUrlResponse } from '@application/dto/storage/storage.dto';
 import { StorageApi } from '@infrastructure/api/storage.api';
 
 @Injectable({
@@ -11,14 +11,17 @@ import { StorageApi } from '@infrastructure/api/storage.api';
 export class StorageRepositoryImpl implements StorageRepository {
   private storageApi = inject(StorageApi);
 
-  getPresignedUrl(
-    fileName: string,
-    contentType: string,
-    folder: string,
-    contentLength: number
-  ): Observable<PresignedUrlResponse[]> {
-    return this.storageApi.getPresignedUrl(fileName, contentType, folder, contentLength).pipe(
-      map((response: any) => (Array.isArray(response) ? response : (response?.data || [])))
+  getPresignedUrls(requests: PresignedUrlRequest[]): Observable<PresignedUrlResponse[]> {
+    if (!requests.length) return of([]);
+    return this.storageApi.getPresignedUrls(requests).pipe(
+      map((response: any) => (Array.isArray(response) ? response : (response?.data || []))),
+      map((list: PresignedUrlResponse[]) => {
+        // Storage service trả về mảng rỗng khi lô vượt 10 tệp, nên phải đối chiếu số lượng.
+        if (list.length !== requests.length || list.some(item => !item?.uploadUrl || !item?.objectKey)) {
+          throw new Error('Không lấy được URL tải lên từ storage service');
+        }
+        return list;
+      })
     );
   }
 
@@ -35,16 +38,22 @@ export class StorageRepositoryImpl implements StorageRepository {
   }
 
   uploadImage(file: File, folder: string): Observable<string> {
-    return this.getPresignedUrl(file.name, file.type, folder, file.size).pipe(
-      switchMap((presignedList) => {
-        const presigned = presignedList?.[0];
-        if (!presigned?.uploadUrl || !presigned?.objectKey) {
-          throw new Error('Không lấy được URL tải lên từ storage service');
-        }
-        return this.uploadToPresignedUrl(presigned.uploadUrl, file).pipe(
-          map(() => presigned.objectKey)
-        );
-      })
+    return this.uploadImages([file], folder).pipe(map(keys => keys[0]));
+  }
+
+  uploadImages(files: File[], folder: string): Observable<string[]> {
+    if (!files.length) return of([]);
+    return this.getPresignedUrls(files.map(file => ({
+      fileName: file.name,
+      contentType: file.type || 'application/octet-stream',
+      folder,
+      contentLength: file.size
+    }))).pipe(
+      switchMap(presignedList => forkJoin(
+        presignedList.map((presigned, index) =>
+          this.uploadToPresignedUrl(presigned.uploadUrl, files[index]).pipe(map(() => presigned.objectKey))
+        )
+      ))
     );
   }
 }

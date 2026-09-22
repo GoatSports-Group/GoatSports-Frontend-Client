@@ -9,4 +9,8 @@ export class UploadImageUseCase {
   execute(file: File, folder: string): Observable<string> {
     return this.repository.uploadImage(file, folder);
   }
+
+  executeMany(files: File[], folder: string): Observable<string[]> {
+    return this.repository.uploadImages(files, folder);
+  }
 }

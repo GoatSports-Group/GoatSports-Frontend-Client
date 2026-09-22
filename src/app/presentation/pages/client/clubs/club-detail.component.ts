@@ -262,7 +262,7 @@ export class ClubDetailComponent implements OnDestroy {
     const pending = this.pendingClubPhotos();
     if (!this.isOwner() || !pending.length || this.galleryUploading()) return;
     this.galleryUploading.set(true);
-    forkJoin(pending.map(item => this.storage.uploadImage(item.file, 'clubs/gallery'))).pipe(
+    this.storage.uploadImages(pending.map(item => item.file), 'clubs/gallery').pipe(
       switchMap(imageKeys => this.repository.addClubPhotos(this.clubId, imageKeys))
     ).subscribe({
       next: photos => {

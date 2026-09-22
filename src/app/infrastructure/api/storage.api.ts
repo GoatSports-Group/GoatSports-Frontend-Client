@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpBackend } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { BaseResponse } from '@application/dto/base/base-response';
-import { PresignedUrlResponse } from '@application/dto/storage/storage.dto';
+import { PresignedUrlRequest, PresignedUrlResponse } from '@application/dto/storage/storage.dto';
 import { environment } from '@environments/environment';
 
 @Injectable({
@@ -14,16 +14,10 @@ export class StorageApi {
   private bypassHttp = new HttpClient(this.httpBackend);
   private apiBase = environment.apiUrl;
 
-  getPresignedUrl(
-    fileName: string,
-    contentType: string,
-    folder: string,
-    contentLength: number
-  ): Observable<BaseResponse<PresignedUrlResponse[]>> {
-    const payload = [{ fileName, contentType, folder, contentLength }];
+  getPresignedUrls(requests: PresignedUrlRequest[]): Observable<BaseResponse<PresignedUrlResponse[]>> {
     return this.http.post<BaseResponse<PresignedUrlResponse[]>>(
       `${this.apiBase}/storage-service/api/v1/files/presigned-url`,
-      payload
+      requests
     );
   }
 

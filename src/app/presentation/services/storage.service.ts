@@ -17,4 +17,8 @@ export class StorageService {
   uploadImage(file: File, folder: string): Observable<string> {
     return this.uploadImageUseCase.execute(file, folder);
   }
+
+  uploadImages(files: File[], folder: string): Observable<string[]> {
+    return this.uploadImageUseCase.executeMany(files, folder);
+  }
 }

@@ -247,8 +247,7 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
       displayOrder: index
     }));
     const startOrder = retained.length;
-    const uploads = this.pendingAttachments().map((item, index) => this.uploadAttachment(item, startOrder + index));
-    const attachments$ = uploads.length ? forkJoin(uploads) : of([]);
+    const attachments$ = this.uploadAttachments(this.pendingAttachments(), startOrder);
 
     attachments$.pipe(
       switchMap(uploaded => {
@@ -545,20 +544,13 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
       });
   }
 
-  private uploadAttachment(item: PendingAttachment, displayOrder: number) {
-    return this.storageRepository.getPresignedUrl(
-      item.file.name,
-      item.file.type || 'application/octet-stream',
-      'social-posts',
-      item.file.size
-    ).pipe(
-      switchMap(urls => {
-        const target = urls[0];
-        if (!target?.uploadUrl || !target.objectKey) throw new Error('Storage service không trả về URL tải lên.');
-        return this.storageRepository.uploadToPresignedUrl(target.uploadUrl, item.file).pipe(
-          map(() => ({ storageKey: target.objectKey, type: item.type, displayOrder }))
-        );
-      })
+  private uploadAttachments(items: readonly PendingAttachment[], startOrder: number) {
+    return this.storageRepository.uploadImages(items.map(item => item.file), 'social-posts').pipe(
+      map(keys => keys.map((storageKey, index) => ({
+        storageKey,
+        type: items[index].type,
+        displayOrder: startOrder + index
+      })))
     );
   }
 
