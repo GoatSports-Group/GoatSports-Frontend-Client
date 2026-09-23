@@ -5,21 +5,21 @@
   place-items: start center;
   background:
     radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.14), transparent 34%),
-    #f8fafc;
+    var(--surface-subtle);
 }
 
 .result-card {
   width: min(620px, 100%);
   margin-top: 44px;
   padding: 44px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--hairline);
   border-radius: 24px;
-  background: #fff;
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.09);
+  background: var(--surface);
+  box-shadow: 0 24px 60px var(--hairline);
   text-align: center;
 
   .eyebrow {
-    color: #059669;
+    color: var(--primary);
     font-size: 0.76rem;
     font-weight: 800;
     letter-spacing: 0.1em;
@@ -28,7 +28,7 @@
 
   h1 {
     margin: 8px 0 12px;
-    color: #0f172a;
+    color: var(--ink);
     font-size: clamp(1.55rem, 5vw, 2rem);
     line-height: 1.25;
   }
@@ -36,7 +36,7 @@
   > p {
     max-width: 500px;
     margin: 0 auto;
-    color: #64748b;
+    color: var(--body);
     line-height: 1.65;
   }
 }
@@ -55,25 +55,25 @@
   }
 
   &--success {
-    background: #ecfdf5;
-    color: #059669;
+    background: var(--primary-light);
+    color: var(--primary);
   }
 
   &--checking,
   &--pending {
-    background: #eff6ff;
-    color: #2563eb;
+    background: var(--info-soft);
+    color: var(--info);
   }
 
   &--cancelled,
   &--failed {
-    background: #fff7ed;
-    color: #ea580c;
+    background: var(--warning-soft);
+    color: var(--warning);
   }
 
   &--missing {
-    background: #f1f5f9;
-    color: #64748b;
+    background: var(--surface-strong);
+    color: var(--body);
   }
 }
 
@@ -84,10 +84,10 @@
   padding: 16px 18px;
   align-items: center;
   justify-content: space-between;
-  border: 1px solid #a7f3d0;
+  border: 1px solid var(--primary-light);
   border-radius: 14px;
-  background: #ecfdf5;
-  color: #065f46;
+  background: var(--primary-light);
+  color: var(--primary-strong);
 
   span {
     font-size: 0.84rem;

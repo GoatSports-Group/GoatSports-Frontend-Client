@@ -10,17 +10,15 @@
 }
 
 .request-modal {
-  --ink: #071426;
-  --muted: #5d6b7e;
-  --border: #d8e1de;
-  --green: #087a57;
+  --border: var(--hairline);
+  --green: var(--primary);
   width: min(100%, 620px);
   max-height: 90dvh;
   overflow: auto;
   padding: 27px;
   border: 1px solid var(--border);
   border-radius: 20px;
-  background: #fff;
+  background: var(--surface);
   color: var(--ink);
   box-shadow: 0 28px 72px rgba(7, 20, 38, .3);
 }
@@ -29,24 +27,24 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
 header p { margin: 0; color: var(--green); font-size: 12px; font-weight: 850; letter-spacing: .11em; text-transform: uppercase; }
 header h2 { margin: 5px 0 0; font-size: 28px; line-height: 1.15; letter-spacing: -.04em; }
 
-.icon-button { width: 42px; height: 42px; display: grid; place-items: center; flex: 0 0 42px; border: 1px solid var(--border); border-radius: 11px; background: #fff; color: #526178; cursor: pointer; }
+.icon-button { width: 42px; height: 42px; display: grid; place-items: center; flex: 0 0 42px; border: 1px solid var(--border); border-radius: 11px; background: var(--surface); color: var(--body); cursor: pointer; }
 .icon-button:hover { border-color: #9aaba5; color: var(--ink); }
 
-.club-summary { display: flex; align-items: flex-start; gap: 10px; margin: 18px 0; padding: 13px 14px; border: 1px solid #d7ebe3; border-left: 3px solid var(--green); border-radius: 11px; background: #edf7f3; color: #3d5a50; }
+.club-summary { display: flex; align-items: flex-start; gap: 10px; margin: 18px 0; padding: 13px 14px; border: 1px solid var(--primary-light); border-left: 3px solid var(--green); border-radius: 11px; background: var(--surface-strong); color: var(--ink-2); }
 .club-summary lucide-icon { flex: 0 0 auto; margin-top: 2px; }
 .club-summary p { margin: 0; font-size: 13px; line-height: 1.55; }
 
-label { display: block; margin-bottom: 7px; color: #45556b; font-size: 13px; font-weight: 800; }
-textarea { width: 100%; min-height: 150px; padding: 13px 14px; resize: vertical; border: 1px solid #c7d3cf; border-radius: 12px; outline: 0; background: #fff; color: var(--ink); font: inherit; font-size: 15px; line-height: 1.55; }
+label { display: block; margin-bottom: 7px; color: var(--ink-2); font-size: 13px; font-weight: 800; }
+textarea { width: 100%; min-height: 150px; padding: 13px 14px; resize: vertical; border: 1px solid var(--border-strong); border-radius: 12px; outline: 0; background: var(--surface); color: var(--ink); font: inherit; font-size: 15px; line-height: 1.55; }
 
 .field-meta { display: flex; justify-content: space-between; gap: 12px; margin-top: 6px; color: var(--muted); font-size: 13px; }
 footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
 .cancel-button, .submit-button { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 20px; border-radius: 12px; font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; transition: transform 180ms ease, background-color 180ms ease; }
-.cancel-button { border: 1px solid var(--border-color); background: #fff; color: var(--text-dark); }
-.submit-button { border: 1px solid var(--green); background: var(--green); color: #fff; }
+.cancel-button { border: 1px solid var(--border-color); background: var(--surface); color: var(--text-dark); }
+.submit-button { border: 1px solid var(--green); background: var(--primary-fill); color: #fff; }
 .submit-button:disabled { opacity: .5; cursor: not-allowed; }
 .cancel-button:disabled, .icon-button:disabled { opacity: .55; cursor: wait; }
-.request-spinner { width: 15px; height: 15px; border: 2px solid rgba(255,255,255,.38); border-top-color: #fff; border-radius: 50%; animation: request-spin .7s linear infinite; }
+.request-spinner { width: 15px; height: 15px; border: 2px solid rgba(255,255,255,.38); border-top-color: var(--surface); border-radius: 50%; animation: request-spin .7s linear infinite; }
 @keyframes request-spin { to { transform: rotate(360deg); } }
 .cancel-button:active, .submit-button:not(:disabled):active { transform: scale(.985); }
 

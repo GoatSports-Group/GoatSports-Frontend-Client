@@ -33,12 +33,12 @@
   font-weight: 700;
 }
 
-.sport-pill { background: #eab308; color: #000; }
+.sport-pill { background: #eab308; color: var(--ink); }
 .status-pill { background: rgba(16, 185, 129, 0.2); color: #10b981; }
 .format-pill { background: rgba(255, 255, 255, 0.1); color: #fff; }
 
 .btn-register {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, #10b981, var(--primary-fill));
   color: #fff;
   font-weight: 700;
   border: none;
@@ -49,7 +49,7 @@
 
 .btn-generate {
   background: linear-gradient(135deg, #eab308, #ca8a04);
-  color: #000;
+  color: var(--ink);
   font-weight: 700;
   border: none;
   padding: 10px 20px;
@@ -66,7 +66,7 @@
 
 .organizer {
   font-size: 13px;
-  color: #94a3b8;
+  color: var(--muted);
   margin: 0 0 24px;
 }
 
@@ -81,7 +81,7 @@
   padding: 16px;
   border-radius: 12px;
 
-  .label { font-size: 11px; color: #64748b; display: block; margin-bottom: 4px; }
+  .label { font-size: 11px; color: var(--body); display: block; margin-bottom: 4px; }
   .val { font-size: 16px; font-weight: 700; color: #fff; }
   .prize { color: #eab308; }
 }
@@ -95,7 +95,7 @@
   button {
     background: transparent;
     border: none;
-    color: #94a3b8;
+    color: var(--muted);
     padding: 12px 20px;
     font-size: 14px;
     font-weight: 600;
@@ -151,7 +151,7 @@
     background: #1e293b;
     margin-bottom: 6px;
     font-size: 13px;
-    color: #94a3b8;
+    color: var(--muted);
 
     &.winner {
       background: rgba(234, 179, 8, 0.15);
@@ -162,7 +162,7 @@
 
   .edit-hint {
     font-size: 11px;
-    color: #64748b;
+    color: var(--body);
     display: block;
     margin-top: 8px;
     text-align: right;
@@ -206,7 +206,7 @@
     text-align: left;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     font-size: 14px;
-    color: #94a3b8;
+    color: var(--muted);
   }
 
   th { background: #1e293b; color: #fff; font-weight: 700; }
@@ -241,7 +241,7 @@
   }
 
   h4 { color: #fff; margin: 0 0 2px; font-size: 14px; }
-  .player-name { font-size: 12px; color: #64748b; display: block; }
+  .player-name { font-size: 12px; color: var(--body); display: block; }
   .badge { font-size: 10px; color: #10b981; }
 }
 
@@ -274,21 +274,21 @@
 
   .team-input {
     flex: 1;
-    label { font-size: 12px; color: #94a3b8; display: block; margin-bottom: 6px; }
+    label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 6px; }
     input { width: 100%; padding: 10px; background: #1e293b; border: 1px solid rgba(255,255,255,0.1); color: #fff; text-align: center; font-size: 20px; font-weight: 800; border-radius: 8px; }
   }
 
-  .vs { font-weight: 800; color: #64748b; padding: 0 16px; }
+  .vs { font-weight: 800; color: var(--body); padding: 0 16px; }
 }
 
 .form-group {
   margin-bottom: 14px;
-  label { display: block; font-size: 13px; color: #94a3b8; margin-bottom: 4px; }
+  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
   input, select { width: 100%; padding: 10px; background: #1e293b; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; }
 }
 
 .modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px; }
-.btn-primary { background: #eab308; color: #000; font-weight: 700; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; }
+.btn-primary { background: #eab308; color: var(--ink); font-weight: 700; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; }
 .btn-secondary { background: #1e293b; color: #fff; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; }
 
 .eligibility-panel {
@@ -304,7 +304,7 @@
 }
 
 .rule-icon { width: 16px; height: 16px; color: #10b981; flex-shrink: 0; }
-.eligibility-note { margin: 12px 0 0; color: #94a3b8; font-size: 12px; }
+.eligibility-note { margin: 12px 0 0; color: var(--muted); font-size: 12px; }
 
 .reservation-panel {
   margin-top: 16px;
@@ -328,11 +328,11 @@
 
     div { display: grid; gap: 2px; margin-right: auto; }
     strong { color: #fff; font-size: 13px; }
-    span { color: #94a3b8; font-size: 12px; }
+    span { color: var(--muted); font-size: 12px; }
   }
 }
 
-.reservation-empty { margin: 0; color: #94a3b8; font-size: 13px; }
+.reservation-empty { margin: 0; color: var(--muted); font-size: 13px; }
 
 @media (max-width: 640px) {
   .reservation-head { flex-direction: column; align-items: stretch; }
@@ -381,7 +381,7 @@
   line-height: 1;
 }
 
-.lineup-empty { margin: 0; color: #94a3b8; font-size: 12px; }
+.lineup-empty { margin: 0; color: var(--muted); font-size: 12px; }
 .lineup-error { margin: 8px 0 0; color: #f87171; font-size: 12px; font-weight: 600; }
 
 @media (max-width: 640px) {

@@ -1,5 +1,6 @@
 @use 'material-icons/iconfont/material-icons.scss';
 @use "tailwindcss";
+@use 'styles/goat-theme';
 @use 'styles/goat-product-system' as goat;
 @use 'styles/goat-surfaces' as surfaces;
 
@@ -141,7 +142,7 @@ mat-icon, .mat-icon, .material-icons {
     overflow: hidden !important;
     border: 1px solid rgba(255, 255, 255, 0.72);
     border-radius: 18px !important;
-    background: #fff !important;
+    background: var(--surface) !important;
     box-shadow: 0 28px 80px rgba(10, 20, 36, 0.24) !important;
   }
 }
@@ -182,22 +183,7 @@ lucide-icon, .lucide-icon {
 
 /* Global Design System & Variables */
 :root {
-  --primary: #007a57;
-  --primary-hover: #006448;
-  --primary-light: #eaf7f2;
-  --accent: #007a57;
-  --accent-hover: #006448;
-  --accent-light: #eaf7f2;
-  --success: #10b981;          /* Modern success mint-green */
-  --warning: #f59e0b;          /* Amber warning */
-  --danger: #ef4444;           /* Neon-ish danger red */
-  --info: #06b6d4;             /* Electric cyan info */
-  --text-dark: #071426;
-  --text-muted: #617086;
   --text-light: #ffffff;       /* High-contrast white */
-  --bg-body: #f6f8f7;
-  --bg-card: #ffffff;          /* Pure white container card */
-  --border-color: #d8e1de;
 
   --font-heading: 'Be Vietnam Pro', sans-serif;
   --font-body: 'Be Vietnam Pro', sans-serif;
@@ -206,29 +192,12 @@ lucide-icon, .lucide-icon {
   --border-radius-sm: 5px;
   --border-radius-lg: 12px;
 
-  --shadow-sm: 0 1px 2px rgba(7, 20, 38, 0.04);
-  --shadow-md: 0 8px 24px -14px rgba(7, 20, 38, 0.16);
-  --shadow-lg: 0 22px 50px -26px rgba(7, 20, 38, 0.24);
   --shadow-glow-primary: none;
 
   --transition-smooth: all 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
   --transition-spring: all 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-/* Dark Mode Variables Override */
-body.dark {
-  --bg-body: #0f172a;          /* Slate-900 */
-  --bg-card: #1e293b;          /* Slate-800 */
-  --text-dark: #f8fafc;        /* Slate-50 */
-  --text-muted: #94a3b8;       /* Slate-400 */
-  --border-color: #334155;     /* Slate-700 */
-  --primary-light: #064e3b;    /* Deep forest green tint */
-  --accent-light: #0c4a6e;     /* Deep navy blue tint */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
-  --shadow-md: 0 12px 30px -10px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
-  --shadow-glow-primary: 0 0 25px 0 rgba(5, 150, 105, 0.35);
-}
 
 
 /* Accessibility baseline: visible keyboard focus, skip navigation and motion preferences. */
@@ -250,9 +219,9 @@ body.dark {
 }
 
 :where(a, button, [tabindex]:not(input, select, textarea), input[type='checkbox'], input[type='radio']):focus-visible {
-  outline: 3px solid #13a879 !important;
+  outline: 3px solid var(--primary) !important;
   outline-offset: 3px !important;
-  box-shadow: 0 0 0 2px #ffffff !important;
+  box-shadow: 0 0 0 2px var(--surface) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -462,7 +431,7 @@ a {
   /* Design §6: focus never changes the field border or adds a ring. */
   &.mat-focused {
     .mdc-text-field {
-      background-color: #ffffff !important;
+      background-color: var(--surface) !important;
     }
 
     .mdc-notched-outline__leading,
@@ -522,7 +491,7 @@ mat-icon[color="primary"] {
 
 /* Badge styles */
 .mat-badge-accent .mat-badge-content {
-  background-color: var(--accent) !important;
+  background-color: var(--primary-fill) !important;
   color: #ffffff !important;
 }
 
@@ -706,7 +675,7 @@ mat-error,
 }
 
 /* Dark mode CDK support styles */
-body.dark {
+html[data-theme='dark'] body {
   .mat-mdc-menu-panel,
   .mat-mdc-select-panel,
   .mat-mdc-dialog-container,
@@ -754,13 +723,13 @@ body.dark {
 
 /* 2. Glassmorphism Design Elements */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.75) !important;
+  background: color-mix(in srgb, var(--surface) 75%, transparent) !important;
   backdrop-filter: blur(16px) saturate(120%) !important;
   -webkit-backdrop-filter: blur(16px) saturate(120%) !important;
   border: 1px solid rgba(255, 255, 255, 0.3) !important;
 }
 
-body.dark .glass-panel {
+html[data-theme='dark'] body .glass-panel {
   background: rgba(30, 41, 59, 0.65) !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
   backdrop-filter: blur(16px) saturate(120%) !important;
@@ -786,7 +755,7 @@ body.dark .glass-panel {
   background-size: 100% 100%, 100% 100% !important;
 }
 
-body.dark .court-soccer {
+html[data-theme='dark'] body .court-soccer {
   background: radial-gradient(circle at center, transparent 35%, rgba(255, 255, 255, 0.06) 36%, rgba(255, 255, 255, 0.06) 37%, transparent 38%),
               linear-gradient(to right, transparent 49%, rgba(255, 255, 255, 0.06) 50%, transparent 51%),
               linear-gradient(var(--primary-light), var(--primary-light)) !important;
@@ -795,10 +764,10 @@ body.dark .court-soccer {
 .court-tennis {
   background: linear-gradient(to right, transparent 10%, rgba(15, 23, 42, 0.06) 11%, transparent 12%, transparent 88%, rgba(15, 23, 42, 0.06) 89%, transparent 90%),
               linear-gradient(to bottom, transparent 20%, rgba(15, 23, 42, 0.06) 21%, transparent 22%, transparent 78%, rgba(15, 23, 42, 0.06) 79%, transparent 80%),
-              linear-gradient(#fef3c7, #fef3c7) !important;
+              linear-gradient(var(--warning-soft), var(--warning-soft)) !important;
 }
 
-body.dark .court-tennis {
+html[data-theme='dark'] body .court-tennis {
   background: linear-gradient(to right, transparent 10%, rgba(255, 255, 255, 0.05) 11%, transparent 12%, transparent 88%, rgba(255, 255, 255, 0.05) 89%, transparent 90%),
               linear-gradient(to bottom, transparent 20%, rgba(255, 255, 255, 0.05) 21%, transparent 22%, transparent 78%, rgba(255, 255, 255, 0.05) 79%, transparent 80%),
               linear-gradient(rgba(245, 158, 11, 0.12), rgba(245, 158, 11, 0.12)) !important;
@@ -810,7 +779,7 @@ body.dark .court-tennis {
               linear-gradient(var(--accent-light), var(--accent-light)) !important;
 }
 
-body.dark .court-badminton {
+html[data-theme='dark'] body .court-badminton {
   background: linear-gradient(to right, transparent 49%, rgba(255, 255, 255, 0.05) 50%, transparent 51%),
               linear-gradient(to bottom, transparent 5%, rgba(255, 255, 255, 0.05) 6%, transparent 7%, transparent 93%, rgba(255, 255, 255, 0.05) 94%, transparent 95%),
               linear-gradient(var(--accent-light), var(--accent-light)) !important;
@@ -855,7 +824,7 @@ body.dark .court-badminton {
     background: var(--border-color);
     border-radius: 99px;
     &:hover {
-      background: var(--primary);
+      background: var(--primary-fill);
     }
   }
 }
@@ -880,7 +849,7 @@ body.dark .court-badminton {
 }
 
 .neo-btn {
-  background-color: var(--primary) !important;
+  background-color: var(--primary-fill) !important;
   color: white !important;
   border: 1px solid transparent !important;
   box-shadow: var(--shadow-sm) !important;
@@ -893,7 +862,7 @@ body.dark .court-badminton {
   &:hover:not([disabled]) {
     transform: translateY(-1px) !important;
     box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25) !important;
-    background-color: var(--primary-hover) !important;
+    background-color: var(--primary-fill-hover) !important;
     color: white !important;
   }
 
@@ -923,7 +892,7 @@ body.dark .court-badminton {
   gap: 6px !important;
 }
 
-body.dark {
+html[data-theme='dark'] body {
   .neo-card {
     border-color: var(--border-color) !important;
     box-shadow: var(--shadow-md) !important;
@@ -941,7 +910,7 @@ body.dark {
     
     &:hover:not([disabled]) {
       box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35) !important;
-      background-color: var(--primary-hover) !important;
+      background-color: var(--primary-fill-hover) !important;
     }
   }
 }
@@ -959,7 +928,7 @@ body.dark {
     font-weight: 800 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.025em !important;
-    color: #334155 !important; /* slate-700 */
+    color: var(--ink-2) !important; /* slate-700 */
     font-family: 'Be Vietnam Pro', sans-serif !important;
     margin-left: 0 !important;
     margin-bottom: 2px !important;
@@ -974,7 +943,7 @@ body.dark {
       left: 16px;
       top: 50%;
       transform: translateY(-50%);
-      color: #64748b !important; /* slate-500 */
+      color: var(--body) !important; /* slate-500 */
       width: 20px !important;
       height: 20px !important;
       z-index: 10;
@@ -998,7 +967,7 @@ body.dark {
     
     &:focus-within {
       .field-icon {
-        color: #059669 !important; /* emerald-600 */
+        color: var(--primary) !important; /* emerald-600 */
       }
     }
   }
@@ -1009,10 +978,10 @@ body.dark {
     padding-left: 16px !important;
     padding-right: 16px !important;
     border-radius: 16px !important; /* Matches rounded-2xl */
-    border: 1px solid #cbd5e1 !important; /* border-slate-300 */
-    background-color: rgba(255, 255, 255, 0.6) !important; /* bg-white/60 */
+    border: 1px solid var(--border-strong) !important; /* border-slate-300 */
+    background-color: color-mix(in srgb, var(--surface) 60%, transparent) !important; /* bg-white/60 */
     backdrop-filter: blur(12px) !important; /* backdrop-blur-md */
-    color: #0f172a !important; /* text-slate-900 */
+    color: var(--ink) !important; /* text-slate-900 */
     font-size: 15px !important; /* text-[15px] */
     font-weight: 700 !important; /* font-bold */
     outline: none !important;
@@ -1020,17 +989,17 @@ body.dark {
     box-sizing: border-box;
 
     &::placeholder {
-      color: #64748b !important; /* placeholder-slate-500 */
+      color: var(--body) !important; /* placeholder-slate-500 */
       font-weight: 500 !important;
       opacity: 1 !important;
     }
     
     &:hover {
-      border-color: #94a3b8 !important; /* hover:border-slate-400 */
+      border-color: var(--border-strong) !important; /* hover:border-slate-400 */
     }
 
     &:focus {
-      background-color: #ffffff !important;
+      background-color: var(--surface) !important;
     }
   }
 
@@ -1041,10 +1010,10 @@ body.dark {
     padding-left: 0 !important;
     padding-right: 0 !important;
     border-radius: 16px !important; /* Matches rounded-2xl */
-    border: 1px solid #cbd5e1 !important; /* border-slate-300 */
-    background-color: rgba(255, 255, 255, 0.6) !important; /* bg-white/60 */
+    border: 1px solid var(--border-strong) !important; /* border-slate-300 */
+    background-color: color-mix(in srgb, var(--surface) 60%, transparent) !important; /* bg-white/60 */
     backdrop-filter: blur(12px) !important;
-    color: #0f172a !important; /* text-slate-900 */
+    color: var(--ink) !important; /* text-slate-900 */
     font-size: 15px !important;
     font-weight: 700 !important;
     outline: none !important;
@@ -1055,11 +1024,11 @@ body.dark {
     cursor: pointer;
 
     &:hover {
-      border-color: #94a3b8 !important;
+      border-color: var(--border-strong) !important;
     }
 
     &:focus, &.mat-select-panel-open {
-      background-color: #ffffff !important;
+      background-color: var(--surface) !important;
     }
 
     .mat-mdc-select-trigger {
@@ -1080,22 +1049,22 @@ body.dark {
     }
 
     .mat-mdc-select-arrow {
-      color: #64748b !important;
+      color: var(--body) !important;
       width: 18px !important;
       height: 18px !important;
     }
   }
 }
 
-body.dark {
+html[data-theme='dark'] body {
   .app-form-field, app-form-field {
     .field-label {
-      color: #94a3b8 !important; /* slate-400 */
+      color: var(--muted) !important; /* slate-400 */
     }
     
     .field-input-wrapper {
       .field-icon {
-        color: #94a3b8 !important;
+        color: var(--muted) !important;
       }
     }
     
@@ -1105,7 +1074,7 @@ body.dark {
       color: #f8fafc !important;
       
       &::placeholder {
-        color: #94a3b8 !important;
+        color: var(--muted) !important;
       }
       
       &:hover {

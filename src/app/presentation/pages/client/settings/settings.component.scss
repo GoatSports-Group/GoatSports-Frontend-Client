@@ -10,8 +10,8 @@
   margin-bottom: 20px;
   padding: 12px 16px;
   border-radius: 12px;
-  background: #fff1f3;
-  color: #be123c;
+  background: var(--danger-soft);
+  color: var(--danger);
   font-size: 14px;
 
   span {
@@ -22,10 +22,10 @@
   button {
     min-height: 40px;
     padding: 0 14px;
-    border: 1px solid #fecdd3;
+    border: 1px solid var(--danger-soft);
     border-radius: 12px;
-    background: #fff;
-    color: #be123c;
+    background: var(--surface);
+    color: var(--danger);
     font: inherit;
     font-size: 14px;
     font-weight: 800;

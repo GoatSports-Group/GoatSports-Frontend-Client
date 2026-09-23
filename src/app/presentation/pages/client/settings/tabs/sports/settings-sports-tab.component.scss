@@ -85,7 +85,7 @@
   overflow: hidden;
   border: 1px solid var(--border-color);
   border-radius: 12px;
-  background: #f8faf9;
+  background: var(--surface-subtle);
 
   > div {
     display: grid;
@@ -153,7 +153,7 @@
   }
 
   .is-warning {
-    color: #a15c07;
+    color: var(--warning);
     font-weight: 700;
   }
 }
@@ -181,12 +181,12 @@
   gap: 12px;
   margin: 2px -18px -16px;
   padding: 12px 18px;
-  border-top: 1px solid #fecdd3;
+  border-top: 1px solid var(--danger-soft);
   border-radius: 0 0 16px 16px;
-  background: #fff1f3;
+  background: var(--danger-soft);
 
   span {
-    color: #be123c;
+    color: var(--danger);
     font-size: 13px;
     font-weight: 700;
   }
@@ -233,7 +233,7 @@
   padding: 0 14px;
   border: 1px solid var(--border-color);
   border-radius: 12px;
-  background: #f8faf9;
+  background: var(--surface-subtle);
   color: var(--text-dark);
   font-size: 14px;
   font-weight: 700;
@@ -314,14 +314,14 @@
       width: 16px;
       height: 16px;
       border-radius: 50%;
-      background: #fff;
+      background: var(--surface);
       box-shadow: var(--shadow-sm);
       transition: transform var(--transition-smooth);
     }
   }
 
   input:checked + span {
-    background: var(--primary);
+    background: var(--primary-fill);
 
     &::after {
       transform: translateX(16px);
@@ -329,7 +329,7 @@
   }
 
   input:focus-visible + span {
-    outline: 3px solid var(--focus-ring, #13a879);
+    outline: 3px solid var(--focus-ring, var(--primary));
     outline-offset: 3px;
   }
 }
@@ -361,7 +361,7 @@
   padding: 12px 8px 12px 16px;
   border: 1px solid var(--border-color);
   border-radius: 12px;
-  background: #fff;
+  background: var(--surface);
 }
 
 .visibility-row__icon {
@@ -375,7 +375,7 @@
   color: var(--primary);
 
   &.is-off {
-    background: #edf4f0;
+    background: var(--surface-strong);
     color: var(--text-muted);
   }
 }

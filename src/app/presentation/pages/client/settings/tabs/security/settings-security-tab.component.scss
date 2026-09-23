@@ -3,8 +3,8 @@
 @include ui.settings-ui;
 
 .row__icon--danger {
-  background: #fff1f3;
-  color: #be123c;
+  background: var(--danger-soft);
+  color: var(--danger);
 }
 
 .password-dots {

@@ -1,28 +1,28 @@
 :host { display: block; min-width: 0; height: 100%; }
-.my-club-card { height: 100%; min-height: 392px; display: flex; overflow: hidden; flex-direction: column; border: 1px solid #d7e2de; border-radius: 15px; background: #fff; box-shadow: 0 5px 18px rgba(7,25,45,.04); cursor: pointer; transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease; }
-.my-club-card:hover { transform: translateY(-4px); border-color: #adc8be; box-shadow: 0 16px 32px rgba(7,25,45,.1); }
+.my-club-card { height: 100%; min-height: 392px; display: flex; overflow: hidden; flex-direction: column; border: 1px solid var(--hairline); border-radius: 15px; background: var(--surface); box-shadow: 0 5px 18px var(--hairline); cursor: pointer; transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease; }
+.my-club-card:hover { transform: translateY(-4px); border-color: #adc8be; box-shadow: 0 16px 32px var(--hairline); }
 .my-club-card:focus-visible { outline: 3px solid rgba(8,122,87,.24); outline-offset: 3px; }
-.my-club-card__cover { position: relative; aspect-ratio: 16 / 7; min-height: 150px; overflow: hidden; background: #e9f0ec; }
+.my-club-card__cover { position: relative; aspect-ratio: 16 / 7; min-height: 150px; overflow: hidden; background: var(--surface-strong); }
 .my-club-card__cover > img { width: 100%; height: 100%; object-fit: cover; transition: transform 500ms cubic-bezier(.2,.7,.2,1); }
 .my-club-card:hover .my-club-card__cover > img { transform: scale(1.045); }
 .my-club-card__shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(7,25,45,.18), transparent 48%, rgba(7,25,45,.14)); }
 app-my-club-role-badge { position: absolute; top: 12px; left: 12px; }
-.my-club-card__request-badge { position: absolute; top: 11px; right: 11px; min-height: 34px; display: inline-flex; align-items: center; gap: 6px; padding: 0 11px; border: 1px solid rgba(255,255,255,.32); border-radius: 8px; background: #087a57; color: #fff; font-size: 13px; font-weight: 850; box-shadow: 0 8px 18px rgba(7,25,45,.18); }
+.my-club-card__request-badge { position: absolute; top: 11px; right: 11px; min-height: 34px; display: inline-flex; align-items: center; gap: 6px; padding: 0 11px; border: 1px solid rgba(255,255,255,.32); border-radius: 8px; background: var(--primary-fill); color: #fff; font-size: 13px; font-weight: 850; box-shadow: 0 8px 18px rgba(7,25,45,.18); }
 .my-club-card__body { min-height: 0; flex: 1; display: flex; flex-direction: column; padding: 15px 17px 14px; }
 .my-club-card__body > header { display: flex; align-items: center; gap: 11px; }
-.my-club-card__logo { width: 50px; height: 50px; display: grid; place-items: center; overflow: hidden; flex: 0 0 auto; border: 1px solid #dbe4e0; border-radius: 9px; background: #07192d; }
+.my-club-card__logo { width: 50px; height: 50px; display: grid; place-items: center; overflow: hidden; flex: 0 0 auto; border: 1px solid var(--hairline); border-radius: 9px; background: #07192d; }
 .my-club-card__logo img { width: 100%; height: 100%; padding: 4px; object-fit: contain; }
-.my-club-card__body header p { margin: 0 0 3px; color: #087a57; font-size: 12px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
-.my-club-card__body h2 { display: -webkit-box; overflow: hidden; margin: 0; color: #07192d !important; font-size: 19px; font-weight: 900; line-height: 1.2; letter-spacing: -.035em; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
-.my-club-card__location { display: flex; align-items: center; gap: 6px; margin: 12px 0 0; color: #647287; font-size: 13px; }
-.my-club-card__location lucide-icon { flex: 0 0 auto; color: #087a57; }
-.my-club-card__description { display: -webkit-box; overflow: hidden; min-height: 43px; margin: 11px 0 12px; color: #526277; font-size: 13.5px; line-height: 1.58; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
-.my-club-card__body footer { min-height: 58px; display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; padding-top: 13px; border-top: 1px solid #e3e9e6; }
+.my-club-card__body header p { margin: 0 0 3px; color: var(--primary); font-size: 12px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+.my-club-card__body h2 { display: -webkit-box; overflow: hidden; margin: 0; color: var(--ink) !important; font-size: 19px; font-weight: 900; line-height: 1.2; letter-spacing: -.035em; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.my-club-card__location { display: flex; align-items: center; gap: 6px; margin: 12px 0 0; color: var(--body); font-size: 13px; }
+.my-club-card__location lucide-icon { flex: 0 0 auto; color: var(--primary); }
+.my-club-card__description { display: -webkit-box; overflow: hidden; min-height: 43px; margin: 11px 0 12px; color: var(--body); font-size: 13.5px; line-height: 1.58; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.my-club-card__body footer { min-height: 58px; display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; padding-top: 13px; border-top: 1px solid var(--hairline); }
 .my-club-card__metrics { min-width: 0; display: flex; gap: 12px; }
-.my-club-card__metrics span { display: grid; grid-template-columns: auto auto; align-items: center; column-gap: 5px; color: #087a57; }
-.my-club-card__metrics b { color: #152b42; font-size: 13px; }
-.my-club-card__metrics small { grid-column: 1 / -1; margin-top: 2px; color: #7a8797; font-size: 13px; white-space: nowrap; }
-.card-action { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 12px; border: 1px solid #087a57; border-radius: 7px; background: transparent; color: #087a57; font: inherit; font-size: 13px; font-weight: 850; white-space: nowrap; cursor: pointer; transition: background-color 180ms ease, color 180ms ease; }
-.card-action:hover, .my-club-card--manager .card-action { background: #087a57; color: #fff; }
-.my-club-card--manager { border-top-color: #087a57; }
+.my-club-card__metrics span { display: grid; grid-template-columns: auto auto; align-items: center; column-gap: 5px; color: var(--primary); }
+.my-club-card__metrics b { color: var(--ink); font-size: 13px; }
+.my-club-card__metrics small { grid-column: 1 / -1; margin-top: 2px; color: var(--body); font-size: 13px; white-space: nowrap; }
+.card-action { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 12px; border: 1px solid var(--primary); border-radius: 7px; background: transparent; color: var(--primary); font: inherit; font-size: 13px; font-weight: 850; white-space: nowrap; cursor: pointer; transition: background-color 180ms ease, color 180ms ease; }
+.card-action:hover, .my-club-card--manager .card-action { background: var(--primary-fill); color: #fff; }
+.my-club-card--manager { border-top-color: var(--primary); }
 @media (max-width: 390px) { .my-club-card__body footer { align-items: stretch; flex-direction: column; } .card-action { width: 100%; } }

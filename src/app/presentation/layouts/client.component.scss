@@ -1,6 +1,6 @@
 .client-container {
   min-height: 100vh;
-  background-color: var(--bg-body, #f7fafc);
+  background-color: var(--bg-body, var(--info-soft));
 }
 
 .client-content-wrapper {
@@ -88,7 +88,7 @@
           top: 25%;
           height: 50%;
           width: 4px;
-          background-color: var(--primary);
+          background-color: var(--primary-fill);
           border-radius: 99px;
         }
       }

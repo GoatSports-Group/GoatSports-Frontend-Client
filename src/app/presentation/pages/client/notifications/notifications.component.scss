@@ -11,7 +11,7 @@
   overflow: hidden;
   border: 1px solid var(--border-color);
   border-radius: 16px;
-  background: #fff;
+  background: var(--surface);
   box-shadow: var(--shadow-sm);
 }
 
@@ -33,12 +33,12 @@
     cursor: pointer;
 
     &:hover {
-      background: #f8faf9;
+      background: var(--surface-subtle);
     }
   }
 
   &.is-unread {
-    background: #fbfdfc;
+    background: var(--surface-subtle);
 
     &::before {
       content: '';
@@ -48,7 +48,7 @@
       left: 0;
       width: 3px;
       border-radius: 0 3px 3px 0;
-      background: var(--primary);
+      background: var(--primary-fill);
     }
 
     .notif-title {
@@ -66,10 +66,10 @@
   background: var(--primary-light);
   color: var(--primary);
 
-  &[data-tone='info'] { background: #edf5fa; color: #315f7d; }
-  &[data-tone='success'] { background: #eaf7f0; color: #18794e; }
-  &[data-tone='warning'] { background: #fff7e7; color: #a15c07; }
-  &[data-tone='danger'] { background: #fff1f3; color: #be123c; }
+  &[data-tone='info'] { background: var(--info-soft); color: var(--info); }
+  &[data-tone='success'] { background: var(--success-soft); color: var(--success); }
+  &[data-tone='warning'] { background: var(--warning-soft); color: var(--warning); }
+  &[data-tone='danger'] { background: var(--danger-soft); color: var(--danger); }
 }
 
 .notif-copy {
@@ -126,7 +126,7 @@
   height: 8px;
   flex: none;
   border-radius: 9999px;
-  background: var(--primary);
+  background: var(--primary-fill);
 }
 
 .notif-confirm {
@@ -138,11 +138,11 @@
   gap: 8px;
   padding: 10px 12px;
   border-radius: 12px;
-  background: #fff1f3;
+  background: var(--danger-soft);
 
   span {
     flex: 1;
-    color: #be123c;
+    color: var(--danger);
     font-size: 13px;
     font-weight: 700;
   }

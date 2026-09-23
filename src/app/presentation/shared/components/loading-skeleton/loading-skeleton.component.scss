@@ -22,7 +22,7 @@
 .sk-bone {
   display: block;
   border-radius: 8px;
-  background: linear-gradient(90deg, #edf4f0 20%, #f8faf9 46%, #edf4f0 72%);
+  background: linear-gradient(90deg, var(--surface-strong) 20%, var(--surface-subtle) 46%, var(--surface-strong) 72%);
   background-size: 240% 100%;
   animation: sk-shimmer 1.35s ease-in-out infinite;
 }
@@ -53,9 +53,9 @@
 
 .sk-card {
   overflow: hidden;
-  border: 1px solid var(--border-color, #dbe5e0);
+  border: 1px solid var(--border-color, var(--hairline));
   border-radius: 16px;
-  background: #fff;
+  background: var(--surface);
 }
 
 .is-flush .sk-card {
@@ -85,7 +85,7 @@
   align-items: center;
   gap: 16px;
   padding: 16px 20px;
-  border-bottom: 1px solid var(--border-color, #dbe5e0);
+  border-bottom: 1px solid var(--border-color, var(--hairline));
 
   &:last-child { border-bottom: 0; }
 }
@@ -121,7 +121,7 @@
   gap: 12px;
   margin: 0 20px;
   padding: 12px 0 16px;
-  border-top: 1px solid var(--border-color, #dbe5e0);
+  border-top: 1px solid var(--border-color, var(--hairline));
 }
 
 // ---- table --------------------------------------------------------------------------------------
@@ -131,14 +131,14 @@
   gap: 16px;
   min-height: 52px;
   padding: 0 20px;
-  border-bottom: 1px solid var(--border-color, #dbe5e0);
+  border-bottom: 1px solid var(--border-color, var(--hairline));
 
   &:last-child { border-bottom: 0; }
 }
 
 .sk-table__head {
   min-height: 44px;
-  background: #f8faf9;
+  background: var(--surface-subtle);
 }
 
 // ---- stats --------------------------------------------------------------------------------------
@@ -158,8 +158,8 @@
 .sk-info__title {
   display: block;
   padding: 14px 20px;
-  border-bottom: 1px solid var(--border-color, #dbe5e0);
-  background: #f8faf9;
+  border-bottom: 1px solid var(--border-color, var(--hairline));
+  background: var(--surface-subtle);
 }
 
 .sk-info__grid {
@@ -173,7 +173,7 @@
   align-items: center;
   gap: 12px;
   padding: 16px 20px;
-  box-shadow: -1px 0 0 var(--border-color, #dbe5e0), 0 -1px 0 var(--border-color, #dbe5e0);
+  box-shadow: -1px 0 0 var(--border-color, var(--hairline)), 0 -1px 0 var(--border-color, var(--hairline));
 }
 
 // ---- detail -------------------------------------------------------------------------------------

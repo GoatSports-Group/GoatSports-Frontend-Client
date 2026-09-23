@@ -1,28 +1,10 @@
 @mixin product-system {
 :root {
-  --primary: #007a55;
-  --primary-hover: #005f43;
-  --primary-strong: #004d38;
-  --primary-light: #e8f7f1;
-  --accent: #007a55;
-  --accent-hover: #005f43;
-  --accent-light: #e8f7f1;
-  --text-dark: #101a2c;
-  --text-muted: #5f6f84;
-  --text-soft: #8995a6;
-  --bg-body: #f4f7f5;
-  --bg-card: #ffffff;
-  --bg-ink: #101a2c;
-  --border-color: #dbe5e0;
-  --border-strong: #c8d7d0;
   --font-heading: 'Be Vietnam Pro', sans-serif;
   --font-body: 'Be Vietnam Pro', sans-serif;
   --border-radius: 16px;
   --border-radius-sm: 11px;
   --border-radius-lg: 22px;
-  --shadow-sm: 0 1px 2px rgb(16 26 44 / 5%);
-  --shadow-md: 0 12px 30px rgb(16 26 44 / 8%);
-  --shadow-lg: 0 24px 64px rgb(16 26 44 / 14%);
   --shadow-glow-primary: none;
   --transition-smooth: 180ms cubic-bezier(.2, .8, .2, 1);
   --transition-spring: 220ms cubic-bezier(.2, .8, .2, 1);
@@ -158,9 +140,9 @@ button,
 
 .focus-ring:focus-visible,
 :where(a, button, [tabindex]:not(input, select, textarea), input[type='checkbox'], input[type='radio']):focus-visible {
-  outline: 3px solid #13a879 !important;
+  outline: 3px solid var(--primary) !important;
   outline-offset: 3px !important;
-  box-shadow: 0 0 0 2px #fff !important;
+  box-shadow: 0 0 0 2px var(--surface) !important;
 }
 
 /* Design §6: text fields show focus through the caret and icon tint, never a border change, outline or ring. */
@@ -201,16 +183,16 @@ button,
     }
 
     &:hover:not([disabled]) {
-      background: #f8faf9;
+      background: var(--surface-subtle);
     }
 
     &.is-danger,
     &.is-danger lucide-icon {
-      color: #be123c;
+      color: var(--danger);
     }
 
     &.is-danger:hover:not([disabled]) {
-      background: #fff1f3;
+      background: var(--danger-soft);
     }
   }
 
@@ -234,7 +216,7 @@ button,
 
 ::selection {
   color: #fff;
-  background: var(--primary);
+  background: var(--primary-fill);
 }
 
 @media (max-width: 720px) {
@@ -260,10 +242,10 @@ button,
 .sport-link > span,
 .network-card__number,
 .price-label {
-  color: #526174 !important;
+  color: var(--body) !important;
 }
 
 .network-card--ink > .network-card__number {
-  color: #cbd5e1 !important;
+  color: var(--muted) !important;
 }
 }

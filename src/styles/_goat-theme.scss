@@ -1,0 +1,488 @@
+// GOAT theme tokens — light & dark (GOAT-DESIGN.md §3 "Color Palette & Roles", "Dark theme").
+// Kept identical in client, admin and auth (src/styles/_goat-theme.scss).
+//
+// The active theme lives on <html data-theme="light|dark">. A tiny inline script in index.html sets it
+// before the first paint (cookie `goat-theme` = system | light | dark), ThemeService keeps it in sync.
+// Components use the semantic tokens below; nothing else should hard-code a neutral or brand colour.
+
+:root {
+  color-scheme: light;
+
+  // Surfaces
+  --canvas: #f4f7f5;
+  --surface: #ffffff;
+  --surface-subtle: #f8faf9;
+  --surface-strong: #edf4f0;
+  --surface-raised: #ffffff; // menus, dialogs, popovers
+  --scrim: rgb(16 26 44 / 55%);
+
+  // Text
+  --ink: #101a2c;
+  --ink-2: #334155; // secondary strong text
+  --body: #5f6f84;
+  --muted: #8995a6; // non-text only (3:1)
+
+  // Lines
+  --hairline: #dbe5e0;
+  --border-strong: #c8d7d0;
+
+  // Brand
+  --primary: #007a55;
+  --primary-hover: #005f43;
+  --primary-strong: #004d38;
+  --primary-light: #e8f7f1;
+  --on-primary: #ffffff;
+  // Fills that carry white text (buttons, badges). Same as primary in light; darker than primary in dark.
+  --primary-fill: var(--primary);
+  --primary-fill-hover: var(--primary-hover);
+  --focus-ring: #13a879;
+  --sports-navy: #07192d; // featured regions stay navy in both themes
+
+  // Status pairs (text / soft fill)
+  --success: #18794e;
+  --success-soft: #eaf7f0;
+  --warning: #a15c07;
+  --warning-soft: #fff7e7;
+  --danger: #be123c;
+  --danger-soft: #fff1f3;
+  --info: #315f7d;
+  --info-soft: #edf5fa;
+  --rating: #e98208;
+
+  // Depth
+  --shadow-sm: 0 1px 2px rgb(16 26 44 / 5%);
+  --shadow-md: 0 12px 30px rgb(16 26 44 / 8%);
+  --shadow-lg: 0 24px 64px rgb(16 26 44 / 14%);
+
+  // Legacy aliases still used across the apps
+  --text-dark: var(--ink);
+  --text-muted: var(--body);
+  --text-soft: var(--muted);
+  --bg-body: var(--canvas);
+  --bg-card: var(--surface);
+  --bg-ink: #101a2c; // dark "ink" buttons keep white text in both themes
+  --border-color: var(--hairline);
+  --accent: var(--primary);
+  --accent-hover: var(--primary-hover);
+  --accent-light: var(--primary-light);
+
+  // Angular Material 3 system tokens follow the GOAT palette (menus, dialogs, selects, spinners…)
+  --mat-sys-background: var(--canvas);
+  --mat-sys-on-background: var(--ink);
+  --mat-sys-surface: var(--surface-raised);
+  --mat-sys-on-surface: var(--ink);
+  --mat-sys-surface-container-lowest: var(--surface);
+  --mat-sys-surface-container-low: var(--surface);
+  --mat-sys-surface-container: var(--surface-raised);
+  --mat-sys-surface-container-high: var(--surface-raised);
+  --mat-sys-surface-container-highest: var(--surface-strong);
+  --mat-sys-surface-variant: var(--surface-strong);
+  --mat-sys-on-surface-variant: var(--body);
+  --mat-sys-outline: var(--border-strong);
+  --mat-sys-outline-variant: var(--hairline);
+  --mat-sys-primary: var(--primary-fill);
+  --mat-sys-on-primary: var(--on-primary);
+  --mat-sys-primary-container: var(--primary-light);
+  --mat-sys-on-primary-container: var(--primary-strong);
+  --mat-sys-secondary-container: var(--primary-light);
+  --mat-sys-on-secondary-container: var(--primary-strong);
+  --mat-sys-error: var(--danger);
+  --mat-sys-inverse-surface: var(--ink);
+  --mat-sys-inverse-on-surface: var(--surface);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --canvas: #0b1310;
+  --surface: #121c18;
+  --surface-subtle: #16221d;
+  --surface-strong: #1d2c26;
+  --surface-raised: #18251f;
+  --scrim: rgb(0 0 0 / 62%);
+
+  --ink: #e7eeea;
+  --ink-2: #c6d3cd;
+  --body: #a2b2ab; // 7.9:1 on --surface
+  --muted: #889b93; // 5.9:1 on surface: many legacy screens still use it for text
+
+  --hairline: #26372f;
+  --border-strong: #33493f;
+
+  // One emerald cannot pass 4.5:1 both as text on these surfaces and under white text, so dark splits it:
+  // --primary is the text/border colour (7.8:1 on surface), --primary-fill carries white text (4.8:1).
+  --primary: #34c48f;
+  --primary-hover: #5fd6a8;
+  --primary-fill: #0d8259;
+  --primary-fill-hover: #0a7550;
+  --primary-strong: #7be0b4;
+  --primary-light: #113227;
+  --focus-ring: #34d399;
+
+  --success: #4ade9a;
+  --success-soft: #0f2c20;
+  --warning: #f5b54a;
+  --warning-soft: #33250c;
+  --danger: #fb7a8e;
+  --danger-soft: #3a1520;
+  --info: #7fb9e0;
+  --info-soft: #122838;
+  --rating: #f59e0b;
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
+  --shadow-md: 0 12px 30px rgb(0 0 0 / 45%);
+  --shadow-lg: 0 24px 64px rgb(0 0 0 / 55%);
+
+  --bg-ink: #22332c;
+}
+
+// ---- Tailwind utilities in dark mode (admin, auth, client icons) ------------------------------------
+// Utilities read var(--color-*). Light shades (50–300, used as tints, borders and soft fills) are remapped to
+// dark equivalents; neutrals map onto the GOAT dark tokens so Tailwind greys share the green-tinted palette.
+// Deep shades (700–950) keep their value, because they are also dark fills and hero gradients with white text;
+// only their *text* utilities are lightened below. Generated from tailwindcss/theme.css.
+:root[data-theme='dark'] {
+  --color-slate-50: var(--surface-subtle);
+  --color-slate-100: var(--surface-strong);
+  --color-slate-200: var(--hairline);
+  --color-slate-300: var(--border-strong);
+  --color-slate-400: var(--muted);
+  --color-slate-600: var(--body);
+  --color-gray-50: var(--surface-subtle);
+  --color-gray-100: var(--surface-strong);
+  --color-gray-200: var(--hairline);
+  --color-gray-300: var(--border-strong);
+  --color-gray-400: var(--muted);
+  --color-gray-600: var(--body);
+  --color-zinc-50: var(--surface-subtle);
+  --color-zinc-100: var(--surface-strong);
+  --color-zinc-200: var(--hairline);
+  --color-zinc-300: var(--border-strong);
+  --color-zinc-400: var(--muted);
+  --color-zinc-600: var(--body);
+  --color-neutral-50: var(--surface-subtle);
+  --color-neutral-100: var(--surface-strong);
+  --color-neutral-200: var(--hairline);
+  --color-neutral-300: var(--border-strong);
+  --color-neutral-400: var(--muted);
+  --color-neutral-600: var(--body);
+  --color-stone-50: var(--surface-subtle);
+  --color-stone-100: var(--surface-strong);
+  --color-stone-200: var(--hairline);
+  --color-stone-300: var(--border-strong);
+  --color-stone-400: var(--muted);
+  --color-stone-600: var(--body);
+  --color-emerald-50: oklch(26.2% 0.051 172.552);
+  --color-emerald-100: oklch(37.8% 0.077 168.94);
+  --color-emerald-200: oklch(43.2% 0.095 166.913);
+  --color-emerald-300: oklch(50.8% 0.118 165.612);
+  --color-green-50: oklch(26.6% 0.065 152.934);
+  --color-green-100: oklch(39.3% 0.095 152.535);
+  --color-green-200: oklch(44.8% 0.119 151.328);
+  --color-green-300: oklch(52.7% 0.154 150.069);
+  --color-teal-50: oklch(27.7% 0.046 192.524);
+  --color-teal-100: oklch(38.6% 0.063 188.416);
+  --color-teal-200: oklch(43.7% 0.078 188.216);
+  --color-teal-300: oklch(51.1% 0.096 186.391);
+  --color-rose-50: oklch(27.1% 0.105 12.094);
+  --color-rose-100: oklch(41% 0.159 10.272);
+  --color-rose-200: oklch(45.5% 0.188 13.697);
+  --color-rose-300: oklch(51.4% 0.222 16.935);
+  --color-red-50: oklch(25.8% 0.092 26.042);
+  --color-red-100: oklch(39.6% 0.141 25.723);
+  --color-red-200: oklch(44.4% 0.177 26.899);
+  --color-red-300: oklch(50.5% 0.213 27.518);
+  --color-amber-50: oklch(27.9% 0.077 45.635);
+  --color-amber-100: oklch(41.4% 0.112 45.904);
+  --color-amber-200: oklch(47.3% 0.137 46.201);
+  --color-amber-300: oklch(55.5% 0.163 48.998);
+  --color-yellow-50: oklch(28.6% 0.066 53.813);
+  --color-yellow-100: oklch(42.1% 0.095 57.708);
+  --color-yellow-200: oklch(47.6% 0.114 61.907);
+  --color-yellow-300: oklch(55.4% 0.135 66.442);
+  --color-orange-50: oklch(26.6% 0.079 36.259);
+  --color-orange-100: oklch(40.8% 0.123 38.172);
+  --color-orange-200: oklch(47% 0.157 37.304);
+  --color-orange-300: oklch(55.3% 0.195 38.402);
+  --color-sky-50: oklch(29.3% 0.066 243.157);
+  --color-sky-100: oklch(39.1% 0.09 240.876);
+  --color-sky-200: oklch(44.3% 0.11 240.79);
+  --color-sky-300: oklch(50% 0.134 242.749);
+  --color-blue-50: oklch(28.2% 0.091 267.935);
+  --color-blue-100: oklch(37.9% 0.146 265.522);
+  --color-blue-200: oklch(42.4% 0.199 265.638);
+  --color-blue-300: oklch(48.8% 0.243 264.376);
+  --color-cyan-50: oklch(30.2% 0.056 229.695);
+  --color-cyan-100: oklch(39.8% 0.07 227.392);
+  --color-cyan-200: oklch(45% 0.085 224.283);
+  --color-cyan-300: oklch(52% 0.105 223.128);
+  --color-indigo-50: oklch(25.7% 0.09 281.288);
+  --color-indigo-100: oklch(35.9% 0.144 278.697);
+  --color-indigo-200: oklch(39.8% 0.195 277.366);
+  --color-indigo-300: oklch(45.7% 0.24 277.023);
+  --color-violet-50: oklch(28.3% 0.141 291.089);
+  --color-violet-100: oklch(38% 0.189 293.745);
+  --color-violet-200: oklch(43.2% 0.232 292.759);
+  --color-violet-300: oklch(49.1% 0.27 292.581);
+  --color-purple-50: oklch(29.1% 0.149 302.717);
+  --color-purple-100: oklch(38.1% 0.176 304.987);
+  --color-purple-200: oklch(43.8% 0.218 303.724);
+  --color-purple-300: oklch(49.6% 0.265 301.924);
+  --color-lime-50: oklch(27.4% 0.072 132.109);
+  --color-lime-100: oklch(40.5% 0.101 131.063);
+  --color-lime-200: oklch(45.3% 0.124 130.933);
+  --color-lime-300: oklch(53.2% 0.157 131.589);
+  --color-pink-50: oklch(28.4% 0.109 3.907);
+  --color-pink-100: oklch(40.8% 0.153 2.432);
+  --color-pink-200: oklch(45.9% 0.187 3.815);
+  --color-pink-300: oklch(52.5% 0.223 3.958);
+  --color-fuchsia-50: oklch(29.3% 0.136 325.661);
+  --color-fuchsia-100: oklch(40.1% 0.17 325.612);
+  --color-fuchsia-200: oklch(45.2% 0.211 324.591);
+  --color-fuchsia-300: oklch(51.8% 0.253 323.949);
+}
+
+:root[data-theme='dark'] .text-slate-700 { color: var(--ink-2); }
+:root[data-theme='dark'] .text-slate-800 { color: var(--ink); }
+:root[data-theme='dark'] .text-slate-900 { color: var(--ink); }
+:root[data-theme='dark'] .text-slate-950 { color: var(--ink); }
+:root[data-theme='dark'] .text-gray-700 { color: var(--ink-2); }
+:root[data-theme='dark'] .text-gray-800 { color: var(--ink); }
+:root[data-theme='dark'] .text-gray-900 { color: var(--ink); }
+:root[data-theme='dark'] .text-gray-950 { color: var(--ink); }
+:root[data-theme='dark'] .text-zinc-700 { color: var(--ink-2); }
+:root[data-theme='dark'] .text-zinc-800 { color: var(--ink); }
+:root[data-theme='dark'] .text-zinc-900 { color: var(--ink); }
+:root[data-theme='dark'] .text-zinc-950 { color: var(--ink); }
+:root[data-theme='dark'] .text-neutral-700 { color: var(--ink-2); }
+:root[data-theme='dark'] .text-neutral-800 { color: var(--ink); }
+:root[data-theme='dark'] .text-neutral-900 { color: var(--ink); }
+:root[data-theme='dark'] .text-neutral-950 { color: var(--ink); }
+:root[data-theme='dark'] .text-stone-700 { color: var(--ink-2); }
+:root[data-theme='dark'] .text-stone-800 { color: var(--ink); }
+:root[data-theme='dark'] .text-stone-900 { color: var(--ink); }
+:root[data-theme='dark'] .text-stone-950 { color: var(--ink); }
+:root[data-theme='dark'] .text-emerald-700 { color: oklch(84.5% 0.143 164.978); }
+:root[data-theme='dark'] .text-emerald-800 { color: oklch(90.5% 0.093 164.15); }
+:root[data-theme='dark'] .text-emerald-900 { color: oklch(95% 0.052 163.051); }
+:root[data-theme='dark'] .text-emerald-950 { color: oklch(97.9% 0.021 166.113); }
+:root[data-theme='dark'] .text-green-700 { color: oklch(87.1% 0.15 154.449); }
+:root[data-theme='dark'] .text-green-800 { color: oklch(92.5% 0.084 155.995); }
+:root[data-theme='dark'] .text-green-900 { color: oklch(96.2% 0.044 156.743); }
+:root[data-theme='dark'] .text-green-950 { color: oklch(98.2% 0.018 155.826); }
+:root[data-theme='dark'] .text-teal-700 { color: oklch(85.5% 0.138 181.071); }
+:root[data-theme='dark'] .text-teal-800 { color: oklch(91% 0.096 180.426); }
+:root[data-theme='dark'] .text-teal-900 { color: oklch(95.3% 0.051 180.801); }
+:root[data-theme='dark'] .text-teal-950 { color: oklch(98.4% 0.014 180.72); }
+:root[data-theme='dark'] .text-rose-700 { color: oklch(81% 0.117 11.638); }
+:root[data-theme='dark'] .text-rose-800 { color: oklch(89.2% 0.058 10.001); }
+:root[data-theme='dark'] .text-rose-900 { color: oklch(94.1% 0.03 12.58); }
+:root[data-theme='dark'] .text-rose-950 { color: oklch(96.9% 0.015 12.422); }
+:root[data-theme='dark'] .text-red-700 { color: oklch(80.8% 0.114 19.571); }
+:root[data-theme='dark'] .text-red-800 { color: oklch(88.5% 0.062 18.334); }
+:root[data-theme='dark'] .text-red-900 { color: oklch(93.6% 0.032 17.717); }
+:root[data-theme='dark'] .text-red-950 { color: oklch(97.1% 0.013 17.38); }
+:root[data-theme='dark'] .text-amber-700 { color: oklch(87.9% 0.169 91.605); }
+:root[data-theme='dark'] .text-amber-800 { color: oklch(92.4% 0.12 95.746); }
+:root[data-theme='dark'] .text-amber-900 { color: oklch(96.2% 0.059 95.617); }
+:root[data-theme='dark'] .text-amber-950 { color: oklch(98.7% 0.022 95.277); }
+:root[data-theme='dark'] .text-yellow-700 { color: oklch(90.5% 0.182 98.111); }
+:root[data-theme='dark'] .text-yellow-800 { color: oklch(94.5% 0.129 101.54); }
+:root[data-theme='dark'] .text-yellow-900 { color: oklch(97.3% 0.071 103.193); }
+:root[data-theme='dark'] .text-yellow-950 { color: oklch(98.7% 0.026 102.212); }
+:root[data-theme='dark'] .text-orange-700 { color: oklch(83.7% 0.128 66.29); }
+:root[data-theme='dark'] .text-orange-800 { color: oklch(90.1% 0.076 70.697); }
+:root[data-theme='dark'] .text-orange-900 { color: oklch(95.4% 0.038 75.164); }
+:root[data-theme='dark'] .text-orange-950 { color: oklch(98% 0.016 73.684); }
+:root[data-theme='dark'] .text-sky-700 { color: oklch(82.8% 0.111 230.318); }
+:root[data-theme='dark'] .text-sky-800 { color: oklch(90.1% 0.058 230.902); }
+:root[data-theme='dark'] .text-sky-900 { color: oklch(95.1% 0.026 236.824); }
+:root[data-theme='dark'] .text-sky-950 { color: oklch(97.7% 0.013 236.62); }
+:root[data-theme='dark'] .text-blue-700 { color: oklch(80.9% 0.105 251.813); }
+:root[data-theme='dark'] .text-blue-800 { color: oklch(88.2% 0.059 254.128); }
+:root[data-theme='dark'] .text-blue-900 { color: oklch(93.2% 0.032 255.585); }
+:root[data-theme='dark'] .text-blue-950 { color: oklch(97% 0.014 254.604); }
+:root[data-theme='dark'] .text-cyan-700 { color: oklch(86.5% 0.127 207.078); }
+:root[data-theme='dark'] .text-cyan-800 { color: oklch(91.7% 0.08 205.041); }
+:root[data-theme='dark'] .text-cyan-900 { color: oklch(95.6% 0.045 203.388); }
+:root[data-theme='dark'] .text-cyan-950 { color: oklch(98.4% 0.019 200.873); }
+:root[data-theme='dark'] .text-indigo-700 { color: oklch(78.5% 0.115 274.713); }
+:root[data-theme='dark'] .text-indigo-800 { color: oklch(87% 0.065 274.039); }
+:root[data-theme='dark'] .text-indigo-900 { color: oklch(93% 0.034 272.788); }
+:root[data-theme='dark'] .text-indigo-950 { color: oklch(96.2% 0.018 272.314); }
+:root[data-theme='dark'] .text-violet-700 { color: oklch(81.1% 0.111 293.571); }
+:root[data-theme='dark'] .text-violet-800 { color: oklch(89.4% 0.057 293.283); }
+:root[data-theme='dark'] .text-violet-900 { color: oklch(94.3% 0.029 294.588); }
+:root[data-theme='dark'] .text-violet-950 { color: oklch(96.9% 0.016 293.756); }
+:root[data-theme='dark'] .text-purple-700 { color: oklch(82.7% 0.119 306.383); }
+:root[data-theme='dark'] .text-purple-800 { color: oklch(90.2% 0.063 306.703); }
+:root[data-theme='dark'] .text-purple-900 { color: oklch(94.6% 0.033 307.174); }
+:root[data-theme='dark'] .text-purple-950 { color: oklch(97.7% 0.014 308.299); }
+:root[data-theme='dark'] .text-lime-700 { color: oklch(89.7% 0.196 126.665); }
+:root[data-theme='dark'] .text-lime-800 { color: oklch(93.8% 0.127 124.321); }
+:root[data-theme='dark'] .text-lime-900 { color: oklch(96.7% 0.067 122.328); }
+:root[data-theme='dark'] .text-lime-950 { color: oklch(98.6% 0.031 120.757); }
+:root[data-theme='dark'] .text-pink-700 { color: oklch(82.3% 0.12 346.018); }
+:root[data-theme='dark'] .text-pink-800 { color: oklch(89.9% 0.061 343.231); }
+:root[data-theme='dark'] .text-pink-900 { color: oklch(94.8% 0.028 342.258); }
+:root[data-theme='dark'] .text-pink-950 { color: oklch(97.1% 0.014 343.198); }
+:root[data-theme='dark'] .text-fuchsia-700 { color: oklch(83.3% 0.145 321.434); }
+:root[data-theme='dark'] .text-fuchsia-800 { color: oklch(90.3% 0.076 319.62); }
+:root[data-theme='dark'] .text-fuchsia-900 { color: oklch(95.2% 0.037 318.852); }
+:root[data-theme='dark'] .text-fuchsia-950 { color: oklch(97.7% 0.017 320.058); }
+
+// Light-shade *text* keeps its real colour: it is light text on dark fills (heroes, badges on deep shades).
+:root[data-theme='dark'] .text-slate-50 { color: oklch(98.4% 0.003 247.858); }
+:root[data-theme='dark'] .text-slate-100 { color: oklch(96.8% 0.007 247.896); }
+:root[data-theme='dark'] .text-slate-200 { color: oklch(92.9% 0.013 255.508); }
+:root[data-theme='dark'] .text-slate-300 { color: oklch(86.9% 0.022 252.894); }
+// Grey 400/500 text is metadata: use the readable green-grey body tone instead of blue-grey slate.
+:root[data-theme='dark'] .text-slate-400,
+:root[data-theme='dark'] .text-slate-500,
+:root[data-theme='dark'] .text-gray-400,
+:root[data-theme='dark'] .text-gray-500,
+:root[data-theme='dark'] .text-zinc-400,
+:root[data-theme='dark'] .text-zinc-500,
+:root[data-theme='dark'] .text-neutral-400,
+:root[data-theme='dark'] .text-neutral-500,
+:root[data-theme='dark'] .text-stone-400,
+:root[data-theme='dark'] .text-stone-500,
+:root[data-theme='dark'] .hover\:text-slate-500:hover,
+:root[data-theme='dark'] .placeholder\:text-slate-400::placeholder {
+  color: var(--body);
+}
+:root[data-theme='dark'] .text-gray-50 { color: oklch(98.5% 0.002 247.839); }
+:root[data-theme='dark'] .text-gray-100 { color: oklch(96.7% 0.003 264.542); }
+:root[data-theme='dark'] .text-gray-200 { color: oklch(92.8% 0.006 264.531); }
+:root[data-theme='dark'] .text-gray-300 { color: oklch(87.2% 0.01 258.338); }
+:root[data-theme='dark'] .text-gray-400 { color: oklch(70.7% 0.022 261.325); }
+:root[data-theme='dark'] .text-zinc-50 { color: oklch(98.5% 0 none); }
+:root[data-theme='dark'] .text-zinc-100 { color: oklch(96.7% 0.001 286.375); }
+:root[data-theme='dark'] .text-zinc-200 { color: oklch(92% 0.004 286.32); }
+:root[data-theme='dark'] .text-zinc-300 { color: oklch(87.1% 0.006 286.286); }
+:root[data-theme='dark'] .text-zinc-400 { color: oklch(70.5% 0.015 286.067); }
+:root[data-theme='dark'] .text-neutral-50 { color: oklch(98.5% 0 none); }
+:root[data-theme='dark'] .text-neutral-100 { color: oklch(97% 0 none); }
+:root[data-theme='dark'] .text-neutral-200 { color: oklch(92.2% 0 none); }
+:root[data-theme='dark'] .text-neutral-300 { color: oklch(87% 0 none); }
+:root[data-theme='dark'] .text-neutral-400 { color: oklch(70.8% 0 none); }
+:root[data-theme='dark'] .text-stone-50 { color: oklch(98.5% 0.001 106.423); }
+:root[data-theme='dark'] .text-stone-100 { color: oklch(97% 0.001 106.424); }
+:root[data-theme='dark'] .text-stone-200 { color: oklch(92.3% 0.003 48.717); }
+:root[data-theme='dark'] .text-stone-300 { color: oklch(86.9% 0.005 56.366); }
+:root[data-theme='dark'] .text-stone-400 { color: oklch(70.9% 0.01 56.259); }
+:root[data-theme='dark'] .text-emerald-50 { color: oklch(97.9% 0.021 166.113); }
+:root[data-theme='dark'] .text-emerald-100 { color: oklch(95% 0.052 163.051); }
+:root[data-theme='dark'] .text-emerald-200 { color: oklch(90.5% 0.093 164.15); }
+:root[data-theme='dark'] .text-emerald-300 { color: oklch(84.5% 0.143 164.978); }
+:root[data-theme='dark'] .text-green-50 { color: oklch(98.2% 0.018 155.826); }
+:root[data-theme='dark'] .text-green-100 { color: oklch(96.2% 0.044 156.743); }
+:root[data-theme='dark'] .text-green-200 { color: oklch(92.5% 0.084 155.995); }
+:root[data-theme='dark'] .text-green-300 { color: oklch(87.1% 0.15 154.449); }
+:root[data-theme='dark'] .text-teal-50 { color: oklch(98.4% 0.014 180.72); }
+:root[data-theme='dark'] .text-teal-100 { color: oklch(95.3% 0.051 180.801); }
+:root[data-theme='dark'] .text-teal-200 { color: oklch(91% 0.096 180.426); }
+:root[data-theme='dark'] .text-teal-300 { color: oklch(85.5% 0.138 181.071); }
+:root[data-theme='dark'] .text-rose-50 { color: oklch(96.9% 0.015 12.422); }
+:root[data-theme='dark'] .text-rose-100 { color: oklch(94.1% 0.03 12.58); }
+:root[data-theme='dark'] .text-rose-200 { color: oklch(89.2% 0.058 10.001); }
+:root[data-theme='dark'] .text-rose-300 { color: oklch(81% 0.117 11.638); }
+:root[data-theme='dark'] .text-red-50 { color: oklch(97.1% 0.013 17.38); }
+:root[data-theme='dark'] .text-red-100 { color: oklch(93.6% 0.032 17.717); }
+:root[data-theme='dark'] .text-red-200 { color: oklch(88.5% 0.062 18.334); }
+:root[data-theme='dark'] .text-red-300 { color: oklch(80.8% 0.114 19.571); }
+:root[data-theme='dark'] .text-amber-50 { color: oklch(98.7% 0.022 95.277); }
+:root[data-theme='dark'] .text-amber-100 { color: oklch(96.2% 0.059 95.617); }
+:root[data-theme='dark'] .text-amber-200 { color: oklch(92.4% 0.12 95.746); }
+:root[data-theme='dark'] .text-amber-300 { color: oklch(87.9% 0.169 91.605); }
+:root[data-theme='dark'] .text-yellow-50 { color: oklch(98.7% 0.026 102.212); }
+:root[data-theme='dark'] .text-yellow-100 { color: oklch(97.3% 0.071 103.193); }
+:root[data-theme='dark'] .text-yellow-200 { color: oklch(94.5% 0.129 101.54); }
+:root[data-theme='dark'] .text-yellow-300 { color: oklch(90.5% 0.182 98.111); }
+:root[data-theme='dark'] .text-orange-50 { color: oklch(98% 0.016 73.684); }
+:root[data-theme='dark'] .text-orange-100 { color: oklch(95.4% 0.038 75.164); }
+:root[data-theme='dark'] .text-orange-200 { color: oklch(90.1% 0.076 70.697); }
+:root[data-theme='dark'] .text-orange-300 { color: oklch(83.7% 0.128 66.29); }
+:root[data-theme='dark'] .text-sky-50 { color: oklch(97.7% 0.013 236.62); }
+:root[data-theme='dark'] .text-sky-100 { color: oklch(95.1% 0.026 236.824); }
+:root[data-theme='dark'] .text-sky-200 { color: oklch(90.1% 0.058 230.902); }
+:root[data-theme='dark'] .text-sky-300 { color: oklch(82.8% 0.111 230.318); }
+:root[data-theme='dark'] .text-blue-50 { color: oklch(97% 0.014 254.604); }
+:root[data-theme='dark'] .text-blue-100 { color: oklch(93.2% 0.032 255.585); }
+:root[data-theme='dark'] .text-blue-200 { color: oklch(88.2% 0.059 254.128); }
+:root[data-theme='dark'] .text-blue-300 { color: oklch(80.9% 0.105 251.813); }
+:root[data-theme='dark'] .text-cyan-50 { color: oklch(98.4% 0.019 200.873); }
+:root[data-theme='dark'] .text-cyan-100 { color: oklch(95.6% 0.045 203.388); }
+:root[data-theme='dark'] .text-cyan-200 { color: oklch(91.7% 0.08 205.041); }
+:root[data-theme='dark'] .text-cyan-300 { color: oklch(86.5% 0.127 207.078); }
+:root[data-theme='dark'] .text-indigo-50 { color: oklch(96.2% 0.018 272.314); }
+:root[data-theme='dark'] .text-indigo-100 { color: oklch(93% 0.034 272.788); }
+:root[data-theme='dark'] .text-indigo-200 { color: oklch(87% 0.065 274.039); }
+:root[data-theme='dark'] .text-indigo-300 { color: oklch(78.5% 0.115 274.713); }
+:root[data-theme='dark'] .text-violet-50 { color: oklch(96.9% 0.016 293.756); }
+:root[data-theme='dark'] .text-violet-100 { color: oklch(94.3% 0.029 294.588); }
+:root[data-theme='dark'] .text-violet-200 { color: oklch(89.4% 0.057 293.283); }
+:root[data-theme='dark'] .text-violet-300 { color: oklch(81.1% 0.111 293.571); }
+:root[data-theme='dark'] .text-purple-50 { color: oklch(97.7% 0.014 308.299); }
+:root[data-theme='dark'] .text-purple-100 { color: oklch(94.6% 0.033 307.174); }
+:root[data-theme='dark'] .text-purple-200 { color: oklch(90.2% 0.063 306.703); }
+:root[data-theme='dark'] .text-purple-300 { color: oklch(82.7% 0.119 306.383); }
+:root[data-theme='dark'] .text-lime-50 { color: oklch(98.6% 0.031 120.757); }
+:root[data-theme='dark'] .text-lime-100 { color: oklch(96.7% 0.067 122.328); }
+:root[data-theme='dark'] .text-lime-200 { color: oklch(93.8% 0.127 124.321); }
+:root[data-theme='dark'] .text-lime-300 { color: oklch(89.7% 0.196 126.665); }
+:root[data-theme='dark'] .text-pink-50 { color: oklch(97.1% 0.014 343.198); }
+:root[data-theme='dark'] .text-pink-100 { color: oklch(94.8% 0.028 342.258); }
+:root[data-theme='dark'] .text-pink-200 { color: oklch(89.9% 0.061 343.231); }
+:root[data-theme='dark'] .text-pink-300 { color: oklch(82.3% 0.12 346.018); }
+:root[data-theme='dark'] .text-fuchsia-50 { color: oklch(97.7% 0.017 320.058); }
+:root[data-theme='dark'] .text-fuchsia-100 { color: oklch(95.2% 0.037 318.852); }
+:root[data-theme='dark'] .text-fuchsia-200 { color: oklch(90.3% 0.076 319.62); }
+:root[data-theme='dark'] .text-fuchsia-300 { color: oklch(83.3% 0.145 321.434); }
+
+// White surfaces (>= 50% white) become dark surfaces; faint white overlays on heroes stay translucent,
+// and white text on coloured fills stays white.
+// Tailwind bg-primary resolves to --primary, the text shade in dark.
+:root[data-theme='dark'] .bg-primary {
+  background-color: var(--primary-fill);
+}
+
+:root[data-theme='dark'] :is(.bg-white, .bg-white\/50, .bg-white\/60, .bg-white\/70, .bg-white\/75, .bg-white\/80, .bg-white\/85, .bg-white\/90, .bg-white\/95) {
+  background-color: var(--surface) !important;
+}
+
+:root[data-theme='dark'] :is(.border-white, [class*='border-white/']) {
+  border-color: var(--hairline) !important;
+}
+
+// Map tiles are pictures: darken them instead of shipping a second tile set.
+:root[data-theme='dark'] .leaflet-container {
+  background: var(--surface-strong);
+}
+
+:root[data-theme='dark'] .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(.92) contrast(.88) saturate(.7);
+}
+
+// ---- Theme switch animation (View Transitions): ThemeService animates a circle from the toggle. ----
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+// ThemeService sets this while switching: the page changes colour in one step instead of hundreds of
+// 180ms transitions competing with the reveal. The toggle icon keeps its flip.
+:root[data-theme-switching] *:not(.theme-toggle__icon),
+:root[data-theme-switching] *::before,
+:root[data-theme-switching] *::after {
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

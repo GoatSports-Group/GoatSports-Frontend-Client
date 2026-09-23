@@ -60,6 +60,7 @@
 
     <!-- Actions (Bookings & User Profile) -->
     <div class="actions-container">
+      <app-theme-toggle size="sm"></app-theme-toggle>
       <!-- Notification Dropdown Container -->
       @if (authService.isAuthenticated$ | async) {
       <div class="notif-dropdown-container relative">

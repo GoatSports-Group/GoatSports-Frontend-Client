@@ -35,7 +35,7 @@
     &:disabled {
       cursor: not-allowed;
       opacity: .55;
-      background-color: #f8faf9;
+      background-color: var(--surface-subtle);
     }
   }
 
@@ -118,7 +118,7 @@
   margin: 8px 8px 0;
   padding: 0 12px;
   border-radius: 12px;
-  background-color: #f8faf9;
+  background-color: var(--surface-subtle);
 }
 
 .app-select__search-icon {
@@ -173,7 +173,7 @@
 
   &:hover:not(:disabled),
   &.is-active {
-    background-color: #f8faf9;
+    background-color: var(--surface-subtle);
   }
 
   &.is-selected {

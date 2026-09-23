@@ -4,7 +4,7 @@
   width: min(100%, 1480px);
   margin: 0 auto;
   padding: 0 clamp(18px, 2.2vw, 34px) 48px;
-  color: #071426;
+  color: var(--ink);
 }
 
 .tournament-hero {
@@ -12,8 +12,8 @@
   display: grid;
   grid-template-columns: minmax(360px, .88fr) minmax(460px, 1.12fr);
   overflow: hidden;
-  border-bottom: 1px solid #d8e1de;
-  background: #fff;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--surface);
 }
 
 .tournament-hero__copy {
@@ -23,9 +23,9 @@
   justify-content: center;
   padding: 32px 34px 34px 4px;
 
-  > p { margin: 0 0 8px; color: #506079; font-size: 10px; font-weight: 800; letter-spacing: .15em; text-transform: uppercase; }
+  > p { margin: 0 0 8px; color: var(--body); font-size: 10px; font-weight: 800; letter-spacing: .15em; text-transform: uppercase; }
   h1 { max-width: 12ch; margin: 0; font-family: 'Arial Narrow', 'Be Vietnam Pro', sans-serif !important; font-size: clamp(44px, 5.1vw, 72px); font-weight: 900; line-height: .93; letter-spacing: -.065em; text-transform: uppercase; }
-  > span { max-width: 58ch; margin-top: 12px; color: #526178; font-size: 12px; line-height: 1.55; }
+  > span { max-width: 58ch; margin-top: 12px; color: var(--body); font-size: 12px; line-height: 1.55; }
   .primary-action { margin-top: 18px; }
 }
 
@@ -35,7 +35,7 @@
   background: url('/assets/images/default-banner-light.png') 70% center / cover;
   filter: saturate(.74) contrast(1.02);
 
-  &::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, #fff 0, transparent 18%, rgba(7, 20, 38, .08)); }
+  &::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, var(--surface) 0, transparent 18%, rgba(7, 20, 38, .08)); }
   strong { position: absolute; top: 58px; right: 30px; color: rgba(255,255,255,.9); font-family: 'Arial Narrow', 'Be Vietnam Pro', sans-serif !important; font-size: 21px; font-weight: 900; font-style: italic; line-height: 1.05; text-transform: uppercase; transform: rotate(-5deg); }
 }
 
@@ -47,20 +47,20 @@
   justify-content: center;
   gap: 9px;
   padding: 0 18px;
-  border: 1px solid #007a57;
+  border: 1px solid var(--primary);
   border-radius: 5px;
-  background: #007a57;
+  background: var(--primary-fill);
   color: #fff;
   font: inherit;
   font-size: 10px;
   font-weight: 800;
   cursor: pointer;
   transition: background-color 180ms ease, transform 180ms ease;
-  &:hover:not(:disabled) { background: #006448; transform: translateY(-1px); }
+  &:hover:not(:disabled) { background: var(--primary-fill-hover); transform: translateY(-1px); }
   &:active:not(:disabled) { transform: translateY(1px); }
   &:disabled { opacity: .55; cursor: not-allowed; }
 }
-.btn-secondary { border-color: #d8e1de; background: #fff; color: #071426; }
+.btn-secondary { border-color: var(--hairline); background: var(--surface); color: var(--ink); }
 
 .sport-filter {
   min-height: 58px;
@@ -69,13 +69,13 @@
   gap: 4px;
   padding: 8px 0;
   overflow-x: auto;
-  border-bottom: 1px solid #d8e1de;
-  background: #fff;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--surface);
 
   strong { min-width: max-content; align-self: center; margin-right: 14px; font-size: 10px; letter-spacing: .04em; text-transform: uppercase; }
-  button { min-width: max-content; flex: 1 0 auto; min-height: 40px; padding: 0 14px; border: 1px solid transparent; border-radius: 4px; background: transparent; color: #304057; font: inherit; font-size: 9.5px; font-weight: 700; cursor: pointer; }
-  button:hover { border-color: #b7d9cd; background: #f4f8f6; }
-  button.active { border-color: #70bda3; background: #eaf7f2; color: #007a57; }
+  button { min-width: max-content; flex: 1 0 auto; min-height: 40px; padding: 0 14px; border: 1px solid transparent; border-radius: 4px; background: transparent; color: var(--ink-2); font: inherit; font-size: 9.5px; font-weight: 700; cursor: pointer; }
+  button:hover { border-color: #b7d9cd; background: var(--surface-subtle); }
+  button.active { border-color: #70bda3; background: var(--primary-light); color: var(--primary); }
 }
 
 .tournament-layout {
@@ -87,7 +87,7 @@
 
 .tournament-main,
 .tournament-rail > section,
-.matchmaking-callout { border: 1px solid #d8e1de; border-radius: 6px; background: #fff; }
+.matchmaking-callout { border: 1px solid var(--hairline); border-radius: 6px; background: var(--surface); }
 .tournament-main { padding: 16px; }
 
 .section-toolbar,
@@ -98,8 +98,8 @@
   gap: 16px;
   margin-bottom: 14px;
   h2 { margin: 0; font-family: 'Arial Narrow', 'Be Vietnam Pro', sans-serif !important; font-size: 19px; font-weight: 900; letter-spacing: -.035em; text-transform: uppercase; }
-  p { margin: 3px 0 0; color: #68778b; font-size: 9px; }
-  > span { color: #68778b; font-size: 9px; }
+  p { margin: 3px 0 0; color: var(--body); font-size: 9px; }
+  > span { color: var(--body); font-size: 9px; }
 }
 
 .tournament-search {
@@ -109,20 +109,20 @@
   align-items: center;
   gap: 8px;
   padding: 0 12px;
-  border: 1px solid #d8e1de;
+  border: 1px solid var(--hairline);
   border-radius: 5px;
-  color: #68778b;
-  input { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; color: #071426; font: inherit; font-size: 10px; }
-  &:focus-within { border-color: #007a57; box-shadow: 0 0 0 3px rgba(0,122,87,.08); }
+  color: var(--body);
+  input { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; color: var(--ink); font: inherit; font-size: 10px; }
+  &:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,122,87,.08); }
 }
 
 .featured-tournament {
   display: grid;
   grid-template-columns: minmax(300px, 1.13fr) minmax(290px, .87fr);
   overflow: hidden;
-  border: 1px solid #d8e1de;
+  border: 1px solid var(--hairline);
   border-radius: 5px;
-  background: #fff;
+  background: var(--surface);
   cursor: pointer;
   transition: border-color 180ms ease, transform 180ms ease;
   &:hover { border-color: #78bca6; transform: translateY(-1px); }
@@ -132,7 +132,7 @@
   position: relative;
   min-height: 270px;
   background: url('/assets/images/default-banner-light.png') 20% center/cover;
-  span { position: absolute; top: 12px; left: 12px; padding: 6px 9px; border-radius: 3px; background: #007a57; color: #fff; font-size: 8px; font-weight: 800; text-transform: uppercase; }
+  span { position: absolute; top: 12px; left: 12px; padding: 6px 9px; border-radius: 3px; background: var(--primary-fill); color: #fff; font-size: 8px; font-weight: 800; text-transform: uppercase; }
 }
 
 .featured-tournament__body {
@@ -140,37 +140,37 @@
   flex-direction: column;
   align-items: flex-start;
   padding: 22px;
-  > p { margin: 0; color: #007a57; font-size: 9px; font-weight: 800; text-transform: uppercase; }
+  > p { margin: 0; color: var(--primary); font-size: 9px; font-weight: 800; text-transform: uppercase; }
   h2 { margin: 8px 0; font-size: 23px; line-height: 1.15; letter-spacing: -.035em; }
-  > span { color: #5e6c80; font-size: 10px; line-height: 1.55; }
-  dl { width: 100%; display: grid; grid-template-columns: 1.35fr .8fr .9fr; gap: 0; margin: 18px 0; padding: 13px 0; border-block: 1px solid #e1e7e5; }
-  dl div { min-width: 0; padding: 0 10px; border-right: 1px solid #e1e7e5; &:first-child { padding-left: 0; } &:last-child { border-right: 0; } }
-  dt { color: #758195; font-size: 8px; }
-  dd { margin: 4px 0 0; color: #071426; font-size: 9px; font-weight: 800; }
+  > span { color: var(--body); font-size: 10px; line-height: 1.55; }
+  dl { width: 100%; display: grid; grid-template-columns: 1.35fr .8fr .9fr; gap: 0; margin: 18px 0; padding: 13px 0; border-block: 1px solid var(--hairline); }
+  dl div { min-width: 0; padding: 0 10px; border-right: 1px solid var(--hairline); &:first-child { padding-left: 0; } &:last-child { border-right: 0; } }
+  dt { color: var(--body); font-size: 8px; }
+  dd { margin: 4px 0 0; color: var(--ink); font-size: 9px; font-weight: 800; }
   .primary-action { margin-top: auto; align-self: flex-end; }
 }
 
-.list-heading { margin: 18px 0 10px; padding-top: 16px; border-top: 1px solid #d8e1de; }
+.list-heading { margin: 18px 0 10px; padding-top: 16px; border-top: 1px solid var(--hairline); }
 .tournament-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-.tournament-card { overflow: hidden; border: 1px solid #d8e1de; border-radius: 5px; background: #fff; cursor: pointer; transition: border-color 180ms ease, transform 180ms ease; &:hover { border-color: #78bca6; transform: translateY(-2px); } }
-.card-banner { height: 145px; display: flex; align-items: flex-start; justify-content: space-between; padding: 9px; background: url('/assets/images/default-banner-light.png') center 68%/cover; span, b { padding: 4px 6px; border-radius: 3px; background: rgba(7,20,38,.9); color: #fff; font-size: 7px; font-weight: 800; text-transform: uppercase; } b { background: #eaf7f2; color: #007a57; } }
-.card-body { padding: 11px; h3 { min-height: 36px; margin: 0 0 8px; font-size: 12px; line-height: 1.35; } > p { display: flex; align-items: center; gap: 6px; margin: 5px 0; color: #68778b; font-size: 8px; } footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; padding-top: 9px; border-top: 1px solid #e1e7e5; strong { font-size: 10px; } span { display: inline-flex; align-items: center; gap: 4px; color: #007a57; font-size: 8px; font-weight: 800; } } }
+.tournament-card { overflow: hidden; border: 1px solid var(--hairline); border-radius: 5px; background: var(--surface); cursor: pointer; transition: border-color 180ms ease, transform 180ms ease; &:hover { border-color: #78bca6; transform: translateY(-2px); } }
+.card-banner { height: 145px; display: flex; align-items: flex-start; justify-content: space-between; padding: 9px; background: url('/assets/images/default-banner-light.png') center 68%/cover; span, b { padding: 4px 6px; border-radius: 3px; background: rgba(7,20,38,.9); color: #fff; font-size: 7px; font-weight: 800; text-transform: uppercase; } b { background: var(--primary-light); color: var(--primary); } }
+.card-body { padding: 11px; h3 { min-height: 36px; margin: 0 0 8px; font-size: 12px; line-height: 1.35; } > p { display: flex; align-items: center; gap: 6px; margin: 5px 0; color: var(--body); font-size: 8px; } footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; padding-top: 9px; border-top: 1px solid var(--hairline); strong { font-size: 10px; } span { display: inline-flex; align-items: center; gap: 4px; color: var(--primary); font-size: 8px; font-weight: 800; } } }
 
 .tournament-rail { display: grid; align-content: start; gap: 12px; }
-.tournament-rail > section > header { min-height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; border-bottom: 1px solid #d8e1de; h2 { margin: 0; font-family: 'Arial Narrow', 'Be Vietnam Pro', sans-serif !important; font-size: 15px; text-transform: uppercase; } a { display: inline-flex; align-items: center; gap: 4px; color: #536277; font-size: 8px; text-decoration: none; } }
-.rail-intro { display: flex; gap: 10px; padding: 16px; color: #007a57; div { display: grid; gap: 4px; } strong { color: #071426; font-size: 10px; } p { margin: 0; color: #68778b; font-size: 8.5px; line-height: 1.45; } }
-.schedule-row { width: 100%; min-height: 78px; display: grid; grid-template-columns: 48px minmax(0, 1fr) 16px; align-items: center; gap: 10px; padding: 9px 12px; border: 0; border-bottom: 1px solid #e1e7e5; background: transparent; color: #071426; text-align: left; cursor: pointer; &:hover { background: #f4f8f6; } time { width: 48px; height: 52px; display: grid; place-items: center; align-content: center; border: 1px solid #d8e1de; border-radius: 4px; background: #f6f8f7; b { font-size: 17px; line-height: 1; } span { margin-top: 4px; font-size: 7px; font-weight: 800; } } > span { min-width: 0; display: grid; gap: 4px; } strong { overflow: hidden; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; } small { color: #68778b; font-size: 7.5px; line-height: 1.4; } }
-.rail-empty { margin: 0; padding: 16px; color: #68778b; font-size: 9px; }
-.matchmaking-callout { min-height: 70px; display: grid; grid-template-columns: 34px 1fr 16px; align-items: center; gap: 10px; padding: 12px 14px; color: #007a57; text-decoration: none; span { display: grid; gap: 3px; } strong { color: #071426; font-size: 10px; } small { color: #68778b; font-size: 8px; } &:hover { border-color: #78bca6; } }
+.tournament-rail > section > header { min-height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; border-bottom: 1px solid var(--hairline); h2 { margin: 0; font-family: 'Arial Narrow', 'Be Vietnam Pro', sans-serif !important; font-size: 15px; text-transform: uppercase; } a { display: inline-flex; align-items: center; gap: 4px; color: var(--body); font-size: 8px; text-decoration: none; } }
+.rail-intro { display: flex; gap: 10px; padding: 16px; color: var(--primary); div { display: grid; gap: 4px; } strong { color: var(--ink); font-size: 10px; } p { margin: 0; color: var(--body); font-size: 8.5px; line-height: 1.45; } }
+.schedule-row { width: 100%; min-height: 78px; display: grid; grid-template-columns: 48px minmax(0, 1fr) 16px; align-items: center; gap: 10px; padding: 9px 12px; border: 0; border-bottom: 1px solid var(--hairline); background: transparent; color: var(--ink); text-align: left; cursor: pointer; &:hover { background: var(--surface-subtle); } time { width: 48px; height: 52px; display: grid; place-items: center; align-content: center; border: 1px solid var(--hairline); border-radius: 4px; background: var(--canvas); b { font-size: 17px; line-height: 1; } span { margin-top: 4px; font-size: 7px; font-weight: 800; } } > span { min-width: 0; display: grid; gap: 4px; } strong { overflow: hidden; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; } small { color: var(--body); font-size: 7.5px; line-height: 1.4; } }
+.rail-empty { margin: 0; padding: 16px; color: var(--body); font-size: 9px; }
+.matchmaking-callout { min-height: 70px; display: grid; grid-template-columns: 34px 1fr 16px; align-items: center; gap: 10px; padding: 12px 14px; color: var(--primary); text-decoration: none; span { display: grid; gap: 3px; } strong { color: var(--ink); font-size: 10px; } small { color: var(--body); font-size: 8px; } &:hover { border-color: #78bca6; } }
 
 .featured-skeleton { display: grid; grid-template-columns: 1.1fr .9fr; gap: 16px; margin-bottom: 14px; > div { display: grid; align-content: center; gap: 12px; } }
-.empty-state { min-height: 260px; display: flex; align-items: center; justify-content: center; gap: 16px; padding: 28px; border: 1px dashed #b9c6c2; background: #fff; color: #007a57; text-align: left; h2 { margin: 0 0 4px; color: #071426; font-size: 16px; } p { margin: 0; color: #68778b; font-size: 10px; } }
+.empty-state { min-height: 260px; display: flex; align-items: center; justify-content: center; gap: 16px; padding: 28px; border: 1px dashed #b9c6c2; background: var(--surface); color: var(--primary); text-align: left; h2 { margin: 0 0 4px; color: var(--ink); font-size: 16px; } p { margin: 0; color: var(--body); font-size: 10px; } }
 
 .modal-overlay { position: fixed; inset: 0; z-index: 1100; display: grid; place-items: center; padding: 16px; background: rgba(7,20,38,.68); }
-.modal-card { width: min(100%, 620px); max-height: 90dvh; overflow: auto; padding: 20px; border: 1px solid #d8e1de; border-radius: 8px; background: #fff; box-shadow: 0 22px 60px rgba(7,20,38,.22); }
+.modal-card { width: min(100%, 620px); max-height: 90dvh; overflow: auto; padding: 20px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--surface); box-shadow: 0 22px 60px rgba(7,20,38,.22); }
 .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; h2 { margin: 0; font-size: 18px; } }
-.btn-close { width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid #d8e1de; border-radius: 5px; background: #fff; cursor: pointer; }
-.form-group { display: grid; gap: 6px; margin-bottom: 13px; label { color: #536277; font-size: 9px; font-weight: 800; } input, select, textarea { width: 100%; min-height: 44px; padding: 10px; border: 1px solid #cbd6d2; border-radius: 5px; background: #fff; color: #071426; font: inherit; font-size: 11px; &:focus { border-color: #007a57; outline: 3px solid rgba(0,122,87,.08); } } }
+.btn-close { width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid var(--hairline); border-radius: 5px; background: var(--surface); cursor: pointer; }
+.form-group { display: grid; gap: 6px; margin-bottom: 13px; label { color: var(--body); font-size: 9px; font-weight: 800; } input, select, textarea { width: 100%; min-height: 44px; padding: 10px; border: 1px solid var(--border-strong); border-radius: 5px; background: var(--surface); color: var(--ink); font: inherit; font-size: 11px; &:focus { border-color: var(--primary); outline: 3px solid rgba(0,122,87,.08); } } }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
 .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
 

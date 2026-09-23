@@ -5,9 +5,9 @@
 .facility-layout-viewport {
   width: 100%;
   overflow-x: auto;
-  border: 1px solid #d8e1dc;
+  border: 1px solid var(--border-strong);
   border-radius: 10px;
-  background: #edf1ee;
+  background: var(--surface-strong);
   scrollbar-color: #aebdb5 #edf1ee;
   scrollbar-width: thin;
 }
@@ -18,8 +18,8 @@
   min-width: 760px;
   aspect-ratio: 10 / 7;
   overflow: hidden;
-  border: 7px solid #e1e6e2;
-  background-color: #f8f9f6;
+  border: 7px solid var(--hairline);
+  background-color: var(--surface-subtle);
   background-image:
     linear-gradient(rgb(65 91 78 / 5%) 1px, transparent 1px),
     linear-gradient(90deg, rgb(65 91 78 / 5%) 1px, transparent 1px),
@@ -49,7 +49,7 @@
   overflow: hidden;
   padding: 5px 10px;
   border-radius: 0 0 4px 4px;
-  background: #08744a;
+  background: var(--primary-fill);
   color: #fff;
   font-size: clamp(10px, .75vw, 12px);
   letter-spacing: .015em;
@@ -62,10 +62,10 @@
   position: absolute;
   z-index: 2;
   overflow: hidden;
-  border: 1px solid #d2ddd6;
+  border: 1px solid var(--border-strong);
   border-radius: 6px;
-  background: rgb(255 255 255 / 94%);
-  color: #415149;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  color: var(--ink-2);
 }
 
 .facility-object {
@@ -80,13 +80,13 @@
 .facility-object lucide-icon {
   width: clamp(16px, 1.6vw, 23px);
   height: clamp(16px, 1.6vw, 23px);
-  color: #607068;
+  color: var(--body);
 }
 
 .facility-object > strong {
   max-width: 100%;
   overflow: hidden;
-  color: #415149;
+  color: var(--ink-2);
   font-size: clamp(10px, .85vw, 13px);
   line-height: 1.15;
   text-overflow: ellipsis;
@@ -104,15 +104,15 @@
 .facility-object[data-type='ENTRANCE'] {
   z-index: 4;
   border-color: #84b49c;
-  background: #edf7f1;
-  color: #08744a;
+  background: var(--surface-strong);
+  color: var(--primary);
 }
 
 .facility-object[data-type='PARKING'] {
   display: block;
   padding: 0;
   border-color: #c9d0cc;
-  background: #e5e8e5;
+  background: var(--surface-strong);
 }
 
 .parking-slots {
@@ -127,7 +127,7 @@
   min-width: 0;
   place-items: center;
   border-right: 1px solid rgb(117 129 122 / 22%);
-  color: #66736c;
+  color: var(--body);
 }
 
 .parking-slots i:last-child {
@@ -159,7 +159,7 @@
 .court-object > strong {
   display: -webkit-box;
   overflow: hidden;
-  color: #24342c;
+  color: var(--ink-2);
   font-size: clamp(10px, .75vw, 12px);
   line-height: 1.15;
   -webkit-box-orient: vertical;
@@ -171,7 +171,7 @@
   align-items: center;
   justify-content: center;
   gap: 5px;
-  color: #4f815a;
+  color: var(--body);
   font-size: clamp(10px, .78vw, 12px);
   white-space: nowrap;
 }

@@ -1,6 +1,6 @@
 .client-container {
   min-height: 100dvh;
-  background-color: var(--bg-body, #f6f8f7);
+  background-color: var(--bg-body, var(--canvas));
 }
 
 .client-content-wrapper {
@@ -23,7 +23,7 @@
   width: min(88vw, 320px);
 
   .drawer-header {
-    background: #fff;
+    background: var(--surface);
 
     .logo-img { filter: none; }
     .logo-text { color: var(--text-dark); }
@@ -122,7 +122,7 @@
           top: 25%;
           height: 50%;
           width: 4px;
-          background-color: var(--primary);
+          background-color: var(--primary-fill);
           border-radius: 99px;
         }
       }

@@ -51,7 +51,7 @@
   .panel {
     border: 1px solid var(--border-color);
     border-radius: 16px;
-    background: #fff;
+    background: var(--surface);
     box-shadow: var(--shadow-sm);
   }
 
@@ -142,7 +142,7 @@
     margin: 0;
     padding: 12px 20px;
     border-bottom: 1px solid var(--border-color);
-    background: #f8faf9;
+    background: var(--surface-subtle);
     color: var(--text-dark);
     font-size: 14px;
     font-weight: 800;
@@ -204,18 +204,18 @@
 
   .btn--primary {
     border-color: var(--primary);
-    background: var(--primary);
+    background: var(--primary-fill);
     color: #fff;
 
     &:hover:not(:disabled) {
       border-color: var(--primary-hover);
-      background: var(--primary-hover);
+      background: var(--primary-fill-hover);
     }
   }
 
   .btn--secondary {
     border-color: var(--border-color);
-    background: #fff;
+    background: var(--surface);
     color: var(--text-dark);
 
     &:hover:not(:disabled) {
@@ -235,7 +235,7 @@
   }
 
   .btn--danger {
-    border-color: #be123c;
+    border-color: var(--danger);
     background: #be123c;
     color: #fff;
 
@@ -245,10 +245,10 @@
   }
 
   .btn--danger-ghost {
-    color: #be123c;
+    color: var(--danger);
 
     &:hover:not(:disabled) {
-      background: #fff1f3;
+      background: var(--danger-soft);
     }
   }
 
@@ -269,15 +269,15 @@
     &:hover:not(:disabled),
     &[aria-expanded='true'] {
       border-color: var(--border-color);
-      background: #f8faf9;
+      background: var(--surface-subtle);
       color: var(--primary);
     }
   }
 
   .icon-btn--danger:hover:not(:disabled) {
-    border-color: #fecdd3;
-    background: #fff1f3;
-    color: #be123c;
+    border-color: var(--danger-soft);
+    background: var(--danger-soft);
+    color: var(--danger);
   }
 
   // ---- Badges ---------------------------------------------------------------------------------
@@ -289,7 +289,7 @@
     gap: 4px;
     padding: 0 8px;
     border-radius: 6px;
-    background: #edf4f0;
+    background: var(--surface-strong);
     color: var(--text-muted);
     font-size: 13px;
     font-weight: 700;
@@ -297,10 +297,10 @@
   }
 
   .badge--primary { background: var(--primary-light); color: var(--primary-strong); }
-  .badge--success { background: #eaf7f0; color: #18794e; }
-  .badge--warning { background: #fff7e7; color: #a15c07; }
-  .badge--danger { background: #fff1f3; color: #be123c; }
-  .badge--info { background: #edf5fa; color: #315f7d; }
+  .badge--success { background: var(--success-soft); color: var(--success); }
+  .badge--warning { background: var(--warning-soft); color: var(--warning); }
+  .badge--danger { background: var(--danger-soft); color: var(--danger); }
+  .badge--info { background: var(--info-soft); color: var(--info); }
 
   // ---- Form fields (label 13/800 uppercase, 44px, radius 12, no focus border) ---------------
   .field {
@@ -318,7 +318,7 @@
     text-transform: uppercase;
 
     b {
-      color: #be123c;
+      color: var(--danger);
     }
   }
 
@@ -330,7 +330,7 @@
     border: 1px solid var(--border-color);
     border-radius: 12px;
     outline: none;
-    background: #fff;
+    background: var(--surface);
     color: var(--text-dark);
     font: inherit;
     font-size: 14px;
@@ -347,7 +347,7 @@
     }
 
     &:disabled {
-      background: #f8faf9;
+      background: var(--surface-subtle);
       color: var(--text-muted);
     }
   }
@@ -368,14 +368,14 @@
 
   .field__error {
     margin: 0;
-    color: #be123c;
+    color: var(--danger);
     font-size: 13px;
     font-weight: 700;
   }
 
   .field.is-invalid .field__control,
   .field.is-invalid ::ng-deep .app-select__trigger {
-    border-color: #be123c;
+    border-color: var(--danger);
   }
 
   .form-grid {
@@ -392,7 +392,7 @@
     padding: 40px 24px;
     border: 1px dashed var(--border-strong);
     border-radius: 16px;
-    background: #f8faf9;
+    background: var(--surface-subtle);
     text-align: center;
 
     strong {
@@ -436,8 +436,8 @@
   }
 
   .state--error .state__icon {
-    background: #fff1f3;
-    color: #be123c;
+    background: var(--danger-soft);
+    color: var(--danger);
   }
 
   .note {
@@ -446,7 +446,7 @@
     gap: 10px;
     padding: 12px 14px;
     border-radius: 12px;
-    background: #f8faf9;
+    background: var(--surface-subtle);
     color: var(--text-muted);
     font-size: 13px;
     line-height: 1.5;
@@ -483,7 +483,7 @@
     overflow: hidden;
     border: 1px solid var(--border-color);
     border-radius: 24px;
-    background: #fff;
+    background: var(--surface);
     box-shadow: var(--shadow-lg);
   }
 

@@ -12,7 +12,7 @@
   padding: 12px 16px 12px 20px;
   border: 1px solid var(--border-color);
   border-radius: 16px;
-  background: #fff;
+  background: var(--surface);
 }
 
 .pagination__summary {
@@ -41,7 +41,7 @@
 .pagination__button {
   border: 1px solid var(--border-color);
   border-radius: 12px;
-  background: #fff;
+  background: var(--surface);
   color: var(--text-dark);
   font: inherit;
   font-size: 14px;
@@ -62,7 +62,7 @@
 
 .pagination__button--active {
   border-color: var(--primary);
-  background: var(--primary);
+  background: var(--primary-fill);
   color: #fff;
 }
 

@@ -1,3 +1,3 @@
 :host { display: inline-flex; }
-.role-badge { min-height: 30px; display: inline-flex; align-items: center; gap: 6px; padding: 0 10px; border: 1px solid #cce5dc; border-radius: 6px; background: #eef8f4; color: #087a57; font-size: 13px; font-weight: 850; white-space: nowrap; }
-.role-badge--manager { border-color: #087a57; background: #087a57; color: #fff; box-shadow: 0 6px 16px rgba(8, 122, 87, .18); }
+.role-badge { min-height: 30px; display: inline-flex; align-items: center; gap: 6px; padding: 0 10px; border: 1px solid var(--primary-light); border-radius: 6px; background: var(--surface-strong); color: var(--primary); font-size: 13px; font-weight: 850; white-space: nowrap; }
+.role-badge--manager { border-color: var(--primary); background: var(--primary-fill); color: #fff; box-shadow: 0 6px 16px rgba(8, 122, 87, .18); }

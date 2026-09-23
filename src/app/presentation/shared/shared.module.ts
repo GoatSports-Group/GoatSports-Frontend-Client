@@ -1,4 +1,5 @@
 import { NgModule } from '@angular/core';
+import { ThemeToggleComponent } from './components/theme-toggle/theme-toggle.component';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -83,6 +84,7 @@ const COMPONENT_DECLARATIONS = [
   ],
   imports: [
     CommonModule,
+    ThemeToggleComponent,
     FormsModule,
     ReactiveFormsModule,
     RouterModule,

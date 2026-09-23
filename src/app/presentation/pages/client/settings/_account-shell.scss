@@ -30,7 +30,7 @@
     padding: 12px;
     border: 1px solid var(--border-color);
     border-radius: 16px;
-    background: #fff;
+    background: var(--surface);
     box-shadow: var(--shadow-sm);
   }
 
@@ -144,7 +144,7 @@
     }
 
     &:hover {
-      background: #f8faf9;
+      background: var(--surface-subtle);
       color: var(--primary);
 
       lucide-icon {
@@ -248,7 +248,7 @@
       left: 10px;
       height: 3px;
       border-radius: 3px 3px 0 0;
-      background: var(--primary);
+      background: var(--primary-fill);
       transform: scaleX(0);
       transition: transform var(--transition-spring);
     }
@@ -273,7 +273,7 @@
     place-items: center;
     padding: 0 6px;
     border-radius: 9999px;
-    background: #edf4f0;
+    background: var(--surface-strong);
     color: var(--text-muted);
     font-size: 12px;
     font-weight: 800;
@@ -286,8 +286,8 @@
   }
 
   .account-tab__count--alert {
-    background: #fff1f3;
-    color: #be123c;
+    background: var(--danger-soft);
+    color: var(--danger);
   }
 
   @media (max-width: 1023px) {

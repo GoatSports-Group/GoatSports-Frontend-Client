@@ -8,7 +8,7 @@
   --club-ink: var(--text-dark);
   --club-muted: var(--text-muted);
   --club-border: var(--border-color);
-  --club-soft: #f8faf9;
+  --club-soft: var(--surface-subtle);
   --club-green: var(--primary);
   --club-green-dark: var(--primary-hover);
   width: min(100%, var(--page-max));
@@ -140,7 +140,7 @@ button:focus-visible {
   padding: 0 20px;
   border: 1px solid var(--club-green);
   border-radius: 12px;
-  background: var(--club-green);
+  background: var(--primary-fill);
   color: #fff;
   font-size: 14px;
   font-weight: 800;
@@ -149,7 +149,7 @@ button:focus-visible {
 
   &:hover:not(:disabled) {
     border-color: var(--club-green-dark);
-    background: var(--club-green-dark);
+    background: var(--primary-fill-hover);
     transform: translateY(-1px);
   }
 
@@ -165,12 +165,12 @@ button:focus-visible {
 
 .secondary-action {
   border-color: var(--club-border);
-  background: #fff;
+  background: var(--surface);
   color: var(--club-ink);
 
   &:hover:not(:disabled) {
     border-color: var(--border-strong);
-    background: #fff;
+    background: var(--surface);
     color: var(--club-green);
   }
 }
@@ -180,7 +180,7 @@ button:focus-visible {
 .rail-section {
   border: 1px solid var(--club-border);
   border-radius: var(--border-radius);
-  background: #fff;
+  background: var(--surface);
 }
 
 .club-finder {
@@ -232,10 +232,10 @@ button:focus-visible {
   display: flex;
   align-items: center;
   gap: 9px;
-  border: 1px solid #cbd7d3;
+  border: 1px solid var(--border-strong);
   border-radius: 5px;
-  background: #fff;
-  color: #627086;
+  background: var(--surface);
+  color: var(--body);
 }
 
 .finder-controls .filter-select {
@@ -274,7 +274,7 @@ button:focus-visible {
     outline: 0;
     appearance: none;
     background: transparent;
-    color: #34445a;
+    color: var(--ink-2);
     font-size: 14px;
     cursor: pointer;
   }
@@ -304,9 +304,9 @@ button:focus-visible {
     gap: 8px;
     padding: 0 13px;
     border: 0;
-    border-right: 1px solid #e2e8e5;
-    background: #fff;
-    color: #2c3b50;
+    border-right: 1px solid var(--hairline);
+    background: var(--surface);
+    color: var(--ink-2);
     font-size: 14px;
     font-weight: 650;
     cursor: pointer;
@@ -318,7 +318,7 @@ button:focus-visible {
   }
 
   button:hover {
-    background: #eef6f3;
+    background: var(--surface-strong);
     color: var(--club-green);
   }
 
@@ -361,7 +361,7 @@ button:focus-visible {
   padding: 0;
   border: 0;
   background: transparent;
-  color: #314258;
+  color: var(--ink-2);
   font-size: 13px;
   font-weight: 700;
   white-space: nowrap;
@@ -442,7 +442,7 @@ button:focus-visible {
 }
 
 .eyebrow {
-  color: #425168;
+  color: var(--ink-2);
   font-size: 12px;
   font-weight: 800;
   letter-spacing: .05em;
@@ -482,14 +482,14 @@ button:focus-visible {
   align-items: center;
   gap: 7px;
   margin: 10px 0 0;
-  color: #536277;
+  color: var(--body);
   font-size: 14px;
 }
 
 .featured-club__description {
   max-width: 68ch;
   margin: 14px 0 17px;
-  color: #34445a;
+  color: var(--ink-2);
   font-size: 15px;
   line-height: 1.55;
 }
@@ -504,7 +504,7 @@ button:focus-visible {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    color: #526178;
+    color: var(--body);
     font-size: 13px;
     white-space: nowrap;
   }
@@ -548,8 +548,8 @@ button:focus-visible {
     place-items: center;
     border: 1px solid var(--club-border);
     border-radius: 5px;
-    background: #fff;
-    color: #536277;
+    background: var(--surface);
+    color: var(--body);
     cursor: pointer;
   }
 
@@ -568,7 +568,7 @@ button:focus-visible {
   overflow: hidden;
   border: 1px solid var(--club-border);
   border-radius: 16px;
-  background: #fff;
+  background: var(--surface);
 
   > app-loading-skeleton,
   > app-loading-skeleton ::ng-deep .sk {
@@ -605,7 +605,7 @@ button:focus-visible {
   overflow: hidden;
   border: 1px solid var(--club-border);
   border-radius: var(--border-radius);
-  background: #fff;
+  background: var(--surface);
   cursor: pointer;
   transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
 
@@ -681,7 +681,7 @@ button:focus-visible {
     margin: 4px 0 0;
     display: -webkit-box;
     overflow: hidden;
-    color: #69778a;
+    color: var(--body);
     font-size: 13px;
     line-height: 1.45;
     -webkit-box-orient: vertical;
@@ -690,7 +690,7 @@ button:focus-visible {
 
   i {
     margin: 0 4px;
-    color: #a1aba8;
+    color: var(--muted);
     font-style: normal;
   }
 }
@@ -701,7 +701,7 @@ button:focus-visible {
   margin: 12px 0 10px;
   display: -webkit-box;
   overflow: hidden;
-  color: #526178;
+  color: var(--body);
   font-size: 13px;
   line-height: 1.55;
   -webkit-box-orient: vertical;
@@ -716,7 +716,7 @@ button:focus-visible {
   gap: 8px;
   margin-top: auto;
   padding-top: 12px;
-  border-top: 1px solid #e1e7e5;
+  border-top: 1px solid var(--hairline);
 
   >button {
     min-height: 44px;
@@ -727,7 +727,7 @@ button:focus-visible {
     padding: 0 14px;
     border: 1px solid var(--club-green);
     border-radius: 12px;
-    background: var(--club-green);
+    background: var(--primary-fill);
     color: #fff;
     font-size: 14px;
     font-weight: 800;
@@ -738,31 +738,31 @@ button:focus-visible {
 
   >button:hover {
     border-color: var(--club-green-dark);
-    background: var(--club-green-dark);
+    background: var(--primary-fill-hover);
     transform: translateY(-1px);
   }
 
   >button.button-outline {
     border-color: var(--club-border);
-    background: #fff;
+    background: var(--surface);
     color: var(--club-ink);
   }
 
   >button.button-outline:hover {
     border-color: var(--border-strong);
-    background: #fff;
+    background: var(--surface);
     color: var(--club-green);
   }
 
   >button.button-muted {
-    border-color: #d9e0df;
-    background: #edf1f2;
-    color: #526178;
+    border-color: var(--border-strong);
+    background: var(--surface-strong);
+    color: var(--body);
   }
 }
 
 .card-status {
-  color: #667487;
+  color: var(--body);
   font-size: 13px;
   font-weight: 750;
   white-space: nowrap;
@@ -785,7 +785,7 @@ button:focus-visible {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    color: #5f6e82;
+    color: var(--body);
     font-size: 13px;
     line-height: 1.2;
     white-space: nowrap;
@@ -833,7 +833,7 @@ button:focus-visible {
   }
 
   small {
-    color: #586679;
+    color: var(--body);
     font-size: 13px;
   }
 
@@ -978,15 +978,15 @@ button:focus-visible {
   gap: 10px;
   padding: 11px 13px;
   border: 0;
-  border-bottom: 1px solid #e1e7e5;
-  background: #fff;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--surface);
   color: var(--club-ink);
   text-align: left;
   cursor: pointer;
   transition: background-color 180ms ease;
 
   &:hover {
-    background: #f2f8f5;
+    background: var(--surface-strong);
   }
 }
 
@@ -1018,7 +1018,7 @@ button:focus-visible {
     align-items: center;
     gap: 5px;
     overflow: hidden;
-    color: #617086;
+    color: var(--body);
     font-size: 13px;
     line-height: 1.35;
     text-overflow: ellipsis;
@@ -1027,7 +1027,7 @@ button:focus-visible {
 
   i {
     margin: 0 3px;
-    color: #a6afad;
+    color: var(--muted);
     font-style: normal;
   }
 }
@@ -1036,7 +1036,7 @@ button:focus-visible {
 .pending-label {
   padding: 5px 7px;
   border-radius: 4px;
-  background: #e7f5ef;
+  background: var(--surface-strong);
   color: var(--club-green);
   font-size: 13px;
   font-weight: 800;
@@ -1044,8 +1044,8 @@ button:focus-visible {
 }
 
 .pending-label {
-  background: #edf1f2;
-  color: #536277;
+  background: var(--surface-strong);
+  color: var(--body);
 }
 
 .invitation-row {
@@ -1055,7 +1055,7 @@ button:focus-visible {
   align-items: center;
   gap: 10px;
   padding: 11px 13px;
-  border-bottom: 1px solid #e1e7e5;
+  border-bottom: 1px solid var(--hairline);
 
   .compact-logo {
     width: 50px;
@@ -1072,7 +1072,7 @@ button:focus-visible {
   }
 
   small {
-    color: #617086;
+    color: var(--body);
     font-size: 13px;
   }
 }
@@ -1104,7 +1104,7 @@ button:focus-visible {
 .accept-button {
   padding: 0 10px;
   border: 1px solid var(--club-green);
-  background: var(--club-green);
+  background: var(--primary-fill);
   color: #fff;
 }
 
@@ -1112,13 +1112,13 @@ button:focus-visible {
 .icon-button {
   width: 44px;
   border: 1px solid var(--club-border);
-  background: #fff;
-  color: #526178;
+  background: var(--surface);
+  color: var(--body);
 }
 
 .accept-button:hover {
   border-color: var(--club-green-dark);
-  background: var(--club-green-dark);
+  background: var(--primary-fill-hover);
 }
 
 .decline-button:hover,
@@ -1137,15 +1137,15 @@ button:focus-visible {
   gap: 10px;
   padding: 10px 13px;
   border: 0;
-  border-bottom: 1px solid #e1e7e5;
-  background: #fff;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--surface);
   color: var(--club-ink);
   text-align: left;
   cursor: pointer;
   transition: background-color 180ms ease;
 
   &:hover {
-    background: #f2f8f5;
+    background: var(--surface-strong);
   }
 
   time {
@@ -1154,7 +1154,7 @@ button:focus-visible {
     display: grid;
     place-content: center;
     border-radius: 12px;
-    background: #f8faf9;
+    background: var(--surface-subtle);
     color: var(--club-muted);
     text-align: center;
   }
@@ -1187,7 +1187,7 @@ button:focus-visible {
   }
 
   >i.active {
-    background: var(--club-green);
+    background: var(--primary-fill);
   }
 }
 
@@ -1238,7 +1238,7 @@ button:focus-visible {
   align-items: center;
   gap: 10px;
   padding: 11px 13px;
-  border-bottom: 1px solid #e1e7e5;
+  border-bottom: 1px solid var(--hairline);
 
   >img {
     width: 88px;
@@ -1258,14 +1258,14 @@ button:focus-visible {
     display: flex;
     align-items: center;
     gap: 4px;
-    color: #617086;
+    color: var(--body);
     font-size: 13px;
     line-height: 1.35;
   }
 
   small i {
     margin: 0 3px;
-    color: #a6afad;
+    color: var(--muted);
     font-style: normal;
   }
 }
@@ -1274,7 +1274,7 @@ button:focus-visible {
   width: max-content;
   padding: 3px 6px;
   border-radius: 3px;
-  background: var(--club-green);
+  background: var(--primary-fill);
   color: #fff;
   font-size: 12px;
   font-weight: 800;
@@ -1286,8 +1286,8 @@ button:focus-visible {
   gap: 5px;
   padding: 0 8px;
   border: 1px solid #17334d;
-  background: #fff;
-  color: #17334d;
+  background: var(--surface);
+  color: var(--ink);
   white-space: nowrap;
 
   &:hover {
@@ -1299,7 +1299,7 @@ button:focus-visible {
 .rail-empty {
   margin: 0;
   padding: 18px 14px;
-  color: #617086;
+  color: var(--body);
   font-size: 13px;
   line-height: 1.55;
 }
@@ -1310,14 +1310,14 @@ button:focus-visible {
   padding: 0;
   border: 0;
   background: none;
-  color: #0f7b4f;
+  color: var(--primary);
   font: inherit;
   font-weight: 600;
   text-decoration: underline;
   cursor: pointer;
 
-  &:hover { color: #0b5c3b; }
-  &:focus-visible { outline: 2px solid #0f7b4f; outline-offset: 2px; border-radius: 2px; }
+  &:hover { color: var(--primary); }
+  &:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 2px; }
 }
 
 .modal-overlay {
@@ -1338,7 +1338,7 @@ button:focus-visible {
   padding: 24px;
   border: 1px solid var(--club-border);
   border-radius: 24px;
-  background: #fff;
+  background: var(--surface);
   box-shadow: var(--shadow-lg);
 }
 
@@ -1379,7 +1379,7 @@ button:focus-visible {
   margin-bottom: 15px;
 
   label {
-    color: #45556b;
+    color: var(--ink-2);
     font-size: 13px;
     font-weight: 800;
   }
@@ -1390,9 +1390,9 @@ button:focus-visible {
     width: 100%;
     min-height: 48px;
     padding: 11px 12px;
-    border: 1px solid #c7d3cf;
+    border: 1px solid var(--border-strong);
     border-radius: 5px;
-    background: #fff;
+    background: var(--surface);
     color: var(--club-ink);
     font-size: 15px;
   }
@@ -1719,7 +1719,7 @@ button:focus-visible {
   justify-content: center;
   gap: 8px;
   padding: 8px 12px;
-  color: #68788a;
+  color: var(--body);
   font-size: 13px;
   text-align: center;
 }
@@ -1736,7 +1736,7 @@ button:focus-visible {
 .rail-load-spinner {
   width: 16px;
   height: 16px;
-  border: 2px solid #cfe5dc;
+  border: 2px solid var(--primary-light);
   border-top-color: var(--club-green);
   border-radius: 50%;
   animation: club-spin .7s linear infinite;
@@ -1760,8 +1760,8 @@ button:focus-visible {
   place-items: center;
   border: 1px solid var(--club-border);
   border-radius: 8px;
-  background: #fff;
-  color: #526178;
+  background: var(--surface);
+  color: var(--body);
   cursor: pointer;
 }
 
@@ -1775,7 +1775,7 @@ button:focus-visible {
   margin: 18px 0;
   padding: 16px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #edf8f4, #f8fbfa);
+  background: linear-gradient(135deg, var(--surface-strong), var(--surface-subtle));
 }
 
 .activity-detail-hero time {
@@ -1783,7 +1783,7 @@ button:focus-visible {
   display: grid;
   place-content: center;
   border-radius: 10px;
-  background: #fff;
+  background: var(--surface);
   color: var(--club-green);
   text-align: center;
 }
@@ -1792,7 +1792,7 @@ button:focus-visible {
 .activity-detail-hero time span { margin-top: 4px; font-size: 13px; font-weight: 900; }
 .activity-detail-hero>div { display: grid; gap: 4px; }
 .activity-detail-hero>div>strong { color: var(--club-ink); font-size: 17px; }
-.activity-detail-hero>div>small { color: #6b7a8c; }
+.activity-detail-hero>div>small { color: var(--body); }
 
 .activity-detail-facts {
   display: grid;
@@ -1802,12 +1802,12 @@ button:focus-visible {
 }
 
 .activity-detail-facts>div { padding: 12px; border: 1px solid var(--club-border); border-radius: 10px; }
-.activity-detail-facts dt { display: flex; align-items: center; gap: 7px; color: #68788a; font-size: 13px; }
+.activity-detail-facts dt { display: flex; align-items: center; gap: 7px; color: var(--body); font-size: 13px; }
 .activity-detail-facts dd { margin: 6px 0 0; color: var(--club-ink); font-size: 13px; font-weight: 800; }
-.activity-detail-copy { padding: 15px; border-radius: 10px; background: #f6f9f8; }
-.activity-detail-copy p { margin: 7px 0 0; color: #526178; line-height: 1.65; }
+.activity-detail-copy { padding: 15px; border-radius: 10px; background: var(--surface-subtle); }
+.activity-detail-copy p { margin: 7px 0 0; color: var(--body); line-height: 1.65; }
 .modal-actions { display: flex; justify-content: flex-end; margin-top: 18px; }
-.secondary-button { min-height: 42px; padding: 0 18px; border: 1px solid var(--club-border); border-radius: 8px; background: #fff; color: var(--club-ink); font-weight: 800; cursor: pointer; }
+.secondary-button { min-height: 42px; padding: 0 18px; border: 1px solid var(--club-border); border-radius: 8px; background: var(--surface); color: var(--club-ink); font-weight: 800; cursor: pointer; }
 
 @keyframes club-spin { to { transform: rotate(360deg); } }
 
@@ -1824,7 +1824,7 @@ app-select.sort-select {
 .club-finder,
 .club-section,
 .rail-section {
-  border-color: #d7e2de;
+  border-color: var(--hairline);
   border-radius: 16px;
   box-shadow: 0 10px 28px -30px rgba(7, 25, 45, .55);
 }
@@ -1887,8 +1887,8 @@ app-select.sort-select {
   align-items: center;
   margin: 0;
   padding-block: 22px 17px;
-  border-bottom: 1px solid #e3eae7;
-  background: rgba(255, 255, 255, .96);
+  border-bottom: 1px solid var(--hairline);
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
   backdrop-filter: blur(12px);
 }
 
@@ -1948,7 +1948,7 @@ app-select.sort-select {
 .form-section-title:not(:first-child) {
   margin-top: 19px;
   padding-top: 17px;
-  border-top: 1px solid #e5ebe9;
+  border-top: 1px solid var(--hairline);
 }
 
 .form-section-title > span {
@@ -2013,7 +2013,7 @@ app-select.sort-select {
   margin: 0;
   padding-block: 16px;
   border-top: 1px solid var(--club-border);
-  background: rgba(255, 255, 255, .97);
+  background: color-mix(in srgb, var(--surface) 97%, transparent);
   backdrop-filter: blur(12px);
 }
 

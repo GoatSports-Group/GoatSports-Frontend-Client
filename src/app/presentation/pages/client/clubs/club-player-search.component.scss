@@ -4,14 +4,6 @@
   display: block;
   min-width: 0;
 
-  --success: #18794e;
-  --success-soft: #eaf7f0;
-  --warning: #a15c07;
-  --warning-soft: #fff7e7;
-  --danger: #be123c;
-  --danger-soft: #fff1f3;
-  --surface-subtle: #f8faf9;
-  --surface-strong: #edf4f0;
 }
 
 .scout-page {
@@ -27,7 +19,7 @@
 button:focus-visible,
 a:focus-visible,
 [tabindex='0']:focus-visible {
-  outline: 3px solid #13a879;
+  outline: 3px solid var(--primary);
   outline-offset: 3px;
 }
 
@@ -128,7 +120,7 @@ a:focus-visible,
   overflow: hidden;
   border: 1px solid var(--border-color);
   border-radius: 16px;
-  background: #fff;
+  background: var(--surface);
 
   img {
     width: 100%;
@@ -145,7 +137,7 @@ a:focus-visible,
   margin: 0;
   border: 1px solid var(--border-color);
   border-radius: 16px;
-  background: #fff;
+  background: var(--surface);
   box-shadow: var(--shadow-sm);
 
   div {
@@ -226,7 +218,7 @@ a:focus-visible,
 
 .count--alert {
   background: var(--danger);
-  color: #fff;
+  color: var(--surface); // white in light; dark text on the lighter dark-mode danger
 }
 
 // ---- 2/3 main + 1/3 sticky rail -----------------------------------------------------------------
@@ -271,7 +263,7 @@ a:focus-visible,
   padding: 32px 24px;
   border: 1px dashed var(--border-strong);
   border-radius: 16px;
-  background: #fff;
+  background: var(--surface);
   text-align: center;
 
   lucide-icon {
@@ -303,7 +295,7 @@ a:focus-visible,
   padding: 12px;
   border: 1px solid var(--border-color);
   border-radius: 16px;
-  background: #fff;
+  background: var(--surface);
   box-shadow: var(--shadow-sm);
 }
 
@@ -316,7 +308,7 @@ a:focus-visible,
   padding: 0 12px;
   border: 1px solid var(--border-color);
   border-radius: 12px;
-  background: #fff;
+  background: var(--surface);
   color: var(--text-muted);
   transition: border-color var(--transition-smooth);
 
@@ -366,7 +358,7 @@ a:focus-visible,
   overflow: hidden;
   border: 1px solid var(--border-color);
   border-radius: 16px;
-  background: #fff;
+  background: var(--surface);
   box-shadow: var(--shadow-sm);
 }
 
@@ -422,7 +414,7 @@ a:focus-visible,
   }
 
   &.is-selected {
-    background: #f3faf7;
+    background: var(--surface-subtle);
     box-shadow: inset 3px 0 0 var(--primary);
   }
 }
@@ -546,7 +538,7 @@ a:focus-visible,
     display: block;
     height: 100%;
     border-radius: inherit;
-    background: var(--primary);
+    background: var(--primary-fill);
   }
 }
 
@@ -622,17 +614,17 @@ a:focus-visible,
 }
 
 .btn--primary {
-  background: var(--primary);
+  background: var(--primary-fill);
   color: #fff;
 
   &:hover:not(:disabled) {
-    background: var(--primary-hover);
+    background: var(--primary-fill-hover);
   }
 }
 
 .btn--secondary {
   border-color: var(--border-color);
-  background: #fff;
+  background: var(--surface);
   color: var(--text-dark);
 
   &:hover:not(:disabled) {
@@ -654,7 +646,7 @@ a:focus-visible,
 
 .btn--danger {
   background: var(--danger);
-  color: #fff;
+  color: var(--surface); // white in light; dark text on the lighter dark-mode danger
 }
 
 .icon-btn {
@@ -665,7 +657,7 @@ a:focus-visible,
   place-items: center;
   border: 1px solid var(--border-color);
   border-radius: 12px;
-  background: #fff;
+  background: var(--surface);
   color: var(--text-dark);
   cursor: pointer;
   transition: background-color var(--transition-smooth), border-color var(--transition-smooth), color var(--transition-smooth);
@@ -743,7 +735,7 @@ a:focus-visible,
   padding: 0 14px;
   border: 1px solid var(--border-color);
   border-radius: 9999px;
-  background: #fff;
+  background: var(--surface);
   color: var(--text-dark);
   font: inherit;
   font-size: 14px;
@@ -806,7 +798,7 @@ a:focus-visible,
   padding: 40px 24px;
   border: 1px solid var(--border-color);
   border-radius: 16px;
-  background: #fff;
+  background: var(--surface);
   box-shadow: var(--shadow-sm);
 }
 
@@ -856,7 +848,7 @@ a:focus-visible,
   flex-direction: column;
   overflow: hidden;
   border-radius: 24px;
-  background: #fff;
+  background: var(--surface);
   box-shadow: var(--shadow-lg);
 }
 
@@ -949,7 +941,7 @@ a:focus-visible,
   width: 16px;
   height: 16px;
   border: 2px solid rgb(255 255 255 / 40%);
-  border-top-color: #fff;
+  border-top-color: var(--surface);
   border-radius: 9999px;
   animation: scout-spin .7s linear infinite;
 }

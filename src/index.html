@@ -6,6 +6,16 @@
   <title>GOAT Sports - Nền tảng thể thao</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>
+    // Theme before the first paint (ThemeService takes over after bootstrap). Cookie goat-theme: system | light | dark.
+    (function () {
+      var root = document.documentElement;
+      var saved = document.cookie.match(/(?:^|;\s*)goat-theme=(light|dark)/);
+      var dark = saved ? saved[1] === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      root.setAttribute('data-theme', dark ? 'dark' : 'light');
+      root.style.colorScheme = dark ? 'dark' : 'light';
+    })();
+  </script>
   <link rel="icon" type="image/x-icon" href="assets/images/goat.png">
   <!-- Boot splash styles stay inline: global styles.css is loaded async (critical-CSS inliner),
        the splash must be styled on the very first paint. GOAT-DESIGN.md "Boot splash". -->
