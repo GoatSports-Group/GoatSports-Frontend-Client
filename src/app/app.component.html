@@ -1,11 +1,7 @@
 <a class="skip-link" href="#main-content" (click)="skipToMainContent($event)">Chuyển đến nội dung chính</a>
 <app-notify></app-notify>
 
+<!-- Until the session is ready the index.html boot splash (#goat-boot) covers the page. -->
 @if (sessionReady$ | async) {
   <router-outlet></router-outlet>
-} @else {
-  <div class="session-loading-container" role="status" aria-live="polite">
-    <mat-spinner diameter="50"></mat-spinner>
-    <p>Đang tải phiên đăng nhập...</p>
-  </div>
 }

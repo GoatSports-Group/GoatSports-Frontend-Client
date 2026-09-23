@@ -7,9 +7,152 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="assets/images/goat.png">
+  <link rel="modulepreload" href="assets/vendor/three/three.core.min.js">
+  <link rel="modulepreload" href="assets/vendor/three/three.module.min.js">
+  <!-- Boot splash styles stay inline: global styles.css is loaded async (critical-CSS inliner),
+       the splash must be styled on the very first paint. GOAT-DESIGN.md "Boot splash". -->
+  <style>
+    .goat-boot {
+      --boot-logo: clamp(168px, 34vmin, 264px);
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      background:
+        radial-gradient(60vmax 44vmax at 50% 44%, rgba(0, 122, 85, 0.34), transparent 70%),
+        radial-gradient(120vmax 80vmax at 50% 120%, rgba(0, 77, 56, 0.55), transparent 60%),
+        #07192d;
+      color: #fff;
+      font: 600 14px/1.4 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      transition: opacity 0.45s ease, visibility 0s linear 0.45s;
+    }
+
+    .goat-boot.is-leaving {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    /* Pitch lines: halfway line + centre circle, the scene sits on the kick-off spot. */
+    .goat-boot::before,
+    .goat-boot::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 44%;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+    }
+
+    .goat-boot::before {
+      width: calc(var(--boot-logo) * 2.3);
+      aspect-ratio: 1;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 50%;
+    }
+
+    .goat-boot::after {
+      width: 100vw;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.07) 20%, rgba(255, 255, 255, 0.07) 80%, transparent);
+    }
+
+    .goat-boot__stage {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    .goat-boot__logo {
+      position: absolute;
+      left: 50%;
+      top: 44%;
+      z-index: 2;
+      width: var(--boot-logo);
+      height: var(--boot-logo);
+      transform: translate(-50%, -50%);
+      filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.45)) drop-shadow(0 0 28px rgba(212, 175, 55, 0.22));
+      animation: goat-boot-breathe 2.4s ease-in-out infinite;
+      transition: opacity 0.5s ease;
+    }
+
+    /* Three.js took over: the 3D badge sits exactly where the image was. */
+    .goat-boot.is-3d .goat-boot__stage { opacity: 1; }
+    .goat-boot.is-3d .goat-boot__logo { opacity: 0; }
+
+    .goat-boot__status {
+      position: absolute;
+      left: 50%;
+      top: calc(44% + var(--boot-logo) * 0.5 + 56px);
+      z-index: 3;
+      display: grid;
+      justify-items: center;
+      gap: 14px;
+      transform: translateX(-50%);
+      white-space: nowrap;
+    }
+
+    .goat-boot__status p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.74);
+      letter-spacing: 0.02em;
+    }
+
+    .goat-boot__bar {
+      position: relative;
+      width: 168px;
+      height: 4px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .goat-boot__bar::after {
+      content: '';
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 40%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #18c38a, #f2c94c);
+      animation: goat-boot-run 1.25s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+    }
+
+    @keyframes goat-boot-breathe {
+      50% { transform: translate(-50%, calc(-50% - 6px)) scale(1.025); }
+    }
+
+    @keyframes goat-boot-run {
+      from { transform: translateX(-100%); }
+      to { transform: translateX(250%); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .goat-boot__logo,
+      .goat-boot__bar::after { animation: none; }
+      .goat-boot__bar::after { width: 100%; opacity: 0.6; }
+    }
+  </style>
 </head>
 
 <body>
+  <div id="goat-boot" class="goat-boot" role="status" aria-live="polite">
+    <canvas class="goat-boot__stage" aria-hidden="true"></canvas>
+    <img class="goat-boot__logo" src="assets/boot/goat-logo.webp" alt="" width="264" height="264">
+    <div class="goat-boot__status">
+      <span class="goat-boot__bar" aria-hidden="true"></span>
+      <p>Đang chuẩn bị sân đấu…</p>
+    </div>
+  </div>
+  <script>
+    // Injected at runtime so the dev server's module pre-transform leaves it alone.
+    document.head.appendChild(Object.assign(document.createElement('script'), { type: 'module', src: 'assets/boot/boot-splash.js' }));
+  </script>
   <app-root></app-root>
 </body>
 
