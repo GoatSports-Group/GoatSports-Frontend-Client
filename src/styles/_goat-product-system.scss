@@ -169,6 +169,11 @@ button,
   box-shadow: none !important;
 }
 
+/* Design §8 z-index: overlays (select panels, menus, dialogs) sit above page modals (1100) and the header (1000). */
+.cdk-overlay-container {
+  z-index: 2000;
+}
+
 /* Design §6: contextual action menu (mat-menu class="goat-action-menu"). */
 .mat-mdc-menu-panel.goat-action-menu {
   min-width: 200px;

@@ -1,16 +1,126 @@
-<div class="banking-page">
-  @if (refundContext) { <section class="context-banner"><div class="context-icon"><lucide-icon name="rotate-cw" class="w-5 h-5"></lucide-icon></div><div><strong>Liên kết tài khoản để nhận hoàn tiền</strong><p>Tiền của bạn vẫn được giữ an toàn trong hệ thống. Sau khi liên kết, payOS sẽ xác minh tài khoản ngay khi chuyển hoàn.</p></div></section> }
-  <section class="banking-intro"><div><span class="eyebrow">Thanh toán &amp; nhận tiền</span><h2>Tài khoản ngân hàng</h2><p>Dùng để nhận hoàn tiền đặt sân và doanh thu khi bạn là chủ sân.</p></div><button type="button" class="primary-button" (click)="showForm.set(true)"><lucide-icon name="plus" class="w-4 h-4"></lucide-icon> Liên kết tài khoản</button></section>
-  <div class="security-note"><lucide-icon name="shield-check" class="w-5 h-5"></lucide-icon><span>Số tài khoản được mã hóa. GoatSports chỉ hiển thị 4 số cuối và không lưu tên đăng nhập ngân hàng hay OTP.</span></div>
-  @if (loading()) { <div class="loading-state"><lucide-icon name="loader-2" class="w-5 h-5 animate-spin"></lucide-icon> Đang tải...</div> } @else {
-    <div class="account-list">
-      @for (account of accounts(); track account.bankAccountId) {
-        <article class="account-card" [class.account-card--default]="account.isDefault && account.status !== 'REJECTED'"><div class="bank-logo">@if (getBank(account.bankBin); as bank) { <img [src]="bank.logo" [alt]="bank.shortName" /> } @else { <lucide-icon name="building-2" class="w-6 h-6"></lucide-icon> }</div><div class="account-main"><div class="account-heading"><strong>{{ getBank(account.bankBin)?.shortName || account.bankBin }}</strong>@if (account.isDefault && account.status !== 'REJECTED') { <span class="default-pill">Mặc định</span> }<span class="status-pill" [attr.data-status]="account.status">{{ statusLabel(account.status) }}</span></div><p>{{ account.accountName }}</p><span class="account-number">•••• •••• {{ account.accountNumberLast4 }}</span></div><div class="account-actions">@if (!account.isDefault && account.status !== 'REJECTED') { <button type="button" (click)="makeDefault(account)">Đặt mặc định</button> }<button type="button" class="danger-link" (click)="disable(account)" aria-label="Gỡ tài khoản"><lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon></button></div></article>
-      } @empty { <div class="empty-state"><div><lucide-icon name="credit-card" class="w-7 h-7"></lucide-icon></div><strong>Chưa có tài khoản nhận tiền</strong><p>Liên kết trước để việc hoàn tiền hoặc nhận doanh thu không bị gián đoạn.</p></div> }
+<section aria-labelledby="banking-tab-title">
+  <header class="tab-head">
+    <div>
+      <h2 id="banking-tab-title">Ngân hàng &amp; hoàn tiền</h2>
+      <p>Tài khoản nhận hoàn tiền đặt sân và doanh thu khi bạn là chủ sân.</p>
     </div>
-  }
-  @if (showForm()) {
-    <section class="link-form"><div class="form-heading"><div><span class="step">1</span><h3>Thông tin tài khoản</h3></div><button type="button" class="close-button" (click)="showForm.set(false)" aria-label="Đóng">×</button></div><label>Tìm và chọn ngân hàng</label><input type="search" placeholder="Tên ngân hàng, ví dụ MB Bank" [ngModel]="search()" (ngModelChange)="search.set($event)" /><select [(ngModel)]="bankBin"><option value="">Chọn ngân hàng</option>@for (bank of filteredBanks; track bank.bin) { <option [value]="bank.bin">{{ bank.shortName }} — {{ bank.name }}</option> }</select><div class="form-grid"><div><label for="account-number">Số tài khoản</label><input id="account-number" inputmode="numeric" maxlength="19" [(ngModel)]="accountNumber" placeholder="Nhập số tài khoản" /></div><div><label for="account-name">Tên chủ tài khoản</label><input id="account-name" maxlength="255" [(ngModel)]="accountName" placeholder="NGUYEN VAN A" /></div></div><p class="validation-copy"><lucide-icon name="info" class="w-4 h-4"></lucide-icon> Không trừ tiền khi liên kết. payOS sẽ kiểm tra tài khoản nhận ở lần chuyển tiền đầu tiên.</p><div class="form-actions"><button type="button" class="secondary-button" [disabled]="saving()" (click)="showForm.set(false)">Để sau</button><button type="button" class="primary-button" [disabled]="saving()" (click)="submit()">@if (saving()) { <lucide-icon name="loader-2" class="w-4 h-4 animate-spin"></lucide-icon> Đang liên kết } @else { Xác nhận liên kết }</button></div></section>
-  }
-  @if (returnUrl && accounts().length > 0) { <button type="button" class="continue-button" (click)="continueFlow()">Quay lại nhận hoàn tiền <span>→</span></button> }
-</div>
+    @if (!showForm() && !loading()) {
+      <button type="button" class="btn btn--primary" (click)="showForm.set(true)">
+        <lucide-icon name="plus" class="w-4 h-4"></lucide-icon>Liên kết tài khoản
+      </button>
+    }
+  </header>
+
+  <div class="stack">
+    @if (refundContext) {
+      <div class="note note--primary">
+        <lucide-icon name="rotate-cw" class="w-4 h-4"></lucide-icon>
+        <span><strong>Liên kết tài khoản để nhận hoàn tiền.</strong> Tiền vẫn được giữ an toàn; payOS xác minh tài khoản ngay khi chuyển hoàn.</span>
+      </div>
+    }
+
+    <div class="note">
+      <lucide-icon name="shield-check" class="w-4 h-4"></lucide-icon>
+      <span>Số tài khoản được mã hóa. GoatSports chỉ hiển thị 4 số cuối và không lưu mật khẩu ngân hàng hay OTP.</span>
+    </div>
+
+    @if (loading()) {
+      <div class="state state--inline" aria-live="polite">
+        <lucide-icon name="loader-2" class="w-5 h-5 animate-spin"></lucide-icon>Đang tải tài khoản...
+      </div>
+    } @else if (accounts().length) {
+      <div class="panel row-list">
+        @for (account of accounts(); track account.bankAccountId) {
+          <div class="row">
+            <span class="bank-logo">
+              @if (getBank(account.bankBin); as bank) {
+                <img [src]="bank.logo" [alt]="bank.shortName" />
+              } @else {
+                <lucide-icon name="building-2" class="w-5 h-5"></lucide-icon>
+              }
+            </span>
+            <div class="row__copy">
+              <div class="row__meta">
+                <p class="row__value">{{ getBank(account.bankBin)?.shortName || account.bankBin }}</p>
+                @if (account.isDefault && account.status !== 'REJECTED') {
+                  <span class="badge badge--primary">Mặc định</span>
+                }
+                <span class="badge" [ngClass]="statusTone(account.status) ? 'badge--' + statusTone(account.status) : ''">
+                  {{ statusLabel(account.status) }}
+                </span>
+              </div>
+              <span class="row__label account-line">{{ account.accountName }} · <b>•••• {{ account.accountNumberLast4 }}</b></span>
+            </div>
+            <button type="button" class="icon-btn" [matMenuTriggerFor]="accountMenu"
+              [attr.aria-label]="'Tác vụ tài khoản •••• ' + account.accountNumberLast4">
+              <lucide-icon name="ellipsis" class="w-5 h-5"></lucide-icon>
+            </button>
+            <mat-menu #accountMenu="matMenu" xPosition="before" class="goat-action-menu">
+              @if (!account.isDefault && account.status !== 'REJECTED') {
+                <button mat-menu-item type="button" (click)="makeDefault(account)">
+                  <lucide-icon name="badge-check" class="w-4 h-4"></lucide-icon>Đặt làm mặc định
+                </button>
+              }
+              <button mat-menu-item type="button" class="is-danger" (click)="disable(account)">
+                <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon>Gỡ tài khoản
+              </button>
+            </mat-menu>
+          </div>
+        }
+      </div>
+    } @else if (!showForm()) {
+      <div class="state">
+        <span class="state__icon"><lucide-icon name="credit-card" class="w-6 h-6"></lucide-icon></span>
+        <strong>Chưa có tài khoản nhận tiền</strong>
+        <p>Liên kết trước để hoàn tiền hoặc nhận doanh thu không bị gián đoạn.</p>
+        <button type="button" class="btn btn--primary" (click)="showForm.set(true)">Liên kết tài khoản</button>
+      </div>
+    }
+
+    @if (showForm()) {
+      <form class="panel link-form" (ngSubmit)="submit()">
+        <header class="link-form__head">
+          <h3>Liên kết tài khoản mới</h3>
+          <button type="button" class="icon-btn" aria-label="Đóng" [disabled]="saving()" (click)="showForm.set(false)">
+            <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+          </button>
+        </header>
+        <div class="field">
+          <span class="field__label">Ngân hàng <b>*</b></span>
+          <app-select name="bankBin" [options]="bankOptions()" [(ngModel)]="bankBin" [searchable]="true"
+            leadingIcon="building-2" placeholder="Chọn ngân hàng" searchPlaceholder="Tìm ngân hàng..."
+            ariaLabel="Ngân hàng"></app-select>
+        </div>
+        <div class="form-grid">
+          <label class="field">
+            <span class="field__label">Số tài khoản <b>*</b></span>
+            <input id="account-number" class="field__control" name="accountNumber" inputmode="numeric" maxlength="19"
+              autocomplete="off" placeholder="Nhập số tài khoản" [(ngModel)]="accountNumber" />
+          </label>
+          <label class="field">
+            <span class="field__label">Tên chủ tài khoản <b>*</b></span>
+            <input id="account-name" class="field__control" name="accountName" maxlength="255" autocomplete="off"
+              placeholder="NGUYEN VAN A" [(ngModel)]="accountName" />
+          </label>
+        </div>
+        <p class="field__hint">
+          <lucide-icon name="info" class="w-4 h-4"></lucide-icon>
+          Không trừ tiền khi liên kết. payOS kiểm tra tài khoản ở lần chuyển tiền đầu tiên.
+        </p>
+        <footer class="link-form__actions">
+          <button type="button" class="btn btn--secondary" [disabled]="saving()" (click)="showForm.set(false)">Để sau</button>
+          <button type="submit" class="btn btn--primary" [disabled]="saving()" [attr.aria-busy]="saving()">
+            @if (saving()) { <lucide-icon name="loader-2" class="w-4 h-4 animate-spin"></lucide-icon> }
+            {{ saving() ? 'Đang liên kết...' : 'Xác nhận liên kết' }}
+          </button>
+        </footer>
+      </form>
+    }
+
+    @if (returnUrl && accounts().length > 0) {
+      <button type="button" class="btn btn--secondary continue-btn" (click)="continueFlow()">
+        Quay lại nhận hoàn tiền<lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon>
+      </button>
+    }
+  </div>
+</section>

@@ -1,0 +1,323 @@
+// Personal-area shell shared by Settings and Notifications (GOAT-DESIGN.md §7 Consumer shell).
+// Layout: 260px sidebar card + main column, capped at the 1480px page width.
+@mixin account-shell {
+  :host {
+    display: block;
+  }
+
+  .account-page {
+    min-height: calc(100vh - 64px);
+    background: var(--bg-body);
+  }
+
+  .account-layout {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    align-items: start;
+    gap: 24px;
+    width: min(100%, 1480px);
+    margin-inline: auto;
+    padding: 24px 0 24px;
+  }
+
+  // ---- Sidebar ---------------------------------------------------------------------------------
+  .account-sidebar {
+    position: sticky;
+    // Scroll container is mat-sidenav-content, which already pads 64px for the header; 24px lands level with main.
+    top: 24px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .account-user {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    padding: 8px 8px 16px;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .account-avatar {
+    position: relative;
+    display: grid;
+    width: 48px;
+    height: 48px;
+    place-items: center;
+    overflow: hidden;
+    padding: 0;
+    border: 0;
+    border-radius: 9999px;
+    background: var(--primary-light);
+    color: var(--primary-strong);
+    font-size: 16px;
+    font-weight: 900;
+    text-decoration: none;
+    cursor: pointer;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  .account-avatar__overlay {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: rgb(7 25 45 / 55%);
+    color: #fff;
+    opacity: 0;
+    transition: opacity var(--transition-smooth);
+  }
+
+  .account-avatar:hover .account-avatar__overlay,
+  .account-avatar:focus-visible .account-avatar__overlay,
+  .account-avatar.is-busy .account-avatar__overlay {
+    opacity: 1;
+  }
+
+  .account-user__meta {
+    display: grid;
+    min-width: 0;
+    gap: 2px;
+
+    strong {
+      overflow: hidden;
+      color: var(--text-dark);
+      font-size: 16px;
+      font-weight: 800;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    span,
+    a {
+      overflow: hidden;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    a:hover {
+      color: var(--primary);
+    }
+  }
+
+  .account-nav {
+    display: grid;
+    gap: 2px;
+  }
+
+  .account-nav__item {
+    display: grid;
+    grid-template-columns: 20px minmax(0, 1fr) auto;
+    min-height: 44px;
+    align-items: center;
+    gap: 12px;
+    padding: 0 12px;
+    border-radius: 12px;
+    color: var(--text-dark);
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color var(--transition-smooth), color var(--transition-smooth);
+
+    >span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    lucide-icon {
+      color: var(--text-muted);
+    }
+
+    &:hover {
+      background: #f8faf9;
+      color: var(--primary);
+
+      lucide-icon {
+        color: var(--primary);
+      }
+    }
+
+    &.is-active {
+      background: var(--primary-light);
+      color: var(--primary-strong);
+      font-weight: 700;
+
+      lucide-icon {
+        color: var(--primary);
+      }
+    }
+  }
+
+  .account-nav__count {
+    display: grid;
+    min-width: 22px;
+    height: 22px;
+    place-items: center;
+    padding: 0 6px;
+    border-radius: 9999px;
+    background: #be123c;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+
+  // ---- Main column -----------------------------------------------------------------------------
+  .account-main {
+    min-width: 0;
+  }
+
+  .account-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+
+    >div {
+      min-width: 0;
+    }
+  }
+
+  .account-kicker {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+
+  .account-title {
+    margin: 0;
+    color: var(--text-dark);
+    font-size: clamp(32px, 4vw, 48px);
+    font-style: italic;
+    font-weight: 900;
+    letter-spacing: -.05em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .account-subtitle {
+    margin: 8px 0 0;
+    color: var(--text-muted);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  // Underline tabs: hairline divider, 48px, active = primary text + 3px bar; scroll on small screens.
+  .account-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    overflow-x: auto;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .account-tab {
+    position: relative;
+    display: inline-flex;
+    min-height: 48px;
+    flex: none;
+    align-items: center;
+    gap: 8px;
+    padding: 0 14px;
+    border: 0;
+    background: transparent;
+    color: var(--text-muted);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color var(--transition-smooth);
+
+    &::after {
+      content: '';
+      position: absolute;
+      right: 10px;
+      bottom: -1px;
+      left: 10px;
+      height: 3px;
+      border-radius: 3px 3px 0 0;
+      background: var(--primary);
+      transform: scaleX(0);
+      transition: transform var(--transition-spring);
+    }
+
+    &:hover {
+      color: var(--text-dark);
+    }
+
+    &.is-active {
+      color: var(--primary);
+
+      &::after {
+        transform: scaleX(1);
+      }
+    }
+  }
+
+  .account-tab__count {
+    display: grid;
+    min-width: 22px;
+    height: 22px;
+    place-items: center;
+    padding: 0 6px;
+    border-radius: 9999px;
+    background: #edf4f0;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .account-tab.is-active .account-tab__count {
+    background: var(--primary-light);
+    color: var(--primary-strong);
+  }
+
+  .account-tab__count--alert {
+    background: #fff1f3;
+    color: #be123c;
+  }
+
+  @media (max-width: 1023px) {
+    .account-layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .account-sidebar {
+      position: static;
+    }
+
+    .account-nav {
+      display: flex;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .account-nav__item {
+      flex: none;
+    }
+  }
+}

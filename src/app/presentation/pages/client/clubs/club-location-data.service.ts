@@ -5,6 +5,9 @@ export interface VietnamProvince {
   code: string;
   name: string;
   type: 'CITY' | 'PROVINCE';
+  /** Administrative centre; used as the default play location for sport profiles. */
+  latitude: number;
+  longitude: number;
 }
 
 @Injectable({ providedIn: 'root' })

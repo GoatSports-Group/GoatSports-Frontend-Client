@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin, from, Observable } from 'rxjs';
@@ -7,6 +7,7 @@ import { BankAccount, BankDirectoryEntry, LinkBankAccountRequest } from '@applic
 import { EncryptedPayload } from '@application/dto/security/encrypted-payload.dto';
 import { BANK_ACCOUNT_REPOSITORY_TOKEN, BankAccountRepository } from '@application/ports/persistence/bank-account.repository';
 import { NotifyService } from '@shared/components/notify/notify.service';
+import { SelectOption } from '@shared/components/ui/select/select.component';
 import { CryptoService } from '@presentation/services/crypto.service';
 
 @Component({ selector: 'app-settings-banking-tab', templateUrl: './settings-banking-tab.component.html', styleUrls: ['./settings-banking-tab.component.scss'], changeDetection: ChangeDetectionStrategy.OnPush, standalone: false })
@@ -22,7 +23,6 @@ export class SettingsBankingTabComponent {
   readonly loading = signal(true);
   readonly saving = signal(false);
   readonly showForm = signal(false);
-  readonly search = signal('');
   bankBin = '';
   accountNumber = '';
   accountName = '';
@@ -31,10 +31,9 @@ export class SettingsBankingTabComponent {
 
   constructor() { this.load(); }
 
-  get filteredBanks(): BankDirectoryEntry[] {
-    const query = this.search().trim().toLowerCase();
-    return query ? this.banks().filter(bank => `${bank.shortName} ${bank.name} ${bank.code}`.toLowerCase().includes(query)) : this.banks();
-  }
+  /** Searchable bank picker: app-select filters on the label, so it carries short name + full name. */
+  readonly bankOptions = computed<SelectOption[]>(() =>
+    this.banks().map(bank => ({ value: bank.bin, label: `${bank.shortName} · ${bank.name}` })));
   getBank(bankBin: string): BankDirectoryEntry | undefined { return this.banks().find(bank => bank.bin === bankBin); }
   load(): void {
     this.loading.set(true);
@@ -78,6 +77,9 @@ export class SettingsBankingTabComponent {
     });
   }
   continueFlow(): void { if (this.returnUrl) void this.router.navigateByUrl(this.returnUrl); }
+  statusTone(status: BankAccount['status']): string {
+    return { PENDING_VERIFICATION: 'warning', VERIFIED: 'success', REJECTED: 'danger', DISABLED: '' }[status];
+  }
   statusLabel(status: BankAccount['status']): string {
     return { PENDING_VERIFICATION: 'Chờ giao dịch xác minh', VERIFIED: 'Đã xác minh bởi payOS', REJECTED: 'Xác minh thất bại', DISABLED: 'Đã ngừng sử dụng' }[status];
   }
@@ -86,5 +88,5 @@ export class SettingsBankingTabComponent {
       switchMap(publicKey => from(this.cryptoService.encryptPayload(payload, publicKey)))
     );
   }
-  private resetForm(): void { this.bankBin = ''; this.accountNumber = ''; this.accountName = ''; this.search.set(''); this.showForm.set(false); }
+  private resetForm(): void { this.bankBin = ''; this.accountNumber = ''; this.accountName = ''; this.showForm.set(false); }
 }

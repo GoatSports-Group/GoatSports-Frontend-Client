@@ -1,292 +1,281 @@
-<section class="sports-tab" aria-labelledby="sports-tab-title">
-  <header class="sports-tab__header">
+<section aria-labelledby="sports-tab-title">
+  <header class="tab-head">
     <div>
       <h2 id="sports-tab-title">Hồ sơ thể thao</h2>
-      <p>Lưu trình độ, khu vực chơi và lịch rảnh để GoatSports ghép trận phù hợp hơn.</p>
+      <p>Mỗi môn có một hồ sơ riêng: trình độ, khu vực và lịch rảnh dùng cho ghép trận và scouting.</p>
     </div>
-    <button type="button" class="primary-button" (click)="openCreate()">
-      <lucide-icon name="plus" class="w-4 h-4"></lucide-icon>
-      Thêm môn thể thao
+    @if (!isLoading && !loadFailed && profiles.length) {
+    @if (canAddSport) {
+    <button type="button" class="btn btn--primary" (click)="openCreate()">
+      <lucide-icon name="plus" class="w-4 h-4"></lucide-icon>Thêm môn thể thao
     </button>
+    } @else {
+    <span class="badge badge--primary">Đã có hồ sơ cho cả {{ sportOptions.length }} môn</span>
+    }
+    }
   </header>
 
   @if (isLoading) {
-    <div class="state-panel" aria-live="polite">
-      <lucide-icon name="loader-2" class="w-5 h-5 animate-spin"></lucide-icon>
-      <span>Đang tải hồ sơ thể thao...</span>
-    </div>
+  <div class="state state--inline" aria-live="polite">
+    <lucide-icon name="loader-2" class="w-5 h-5 animate-spin"></lucide-icon>Đang tải hồ sơ thể thao...
+  </div>
   } @else if (loadFailed) {
-    <div class="state-panel state-panel--error" role="alert">
-      <div>
-        <strong>Chưa thể tải hồ sơ thể thao</strong>
-        <span>Kiểm tra kết nối rồi thử lại.</span>
-      </div>
-      <button type="button" class="secondary-button" (click)="loadProfiles()">Thử lại</button>
-    </div>
+  <div class="state state--error" role="alert">
+    <span class="state__icon"><lucide-icon name="alert-triangle" class="w-6 h-6"></lucide-icon></span>
+    <strong>Chưa thể tải hồ sơ thể thao</strong>
+    <p>Kiểm tra kết nối rồi thử lại.</p>
+    <button type="button" class="btn btn--secondary" (click)="loadProfiles()">Thử lại</button>
+  </div>
   } @else if (profiles.length === 0) {
-    <div class="empty-state">
-      <span class="empty-state__icon">
-        <lucide-icon name="activity" class="w-6 h-6"></lucide-icon>
-      </span>
-      <h3>Chưa có hồ sơ thể thao</h3>
-      <p>Thêm môn bạn đang chơi và lịch rảnh để bắt đầu ghép trận thông minh.</p>
-      <button type="button" class="primary-button" (click)="openCreate()">Tạo hồ sơ đầu tiên</button>
-    </div>
+  <div class="state">
+    <span class="state__icon"><lucide-icon name="activity" class="w-6 h-6"></lucide-icon></span>
+    <strong>Chưa có hồ sơ thể thao</strong>
+    <p>Tạo hồ sơ cho môn bạn chơi và chọn tỉnh/thành để người chơi quanh đó tìm thấy bạn.</p>
+    <button type="button" class="btn btn--primary" (click)="openCreate()">
+      <lucide-icon name="plus" class="w-4 h-4"></lucide-icon>Tạo hồ sơ đầu tiên
+    </button>
+  </div>
   } @else {
-    <div class="profile-grid">
-      @for (profile of profiles; track profile.profileId) {
-        <article class="sport-card">
-          <div class="sport-card__top">
-            <div class="sport-card__identity">
-              <span class="sport-card__icon">
-                <lucide-icon name="trophy" class="w-5 h-5"></lucide-icon>
-              </span>
-              <div>
-                <h3>{{ sportLabel(profile.sportType) }}</h3>
-                <span>{{ skillLabel(profile.skillLevel) }} · ELO {{ profile.eloRating }}</span>
-              </div>
-            </div>
-            <button type="button" class="text-button" (click)="openEdit(profile)">Chỉnh sửa</button>
-          </div>
+  <div class="profile-grid">
+    @for (profile of profiles; track profile.profileId) {
+    <article class="panel sport-card">
+      <header class="sport-card__head">
+        <span class="sport-card__icon"><lucide-icon [name]="sportIcon(profile.sportType)"
+            class="w-5 h-5"></lucide-icon></span>
+        <div class="sport-card__title">
+          <h3>{{ sportLabel(profile.sportType) }}</h3>
+          <p>
+            <span class="badge badge--primary">{{ skillLabel(profile.skillLevel) }}</span>
+            <span class="elo">ELO <b>{{ profile.eloRating }}</b></span>
+          </p>
+        </div>
+        <button type="button" class="icon-btn" [matMenuTriggerFor]="profileMenu"
+          [attr.aria-label]="'Tác vụ hồ sơ ' + sportLabel(profile.sportType)">
+          <lucide-icon name="ellipsis" class="w-5 h-5"></lucide-icon>
+        </button>
+        <mat-menu #profileMenu="matMenu" xPosition="before" class="goat-action-menu">
+          <button mat-menu-item type="button" (click)="openEdit(profile)">
+            <lucide-icon name="pencil" class="w-4 h-4"></lucide-icon>Chỉnh sửa hồ sơ
+          </button>
+          <button mat-menu-item type="button" class="is-danger" (click)="requestDelete(profile.profileId)">
+            <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon>Xóa hồ sơ
+          </button>
+        </mat-menu>
+      </header>
 
-          <div class="stat-strip" aria-label="Thống kê thi đấu">
-            <div><strong>{{ profile.matchCount }}</strong><span>Trận</span></div>
-            <div><strong>{{ profile.winCount }}</strong><span>Thắng</span></div>
-            <div><strong>{{ formatWinRate(profile.winRate) }}</strong><span>Tỷ lệ thắng</span></div>
-          </div>
+      <dl class="sport-card__stats">
+        <div>
+          <dt>Trận</dt>
+          <dd>{{ profile.matchCount }}</dd>
+        </div>
+        <div>
+          <dt>Thắng</dt>
+          <dd>{{ profile.winCount }}</dd>
+        </div>
+        <div>
+          <dt>Tỷ lệ thắng</dt>
+          <dd>{{ formatWinRate(profile.winRate) }}</dd>
+        </div>
+      </dl>
 
-          @if (profile.preferredPositions.length || profile.playStyle) {
-            <div class="sport-card__details">
-              @if (profile.preferredPositions.length) {
-                <div>
-                  <span class="detail-label">Vị trí yêu thích</span>
-                  <div class="tag-list">
-                    @for (position of profile.preferredPositions; track position) {
-                      <span>{{ position }}</span>
-                    }
-                  </div>
-                </div>
-              }
-              @if (profile.playStyle) {
-                <p><span class="detail-label">Phong cách chơi</span>{{ profile.playStyle }}</p>
-              }
-            </div>
+      <div class="sport-card__line">
+        <lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>
+        @if (profile.city) {
+        <span><b>{{ profile.city }}</b> · bán kính {{ profile.playRadiusKm || 10 }} km</span>
+        } @else {
+        <span class="is-warning" title="Hồ sơ chưa hiện trong scouting cho tới khi chọn tỉnh/thành">Chưa chọn
+          tỉnh/thành</span>
+        <button type="button" class="btn btn--ghost" (click)="openEdit(profile)">Cập nhật</button>
+        }
+      </div>
+
+      <div class="sport-card__line">
+        <lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon>
+        @if (profile.availabilities.length) {
+        <div class="slot-row">
+          @for (slot of profile.availabilities; track slot.availabilityId) {
+          <span class="badge" [class.badge--primary]="slot.active">
+            {{ dayShortLabel(slot.dayOfWeek) }} {{ slot.startTime.slice(0, 5) }}–{{ slot.endTime.slice(0, 5) }}
+          </span>
           }
+        </div>
+        } @else {
+        <span class="is-muted">Chưa thiết lập lịch rảnh</span>
+        }
+      </div>
 
-          <div class="availability-summary">
-            <div class="section-heading">
-              <span>Lịch rảnh</span>
-              <small>{{ profile.availabilities.length }} khung giờ</small>
-            </div>
-            @if (profile.availabilities.length) {
-              <div class="availability-list">
-                @for (slot of profile.availabilities; track slot.availabilityId) {
-                  <div class="availability-chip" [class.availability-chip--inactive]="!slot.active">
-                    <span>{{ dayLabel(slot.dayOfWeek) }}</span>
-                    <strong>{{ slot.startTime.slice(0, 5) }}–{{ slot.endTime.slice(0, 5) }}</strong>
-                    @if (!slot.active) { <small>Tạm tắt</small> }
-                  </div>
-                }
-              </div>
-            } @else {
-              <p class="muted-copy">Chưa thiết lập lịch rảnh.</p>
-            }
-          </div>
-
-          @if (profile.latitude != null && profile.longitude != null) {
-            <div class="location-line">
-              <lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>
-              <span>Ưu tiên trong bán kính {{ profile.playRadiusKm || 10 }} km</span>
-            </div>
-          }
-
-          <footer class="sport-card__footer">
-            @if (pendingDeleteId === profile.profileId) {
-              <span>Bạn chắc chắn muốn xóa?</span>
-              <div>
-                <button type="button" class="text-button" (click)="cancelDelete()">Giữ lại</button>
-                <button
-                  type="button"
-                  class="danger-button"
-                  [disabled]="deletingProfileId === profile.profileId"
-                  (click)="confirmDelete(profile.profileId)"
-                >
-                  {{ deletingProfileId === profile.profileId ? 'Đang xóa...' : 'Xóa hồ sơ' }}
-                </button>
-              </div>
-            } @else {
-              <button type="button" class="delete-link" (click)="requestDelete(profile.profileId)">
-                <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon>
-                Xóa hồ sơ
-              </button>
-            }
-          </footer>
-        </article>
+      @if (profile.preferredPositions.length || profile.playStyle) {
+      <div class="sport-card__line">
+        <lucide-icon name="target" class="w-4 h-4"></lucide-icon>
+        <span class="is-muted">
+          {{ profile.preferredPositions.join(', ') }}@if (profile.preferredPositions.length && profile.playStyle) { ·
+          }{{ profile.playStyle }}
+        </span>
+      </div>
       }
-    </div>
+
+      @if (pendingDeleteId === profile.profileId) {
+      <footer class="sport-card__confirm" role="alert">
+        <span>Xóa hồ sơ {{ sportLabel(profile.sportType) }}? ELO và thống kê sẽ mất.</span>
+        <div>
+          <button type="button" class="btn btn--secondary" (click)="cancelDelete()">Giữ lại</button>
+          <button type="button" class="btn btn--danger" [disabled]="deletingProfileId === profile.profileId"
+            (click)="confirmDelete(profile.profileId)">
+            {{ deletingProfileId === profile.profileId ? 'Đang xóa...' : 'Xóa' }}
+          </button>
+        </div>
+      </footer>
+      }
+    </article>
+    }
+  </div>
   }
 </section>
 
 @if (isEditorOpen) {
-  <div class="modal-backdrop" (click)="closeEditor()">
-    <form
-      class="profile-editor"
-      appAccessibleDialog
-      aria-labelledby="sport-editor-title"
-      (dialogClosed)="closeEditor()"
-      (click)="$event.stopPropagation()"
-      (ngSubmit)="saveProfile()"
-    >
-      <header class="profile-editor__header">
-        <div>
-          <h2 id="sport-editor-title">{{ editingProfileId ? 'Chỉnh sửa hồ sơ thể thao' : 'Thêm hồ sơ thể thao' }}</h2>
-          <p>Thông tin này được dùng cho ghép trận và đề xuất sân.</p>
-        </div>
-        <button type="button" aria-label="Đóng" (click)="closeEditor()">
-          <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
-        </button>
-      </header>
-
-      <div class="profile-editor__body">
-        <div class="form-grid form-grid--two">
-          <label class="form-field">
-            <span>Môn thể thao <b>*</b></span>
-            <select name="sportType" [(ngModel)]="draft.sportType" required>
-              @for (sport of sportOptions; track sport.value) {
-                <option [ngValue]="sport.value" [disabled]="isSportUnavailable(sport.value)">
-                  {{ sport.label }}
-                </option>
-              }
-            </select>
-          </label>
-          <label class="form-field">
-            <span>Trình độ <b>*</b></span>
-            <select name="skillLevel" [(ngModel)]="draft.skillLevel" [disabled]="draft.skillLocked" required>
-              @for (skill of skillOptions; track skill.value) {
-                <option [ngValue]="skill.value">{{ skill.label }}</option>
-              }
-            </select>
-            @if (draft.skillLocked) {
-              <small class="field-hint">Tự cập nhật theo ELO {{ draft.eloRating }} sau mỗi trận đấu</small>
-            } @else {
-              <small class="field-hint">Chọn đúng trình độ để khởi tạo ELO; sau trận đầu tiên hệ thống sẽ tự điều chỉnh</small>
-            }
-          </label>
-        </div>
-
-        <label class="form-field">
-          <span>Vị trí yêu thích</span>
-          <input
-            type="text"
-            name="preferredPositions"
-            maxlength="509"
-            [(ngModel)]="draft.preferredPositions"
-            placeholder="Ví dụ: Tiền đạo, Hậu vệ (ngăn cách bằng dấu phẩy)"
-          />
-          <small>Tối đa 10 vị trí, phân tách bằng dấu phẩy.</small>
-        </label>
-
-        <label class="form-field">
-          <span>Phong cách chơi</span>
-          <textarea
-            name="playStyle"
-            rows="3"
-            maxlength="255"
-            [(ngModel)]="draft.playStyle"
-            placeholder="Mô tả ngắn cách bạn thường thi đấu"
-          ></textarea>
-        </label>
-
-        <section class="editor-section" aria-labelledby="location-title">
-          <div class="section-heading section-heading--editor">
-            <div>
-              <h3 id="location-title">Khu vực chơi ưu tiên</h3>
-              <p>Giúp hệ thống ưu tiên đối thủ và sân ở gần bạn.</p>
-            </div>
-            <button type="button" class="secondary-button" [disabled]="isLocating" (click)="useCurrentLocation()">
-              <lucide-icon [name]="isLocating ? 'loader-2' : 'map-pin'" class="w-4 h-4" [class.animate-spin]="isLocating"></lucide-icon>
-              {{ isLocating ? 'Đang lấy vị trí...' : 'Dùng vị trí hiện tại' }}
-            </button>
-          </div>
-          <div class="form-grid form-grid--three">
-            <label class="form-field">
-              <span>Vĩ độ</span>
-              <input type="number" name="latitude" step="0.000001" min="-90" max="90" [(ngModel)]="draft.latitude" />
-            </label>
-            <label class="form-field">
-              <span>Kinh độ</span>
-              <input type="number" name="longitude" step="0.000001" min="-180" max="180" [(ngModel)]="draft.longitude" />
-            </label>
-            <label class="form-field">
-              <span>Bán kính (km)</span>
-              <input type="number" name="playRadiusKm" step="0.5" min="0.1" max="200" [(ngModel)]="draft.playRadiusKm" />
-            </label>
-          </div>
-          @if (draft.latitude != null || draft.longitude != null) {
-            <button type="button" class="text-button clear-location" (click)="clearLocation()">Xóa vị trí đã chọn</button>
-          }
-        </section>
-
-        <section class="editor-section" aria-labelledby="availability-title">
-          <div class="section-heading section-heading--editor">
-            <div>
-              <h3 id="availability-title">Lịch rảnh hàng tuần</h3>
-              <p>Có thể thêm nhiều khung giờ và tạm tắt khi chưa sử dụng.</p>
-            </div>
-            <button type="button" class="secondary-button" (click)="addAvailability()">
-              <lucide-icon name="plus" class="w-4 h-4"></lucide-icon>
-              Thêm khung giờ
-            </button>
-          </div>
-
-          @if (draft.availabilities.length === 0) {
-            <p class="availability-empty">Chưa có khung giờ. Bạn vẫn có thể lưu hồ sơ và bổ sung sau.</p>
-          } @else {
-            <div class="availability-editor-list">
-              @for (slot of draft.availabilities; track slot.clientId; let index = $index) {
-                <div class="availability-row">
-                  <label class="form-field">
-                    <span>Ngày</span>
-                    <select [name]="'day-' + slot.clientId" [(ngModel)]="slot.dayOfWeek">
-                      @for (day of dayOptions; track day.value) {
-                        <option [ngValue]="day.value">{{ day.label }}</option>
-                      }
-                    </select>
-                  </label>
-                  <label class="form-field">
-                    <span>Bắt đầu</span>
-                    <input type="time" [name]="'start-' + slot.clientId" [(ngModel)]="slot.startTime" required />
-                  </label>
-                  <label class="form-field">
-                    <span>Kết thúc</span>
-                    <input type="time" [name]="'end-' + slot.clientId" [(ngModel)]="slot.endTime" required />
-                  </label>
-                  <label class="active-toggle">
-                    <input type="checkbox" [name]="'active-' + slot.clientId" [(ngModel)]="slot.active" />
-                    <span>Đang dùng</span>
-                  </label>
-                  <button type="button" class="icon-button" aria-label="Xóa khung giờ" (click)="removeAvailability(index)">
-                    <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon>
-                  </button>
-                </div>
-              }
-            </div>
-          }
-        </section>
+<div class="modal-backdrop" (click)="closeEditor()">
+  <form class="modal modal--wide" appAccessibleDialog aria-labelledby="sport-editor-title"
+    (dialogClosed)="closeEditor()" (click)="$event.stopPropagation()" (ngSubmit)="saveProfile()">
+    <header class="modal__header">
+      <div>
+        <h2 id="sport-editor-title">{{ editingProfileId ? 'Hồ sơ ' + sportLabel(draft.sportType) : 'Tạo hồ sơ thể thao'
+          }}</h2>
+        <p>Mỗi môn chỉ có một hồ sơ. Thông tin dùng cho ghép trận và scouting.</p>
       </div>
+      <button type="button" class="icon-btn" aria-label="Đóng" (click)="closeEditor()">
+        <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+      </button>
+    </header>
 
-      <footer class="profile-editor__footer">
-        <button type="button" class="secondary-button" [disabled]="isSaving" (click)="closeEditor()">Hủy</button>
-        <button type="submit" class="primary-button" [disabled]="isSaving">
-          @if (isSaving) {
-            <lucide-icon name="loader-2" class="w-4 h-4 animate-spin"></lucide-icon>
-            Đang lưu...
+    <div class="modal__body">
+      <section class="editor-section">
+        <h3>Môn &amp; trình độ</h3>
+        <div class="form-grid">
+          <div class="field">
+            <span class="field__label">Môn thể thao <b>*</b></span>
+            @if (editingProfileId) {
+            <div class="locked-value">
+              <lucide-icon [name]="sportIcon(draft.sportType)" class="w-4 h-4"></lucide-icon>
+              <span>{{ sportLabel(draft.sportType) }}</span>
+              <lucide-icon name="lock" class="w-4 h-4 locked-value__lock"></lucide-icon>
+            </div>
+            <p class="field__hint">Không đổi được môn. Tạo hồ sơ mới cho môn khác.</p>
+            } @else {
+            <app-select name="sportType" [options]="sportSelectOptions" [(ngModel)]="draft.sportType"
+              leadingIcon="trophy" ariaLabel="Môn thể thao"></app-select>
+            }
+          </div>
+          <div class="field">
+            <span class="field__label">Trình độ <b>*</b></span>
+            <app-select name="skillLevel" [options]="skillSelectOptions" [(ngModel)]="draft.skillLevel"
+              [disabled]="draft.skillLocked" leadingIcon="activity" ariaLabel="Trình độ"></app-select>
+            <p class="field__hint">
+              {{ draft.skillLocked ? 'Theo ELO ' + draft.eloRating + ', tự cập nhật sau mỗi trận' : 'Khởi tạo ELO; tự
+              điều chỉnh sau trận đầu' }}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="editor-section">
+        <h3>Khu vực hiển thị</h3>
+        <div class="form-grid">
+          <div class="field" [class.is-invalid]="cityTouched && !draft.city">
+            <span class="field__label">Tỉnh/Thành phố <b>*</b></span>
+            <app-select name="city" [options]="cityOptions()" [ngModel]="draft.city"
+              (ngModelChange)="onCityChange($event)" leadingIcon="map-pin" [searchable]="true"
+              searchPlaceholder="Tìm tỉnh/thành..." placeholder="Chọn tỉnh hoặc thành phố"
+              ariaLabel="Tỉnh hoặc thành phố"></app-select>
+            @if (cityTouched && !draft.city) {
+            <p class="field__error" role="alert">Chọn tỉnh/thành để hồ sơ xuất hiện trong scouting.</p>
+            }
+          </div>
+          <div class="field">
+            <span class="field__label">Phạm vi chơi</span>
+            <app-select name="playRadiusKm" [options]="radiusOptions" [(ngModel)]="draft.playRadiusKm"
+              leadingIcon="locate-fixed" ariaLabel="Bán kính chơi"></app-select>
+          </div>
+        </div>
+        <div class="note" [class.note--primary]="isUsingPreciseLocation">
+          <lucide-icon [name]="isUsingPreciseLocation ? 'locate-fixed' : 'info'" class="w-4 h-4"></lucide-icon>
+          <span class="note__text">
+            @if (isUsingPreciseLocation) {
+            Đang dùng vị trí chính xác của bạn trong {{ draft.city }}.
+            } @else if (draft.city) {
+            Tuyển trạch viên quanh {{ draft.city }} sẽ thấy hồ sơ này (tính từ trung tâm {{ draft.city }}).
+            } @else {
+            Hồ sơ hiện với tuyển trạch viên quanh tỉnh/thành bạn chọn.
+            }
+          </span>
+          @if (isUsingPreciseLocation) {
+          <button type="button" class="btn btn--ghost" (click)="clearPreciseLocation()">Dùng trung tâm tỉnh</button>
           } @else {
-            <lucide-icon name="save" class="w-4 h-4"></lucide-icon>
-            Lưu hồ sơ
+          <button type="button" class="btn btn--ghost" [disabled]="isLocating" (click)="useCurrentLocation()">
+            <lucide-icon [name]="isLocating ? 'loader-2' : 'locate-fixed'" class="w-4 h-4"
+              [class.animate-spin]="isLocating"></lucide-icon>
+            {{ isLocating ? 'Đang lấy...' : 'Dùng vị trí chính xác' }}
+          </button>
           }
-        </button>
-      </footer>
-    </form>
-  </div>
+        </div>
+      </section>
+
+      <section class="editor-section">
+        <h3>Lối chơi</h3>
+        <label class="field">
+          <span class="field__label">Vị trí yêu thích</span>
+          <input class="field__control" type="text" name="preferredPositions" maxlength="509"
+            [(ngModel)]="draft.preferredPositions" placeholder="Ví dụ: Tiền đạo, Hậu vệ" />
+          <span class="field__hint">Tối đa 10 vị trí, ngăn cách bằng dấu phẩy.</span>
+        </label>
+        <label class="field">
+          <span class="field__label">Phong cách chơi</span>
+          <textarea class="field__control" name="playStyle" rows="3" maxlength="255" [(ngModel)]="draft.playStyle"
+            placeholder="Mô tả ngắn cách bạn thường thi đấu"></textarea>
+        </label>
+      </section>
+
+      <section class="editor-section">
+        <div class="editor-section__head">
+          <h3>Lịch rảnh hàng tuần</h3>
+          <button type="button" class="btn btn--ghost" (click)="addAvailability()">
+            <lucide-icon name="plus" class="w-4 h-4"></lucide-icon>Thêm khung giờ
+          </button>
+        </div>
+        @if (draft.availabilities.length === 0) {
+        <p class="field__hint">Chưa có khung giờ. Có thể lưu hồ sơ và bổ sung sau.</p>
+        } @else {
+        <div class="slot-editor">
+          @for (slot of draft.availabilities; track slot.clientId; let index = $index) {
+          <div class="slot-editor__row" [class.is-off]="!slot.active">
+            <app-select [name]="'day-' + slot.clientId" [options]="daySelectOptions" [(ngModel)]="slot.dayOfWeek"
+              ariaLabel="Ngày trong tuần"></app-select>
+            <input class="field__control" type="time" [name]="'start-' + slot.clientId" [(ngModel)]="slot.startTime"
+              aria-label="Giờ bắt đầu" required />
+            <input class="field__control" type="time" [name]="'end-' + slot.clientId" [(ngModel)]="slot.endTime"
+              aria-label="Giờ kết thúc" required />
+            <label class="switch" [attr.title]="slot.active ? 'Đang dùng' : 'Tạm tắt'">
+              <input type="checkbox" [name]="'active-' + slot.clientId" [(ngModel)]="slot.active"
+                [attr.aria-label]="'Bật khung giờ'" />
+              <span></span>
+            </label>
+            <button type="button" class="icon-btn" aria-label="Xóa khung giờ" (click)="removeAvailability(index)">
+              <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon>
+            </button>
+          </div>
+          }
+        </div>
+        }
+      </section>
+    </div>
+
+    <footer class="modal__footer">
+      <button type="button" class="btn btn--secondary" [disabled]="isSaving" (click)="closeEditor()">Hủy</button>
+      <button type="submit" class="btn btn--primary" [disabled]="isSaving" [attr.aria-busy]="isSaving">
+        <lucide-icon [name]="isSaving ? 'loader-2' : 'save'" class="w-4 h-4"
+          [class.animate-spin]="isSaving"></lucide-icon>
+        {{ isSaving ? 'Đang lưu...' : 'Lưu hồ sơ' }}
+      </button>
+    </footer>
+  </form>
+</div>
 }

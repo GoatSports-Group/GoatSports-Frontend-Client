@@ -179,6 +179,19 @@ export class NotificationsComponent implements OnInit {
     }
   }
 
+  /** Icon tone from the design status pairs (§3): money = info, bookings = success, moderation = danger. */
+  getNotificationTone(type?: NotificationType): string {
+    switch (type) {
+      case NotificationType.PAYMENT:
+      case NotificationType.REFUND: return 'info';
+      case NotificationType.BOOKING:
+      case NotificationType.CHECK_IN: return 'success';
+      case NotificationType.REVIEW: return 'warning';
+      case NotificationType.CONTENT_MODERATION: return 'danger';
+      default: return 'primary';
+    }
+  }
+
   getNotificationTypeLabel(type?: NotificationType): string {
     switch (type) {
       case NotificationType.BOOKING: return 'Đặt sân';

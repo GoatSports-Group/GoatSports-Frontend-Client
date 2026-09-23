@@ -1,185 +1,130 @@
-<div class="settings-list">
-  <!-- Row 1: Họ và tên -->
-  <div class="settings-row">
-    <div class="settings-row__info">
-      <h3 class="settings-row__label">Họ và tên</h3>
-      <p class="settings-row__value">{{ user?.fullName || 'Chưa cập nhật' }}</p>
+<section aria-labelledby="personal-tab-title">
+  <header class="tab-head">
+    <div>
+      <h2 id="personal-tab-title">Hồ sơ cá nhân</h2>
+      <p>Thông tin hiển thị với người chơi khác và dùng cho đặt sân.</p>
     </div>
-    <button type="button" class="settings-row__action" (click)="openEdit()">
-      Chỉnh sửa
+    <button type="button" class="btn btn--primary" (click)="openEdit()">
+      <lucide-icon name="pencil" class="w-4 h-4"></lucide-icon>Chỉnh sửa thông tin
     </button>
-  </div>
+  </header>
 
-  <!-- Row 2: Tên đăng nhập -->
-  <div class="settings-row">
-    <div class="settings-row__info">
-      <h3 class="settings-row__label">Tên đăng nhập</h3>
-      <p class="settings-row__value">{{ user?.username || '—' }}</p>
-    </div>
-    <button type="button" class="settings-row__action" (click)="openEdit()">
-      Chỉnh sửa
-    </button>
-  </div>
-
-  <!-- Row 3: Địa chỉ email -->
-  <div class="settings-row">
-    <div class="settings-row__info">
-      <h3 class="settings-row__label">Địa chỉ email</h3>
-      <div class="email-row">
-        <span class="settings-row__value">{{ user?.email || '—' }}</span>
-        <span class="badge-verified" [class.badge-verified--pending]="!isEmailVerified">
-          {{ isEmailVerified ? 'Đã xác thực' : 'Chờ xác thực' }}
-        </span>
+  <div class="panel row-list">
+    <div class="row">
+      <span class="row__icon"><lucide-icon name="user" class="w-5 h-5"></lucide-icon></span>
+      <div class="row__copy">
+        <span class="row__label">Họ và tên</span>
+        <p class="row__value" [class.is-empty]="!user?.fullName">{{ user?.fullName || 'Chưa cập nhật' }}</p>
       </div>
     </div>
-    <span class="settings-row__fixed">Cố định</span>
-  </div>
 
-  <!-- Row 4: Số điện thoại -->
-  <div class="settings-row">
-    <div class="settings-row__info">
-      <h3 class="settings-row__label">Số điện thoại</h3>
-      <p class="settings-row__value">{{ user?.phone || 'Chưa cập nhật' }}</p>
+    <div class="row">
+      <span class="row__icon"><lucide-icon name="at-sign" class="w-5 h-5"></lucide-icon></span>
+      <div class="row__copy">
+        <span class="row__label">Tên đăng nhập</span>
+        <p class="row__value">{{ user?.username || '—' }}</p>
+      </div>
     </div>
-    <button type="button" class="settings-row__action" (click)="openEdit()">
-      Chỉnh sửa
-    </button>
-  </div>
 
-  <!-- Row 5: Quốc gia -->
-  <div class="settings-row">
-    <div class="settings-row__info">
-      <h3 class="settings-row__label">Quốc gia</h3>
-      <p class="settings-row__value">{{ user?.country || 'Chưa cập nhật' }}</p>
+    <div class="row">
+      <span class="row__icon"><lucide-icon name="mail" class="w-5 h-5"></lucide-icon></span>
+      <div class="row__copy">
+        <span class="row__label">Địa chỉ email</span>
+        <div class="row__meta">
+          <p class="row__value">{{ user?.email || '—' }}</p>
+          <span class="badge" [class.badge--success]="isEmailVerified" [class.badge--warning]="!isEmailVerified">
+            {{ isEmailVerified ? 'Đã xác thực' : 'Chờ xác thực' }}
+          </span>
+        </div>
+      </div>
+      <span class="row__locked"><lucide-icon name="lock" class="w-4 h-4"></lucide-icon></span>
     </div>
-    <button type="button" class="settings-row__action" (click)="openEdit()">
-      Chỉnh sửa
-    </button>
-  </div>
 
-  <!-- Row 6: Giới tính -->
-  <div class="settings-row">
-    <div class="settings-row__info">
-      <h3 class="settings-row__label">Giới tính</h3>
-      <p class="settings-row__value">{{ formatGender(user?.gender) }}</p>
+    <div class="row">
+      <span class="row__icon"><lucide-icon name="phone" class="w-5 h-5"></lucide-icon></span>
+      <div class="row__copy">
+        <span class="row__label">Số điện thoại</span>
+        <p class="row__value" [class.is-empty]="!user?.phone">{{ user?.phone || 'Chưa cập nhật' }}</p>
+      </div>
     </div>
-    <button type="button" class="settings-row__action" (click)="openEdit()">
-      Chỉnh sửa
-    </button>
-  </div>
 
-  <!-- Row 7: Ngày tham gia -->
-  <div class="settings-row">
-    <div class="settings-row__info">
-      <h3 class="settings-row__label">Ngày tham gia</h3>
-      <p class="settings-row__value">{{ formatDate(user?.createdAt) }}</p>
+    <div class="row">
+      <span class="row__icon"><lucide-icon name="globe" class="w-5 h-5"></lucide-icon></span>
+      <div class="row__copy">
+        <span class="row__label">Quốc gia</span>
+        <p class="row__value" [class.is-empty]="!user?.country">{{ user?.country || 'Chưa cập nhật' }}</p>
+      </div>
     </div>
-    <span class="settings-row__fixed">Cố định</span>
-  </div>
-</div>
 
-<!-- Modal Chỉnh sửa thông tin cá nhân -->
+    <div class="row">
+      <span class="row__icon"><lucide-icon name="users" class="w-5 h-5"></lucide-icon></span>
+      <div class="row__copy">
+        <span class="row__label">Giới tính</span>
+        <p class="row__value" [class.is-empty]="!user?.gender">{{ formatGender(user?.gender) }}</p>
+      </div>
+    </div>
+
+    <div class="row">
+      <span class="row__icon"><lucide-icon name="calendar-days" class="w-5 h-5"></lucide-icon></span>
+      <div class="row__copy">
+        <span class="row__label">Ngày tham gia</span>
+        <p class="row__value">{{ formatDate(user?.createdAt) }}</p>
+      </div>
+      <span class="row__locked"><lucide-icon name="lock" class="w-4 h-4"></lucide-icon></span>
+    </div>
+  </div>
+</section>
+
 @if (isModalOpen) {
-<div class="modal-backdrop" (click)="closeModal()">
-  <form
-    class="modal-card"
-    appAccessibleDialog
-    aria-labelledby="personal-modal-title"
-    (dialogClosed)="closeModal()"
-    (click)="$event.stopPropagation()"
-    (ngSubmit)="onSave()"
-  >
-    <div class="modal-header">
-      <h2 id="personal-modal-title" class="modal-title">Cập nhật thông tin cá nhân</h2>
-      <button type="button" class="btn-close-modal" aria-label="Đóng" (click)="closeModal()">
-        <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
-      </button>
-    </div>
+  <div class="modal-backdrop" (click)="closeModal()">
+    <form class="modal" appAccessibleDialog aria-labelledby="personal-modal-title" (dialogClosed)="closeModal()"
+      (click)="$event.stopPropagation()" (ngSubmit)="onSave()">
+      <header class="modal__header">
+        <div>
+          <h2 id="personal-modal-title">Cập nhật thông tin cá nhân</h2>
+          <p>Email và ngày tham gia không thể thay đổi.</p>
+        </div>
+        <button type="button" class="icon-btn" aria-label="Đóng" (click)="closeModal()">
+          <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+        </button>
+      </header>
 
-    <div class="modal-body">
-      <!-- Full Name -->
-      <div class="form-group">
-        <label class="form-label" for="edit-fullname">Họ và tên <span class="text-red-500">*</span></label>
-        <input
-          id="edit-fullname"
-          type="text"
-          class="form-control"
-          placeholder="Nhập họ và tên đầy đủ"
-          autocomplete="name"
-          maxlength="255"
-          [(ngModel)]="formData.fullName"
-          name="fullName"
-        />
+      <div class="modal__body">
+        <label class="field">
+          <span class="field__label">Họ và tên <b>*</b></span>
+          <input id="edit-fullname" class="field__control" type="text" name="fullName" maxlength="255" autocomplete="name"
+            placeholder="Nhập họ và tên đầy đủ" [(ngModel)]="formData.fullName" />
+        </label>
+        <label class="field">
+          <span class="field__label">Tên đăng nhập</span>
+          <input id="edit-username" class="field__control" type="text" name="username" maxlength="255"
+            autocomplete="username" placeholder="Nhập tên đăng nhập" [(ngModel)]="formData.username" />
+        </label>
+        <div class="form-grid">
+          <label class="field">
+            <span class="field__label">Số điện thoại</span>
+            <input id="edit-phone" class="field__control" type="tel" name="phone" maxlength="20" autocomplete="tel"
+              placeholder="Ví dụ: 0912345678" [(ngModel)]="formData.phone" />
+          </label>
+          <div class="field">
+            <span class="field__label">Giới tính</span>
+            <app-select name="gender" [options]="genderOptions" [(ngModel)]="formData.gender" placeholder="Chọn giới tính"
+              ariaLabel="Giới tính"></app-select>
+          </div>
+        </div>
+        <label class="field">
+          <span class="field__label">Quốc gia</span>
+          <input class="field__control" type="text" name="country" maxlength="100" autocomplete="country-name"
+            placeholder="Nhập quốc gia" [(ngModel)]="formData.country" />
+        </label>
       </div>
 
-      <!-- Username -->
-      <div class="form-group">
-        <label class="form-label" for="edit-username">Tên đăng nhập</label>
-        <input
-          id="edit-username"
-          type="text"
-          class="form-control"
-          placeholder="Nhập tên đăng nhập"
-          autocomplete="username"
-          maxlength="255"
-          [(ngModel)]="formData.username"
-          name="username"
-        />
-      </div>
-
-      <!-- Phone -->
-      <div class="form-group">
-        <label class="form-label" for="edit-phone">Số điện thoại</label>
-        <input
-          id="edit-phone"
-          type="tel"
-          class="form-control"
-          placeholder="Ví dụ: 0912345678"
-          autocomplete="tel"
-          maxlength="20"
-          [(ngModel)]="formData.phone"
-          name="phone"
-        />
-      </div>
-
-      <!-- Country -->
-      <div class="form-group">
-        <label class="form-label">Quốc gia</label>
-        <input
-          type="text"
-          class="form-control"
-          [(ngModel)]="formData.country"
-          placeholder="Nhập quốc gia"
-          autocomplete="country-name"
-          maxlength="100"
-          name="country"
-        />
-      </div>
-
-      <!-- Gender -->
-      <div class="form-group">
-        <label class="form-label">Giới tính</label>
-        <app-select
-          [options]="genderOptions"
-          [(ngModel)]="formData.gender"
-          placeholder="Chọn giới tính"
-          name="gender"
-        />
-      </div>
-    </div>
-
-    <div class="modal-footer">
-      <button type="button" class="btn-cancel" (click)="closeModal()" [disabled]="isSaving">
-        Hủy
-      </button>
-      <button type="submit" class="btn-save" [disabled]="isSaving">
-        @if (isSaving) {
-          <span>Đang lưu...</span>
-        } @else {
-          <span>Lưu thay đổi</span>
-        }
-      </button>
-    </div>
-  </form>
-</div>
+      <footer class="modal__footer">
+        <button type="button" class="btn btn--secondary" [disabled]="isSaving" (click)="closeModal()">Hủy</button>
+        <button type="submit" class="btn btn--primary" [disabled]="isSaving" [attr.aria-busy]="isSaving">
+          {{ isSaving ? 'Đang lưu...' : 'Lưu thay đổi' }}
+        </button>
+      </footer>
+    </form>
+  </div>
 }

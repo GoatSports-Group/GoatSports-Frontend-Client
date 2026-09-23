@@ -18,6 +18,8 @@ export interface PlayerSportProfile {
   eloRating: number;
   preferredPositions: string[];
   playStyle?: string;
+  /** Tỉnh/thành hồ sơ hiển thị cho scouting (tên theo vietnam-provinces.json). Hồ sơ cũ có thể chưa có. */
+  city?: string;
   latitude?: number;
   longitude?: number;
   playRadiusKm?: number;
@@ -45,8 +47,9 @@ export interface SavePlayerSportProfileRequest {
   skillLevel: SkillLevel;
   preferredPositions: string[];
   playStyle?: string;
-  latitude?: number;
-  longitude?: number;
+  city: string;
+  latitude: number;
+  longitude: number;
   playRadiusKm?: number;
   availabilities: SavePlayerAvailabilityRequest[];
 }

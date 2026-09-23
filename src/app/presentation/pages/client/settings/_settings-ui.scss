@@ -1,0 +1,511 @@
+// Shared UI for every Settings tab — values from GOAT-DESIGN.md (§4 type, §5 shape, §6 components).
+// Include once per tab stylesheet: `@use '../../settings-ui' as ui; @include ui.settings-ui;`
+@mixin settings-ui {
+  :host {
+    display: block;
+    min-width: 0;
+  }
+
+  // ---- Section heading (heading-lg + body-sm) ------------------------------------------------
+  .tab-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+
+    > div {
+      min-width: 0;
+    }
+
+    h2 {
+      margin: 0;
+      color: var(--text-dark);
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -.025em;
+      line-height: 1.2;
+    }
+
+    p {
+      margin: 4px 0 0;
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.55;
+      text-wrap: balance;
+    }
+  }
+
+  .tab-kicker {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+
+  // ---- Cards & list rows ---------------------------------------------------------------------
+  .panel {
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .row-list {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    overflow: hidden;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 16px;
+    min-height: 72px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border-color);
+
+    &:last-child {
+      border-bottom: 0;
+    }
+  }
+
+  .row__icon {
+    display: grid;
+    width: 40px;
+    height: 40px;
+    place-items: center;
+    border-radius: 12px;
+    background: var(--primary-light);
+    color: var(--primary);
+  }
+
+  .row__copy {
+    display: grid;
+    min-width: 0;
+    gap: 2px;
+  }
+
+  .row__label {
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .row__value {
+    overflow: hidden;
+    margin: 0;
+    color: var(--text-dark);
+    font-size: 15px;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &.is-empty {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+  }
+
+  .row__meta {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .row__locked {
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  // ---- Buttons (44px, radius 12, no shadow) --------------------------------------------------
+  .btn {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 18px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    background: transparent;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color var(--transition-smooth), border-color var(--transition-smooth), color var(--transition-smooth), transform var(--transition-smooth);
+
+    &:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: .55;
+    }
+  }
+
+  .btn--primary {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: #fff;
+
+    &:hover:not(:disabled) {
+      border-color: var(--primary-hover);
+      background: var(--primary-hover);
+    }
+  }
+
+  .btn--secondary {
+    border-color: var(--border-color);
+    background: #fff;
+    color: var(--text-dark);
+
+    &:hover:not(:disabled) {
+      border-color: var(--border-strong);
+      color: var(--primary);
+    }
+  }
+
+  .btn--ghost {
+    min-height: 40px;
+    padding: 0 10px;
+    color: var(--primary);
+
+    &:hover:not(:disabled) {
+      background: var(--primary-light);
+    }
+  }
+
+  .btn--danger {
+    border-color: #be123c;
+    background: #be123c;
+    color: #fff;
+
+    &:hover:not(:disabled) {
+      background: #9f1239;
+    }
+  }
+
+  .btn--danger-ghost {
+    color: #be123c;
+
+    &:hover:not(:disabled) {
+      background: #fff1f3;
+    }
+  }
+
+  .icon-btn {
+    display: grid;
+    width: 40px;
+    height: 40px;
+    flex: none;
+    place-items: center;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background-color var(--transition-smooth), color var(--transition-smooth), border-color var(--transition-smooth);
+
+    &:hover:not(:disabled),
+    &[aria-expanded='true'] {
+      border-color: var(--border-color);
+      background: #f8faf9;
+      color: var(--primary);
+    }
+  }
+
+  // ---- Badges ---------------------------------------------------------------------------------
+  .badge {
+    display: inline-flex;
+    height: 24px;
+    flex: none;
+    align-items: center;
+    gap: 4px;
+    padding: 0 8px;
+    border-radius: 6px;
+    background: #edf4f0;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .badge--primary { background: var(--primary-light); color: var(--primary-strong); }
+  .badge--success { background: #eaf7f0; color: #18794e; }
+  .badge--warning { background: #fff7e7; color: #a15c07; }
+  .badge--danger { background: #fff1f3; color: #be123c; }
+  .badge--info { background: #edf5fa; color: #315f7d; }
+
+  // ---- Form fields (label 13/800 uppercase, 44px, radius 12, no focus border) ---------------
+  .field {
+    display: grid;
+    min-width: 0;
+    align-content: start; // side-by-side fields keep their controls aligned when one has a longer hint
+    gap: 6px;
+  }
+
+  .field__label {
+    color: var(--text-dark);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: .025em;
+    text-transform: uppercase;
+
+    b {
+      color: #be123c;
+    }
+  }
+
+  .field__control {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 0 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    outline: none;
+    background: #fff;
+    color: var(--text-dark);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    transition: border-color var(--transition-smooth);
+
+    &::placeholder {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    &:hover:not(:disabled) {
+      border-color: var(--border-strong);
+    }
+
+    &:disabled {
+      background: #f8faf9;
+      color: var(--text-muted);
+    }
+  }
+
+  textarea.field__control {
+    min-height: 96px;
+    padding: 12px 14px;
+    line-height: 1.5;
+    resize: vertical;
+  }
+
+  .field__hint {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .field__error {
+    margin: 0;
+    color: #be123c;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .field.is-invalid .field__control,
+  .field.is-invalid ::ng-deep .app-select__trigger {
+    border-color: #be123c;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  // ---- State panels (loading / empty / error) ------------------------------------------------
+  .state {
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    padding: 40px 24px;
+    border: 1px dashed var(--border-strong);
+    border-radius: 16px;
+    background: #f8faf9;
+    text-align: center;
+
+    strong {
+      color: var(--text-dark);
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    p {
+      max-width: 460px;
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.55;
+      text-wrap: balance;
+    }
+
+    .btn {
+      margin-top: 8px;
+    }
+  }
+
+  .state__icon {
+    display: grid;
+    width: 48px;
+    height: 48px;
+    place-items: center;
+    border-radius: 9999px;
+    background: var(--primary-light);
+    color: var(--primary);
+  }
+
+  .state--inline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 24px;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  .state--error .state__icon {
+    background: #fff1f3;
+    color: #be123c;
+  }
+
+  .note {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #f8faf9;
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.5;
+
+    lucide-icon {
+      flex: none;
+      margin-top: 1px;
+      color: var(--primary);
+    }
+  }
+
+  .note--primary {
+    background: var(--primary-light);
+    color: var(--primary-strong);
+  }
+
+  // ---- Modal (flex column, only body scrolls) ------------------------------------------------
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    display: grid;
+    place-items: center;
+    padding: 24px 16px;
+    background: rgb(16 26 44 / 55%);
+    backdrop-filter: blur(3px);
+  }
+
+  .modal {
+    display: flex;
+    width: min(100%, 560px);
+    max-height: min(88dvh, 880px);
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    border-radius: 24px;
+    background: #fff;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .modal--wide {
+    width: min(100%, 680px);
+  }
+
+  .modal__header {
+    display: flex;
+    flex: none;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 22px 24px 16px;
+    border-bottom: 1px solid var(--border-color);
+
+    h2 {
+      margin: 0;
+      color: var(--text-dark);
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -.025em;
+    }
+
+    p {
+      margin: 4px 0 0;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+  }
+
+  .modal__body {
+    display: grid;
+    flex: 1 1 auto;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 20px 24px 24px;
+  }
+
+  .modal__footer {
+    display: flex;
+    flex: none;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 24px;
+    border-top: 1px solid var(--border-color);
+  }
+
+  @media (max-width: 640px) {
+    .form-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .row {
+      padding: 12px 16px;
+    }
+
+    .modal-backdrop {
+      align-items: end;
+      padding: 0;
+    }
+
+    .modal {
+      width: 100%;
+      max-height: 92dvh;
+      border-radius: 24px 24px 0 0;
+    }
+
+    .modal__header,
+    .modal__body,
+    .modal__footer {
+      padding-inline: 16px;
+    }
+  }
+}

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, computed, inject } from '@angular/core';
 import { finalize } from 'rxjs';
 import {
   PLAYER_DAY_OPTIONS,
@@ -15,6 +15,9 @@ import {
   PLAYER_SPORT_PROFILE_REPOSITORY_TOKEN,
   PlayerSportProfileRepository
 } from '@application/ports/persistence/player-sport-profile.repository';
+import { ClubLocationDataService, VietnamProvince } from '@presentation/pages/client/clubs/club-location-data.service';
+import { CLUB_SPORTS } from '@presentation/pages/client/clubs/club-view.model';
+import { SelectOption } from '@shared/components/ui/select/select.component';
 import { NotifyService } from '@shared/components/notify/notify.service';
 
 interface AvailabilityDraft extends SavePlayerAvailabilityRequest {
@@ -22,18 +25,23 @@ interface AvailabilityDraft extends SavePlayerAvailabilityRequest {
 }
 
 interface SportProfileDraft {
-  sportType: SportType;
+  sportType: SportType | null;
   skillLevel: SkillLevel;
   /** Đã thi đấu thì trình độ do ELO quyết định, người chơi không tự chọn nữa. */
   skillLocked: boolean;
   eloRating: number | null;
   preferredPositions: string;
   playStyle: string;
-  latitude: number | null;
-  longitude: number | null;
-  playRadiusKm: number | null;
+  /** Tên tỉnh/thành (khớp `vietnam-provinces.json`). */
+  city: string;
+  /** Tọa độ GPS chính xác; null = dùng trung tâm hành chính của `city`. */
+  preciseLatitude: number | null;
+  preciseLongitude: number | null;
+  playRadiusKm: number;
   availabilities: AvailabilityDraft[];
 }
+
+const RADIUS_PRESETS_KM = [5, 10, 20, 30, 50];
 
 @Component({
   selector: 'app-settings-sports-tab',
@@ -46,11 +54,15 @@ export class SettingsSportsTabComponent implements OnInit {
     PLAYER_SPORT_PROFILE_REPOSITORY_TOKEN
   );
   private readonly notifyService = inject(NotifyService);
+  private readonly locationData = inject(ClubLocationDataService);
   private nextClientId = 1;
 
   readonly sportOptions = SPORT_TYPE_OPTIONS;
-  readonly skillOptions = SKILL_LEVEL_OPTIONS;
-  readonly dayOptions = PLAYER_DAY_OPTIONS;
+  readonly skillSelectOptions: SelectOption[] = SKILL_LEVEL_OPTIONS.map(option => ({ ...option }));
+  readonly daySelectOptions: SelectOption[] = PLAYER_DAY_OPTIONS.map(option => ({ ...option }));
+  readonly cityOptions = computed<SelectOption[]>(() =>
+    this.locationData.provinces().map(province => ({ value: province.name, label: province.name, icon: 'map-pin' }))
+  );
 
   profiles: PlayerSportProfile[] = [];
   isLoading = true;
@@ -58,6 +70,7 @@ export class SettingsSportsTabComponent implements OnInit {
   isEditorOpen = false;
   isSaving = false;
   isLocating = false;
+  cityTouched = false;
   editingProfileId: string | null = null;
   pendingDeleteId: string | null = null;
   deletingProfileId: string | null = null;
@@ -67,31 +80,61 @@ export class SettingsSportsTabComponent implements OnInit {
     this.loadProfiles();
   }
 
+  get canAddSport(): boolean {
+    return this.profiles.length < this.sportOptions.length;
+  }
+
+  /** Create mode lists every sport; sports that already have a profile are disabled (one profile per sport). */
+  get sportSelectOptions(): SelectOption[] {
+    return this.sportOptions.map(option => {
+      const taken = this.profiles.some(profile => profile.sportType === option.value);
+      return { value: option.value, label: taken ? `${option.label} · Đã có hồ sơ` : option.label, disabled: taken, icon: this.sportIcon(option.value) };
+    });
+  }
+
+  get radiusOptions(): SelectOption[] {
+    const values = new Set([...RADIUS_PRESETS_KM, this.draft.playRadiusKm]);
+    return [...values].sort((a, b) => a - b).map(km => ({ value: km, label: `Trong bán kính ${km} km` }));
+  }
+
+  get isUsingPreciseLocation(): boolean {
+    return this.draft.preciseLatitude !== null && this.draft.preciseLongitude !== null;
+  }
+
   loadProfiles(): void {
     this.isLoading = true;
     this.loadFailed = false;
     this.repository.getMyProfiles().pipe(
       finalize(() => this.isLoading = false)
     ).subscribe({
-      next: profiles => this.profiles = profiles,
+      next: profiles => {
+        this.profiles = profiles;
+        this.sortProfiles();
+      },
       error: () => this.loadFailed = true
     });
   }
 
   openCreate(): void {
-    const usedSports = new Set(this.profiles.map(profile => profile.sportType));
-    const availableSport = this.sportOptions.find(option => !usedSports.has(option.value));
-    if (!availableSport) {
-      this.notifyService.warning('Bạn đã tạo hồ sơ cho tất cả môn thể thao được hỗ trợ.');
-      return;
-    }
+    if (!this.canAddSport) return;
     this.editingProfileId = null;
-    this.draft = this.createEmptyDraft(availableSport.value);
+    this.cityTouched = false;
+    this.draft = this.createEmptyDraft();
     this.isEditorOpen = true;
   }
 
   openEdit(profile: PlayerSportProfile): void {
+    const hasCoordinates = profile.latitude != null && profile.longitude != null;
+    const city = profile.city
+      || (hasCoordinates ? this.nearestProvince(profile.latitude!, profile.longitude!)?.name : undefined)
+      || '';
+    const centre = this.provinceByName(city);
+    const isPrecise = hasCoordinates && (!centre
+      || Math.abs(centre.latitude - profile.latitude!) > 0.001
+      || Math.abs(centre.longitude - profile.longitude!) > 0.001);
+
     this.editingProfileId = profile.profileId;
+    this.cityTouched = false;
     this.draft = {
       sportType: profile.sportType,
       skillLevel: profile.skillLevel,
@@ -99,9 +142,10 @@ export class SettingsSportsTabComponent implements OnInit {
       eloRating: profile.eloRating ?? null,
       preferredPositions: profile.preferredPositions.join(', '),
       playStyle: profile.playStyle || '',
-      latitude: profile.latitude ?? null,
-      longitude: profile.longitude ?? null,
-      playRadiusKm: profile.playRadiusKm ?? null,
+      city,
+      preciseLatitude: isPrecise ? profile.latitude! : null,
+      preciseLongitude: isPrecise ? profile.longitude! : null,
+      playRadiusKm: profile.playRadiusKm ?? 10,
       availabilities: profile.availabilities.map(slot => ({
         availabilityId: slot.availabilityId,
         dayOfWeek: slot.dayOfWeek,
@@ -120,6 +164,13 @@ export class SettingsSportsTabComponent implements OnInit {
     if (this.isSaving) return;
     this.isEditorOpen = false;
     this.editingProfileId = null;
+  }
+
+  onCityChange(city: string): void {
+    this.draft.city = city;
+    this.cityTouched = true;
+    // A new city means a new area: drop GPS coordinates that belonged to the old one.
+    this.clearPreciseLocation();
   }
 
   addAvailability(): void {
@@ -146,25 +197,33 @@ export class SettingsSportsTabComponent implements OnInit {
     navigator.geolocation.getCurrentPosition(
       position => {
         this.isLocating = false;
-        this.draft.latitude = Number(position.coords.latitude.toFixed(6));
-        this.draft.longitude = Number(position.coords.longitude.toFixed(6));
-        this.notifyService.success('Đã cập nhật vị trí chơi ưu tiên.');
+        const latitude = Number(position.coords.latitude.toFixed(6));
+        const longitude = Number(position.coords.longitude.toFixed(6));
+        this.draft.preciseLatitude = latitude;
+        this.draft.preciseLongitude = longitude;
+        const nearest = this.nearestProvince(latitude, longitude);
+        if (nearest) {
+          this.draft.city = nearest.name;
+          this.cityTouched = true;
+        }
+        this.notifyService.success(`Đã dùng vị trí hiện tại${nearest ? ` (${nearest.name})` : ''}.`);
       },
       () => {
         this.isLocating = false;
-        this.notifyService.error('Không thể lấy vị trí. Vui lòng cấp quyền vị trí hoặc nhập thủ công.');
+        this.notifyService.error('Không thể lấy vị trí. Hãy cấp quyền vị trí hoặc chọn tỉnh/thành phố.');
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
     );
   }
 
-  clearLocation(): void {
-    this.draft.latitude = null;
-    this.draft.longitude = null;
+  clearPreciseLocation(): void {
+    this.draft.preciseLatitude = null;
+    this.draft.preciseLongitude = null;
   }
 
   saveProfile(): void {
     if (this.isSaving) return;
+    this.cityTouched = true;
     const payload = this.toPayload();
     if (!payload) return;
 
@@ -175,17 +234,13 @@ export class SettingsSportsTabComponent implements OnInit {
     request.pipe(finalize(() => this.isSaving = false)).subscribe({
       next: saved => {
         const currentIndex = this.profiles.findIndex(profile => profile.profileId === saved.profileId);
-        if (currentIndex >= 0) {
-          this.profiles = this.profiles.map(profile =>
-            profile.profileId === saved.profileId ? saved : profile
-          );
-        } else {
-          this.profiles = [...this.profiles, saved];
-        }
+        this.profiles = currentIndex >= 0
+          ? this.profiles.map(profile => profile.profileId === saved.profileId ? saved : profile)
+          : [...this.profiles, saved];
         this.sortProfiles();
         this.isEditorOpen = false;
         this.editingProfileId = null;
-        this.notifyService.success('Đã lưu hồ sơ thể thao và lịch rảnh.');
+        this.notifyService.success('Đã lưu hồ sơ thể thao.');
       },
       error: error => this.notifyService.error(this.getErrorMessage(error))
     });
@@ -214,22 +269,20 @@ export class SettingsSportsTabComponent implements OnInit {
     });
   }
 
-  isSportUnavailable(sport: SportType): boolean {
-    return this.profiles.some(profile =>
-      profile.sportType === sport && profile.profileId !== this.editingProfileId
-    );
+  sportLabel(sport: SportType | null): string {
+    return this.sportOptions.find(option => option.value === sport)?.label ?? '';
   }
 
-  sportLabel(sport: SportType): string {
-    return this.sportOptions.find(option => option.value === sport)?.label ?? sport;
+  sportIcon(sport: SportType | null): string {
+    return CLUB_SPORTS.find(option => option.value === sport)?.icon ?? 'trophy';
   }
 
   skillLabel(skill: SkillLevel): string {
-    return this.skillOptions.find(option => option.value === skill)?.label ?? skill;
+    return SKILL_LEVEL_OPTIONS.find(option => option.value === skill)?.label ?? skill;
   }
 
-  dayLabel(day: PlayerDayOfWeek): string {
-    return this.dayOptions.find(option => option.value === day)?.label ?? day;
+  dayShortLabel(day: PlayerDayOfWeek): string {
+    return PLAYER_DAY_OPTIONS.find(option => option.value === day)?.label.replace('Thứ ', 'T') ?? day;
   }
 
   formatWinRate(winRate: number): string {
@@ -237,39 +290,30 @@ export class SettingsSportsTabComponent implements OnInit {
     return `${Math.round(percent)}%`;
   }
 
-  private createEmptyDraft(sportType: SportType = SportType.BADMINTON): SportProfileDraft {
+  private createEmptyDraft(): SportProfileDraft {
     return {
-      sportType,
+      sportType: this.sportOptions.find(option => !this.profiles.some(p => p.sportType === option.value))?.value ?? null,
       skillLevel: SkillLevel.INTERMEDIATE,
       skillLocked: false,
       eloRating: null,
       preferredPositions: '',
       playStyle: '',
-      latitude: null,
-      longitude: null,
+      city: '',
+      preciseLatitude: null,
+      preciseLongitude: null,
       playRadiusKm: 10,
       availabilities: []
     };
   }
 
   private toPayload(): SavePlayerSportProfileRequest | null {
-    const latitude = this.numberOrUndefined(this.draft.latitude);
-    const longitude = this.numberOrUndefined(this.draft.longitude);
-    const radius = this.numberOrUndefined(this.draft.playRadiusKm);
-    if ((latitude === undefined) !== (longitude === undefined)) {
-      this.notifyService.error('Vui lòng nhập đầy đủ cả vĩ độ và kinh độ.');
+    if (!this.draft.sportType) {
+      this.notifyService.error('Vui lòng chọn môn thể thao.');
       return null;
     }
-    if (latitude !== undefined && (latitude < -90 || latitude > 90)) {
-      this.notifyService.error('Vĩ độ phải nằm trong khoảng từ -90 đến 90.');
-      return null;
-    }
-    if (longitude !== undefined && (longitude < -180 || longitude > 180)) {
-      this.notifyService.error('Kinh độ phải nằm trong khoảng từ -180 đến 180.');
-      return null;
-    }
-    if (radius !== undefined && (radius <= 0 || radius > 200)) {
-      this.notifyService.error('Bán kính chơi phải lớn hơn 0 và không vượt quá 200 km.');
+    const province = this.provinceByName(this.draft.city);
+    if (!province) {
+      this.notifyService.error('Vui lòng chọn tỉnh/thành phố để hồ sơ xuất hiện trong scouting.');
       return null;
     }
     if (!this.validateAvailabilities()) return null;
@@ -290,9 +334,10 @@ export class SettingsSportsTabComponent implements OnInit {
       skillLevel: this.draft.skillLevel,
       preferredPositions: positions,
       playStyle: this.draft.playStyle.trim() || undefined,
-      latitude,
-      longitude,
-      playRadiusKm: radius,
+      city: province.name,
+      latitude: this.draft.preciseLatitude ?? province.latitude,
+      longitude: this.draft.preciseLongitude ?? province.longitude,
+      playRadiusKm: this.draft.playRadiusKm,
       availabilities: this.draft.availabilities.map(({ clientId: _clientId, ...slot }) => ({
         ...slot,
         timezone: slot.timezone.trim() || this.browserTimezone
@@ -322,8 +367,25 @@ export class SettingsSportsTabComponent implements OnInit {
     return true;
   }
 
-  private numberOrUndefined(value: number | null): number | undefined {
-    return value === null || !Number.isFinite(Number(value)) ? undefined : Number(value);
+  private provinceByName(name: string): VietnamProvince | undefined {
+    return this.locationData.provinces().find(province => province.name === name);
+  }
+
+  // ponytail: linear scan over 34 province centres; fine at this size, no spatial index needed.
+  private nearestProvince(latitude: number, longitude: number): VietnamProvince | undefined {
+    let best: VietnamProvince | undefined;
+    let bestDistance = Infinity;
+    const cosLat = Math.cos(latitude * Math.PI / 180);
+    for (const province of this.locationData.provinces()) {
+      const dLat = province.latitude - latitude;
+      const dLng = (province.longitude - longitude) * cosLat;
+      const distance = dLat * dLat + dLng * dLng;
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        best = province;
+      }
+    }
+    return best;
   }
 
   private toTimeInput(value: string): string {
