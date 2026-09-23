@@ -80,6 +80,9 @@
         <lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>
         @if (profile.city) {
         <span><b>{{ profile.city }}</b> · bán kính {{ profile.playRadiusKm || 10 }} km</span>
+        @if (profile.discoverable === false) {
+        <span class="badge" title="Câu lạc bộ không tìm thấy hồ sơ này"><lucide-icon name="eye-off" class="w-4 h-4"></lucide-icon> Ẩn khỏi tuyển thành viên</span>
+        }
         } @else {
         <span class="is-warning" title="Hồ sơ chưa hiện trong scouting cho tới khi chọn tỉnh/thành">Chưa chọn
           tỉnh/thành</span>
@@ -214,6 +217,22 @@
             {{ isLocating ? 'Đang lấy...' : 'Dùng vị trí chính xác' }}
           </button>
           }
+        </div>
+        <div class="visibility-row">
+          <span class="visibility-row__icon" [class.is-off]="!draft.discoverable" aria-hidden="true">
+            <lucide-icon [name]="draft.discoverable ? 'eye' : 'eye-off'" class="w-5 h-5"></lucide-icon>
+          </span>
+          <span class="visibility-row__text">
+            <strong>Cho phép câu lạc bộ tìm thấy hồ sơ</strong>
+            <small>{{ draft.discoverable
+              ? 'Chủ và quản lý CLB quanh khu vực có thể xem hồ sơ này và gửi lời mời.'
+              : 'Hồ sơ bị ẩn khỏi mọi tìm kiếm của câu lạc bộ. Lời mời đã nhận vẫn giữ nguyên.' }}</small>
+          </span>
+          <label class="switch">
+            <input type="checkbox" name="discoverable" [(ngModel)]="draft.discoverable"
+              aria-label="Cho phép câu lạc bộ tìm thấy hồ sơ" />
+            <span></span>
+          </label>
         </div>
       </section>
 

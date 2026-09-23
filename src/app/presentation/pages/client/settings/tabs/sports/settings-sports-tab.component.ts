@@ -38,6 +38,7 @@ interface SportProfileDraft {
   preciseLatitude: number | null;
   preciseLongitude: number | null;
   playRadiusKm: number;
+  discoverable: boolean;
   availabilities: AvailabilityDraft[];
 }
 
@@ -146,6 +147,7 @@ export class SettingsSportsTabComponent implements OnInit {
       preciseLatitude: isPrecise ? profile.latitude! : null,
       preciseLongitude: isPrecise ? profile.longitude! : null,
       playRadiusKm: profile.playRadiusKm ?? 10,
+      discoverable: profile.discoverable !== false,
       availabilities: profile.availabilities.map(slot => ({
         availabilityId: slot.availabilityId,
         dayOfWeek: slot.dayOfWeek,
@@ -302,6 +304,7 @@ export class SettingsSportsTabComponent implements OnInit {
       preciseLatitude: null,
       preciseLongitude: null,
       playRadiusKm: 10,
+      discoverable: true,
       availabilities: []
     };
   }
@@ -338,6 +341,7 @@ export class SettingsSportsTabComponent implements OnInit {
       latitude: this.draft.preciseLatitude ?? province.latitude,
       longitude: this.draft.preciseLongitude ?? province.longitude,
       playRadiusKm: this.draft.playRadiusKm,
+      discoverable: this.draft.discoverable,
       availabilities: this.draft.availabilities.map(({ clientId: _clientId, ...slot }) => ({
         ...slot,
         timezone: slot.timezone.trim() || this.browserTimezone

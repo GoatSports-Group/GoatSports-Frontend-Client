@@ -98,6 +98,11 @@ const WEEKDAYS = ['CN', 'TH 2', 'TH 3', 'TH 4', 'TH 5', 'TH 6', 'TH 7'];
  * Nút nào hiện ra phụ thuộc vào tôi đã ở trong CLB chưa và CLB có duyệt tay không.
  * Đưa vào một chỗ để thẻ CLB ở mọi khối đều nhất quán.
  */
+/** API tra winRate la ti le 0-1 (thang / so tran); giao dien hien phan tram lam tron. */
+export function winRatePercent(rate?: number | null): number {
+  return Math.round((rate ?? 0) * 100);
+}
+
 export function toCardView(club: Club, membership?: MyClubMembership): ClubCardView {
   return {
     clubId: club.clubId,
@@ -108,7 +113,7 @@ export function toCardView(club: Club, membership?: MyClubMembership): ClubCardV
     description: club.description ?? '',
     tags: club.tags ?? [],
     memberCount: club.memberCount ?? 0,
-    winRate: Math.round((club.winRate ?? 0) * 100) / 100,
+    winRate: winRatePercent(club.winRate),
     privacy: club.privacy,
     logoUrl: club.logoUrl ?? null,
     bannerUrl: club.bannerUrl ?? null,

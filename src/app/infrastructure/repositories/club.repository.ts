@@ -5,7 +5,7 @@ import { ClubRepositoryPort } from '@application/ports/club.repository.port';
 import { BaseResponse, PageResult, PagedModelResponse } from '@application/dto/base/base-response';
 import {
   ClubActivityModel, ClubPhotoModel, ClubRecentMatchModel, ClubMemberModel, ClubModel, ClubRole, ScoutedPlayerModel,
-  MyClubMembership, ClubInvitationModel,
+  MyClubMembership, ClubInvitationModel, ScoutingFilters, ShortlistEntryModel, SentInvitationModel,
   CreateClubActivityPayload, CreateClubPayload, SportType, UpdateClubPayload
 } from '@domain/models/club.model';
 import { API_ENDPOINTS } from '@infrastructure/config/api-endpoints';
@@ -67,13 +67,34 @@ export class ClubRepository extends ClubRepositoryPort {
     return this.http.patch<BaseResponse<ClubMemberModel>>(`${this.baseUrl}/${clubId}/owner`, {},
       { params: { membershipId } }).pipe(map(response => response.data));
   }
-  override getScoutingCandidates(clubId: string, radiusKm?: number, limit?: number)
-    : Observable<ScoutedPlayerModel[]> {
+  override getScoutingCandidates(clubId: string, filters: ScoutingFilters = {}): Observable<ScoutedPlayerModel[]> {
     let params = new HttpParams();
-    if (radiusKm != null) params = params.set('radiusKm', radiusKm);
-    if (limit != null) params = params.set('limit', limit);
+    if (filters.radiusKm != null) params = params.set('radiusKm', filters.radiusKm);
+    if (filters.limit != null) params = params.set('limit', filters.limit);
+    filters.skillLevels?.forEach(level => params = params.append('skillLevels', level));
+    if (filters.position?.trim()) params = params.set('position', filters.position.trim());
+    if (filters.availableOn) params = params.set('availableOn', filters.availableOn);
     return this.http.get<BaseResponse<ScoutedPlayerModel[]>>(`${this.baseUrl}/${clubId}/scouting`, { params })
       .pipe(map(response => response.data ?? []));
+  }
+  override getScoutingShortlist(clubId: string): Observable<ShortlistEntryModel[]> {
+    return this.http.get<BaseResponse<ShortlistEntryModel[]>>(`${this.baseUrl}/${clubId}/scouting/shortlist`)
+      .pipe(map(response => response.data ?? []));
+  }
+  override saveShortlistEntry(clubId: string, userId: string, note?: string): Observable<ShortlistEntryModel> {
+    return this.http.put<BaseResponse<ShortlistEntryModel>>(
+      `${this.baseUrl}/${clubId}/scouting/shortlist/${userId}`, { note: note?.trim() || null })
+      .pipe(map(response => response.data));
+  }
+  override removeShortlistEntry(clubId: string, userId: string): Observable<void> {
+    return this.http.delete(`${this.baseUrl}/${clubId}/scouting/shortlist/${userId}`).pipe(map(() => void 0));
+  }
+  override getSentInvitations(clubId: string): Observable<SentInvitationModel[]> {
+    return this.http.get<BaseResponse<SentInvitationModel[]>>(`${this.baseUrl}/${clubId}/invitations`)
+      .pipe(map(response => response.data ?? []));
+  }
+  override cancelInvitation(clubId: string, invitationId: string): Observable<void> {
+    return this.http.post(`${this.baseUrl}/${clubId}/invitations/${invitationId}/cancel`, {}).pipe(map(() => void 0));
   }
   override disbandClub(clubId: string): Observable<void> {    return this.http.post(`${this.baseUrl}/${clubId}/disband`, {}).pipe(map(() => void 0));
   }

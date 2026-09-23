@@ -29,6 +29,8 @@ export interface PlayerSportProfile {
   matchCount: number;
   winRate: number;
   availabilities: PlayerAvailability[];
+  /** Câu lạc bộ tìm thấy hồ sơ này khi tuyển thành viên (mặc định bật). */
+  discoverable?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -52,6 +54,7 @@ export interface SavePlayerSportProfileRequest {
   longitude: number;
   playRadiusKm?: number;
   availabilities: SavePlayerAvailabilityRequest[];
+  discoverable: boolean;
 }
 
 export {

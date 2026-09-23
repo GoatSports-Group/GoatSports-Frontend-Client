@@ -10,7 +10,7 @@ import { NotificationService } from '@presentation/services/notification.service
 import { UserService } from '@presentation/services/user.service';
 import { NotifyService } from '@shared/components/notify/notify.service';
 import { CLUB_REMINDER_MOCKS, ClubReminderMock } from './club-member.mock-data';
-import { DEFAULT_CLUB_BANNER, DEFAULT_CLUB_LOGO, sportLabel } from './club-view.model';
+import { DEFAULT_CLUB_BANNER, DEFAULT_CLUB_LOGO, sportLabel, winRatePercent } from './club-view.model';
 
 interface MembershipApplication {
   member: ClubMember;
@@ -35,6 +35,7 @@ export class ClubMemberWorkspaceComponent {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly clubId = this.route.snapshot.paramMap.get('clubId') ?? '';
+  readonly winRatePercent = winRatePercent;
   readonly defaultClubLogo = DEFAULT_CLUB_LOGO;
   readonly defaultClubBanner = DEFAULT_CLUB_BANNER;
   readonly club = signal<Club | null>(null);

@@ -23,7 +23,7 @@
     </header>
 
     <section class="club-statline" aria-label="Thông tin câu lạc bộ">
-      <div class="club-statline__lead"><small>Season report</small><strong>{{ currentClub.winRate }}%</strong><span>tỉ lệ thắng</span></div>
+      <div class="club-statline__lead"><small>Season report</small><strong>{{ winRatePercent(currentClub.winRate) }}%</strong><span>tỉ lệ thắng</span></div>
       <div><span>01</span><b>{{ currentClub.memberCount }}</b><small>Thành viên</small></div><div><span>02</span><b>{{ currentClub.matchCount }}</b><small>Trận đã đấu</small></div><div><span>03</span><b>{{ currentClub.approvalMode === 'AUTO' ? 'Tự động' : 'Xét duyệt' }}</b><small>Cách tham gia</small></div>
     </section>
 

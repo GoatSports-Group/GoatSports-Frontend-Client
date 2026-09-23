@@ -127,20 +127,76 @@ export interface CreateClubActivityPayload {
 export type SkillLevel = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'PRO';
 
 /** Ung vien scouting: nguoi choi cung bo mon, trong ban kinh quanh diem neo cua CLB. */
+export type ScoutingWeekDay = 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY';
+
+export interface ScoutingAvailabilityModel {
+  dayOfWeek: ScoutingWeekDay;
+  /** HH:mm:ss */
+  startTime: string;
+  endTime: string;
+}
+
+/**
+ * Nguoi choi tren bang tuyen thanh vien. profileVisible = false: nguoi choi da an ho so (hoac chua co ho so
+ * mon cua CLB) nen chi con ten; khong co trinh do, khoang cach hay diem phu hop.
+ */
 export interface ScoutedPlayerModel {
   userId: string;
   username: string;
   fullName: string;
   avatarUrl?: string;
+  profileVisible: boolean;
   skillLevel?: SkillLevel;
   eloRating?: number;
+  preferredPositions?: string[];
+  playStyle?: string;
+  city?: string;
   matchCount?: number;
+  winCount?: number;
+  lossCount?: number;
+  drawCount?: number;
+  /** 0-1 */
   winRate?: number;
-  distanceKm: number;
+  availabilities?: ScoutingAvailabilityModel[];
+  distanceKm?: number;
   /** 0-100, cang cao cang hop voi CLB. */
-  fitScore: number;
+  fitScore?: number;
   /** CLB nam trong ban kinh nguoi choi san sang di. */
   withinPlayerRadius: boolean;
+  shortlisted: boolean;
+}
+
+export interface ScoutingFilters {
+  radiusKm?: number;
+  skillLevels?: SkillLevel[];
+  /** Tim theo chuoi con, khong phan biet hoa thuong. */
+  position?: string;
+  availableOn?: ScoutingWeekDay;
+  limit?: number;
+}
+
+/** Nguoi choi dang o dau voi CLB, de bang tuyen chi hien thao tac lam duoc. */
+export type PlayerClubRelation = 'NONE' | 'INVITED' | 'REQUESTED' | 'MEMBER' | 'BANNED';
+
+export interface ShortlistEntryModel {
+  userId: string;
+  note?: string;
+  addedBy: string;
+  createdAt?: string;
+  updatedAt?: string;
+  relation: PlayerClubRelation;
+  /** Chi rong khi tai khoan khong con. */
+  player?: ScoutedPlayerModel;
+}
+
+export interface SentInvitationModel {
+  invitationId: string;
+  status: ClubInvitationStatus;
+  message?: string;
+  invitedBy: string;
+  createdAt?: string;
+  respondedAt?: string;
+  player?: ScoutedPlayerModel;
 }
 
 export interface UpdateClubPayload {

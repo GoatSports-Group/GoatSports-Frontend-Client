@@ -9,6 +9,10 @@ export {
   CreateClubPayload,
   CreateClubActivityPayload,
   UpdateClubPayload,
-  ScoutedPlayerModel
+  ScoutedPlayerModel,
+  ScoutingFilters,
+  ScoutingAvailabilityModel,
+  ShortlistEntryModel,
+  SentInvitationModel
 } from '@domain/models/club.model';
-export type { SportType, SkillLevel, ClubRole, ClubPrivacy, ClubApprovalMode, ClubMemberStatus } from '@domain/models/club.model';
+export type { SportType, SkillLevel, ClubRole, ClubPrivacy, ClubApprovalMode, ClubMemberStatus, ClubInvitationStatus, PlayerClubRelation, ScoutingWeekDay } from '@domain/models/club.model';

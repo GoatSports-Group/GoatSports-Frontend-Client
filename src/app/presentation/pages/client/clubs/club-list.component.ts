@@ -97,7 +97,7 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
       case 'WIN_RATE': return clubs.sort((left, right) => right.winRate - left.winRate);
       // "Nổi bật trước": đông thành viên và có thành tích thì lên trước.
       default: return clubs.sort((left, right) =>
-        (right.memberCount * 2 + right.winRate) - (left.memberCount * 2 + left.winRate));
+        (right.memberCount * 2 + right.winRate / 100) - (left.memberCount * 2 + left.winRate / 100));
     }
   });
 

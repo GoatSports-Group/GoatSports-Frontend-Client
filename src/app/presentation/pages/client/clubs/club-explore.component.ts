@@ -55,7 +55,7 @@ export class ClubExploreComponent {
       case 'MEMBERS': return clubs.sort((left, right) => right.memberCount - left.memberCount);
       case 'WIN_RATE': return clubs.sort((left, right) => right.winRate - left.winRate);
       default: return clubs.sort((left, right) =>
-        (right.memberCount * 2 + right.winRate) - (left.memberCount * 2 + left.winRate));
+        (right.memberCount * 2 + right.winRate / 100) - (left.memberCount * 2 + left.winRate / 100));
     }
   });
 

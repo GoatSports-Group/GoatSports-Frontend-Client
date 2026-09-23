@@ -1,227 +1,399 @@
-<main class="member-space-page member-space-page--scouting">
-  <nav class="member-breadcrumb" aria-label="Điều hướng phụ">
-    <a [routerLink]="['/clubs/my', clubId]">
-      <lucide-icon name="arrow-left" class="w-4 h-4"></lucide-icon>
-      Clubhouse
-    </a>
-    <span aria-hidden="true">/</span>
-    <strong>Tuyển thành viên</strong>
+<main class="scout-page">
+  <nav class="breadcrumb" aria-label="Đường dẫn">
+    <a class="breadcrumb__wide" routerLink="/clubs">Câu lạc bộ</a>
+    <lucide-icon class="breadcrumb__wide w-4 h-4" name="chevron-right" aria-hidden="true"></lucide-icon>
+    <a class="breadcrumb__wide" routerLink="/clubs/my">CLB của bạn</a>
+    @if (club(); as currentClub) {
+      <lucide-icon class="breadcrumb__wide w-4 h-4" name="chevron-right" aria-hidden="true"></lucide-icon>
+      <a class="breadcrumb__club" [routerLink]="['/clubs', clubId]">{{ currentClub.name }}</a>
+    }
+    <lucide-icon name="chevron-right" class="w-4 h-4" aria-hidden="true"></lucide-icon>
+    <strong aria-current="page">Tuyển thành viên</strong>
   </nav>
 
   @if (loading()) {
-    <section class="scouting-loading" aria-label="Đang tải trang tuyển thành viên">
-      <app-loading-skeleton height="300px" radius="24px"></app-loading-skeleton>
-      <app-loading-skeleton variant="rows" [count]="4"></app-loading-skeleton>
-    </section>
+    <div class="scout-loading">
+      <app-loading-skeleton height="88px" radius="16px" label="Đang tải trang tuyển thành viên"></app-loading-skeleton>
+      <app-loading-skeleton variant="rows" [count]="5" [decorative]="true"></app-loading-skeleton>
+    </div>
   } @else if (!isAuthenticated()) {
-    <section class="member-state">
-      <span class="member-state__index">01</span>
-      <span class="member-state__icon"><lucide-icon name="lock" class="w-7 h-7"></lucide-icon></span>
-      <div>
-        <p class="member-kicker">Yêu cầu đăng nhập</p>
-        <h1>Đăng nhập để tìm người chơi</h1>
-        <p>Công cụ mời người chơi dành cho chủ và quản lý câu lạc bộ.</p>
-      </div>
-      <button type="button" class="member-button member-button--primary" (click)="login()">Đăng nhập</button>
+    <section class="state">
+      <span class="state__icon"><lucide-icon name="lock" class="w-6 h-6"></lucide-icon></span>
+      <h1>Đăng nhập để tìm người chơi</h1>
+      <p>Công cụ tuyển thành viên dành cho chủ và quản lý câu lạc bộ.</p>
+      <button type="button" class="btn btn--primary" (click)="login()">Đăng nhập</button>
     </section>
   } @else if (error()) {
-    <section class="member-state" role="alert">
-      <span class="member-state__index">!</span>
-      <span class="member-state__icon"><lucide-icon name="wifi-off" class="w-7 h-7"></lucide-icon></span>
-      <div>
-        <h1>Chưa mở được trang tuyển thành viên</h1>
-        <p>{{ error() }}</p>
-      </div>
-      <button type="button" class="member-button member-button--outline" (click)="load()">Thử lại</button>
+    <section class="state state--error" role="alert">
+      <span class="state__icon"><lucide-icon name="wifi-off" class="w-6 h-6"></lucide-icon></span>
+      <h1>Chưa mở được trang tuyển thành viên</h1>
+      <p>{{ error() }}</p>
+      <button type="button" class="btn btn--secondary" (click)="load()">Thử lại</button>
     </section>
   } @else if (!isManager()) {
-    <section class="member-state">
-      <span class="member-state__index">403</span>
-      <span class="member-state__icon"><lucide-icon name="shield-check" class="w-7 h-7"></lucide-icon></span>
-      <div>
-        <p class="member-kicker">Quyền quản lý CLB</p>
-        <h1>Bạn không có quyền gửi lời mời</h1>
-        <p>Chỉ chủ hoặc quản lý câu lạc bộ có thể tìm và mời thêm người chơi.</p>
-      </div>
-      <a class="member-button member-button--primary" [routerLink]="['/clubs/my', clubId]">Về clubhouse</a>
+    <section class="state">
+      <span class="state__icon"><lucide-icon name="shield-check" class="w-6 h-6"></lucide-icon></span>
+      <h1>Bạn không có quyền tuyển thành viên</h1>
+      <p>Chỉ chủ hoặc quản lý câu lạc bộ có thể tìm và mời thêm người chơi.</p>
+      <a class="btn btn--primary" [routerLink]="['/clubs', clubId]">Về trang câu lạc bộ</a>
     </section>
   } @else if (club(); as currentClub) {
-    <header class="scouting-hero">
-      <div class="scouting-hero__content">
-        <div class="scouting-club-chip">
-          <span class="member-club-logo member-club-logo--hero">
-            <img [src]="currentClub.logoUrl || defaultClubLogo" (error)="useLogoFallback($event)" [alt]="'Logo ' + currentClub.name" />
-          </span>
-          <span>
-            <small>Đang tuyển cho</small>
-            <strong>{{ currentClub.name }}</strong>
-          </span>
-        </div>
-
-        <div class="scouting-hero__copy">
-          <h1>Tìm đồng đội phù hợp.</h1>
-          <p>Khám phá người chơi <strong>{{ sportLabel(currentClub.sportType) }}</strong> quanh {{ currentClub.location || currentClub.city || 'khu vực của câu lạc bộ' }}, được xếp hạng theo độ phù hợp với đội.</p>
+    <header class="scout-head">
+      <div class="scout-head__identity">
+        <span class="club-logo">
+          <img [src]="currentClub.logoUrl || defaultClubLogo" (error)="useLogoFallback($event)" [alt]="'Logo ' + currentClub.name" />
+        </span>
+        <div>
+          <h1>Tuyển thành viên</h1>
+          <p>Người chơi {{ sportLabel(currentClub.sportType) }} quanh {{ currentClub.location || currentClub.city || 'khu vực của câu lạc bộ' }}, xếp theo độ phù hợp với {{ currentClub.name }}.</p>
         </div>
       </div>
-
-      <dl class="scouting-summary" aria-label="Tóm tắt tìm kiếm">
+      <dl class="kpis" aria-label="Tổng quan tuyển thành viên">
         <div>
           <dt>Ứng viên</dt>
-          <dd>{{ filteredPlayers().length }}</dd>
+          <dd>{{ searching() ? '—' : visibleCandidates().length }}</dd>
         </div>
         <div>
-          <dt>Bán kính</dt>
-          <dd>{{ radiusKm() }} <small>km</small></dd>
+          <dt>Theo dõi</dt>
+          <dd>{{ shortlistLoading() ? '—' : shortlist().length }}</dd>
         </div>
         <div>
-          <dt>Môn thể thao</dt>
-          <dd class="scouting-summary__sport">{{ sportLabel(currentClub.sportType) }}</dd>
+          <dt>Lời mời chờ</dt>
+          <dd>{{ invitationsLoading() ? '—' : pendingInvitations() }}</dd>
         </div>
       </dl>
-      <span class="scouting-hero__mark" aria-hidden="true">SCOUT</span>
     </header>
 
-    <section class="scouting-filter" aria-labelledby="filter-title">
-      <div class="scouting-filter__intro">
-        <span class="scouting-filter__icon" aria-hidden="true">
-          <lucide-icon name="sliders-horizontal" class="w-5 h-5"></lucide-icon>
-        </span>
-        <span>
-          <strong id="filter-title">Bộ lọc tìm kiếm</strong>
-          <small>Cập nhật kết quả theo tên và khoảng cách</small>
-        </span>
-      </div>
-
-      <label class="scouting-field scouting-field--search">
-        <span>Tìm người chơi</span>
-        <span class="member-search">
-          <lucide-icon name="search" class="w-5 h-5"></lucide-icon>
-          <input type="search" [ngModel]="keyword()" (ngModelChange)="updateKeyword($event)" placeholder="Tên hoặc tài khoản..." />
-        </span>
-      </label>
-
-      <label class="scouting-field">
-        <span>Khoảng cách</span>
-        <app-select class="member-select" [options]="radiusSelectOptions" [ngModel]="radiusKm()"
-          (ngModelChange)="updateRadius($event)" leadingIcon="navigation"
-          ariaLabel="Bán kính tìm kiếm"></app-select>
-      </label>
-
-      <button type="button" class="member-button member-button--primary scouting-filter__refresh" [disabled]="searching()" (click)="search()">
-        <lucide-icon name="refresh-cw" class="w-4 h-4" [class.is-spinning]="searching()"></lucide-icon>
-        {{ searching() ? 'Đang cập nhật...' : 'Cập nhật kết quả' }}
+    <div class="tabs" role="tablist" aria-label="Bảng tuyển thành viên">
+      <button type="button" role="tab" [attr.aria-selected]="tab() === 'discover'" [class.is-active]="tab() === 'discover'" (click)="setTab('discover')">
+        <lucide-icon name="search" class="w-4 h-4"></lucide-icon> Khám phá
       </button>
-    </section>
+      <button type="button" role="tab" [attr.aria-selected]="tab() === 'shortlist'" [class.is-active]="tab() === 'shortlist'" (click)="setTab('shortlist')">
+        <lucide-icon name="bookmark" class="w-4 h-4"></lucide-icon> Theo dõi
+        @if (shortlist().length) { <span class="count">{{ shortlist().length }}</span> }
+      </button>
+      <button type="button" role="tab" [attr.aria-selected]="tab() === 'invited'" [class.is-active]="tab() === 'invited'" (click)="setTab('invited')">
+        <lucide-icon name="send" class="w-4 h-4"></lucide-icon> Đã mời
+        @if (pendingInvitations()) { <span class="count count--alert">{{ pendingInvitations() }}</span> }
+      </button>
+    </div>
 
-    @if (searching()) {
-      <section class="scouting-results scouting-results--loading" aria-label="Đang tìm ứng viên">
-        <app-loading-skeleton variant="rows" [count]="4" [flush]="true"></app-loading-skeleton>
-      </section>
-    } @else if (searchError()) {
-      <section class="member-state scouting-state" role="alert">
-        <span class="member-state__index">!</span>
-        <span class="member-state__icon"><lucide-icon name="wifi-off" class="w-7 h-7"></lucide-icon></span>
-        <div>
-          <h2>Chưa tìm được người chơi</h2>
-          <p>{{ searchError() }}</p>
-        </div>
-        <button type="button" class="member-button member-button--outline" (click)="search()">Thử lại</button>
-      </section>
-    } @else if (pagedPlayers().length) {
-      <section class="scouting-results" aria-labelledby="scouting-title">
-        <header class="scouting-results__header">
-          <div>
-            <p class="member-kicker">Danh sách đề xuất</p>
-            <h2 id="scouting-title">Ứng viên tiềm năng</h2>
-            <p>{{ filteredPlayers().length }} người chơi trong bán kính {{ radiusKm() }} km, ưu tiên hồ sơ phù hợp nhất.</p>
-          </div>
-          @if (keyword()) {
-            <button type="button" class="scouting-clear" (click)="clearFilters()">
-              <lucide-icon name="x" class="w-4 h-4"></lucide-icon>
-              Xóa lọc tên
-            </button>
-          }
-        </header>
+    <div class="scout-layout">
+      <section class="scout-main" role="tabpanel">
+        @switch (tab()) {
+          @case ('discover') {
+            <div class="filters" aria-label="Bộ lọc người chơi">
+              <label class="search-field filters__name">
+                <lucide-icon name="search" class="w-5 h-5"></lucide-icon>
+                <input type="search" [ngModel]="keyword()" (ngModelChange)="updateKeyword($event)"
+                  placeholder="Lọc theo tên hoặc tài khoản" aria-label="Lọc theo tên hoặc tài khoản" />
+              </label>
+              <label class="search-field filters__position">
+                <lucide-icon name="target" class="w-5 h-5"></lucide-icon>
+                <input type="search" [ngModel]="position()" (ngModelChange)="updatePosition($event)"
+                  placeholder="Vị trí, ví dụ: Tiền đạo" aria-label="Vị trí sở trường" maxlength="50" />
+              </label>
+              <app-select class="filters__select" [options]="skillOptions" [ngModel]="skill()" (ngModelChange)="updateSkill($event)"
+                leadingIcon="trophy" ariaLabel="Trình độ"></app-select>
+              <app-select class="filters__select" [options]="dayOptions" [ngModel]="day()" (ngModelChange)="updateDay($event)"
+                leadingIcon="calendar-days" ariaLabel="Ngày rảnh"></app-select>
+              <app-select class="filters__select" [options]="radiusOptions" [ngModel]="radiusKm()" (ngModelChange)="updateRadius($event)"
+                leadingIcon="navigation" ariaLabel="Bán kính tìm kiếm"></app-select>
+              <app-select class="filters__select" [options]="sortOptions" [ngModel]="sort()" (ngModelChange)="updateSort($event)"
+                leadingIcon="arrow-up-down" ariaLabel="Sắp xếp"></app-select>
+            </div>
 
-        <div class="scouting-list-head" aria-hidden="true">
-          <span>Người chơi</span>
-          <span>Hồ sơ thi đấu</span>
-          <span>Độ phù hợp</span>
-          <span>Thao tác</span>
-        </div>
-
-        <div class="player-list">
-          @for (player of pagedPlayers(); track player.userId; let rank = $index) {
-            <article class="player-row">
-              <div class="player-primary">
-                <span class="player-rank">{{ (pageIndex() * pageSize + rank + 1).toString().padStart(2, '0') }}</span>
-                <span class="player-avatar" [attr.data-tone]="rank % 4">
-                  @if (player.avatarUrl) {
-                    <img [src]="player.avatarUrl" [alt]="player.fullName" />
-                  } @else {
-                    {{ initials(player.fullName) }}
-                  }
-                </span>
-                <div class="player-identity">
-                  <h3>{{ player.fullName }}</h3>
-                  <p>{{ player.username }}</p>
-                  <span>{{ player.matchCount || 0 }} trận đã chơi</span>
-                </div>
-              </div>
-
-              <dl class="player-profile">
-                <div>
-                  <dt><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon> Trình độ</dt>
-                  <dd>{{ skillLabel(player.skillLevel) }}@if (player.eloRating) { · {{ player.eloRating }} Elo }</dd>
-                </div>
-                <div>
-                  <dt><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon> Khoảng cách</dt>
-                  <dd>{{ player.distanceKm }} km từ CLB</dd>
-                </div>
-                @if (player.winRate !== undefined && player.winRate !== null) {
-                  <div>
-                    <dt><lucide-icon name="trending-up" class="w-4 h-4"></lucide-icon> Tỷ lệ thắng</dt>
-                    <dd>{{ player.winRate }}%</dd>
-                  </div>
+            <div class="list-card">
+              <header class="list-card__head">
+                <p>
+                  @if (searching()) { Đang tìm người chơi... }
+                  @else { <b>{{ visibleCandidates().length }}</b> người chơi trong bán kính {{ radiusKm() }} km }
+                </p>
+                @if (hasFilters()) {
+                  <button type="button" class="btn btn--ghost" (click)="clearFilters()">
+                    <lucide-icon name="x" class="w-4 h-4"></lucide-icon> Xóa bộ lọc
+                  </button>
                 }
-              </dl>
+              </header>
 
-              <div class="player-fit">
-                <div>
-                  <span>Độ phù hợp</span>
-                  <strong>{{ player.fitScore }}%</strong>
+              @if (searching()) {
+                <app-loading-skeleton variant="rows" [count]="6" [flush]="true" label="Đang tìm người chơi"></app-loading-skeleton>
+              } @else if (searchError()) {
+                <div class="inline-state inline-state--error" role="alert">
+                  <lucide-icon name="wifi-off" class="w-6 h-6"></lucide-icon>
+                  <h2>Chưa tìm được người chơi</h2>
+                  <p>{{ searchError() }}</p>
+                  <button type="button" class="btn btn--secondary" (click)="search()">Thử lại</button>
                 </div>
-                <span class="player-fit__track" aria-hidden="true"><i [style.width.%]="player.fitScore"></i></span>
-                <small [class.is-muted]="!player.withinPlayerRadius">
-                  <lucide-icon [name]="player.withinPlayerRadius ? 'circle-check' : 'circle-alert'" class="w-4 h-4"></lucide-icon>
-                  {{ player.withinPlayerRadius ? 'Sẵn sàng di chuyển tới CLB' : 'Ngoài khoảng cách ưu tiên' }}
-                </small>
-              </div>
-
-              <button type="button" class="member-button member-button--invite"
-                [class.member-button--invited]="invitedIds().has(player.userId)"
-                [disabled]="invitedIds().has(player.userId) || invitingId() === player.userId"
-                (click)="invite(player)">
-                <lucide-icon [name]="invitedIds().has(player.userId) ? 'circle-check' : 'user-plus'" class="w-4 h-4"></lucide-icon>
-                {{ invitedIds().has(player.userId) ? 'Đã gửi lời mời' : invitingId() === player.userId ? 'Đang gửi...' : 'Mời vào CLB' }}
-              </button>
-            </article>
+              } @else if (pagedCandidates().length) {
+                <div class="rows">
+                  @for (player of pagedCandidates(); track player.userId) {
+                    <article class="row" [class.is-selected]="selectedId() === player.userId" tabindex="0"
+                      [attr.aria-label]="'Xem hồ sơ ' + player.fullName"
+                      (click)="select(player.userId)" (keydown.enter)="select(player.userId)">
+                      <span class="avatar">
+                        @if (player.avatarUrl) { <img [src]="player.avatarUrl" alt="" /> } @else { {{ initials(player.fullName) }} }
+                      </span>
+                      <div class="row__identity">
+                        <h3>{{ player.fullName }}</h3>
+                        <p>{{ skillLabel(player.skillLevel) }}@if (player.eloRating) { · {{ player.eloRating }} Elo } · {{ player.matchCount || 0 }} trận</p>
+                      </div>
+                      <div class="row__tags">
+                        @if (player.preferredPositions?.length) {
+                          <span class="chip" [title]="player.preferredPositions!.join(', ')">{{ player.preferredPositions![0] }}</span>
+                          @if (player.preferredPositions!.length > 1) {
+                            <span class="chip chip--neutral">+{{ player.preferredPositions!.length - 1 }}</span>
+                          }
+                        }
+                      </div>
+                      <div class="row__metric">
+                        <b>{{ formatDistance(player.distanceKm) }}</b>
+                        <span [class.is-warn]="!player.withinPlayerRadius">{{ player.withinPlayerRadius ? 'Trong phạm vi' : 'Ngoài phạm vi' }}</span>
+                      </div>
+                      <div class="row__fit" [attr.aria-label]="'Phù hợp ' + player.fitScore + '%'">
+                        <b>{{ player.fitScore }}%</b>
+                        <span class="fit-track" aria-hidden="true"><i [style.width.%]="player.fitScore"></i></span>
+                      </div>
+                      <div class="row__actions">
+                        <button type="button" class="icon-btn" [class.is-active]="isShortlisted(player.userId)"
+                          [disabled]="shortlistBusyIds().has(player.userId)" [attr.aria-pressed]="isShortlisted(player.userId)"
+                          [attr.aria-label]="(isShortlisted(player.userId) ? 'Bỏ theo dõi ' : 'Theo dõi ') + player.fullName"
+                          (click)="$event.stopPropagation(); toggleShortlist(player)">
+                          <lucide-icon [name]="isShortlisted(player.userId) ? 'bookmark-check' : 'bookmark'" class="w-5 h-5"></lucide-icon>
+                        </button>
+                        @if (invitedIds().has(player.userId)) {
+                          <span class="status status--warning"><lucide-icon name="send" class="w-4 h-4"></lucide-icon> Đã mời</span>
+                        } @else {
+                          <button type="button" class="btn btn--secondary btn--sm" (click)="$event.stopPropagation(); openInvite(player)">
+                            <lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon> Mời
+                          </button>
+                        }
+                      </div>
+                    </article>
+                  }
+                </div>
+              } @else if (hasFilters()) {
+                <div class="inline-state">
+                  <lucide-icon name="search-x" class="w-6 h-6"></lucide-icon>
+                  <h2>Không có người chơi khớp bộ lọc</h2>
+                  <p>Thử bỏ bớt điều kiện hoặc mở rộng bán kính tìm kiếm.</p>
+                  <button type="button" class="btn btn--secondary" (click)="clearFilters()">Xóa bộ lọc</button>
+                </div>
+              } @else {
+                <div class="inline-state">
+                  <lucide-icon name="search-x" class="w-6 h-6"></lucide-icon>
+                  <h2>Chưa có người chơi quanh đây</h2>
+                  <p>Chưa có người chơi {{ sportLabel(currentClub.sportType) }} nào cho phép câu lạc bộ tìm thấy trong bán kính {{ radiusKm() }} km.</p>
+                  <button type="button" class="btn btn--secondary" (click)="updateRadius(100)">Tìm trong 100 km</button>
+                </div>
+              }
+            </div>
+            @if (!searching() && !searchError()) {
+              <app-pagination [pageIndex]="discoverPage()" [pageSize]="pageSize" [totalItems]="visibleCandidates().length"
+                itemLabel="người chơi" (pageChange)="changeDiscoverPage($event)"></app-pagination>
+            }
           }
-        </div>
-      </section>
-      <app-pagination [pageIndex]="pageIndex()" [pageSize]="pageSize" [totalItems]="filteredPlayers().length" (pageChange)="changePage($event)"></app-pagination>
-    } @else {
-      <section class="member-state member-state--center scouting-state">
-        <span class="member-state__index">00</span>
-        <span class="member-state__icon"><lucide-icon name="search-x" class="w-7 h-7"></lucide-icon></span>
-        <div>
-          <h2>Không tìm thấy người chơi phù hợp</h2>
-          <p>Chưa có người chơi {{ sportLabel(currentClub.sportType) }} nào trong bán kính {{ radiusKm() }} km. Hãy thử mở rộng khoảng cách tìm kiếm.</p>
-        </div>
-        @if (keyword()) {
-          <button type="button" class="member-button member-button--outline" (click)="clearFilters()">Xóa lọc tên</button>
+
+          @case ('shortlist') {
+            <div class="list-card">
+              <header class="list-card__head">
+                <p><b>{{ shortlist().length }}</b> người chơi ban quản lý đang theo dõi</p>
+              </header>
+              @if (shortlistLoading()) {
+                <app-loading-skeleton variant="rows" [count]="4" [flush]="true" label="Đang tải danh sách theo dõi"></app-loading-skeleton>
+              } @else if (shortlistError()) {
+                <div class="inline-state inline-state--error" role="alert">
+                  <lucide-icon name="wifi-off" class="w-6 h-6"></lucide-icon>
+                  <h2>Không tải được danh sách theo dõi</h2>
+                  <p>{{ shortlistError() }}</p>
+                  <button type="button" class="btn btn--secondary" (click)="loadShortlist()">Thử lại</button>
+                </div>
+              } @else if (pagedShortlist().length) {
+                <div class="rows">
+                  @for (entry of pagedShortlist(); track entry.userId) {
+                    <article class="row row--shortlist" [class.is-selected]="selectedId() === entry.userId" tabindex="0"
+                      [attr.aria-label]="'Xem hồ sơ ' + (entry.player?.fullName ?? 'người chơi')"
+                      (click)="select(entry.userId)" (keydown.enter)="select(entry.userId)">
+                      <span class="avatar">
+                        @if (entry.player?.avatarUrl) { <img [src]="entry.player?.avatarUrl" alt="" /> } @else { {{ initials(entry.player?.fullName) }} }
+                      </span>
+                      <div class="row__identity">
+                        <h3>{{ entry.player?.fullName ?? 'Tài khoản không còn tồn tại' }}</h3>
+                        <p>
+                          @if (entry.player?.profileVisible) {
+                            {{ skillLabel(entry.player?.skillLevel) }} · {{ formatDistance(entry.player?.distanceKm) }}
+                          } @else { Hồ sơ đã ẩn }
+                        </p>
+                      </div>
+                      <p class="row__note" [class.is-empty]="!entry.note">
+                        <lucide-icon name="sticky-note" class="w-4 h-4"></lucide-icon>
+                        <span>{{ entry.note || 'Chưa có ghi chú' }}</span>
+                      </p>
+                      <div class="row__actions">
+                        @if (relationOf(entry.userId) !== 'NONE') {
+                          <span class="status" [class.status--warning]="relationOf(entry.userId) === 'INVITED' || relationOf(entry.userId) === 'REQUESTED'"
+                            [class.status--success]="relationOf(entry.userId) === 'MEMBER'" [class.status--danger]="relationOf(entry.userId) === 'BANNED'">
+                            {{ relationLabel(relationOf(entry.userId)) }}
+                          </span>
+                        } @else if (entry.player && canInvite(entry.player)) {
+                          <button type="button" class="btn btn--secondary btn--sm" (click)="$event.stopPropagation(); openInvite(entry.player)">
+                            <lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon> Mời
+                          </button>
+                        }
+                        @if (entry.player) {
+                          <button type="button" class="icon-btn icon-btn--danger" [disabled]="shortlistBusyIds().has(entry.userId)"
+                            [attr.aria-label]="'Bỏ theo dõi ' + entry.player.fullName"
+                            (click)="$event.stopPropagation(); toggleShortlist(entry.player)">
+                            <lucide-icon name="trash-2" class="w-5 h-5"></lucide-icon>
+                          </button>
+                        }
+                      </div>
+                    </article>
+                  }
+                </div>
+              } @else {
+                <div class="inline-state">
+                  <lucide-icon name="bookmark" class="w-6 h-6"></lucide-icon>
+                  <h2>Chưa theo dõi ai</h2>
+                  <p>Bấm biểu tượng dấu trang ở tab Khám phá để lưu người chơi và ghi chú cho cả ban quản lý.</p>
+                  <button type="button" class="btn btn--secondary" (click)="setTab('discover')">Khám phá người chơi</button>
+                </div>
+              }
+            </div>
+            @if (!shortlistLoading() && !shortlistError()) {
+              <app-pagination [pageIndex]="shortlistPage()" [pageSize]="pageSize" [totalItems]="shortlist().length"
+                itemLabel="người chơi" (pageChange)="changeShortlistPage($event)"></app-pagination>
+            }
+          }
+
+          @case ('invited') {
+            <div class="chips-bar" role="group" aria-label="Lọc theo trạng thái lời mời">
+              @for (option of invitationFilters; track option.value) {
+                <button type="button" class="filter-chip" [class.is-active]="invitationFilter() === option.value"
+                  [attr.aria-pressed]="invitationFilter() === option.value" (click)="setInvitationFilter(option.value)">
+                  {{ option.label }} <span>{{ invitationCount(option.value) }}</span>
+                </button>
+              }
+            </div>
+            <div class="list-card">
+              @if (invitationsLoading()) {
+                <app-loading-skeleton variant="rows" [count]="4" [flush]="true" label="Đang tải lời mời đã gửi"></app-loading-skeleton>
+              } @else if (invitationsError()) {
+                <div class="inline-state inline-state--error" role="alert">
+                  <lucide-icon name="wifi-off" class="w-6 h-6"></lucide-icon>
+                  <h2>Không tải được lời mời đã gửi</h2>
+                  <p>{{ invitationsError() }}</p>
+                  <button type="button" class="btn btn--secondary" (click)="loadInvitations()">Thử lại</button>
+                </div>
+              } @else if (pagedInvitations().length) {
+                <div class="rows">
+                  @for (invitation of pagedInvitations(); track invitation.invitationId) {
+                    <article class="row row--invite" [class.is-selected]="selectedId() === invitation.player?.userId" tabindex="0"
+                      [attr.aria-label]="'Xem hồ sơ ' + (invitation.player?.fullName ?? 'người chơi')"
+                      (click)="select(invitation.player?.userId)" (keydown.enter)="select(invitation.player?.userId)">
+                      <span class="avatar">
+                        @if (invitation.player?.avatarUrl) { <img [src]="invitation.player?.avatarUrl" alt="" /> } @else { {{ initials(invitation.player?.fullName) }} }
+                      </span>
+                      <div class="row__identity">
+                        <h3>{{ invitation.player?.fullName ?? 'Tài khoản không còn tồn tại' }}</h3>
+                        <p>Gửi {{ formatDate(invitation.createdAt) }}@if (invitation.respondedAt) { · trả lời {{ formatDate(invitation.respondedAt) }} }</p>
+                      </div>
+                      <p class="row__note" [class.is-empty]="!invitation.message">
+                        <lucide-icon name="message-square-text" class="w-4 h-4"></lucide-icon>
+                        <span>{{ invitation.message || 'Không kèm lời nhắn' }}</span>
+                      </p>
+                      <div class="row__actions">
+                        @if (confirmCancelId() === invitation.invitationId) {
+                          <span class="confirm" role="group" aria-label="Xác nhận thu hồi">
+                            <button type="button" class="btn btn--secondary btn--sm" [disabled]="cancellingId() === invitation.invitationId"
+                              (click)="$event.stopPropagation(); keepInvitation()">Giữ</button>
+                            <button type="button" class="btn btn--danger btn--sm" [disabled]="cancellingId() === invitation.invitationId"
+                              (click)="$event.stopPropagation(); cancelInvitation(invitation)">
+                              {{ cancellingId() === invitation.invitationId ? 'Đang thu hồi...' : 'Thu hồi' }}
+                            </button>
+                          </span>
+                        } @else {
+                          <span class="status" [attr.data-status]="invitation.status">{{ invitationStatusLabel(invitation.status) }}</span>
+                          @if (invitation.status === 'PENDING') {
+                            <button type="button" class="icon-btn icon-btn--danger" aria-label="Thu hồi lời mời"
+                              (click)="$event.stopPropagation(); askCancel(invitation.invitationId)">
+                              <lucide-icon name="undo-2" class="w-5 h-5"></lucide-icon>
+                            </button>
+                          }
+                        }
+                      </div>
+                    </article>
+                  }
+                </div>
+              } @else if (invitations().length) {
+                <div class="inline-state">
+                  <lucide-icon name="search-x" class="w-6 h-6"></lucide-icon>
+                  <h2>Không có lời mời ở trạng thái này</h2>
+                  <p>Chọn "Tất cả" để xem toàn bộ lời mời câu lạc bộ đã gửi.</p>
+                  <button type="button" class="btn btn--secondary" (click)="setInvitationFilter('ALL')">Xem tất cả</button>
+                </div>
+              } @else {
+                <div class="inline-state">
+                  <lucide-icon name="send" class="w-6 h-6"></lucide-icon>
+                  <h2>Chưa gửi lời mời nào</h2>
+                  <p>Lời mời bạn gửi từ tab Khám phá hoặc Theo dõi sẽ hiện ở đây cùng trạng thái trả lời.</p>
+                  <button type="button" class="btn btn--secondary" (click)="setTab('discover')">Khám phá người chơi</button>
+                </div>
+              }
+            </div>
+            @if (!invitationsLoading() && !invitationsError()) {
+              <app-pagination [pageIndex]="invitationPage()" [pageSize]="pageSize" [totalItems]="filteredInvitations().length"
+                itemLabel="lời mời" (pageChange)="changeInvitationPage($event)"></app-pagination>
+            }
+          }
         }
       </section>
-    }
+
+      <aside class="scout-rail" [class.is-open]="!!selectedPlayer()" aria-label="Hồ sơ người chơi">
+        @if (selectedPlayer(); as player) {
+          <div class="scout-rail__backdrop" (click)="closePanel()"></div>
+          <app-scouting-player-panel class="scout-rail__panel" [player]="player" [relation]="selectedRelation()"
+            [shortlisted]="isShortlisted(player.userId)" [shortlistBusy]="shortlistBusyIds().has(player.userId)"
+            [note]="selectedEntry()?.note" [savingNote]="savingNote()" [radiusKm]="radiusKm()"
+            (invite)="openInvite($event)" (toggleShortlist)="toggleShortlist($event)" (saveNote)="saveNote($event)"
+            (closed)="closePanel()"></app-scouting-player-panel>
+        } @else {
+          <div class="rail-empty">
+            <lucide-icon name="user-check" class="w-6 h-6"></lucide-icon>
+            <h2>Chọn một người chơi</h2>
+            <p>Hồ sơ, lịch rảnh và lý do phù hợp sẽ hiện ở đây để bạn so sánh trước khi mời.</p>
+          </div>
+        }
+      </aside>
+    </div>
   }
 </main>
+
+@if (inviteTarget(); as target) {
+  <div class="dialog-backdrop" role="presentation" (click)="closeInvite()">
+    <section class="dialog" appAccessibleDialog aria-labelledby="invite-title" [attr.aria-busy]="inviting()"
+      (dialogClosed)="closeInvite()" (click)="$event.stopPropagation()">
+      <header class="dialog__head">
+        <h2 id="invite-title">Mời {{ target.fullName }}</h2>
+        <button type="button" class="icon-btn" aria-label="Đóng" [disabled]="inviting()" (click)="closeInvite()">
+          <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+        </button>
+      </header>
+      <div class="dialog__body">
+        <p class="dialog__lead">{{ target.fullName }} sẽ nhận thông báo và có thể tham gia {{ club()?.name }} ngay, không cần duyệt thêm.</p>
+        <label class="field-label" for="invite-message">Lời nhắn <span>(không bắt buộc)</span></label>
+        <textarea id="invite-message" rows="5" [maxLength]="inviteMessageMax" [ngModel]="inviteMessage()"
+          (ngModelChange)="inviteMessage.set($event)" [disabled]="inviting()"
+          placeholder="Giới thiệu đội, lịch tập và lý do bạn muốn mời người chơi này..."></textarea>
+        <p class="field-meta">{{ inviteMessage().length }}/{{ inviteMessageMax }}</p>
+      </div>
+      <footer class="dialog__actions">
+        <button type="button" class="btn btn--secondary" [disabled]="inviting()" (click)="closeInvite()">Hủy</button>
+        <button type="button" class="btn btn--primary" [disabled]="inviting()" (click)="sendInvite()">
+          @if (inviting()) { <span class="spinner" aria-hidden="true"></span> Đang gửi... }
+          @else { <lucide-icon name="send" class="w-4 h-4"></lucide-icon> Gửi lời mời }
+        </button>
+      </footer>
+    </section>
+  </div>
+}

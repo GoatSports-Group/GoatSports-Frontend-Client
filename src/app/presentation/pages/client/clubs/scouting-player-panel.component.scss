@@ -1,0 +1,458 @@
+// Scouting profile panel — GOAT-DESIGN.md §6 (cards, badges, info groups) and §7 (rail).
+// A flex column: header and action footer stay put, only the body scrolls.
+:host {
+  display: block;
+  min-width: 0;
+  height: 100%;
+}
+
+.panel {
+  display: flex;
+  height: 100%;
+  max-height: inherit;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+// ---- Header -------------------------------------------------------------------------------------
+.panel__head {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.panel__avatar {
+  display: grid;
+  width: 56px;
+  height: 56px;
+  flex: none;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: var(--primary-light);
+  color: var(--primary-strong);
+  font-size: 18px;
+  font-weight: 800;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.panel__identity {
+  min-width: 0;
+  flex: 1;
+
+  h2,
+  p {
+    overflow: hidden;
+    margin: 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  h2 {
+    color: var(--text-dark);
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    line-height: 1.3;
+  }
+
+  p {
+    margin-top: 2px;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 600;
+  }
+}
+
+.icon-btn {
+  display: inline-grid;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  place-items: center;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: background-color var(--transition-smooth), color var(--transition-smooth);
+
+  &:hover {
+    background: var(--primary-light);
+    color: var(--primary);
+  }
+}
+
+// The rail on desktop is always open, so only the mobile sheet needs a close button.
+.panel__close {
+  display: none;
+}
+
+// ---- Body ---------------------------------------------------------------------------------------
+.panel__body {
+  display: grid;
+  min-height: 0;
+  // Explicit track + content-sized rows: a shrunk flex parent must scroll, never squeeze the blocks.
+  grid-template-columns: minmax(0, 1fr);
+  grid-auto-rows: max-content;
+  flex: 1 1 auto;
+  align-content: start;
+  gap: 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 20px;
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
+}
+
+.panel__hidden {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #f8faf9;
+  color: var(--text-muted);
+
+  strong {
+    color: var(--text-dark);
+    font-size: 15px;
+    font-weight: 800;
+  }
+
+  p {
+    margin: 4px 0 0;
+    font-size: 14px;
+    line-height: 1.55;
+    text-wrap: balance;
+  }
+}
+
+// Fit score: number on the left, the three reasons on the right.
+.fit {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #f8faf9;
+}
+
+.fit__score {
+  display: flex;
+  flex: none;
+  align-items: baseline;
+  gap: 6px;
+
+  strong {
+    color: var(--text-dark);
+    font-size: 36px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 900;
+    letter-spacing: -.04em;
+    line-height: 1;
+  }
+
+  span {
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+}
+
+.fit[data-tone='high'] .fit__score strong { color: var(--primary); }
+
+.fit__reasons {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-dark);
+    font-size: 13px;
+    font-weight: 600;
+
+    > span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    lucide-icon { flex: none; color: var(--primary); }
+  }
+
+  li.is-muted lucide-icon { color: #a15c07; }
+  b { font-weight: 800; }
+}
+
+// Four stat cells in one row, dividers as outset shadows (§7 info groups).
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  overflow: hidden;
+  margin: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+
+  div {
+    display: grid;
+    min-width: 0;
+    gap: 2px;
+    padding: 12px 14px;
+    box-shadow: -1px 0 0 var(--border-color), 0 -1px 0 var(--border-color);
+  }
+
+  dt {
+    overflow: hidden;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  dd {
+    overflow: hidden;
+    margin: 0;
+    color: var(--text-dark);
+    font-size: 15px;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .is-numeric {
+    font-variant-numeric: tabular-nums;
+    font-weight: 900;
+  }
+}
+
+.block {
+  display: grid;
+  gap: 8px;
+
+  h3,
+  label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    color: var(--text-dark);
+    font-size: 14px;
+    font-weight: 800;
+  }
+}
+
+.block__text {
+  margin: 0;
+  color: var(--text-dark);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.block__empty {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  display: inline-flex;
+  height: 24px;
+  max-width: 100%;
+  align-items: center;
+  overflow: hidden;
+  padding: 0 8px;
+  border-radius: 6px;
+  background: var(--primary-light);
+  color: var(--primary-strong);
+  font-size: 13px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.days {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    min-height: 40px;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 14px;
+
+    &:last-child { border-bottom: 0; }
+  }
+
+  > li > span {
+    flex: none;
+    padding: 8px 0;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  // One line per slot: several slots on a day stack instead of wrapping or being cut.
+  .days__slots {
+    display: grid;
+    justify-items: end;
+    padding: 8px 0;
+    color: var(--text-dark);
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+}
+
+.note textarea {
+  width: 100%;
+  min-height: 84px;
+  resize: vertical;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  color: var(--text-dark);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+
+  &:hover { border-color: var(--border-strong); }
+}
+
+.note__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+
+  span {
+    overflow: hidden;
+    color: var(--text-muted);
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+// ---- Footer actions -----------------------------------------------------------------------------
+.panel__actions {
+  display: flex;
+  flex: none;
+  gap: 8px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--border-color);
+
+  > * {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+}
+
+.btn {
+  display: inline-flex;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--transition-smooth), border-color var(--transition-smooth), color var(--transition-smooth);
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: .55;
+  }
+}
+
+.btn--primary {
+  background: var(--primary);
+  color: #fff;
+
+  &:hover:not(:disabled) { background: var(--primary-hover); }
+}
+
+.btn--secondary {
+  border-color: var(--border-color);
+  background: #fff;
+  color: var(--text-dark);
+
+  &:hover:not(:disabled) {
+    border-color: var(--border-strong);
+    color: var(--primary);
+  }
+
+  &.is-active {
+    border-color: var(--primary);
+    background: var(--primary-light);
+    color: var(--primary-strong);
+  }
+}
+
+.btn--ghost {
+  height: 36px;
+  flex: none;
+  padding: 0 8px;
+  background: transparent;
+  color: var(--primary);
+
+  &:hover:not(:disabled) { background: var(--primary-light); }
+}
+
+.relation {
+  display: inline-flex;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  overflow: hidden;
+  padding: 0 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+
+  &[data-relation='INVITED'],
+  &[data-relation='REQUESTED'] { background: #fff7e7; color: #a15c07; }
+  &[data-relation='MEMBER'] { background: #eaf7f0; color: #18794e; }
+  &[data-relation='BANNED'] { background: #fff1f3; color: #be123c; }
+}
+
+@media (max-width: 1023px) {
+  .panel { border-radius: 24px 24px 0 0; }
+  .panel__close { display: inline-grid; }
+}

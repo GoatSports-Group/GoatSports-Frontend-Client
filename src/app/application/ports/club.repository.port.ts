@@ -8,6 +8,9 @@ import {
   ClubRecentMatchModel,
   ClubMemberModel,
   ScoutedPlayerModel,
+  ScoutingFilters,
+  ShortlistEntryModel,
+  SentInvitationModel,
   ClubModel,
   CreateClubActivityPayload,
   ClubRole,
@@ -42,8 +45,18 @@ export abstract class ClubRepositoryPort {
   abstract createClub(payload: CreateClubPayload): Observable<ClubModel>;
   abstract joinClub(clubId: string, message?: string): Observable<ClubMemberModel>;
   abstract disbandClub(clubId: string): Observable<void>;
-  abstract getScoutingCandidates(clubId: string, radiusKm?: number, limit?: number)
-    : Observable<ScoutedPlayerModel[]>;
+  abstract getScoutingCandidates(clubId: string, filters?: ScoutingFilters): Observable<ScoutedPlayerModel[]>;
+
+  abstract getScoutingShortlist(clubId: string): Observable<ShortlistEntryModel[]>;
+
+  /** Them vao danh sach theo doi, hoac cap nhat ghi chu neu da co. */
+  abstract saveShortlistEntry(clubId: string, userId: string, note?: string): Observable<ShortlistEntryModel>;
+
+  abstract removeShortlistEntry(clubId: string, userId: string): Observable<void>;
+
+  abstract getSentInvitations(clubId: string): Observable<SentInvitationModel[]>;
+
+  abstract cancelInvitation(clubId: string, invitationId: string): Observable<void>;
   abstract transferOwnership(clubId: string, membershipId: string): Observable<ClubMemberModel>;
   abstract leaveClub(clubId: string): Observable<void>;
   abstract getMyMembership(clubId: string): Observable<ClubMemberModel | null>;

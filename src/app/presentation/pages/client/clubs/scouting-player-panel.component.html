@@ -1,0 +1,143 @@
+<article class="panel" [attr.aria-label]="'Hồ sơ ' + player.fullName">
+  <header class="panel__head">
+    <span class="panel__avatar">
+      @if (player.avatarUrl) {
+        <img [src]="player.avatarUrl" [alt]="player.fullName" />
+      } @else {
+        {{ initials(player.fullName) }}
+      }
+    </span>
+    <div class="panel__identity">
+      <h2>{{ player.fullName }}</h2>
+      <p>{{ player.username }}@if (player.city) { · {{ player.city }} }</p>
+    </div>
+    <button type="button" class="icon-btn panel__close" aria-label="Đóng hồ sơ" (click)="closed.emit()">
+      <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+    </button>
+  </header>
+
+  <div class="panel__body">
+    @if (!player.profileVisible) {
+      <div class="panel__hidden">
+        <lucide-icon name="eye-off" class="w-6 h-6"></lucide-icon>
+        <div>
+          <strong>Hồ sơ đã ẩn</strong>
+          <p>Người chơi đã tắt tìm kiếm của câu lạc bộ hoặc chưa có hồ sơ môn này, nên chỉ còn tên hiển thị.</p>
+        </div>
+      </div>
+    } @else {
+      <section class="fit" [attr.data-tone]="fitTone" aria-label="Độ phù hợp">
+        <div class="fit__score">
+          <strong>{{ player.fitScore ?? 0 }}</strong>
+          <span>/100<br>phù hợp</span>
+        </div>
+        <ul class="fit__reasons">
+          <li>
+            <lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>
+            <span>Cách CLB <b>{{ distanceLabel(player.distanceKm) }}</b></span>
+          </li>
+          <li [class.is-muted]="!player.withinPlayerRadius">
+            <lucide-icon [name]="player.withinPlayerRadius ? 'circle-check' : 'circle-alert'" class="w-4 h-4"></lucide-icon>
+            <span>{{ player.withinPlayerRadius ? 'Trong phạm vi di chuyển' : 'Ngoài phạm vi di chuyển' }}</span>
+          </li>
+          <li>
+            <lucide-icon name="activity" class="w-4 h-4"></lucide-icon>
+            <span><b>{{ player.matchCount ?? 0 }}</b> trận đã chơi</span>
+          </li>
+        </ul>
+      </section>
+
+      <dl class="stats">
+        <div>
+          <dt>Trình độ</dt>
+          <dd>{{ skillLabel(player.skillLevel) }}</dd>
+        </div>
+        <div>
+          <dt>Elo</dt>
+          <dd class="is-numeric">{{ player.eloRating ?? '—' }}</dd>
+        </div>
+        <div>
+          <dt>Thắng - Hòa - Thua</dt>
+          <dd class="is-numeric">{{ record }}</dd>
+        </div>
+        <div>
+          <dt>Tỷ lệ thắng</dt>
+          <dd class="is-numeric">{{ formatWinRate(player.winRate) }}</dd>
+        </div>
+      </dl>
+
+      <section class="block">
+        <h3>Vị trí sở trường</h3>
+        @if (player.preferredPositions?.length) {
+          <div class="chips">
+            @for (position of player.preferredPositions; track position) {
+              <span class="chip">{{ position }}</span>
+            }
+          </div>
+        } @else {
+          <p class="block__empty">Chưa khai báo vị trí.</p>
+        }
+      </section>
+
+      @if (player.playStyle) {
+        <section class="block">
+          <h3>Lối chơi</h3>
+          <p class="block__text">{{ player.playStyle }}</p>
+        </section>
+      }
+
+      <section class="block">
+        <h3>Lịch rảnh trong tuần</h3>
+        @if (days.length) {
+          <ul class="days">
+            @for (day of days; track day.day) {
+              <li>
+                <span>{{ day.label }}</span>
+                <span class="days__slots">
+                  @for (slot of day.slots; track slot) { <b>{{ slot }}</b> }
+                </span>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="block__empty">Người chơi chưa đặt lịch rảnh.</p>
+        }
+      </section>
+    }
+
+    @if (shortlisted) {
+      <section class="block note">
+        <label for="shortlist-note"><lucide-icon name="sticky-note" class="w-4 h-4"></lucide-icon> Ghi chú của ban quản lý</label>
+        <textarea id="shortlist-note" rows="3" [maxLength]="noteMax" [(ngModel)]="noteDraft" [disabled]="savingNote"
+          placeholder="Ví dụ: chạy cánh tốt, hẹn đá thử Thứ Bảy..."></textarea>
+        <div class="note__meta">
+          <span>Ban quản lý CLB đều xem được · {{ noteDraft.length }}/{{ noteMax }}</span>
+          <button type="button" class="btn btn--ghost" [disabled]="!noteChanged || savingNote" (click)="saveNote.emit(noteDraft)">
+            {{ savingNote ? 'Đang lưu...' : 'Lưu ghi chú' }}
+          </button>
+        </div>
+      </section>
+    }
+  </div>
+
+  <footer class="panel__actions">
+    @if (player.profileVisible || shortlisted) {
+      <button type="button" class="btn btn--secondary" [class.is-active]="shortlisted" [disabled]="shortlistBusy"
+        [attr.aria-pressed]="shortlisted" (click)="toggleShortlist.emit(player)">
+        <lucide-icon [name]="shortlisted ? 'bookmark-check' : 'bookmark'" class="w-4 h-4"></lucide-icon>
+        {{ shortlisted ? 'Đang theo dõi' : 'Theo dõi' }}
+      </button>
+    }
+    @if (relation !== 'NONE') {
+      <span class="relation" [attr.data-relation]="relation">
+        <lucide-icon [name]="relation === 'MEMBER' ? 'user-check' : relation === 'INVITED' ? 'send' : relation === 'BANNED' ? 'ban' : 'hourglass'" class="w-4 h-4"></lucide-icon>
+        {{ relationLabel }}
+      </span>
+    } @else if (player.profileVisible) {
+      <button type="button" class="btn btn--primary" (click)="invite.emit(player)">
+        <lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon>
+        Mời vào CLB
+      </button>
+    }
+  </footer>
+</article>

@@ -27,6 +27,7 @@ import { ClubDetailComponent } from '@presentation/pages/client/clubs/club-detai
 import { ClubFeaturedComponent } from '@presentation/pages/client/clubs/club-featured.component';
 import { ClubExploreComponent } from '@presentation/pages/client/clubs/club-explore.component';
 import { ClubJoinRequestModalComponent } from '@presentation/pages/client/clubs/club-join-request-modal.component';
+import { ScoutingPlayerPanelComponent } from '@presentation/pages/client/clubs/scouting-player-panel.component';
 import { MyClubsComponent } from '@presentation/pages/client/clubs/my-clubs.component';
 import { MyClubCardComponent } from '@presentation/pages/client/clubs/my-club-card.component';
 import { MyClubRoleBadgeComponent } from '@presentation/pages/client/clubs/my-club-role-badge.component';
@@ -65,6 +66,7 @@ import { AiAssistantModalComponent } from '@presentation/shared/components/ai-as
     ClubFeaturedComponent,
     ClubExploreComponent,
     ClubJoinRequestModalComponent,
+    ScoutingPlayerPanelComponent,
     MyClubsComponent,
     MyClubCardComponent,
     MyClubRoleBadgeComponent,
