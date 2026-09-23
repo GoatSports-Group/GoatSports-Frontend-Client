@@ -7,8 +7,6 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="assets/images/goat.png">
-  <link rel="modulepreload" href="assets/vendor/three/three.core.min.js">
-  <link rel="modulepreload" href="assets/vendor/three/three.module.min.js">
   <!-- Boot splash styles stay inline: global styles.css is loaded async (critical-CSS inliner),
        the splash must be styled on the very first paint. GOAT-DESIGN.md "Boot splash". -->
   <style>
@@ -78,7 +76,8 @@
       height: var(--boot-logo);
       transform: translate(-50%, -50%);
       filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.45)) drop-shadow(0 0 28px rgba(212, 175, 55, 0.22));
-      animation: goat-boot-breathe 2.4s ease-in-out infinite;
+      animation: goat-boot-breathe 2.4s ease-in-out infinite; /* period/lift/scale mirrored in boot-splash-scene.js */
+      will-change: transform, opacity;
       transition: opacity 0.5s ease;
     }
 
@@ -121,6 +120,7 @@
       border-radius: inherit;
       background: linear-gradient(90deg, #18c38a, #f2c94c);
       animation: goat-boot-run 1.25s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+      will-change: transform;
     }
 
     @keyframes goat-boot-breathe {

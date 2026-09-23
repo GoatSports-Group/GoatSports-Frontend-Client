@@ -12,7 +12,7 @@ const RADIUS_OPTIONS = [10, 25, 50, 100, 200] as const;
 @Component({
   selector: 'app-club-player-search',
   templateUrl: './club-player-search.component.html',
-  styleUrls: ['./club-member-pages.scss'],
+  styleUrls: ['./club-member-pages.scss', './club-player-search.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false
 })
