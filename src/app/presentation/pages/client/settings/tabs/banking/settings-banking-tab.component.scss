@@ -8,6 +8,25 @@
   gap: 16px;
 }
 
+.account-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 12px;
+}
+
+.account-card {
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  box-shadow: var(--shadow-sm);
+
+  &.is-default {
+    border-color: var(--border-strong);
+  }
+}
+
+.form-grid--3 {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
 .bank-logo {
   display: grid;
   width: 40px;

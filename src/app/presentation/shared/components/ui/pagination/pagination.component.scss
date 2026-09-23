@@ -1,23 +1,26 @@
+// Tokens: GOAT-DESIGN.md §6 Pagination (44px controls, radius 12, current page = primary, card radius 16).
 :host {
   display: block;
 }
 
 .pagination {
-  min-height: 72px;
   display: flex;
+  min-height: 68px;
   align-items: center;
   justify-content: space-between;
-  gap: 18px;
-  padding: 14px 18px;
-  border: 1px solid #d8e1de;
-  border-radius: 10px;
+  gap: 16px;
+  padding: 12px 16px 12px 20px;
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
   background: #fff;
 }
 
 .pagination__summary {
-  color: #087a57;
+  color: var(--text-muted);
   font-size: 14px;
-  font-weight: 750;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .pagination__controls {
@@ -28,71 +31,71 @@
 
 .pagination__button,
 .pagination__ellipsis {
-  width: 38px;
-  height: 38px;
-  flex: 0 0 38px;
   display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
   place-items: center;
 }
 
 .pagination__button {
-  border: 1px solid #d8e1de;
-  border-radius: 50%;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
   background: #fff;
-  color: #10243b;
+  color: var(--text-dark);
   font: inherit;
   font-size: 14px;
   font-weight: 800;
+  font-variant-numeric: tabular-nums;
   cursor: pointer;
-  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease, transform 160ms ease;
+  transition: border-color var(--transition-smooth), background-color var(--transition-smooth), color var(--transition-smooth);
 }
 
 .pagination__button:hover:not(:disabled):not(.pagination__button--active) {
-  border-color: #91b9aa;
-  background: #eaf6f1;
+  border-color: var(--border-strong);
+  color: var(--primary);
 }
 
 .pagination__button:active:not(:disabled) {
-  transform: scale(.95);
-}
-
-.pagination__button:focus-visible {
-  outline: 3px solid rgba(8, 122, 87, .2);
-  outline-offset: 2px;
+  transform: translateY(1px);
 }
 
 .pagination__button--active {
-  border-color: #0b2a40;
-  background: #0b2a40;
+  border-color: var(--primary);
+  background: var(--primary);
   color: #fff;
 }
 
 .pagination__button:disabled {
-  opacity: .42;
   cursor: not-allowed;
+  opacity: .55;
 }
 
 .pagination__ellipsis {
-  color: #7a898f;
+  color: var(--text-muted);
   font-weight: 800;
 }
 
 @media (max-width: 640px) {
   .pagination {
-    align-items: flex-start;
+    align-items: stretch;
     flex-direction: column;
-    padding: 14px;
+    padding: 12px;
+  }
+
+  .pagination__summary {
+    text-align: center;
   }
 
   .pagination__controls {
-    width: 100%;
     justify-content: center;
+    gap: 4px;
   }
 
   .pagination__button,
   .pagination__ellipsis {
-    width: 34px;
-    height: 34px;
-    flex-basis: 34px;
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
   }
 }

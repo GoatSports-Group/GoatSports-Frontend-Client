@@ -6,7 +6,7 @@
 // Card content varies (positions, slots, confirm strip), so cards keep their own height (design §7 No dead space).
 .profile-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   align-items: start;
   gap: 16px;
 }

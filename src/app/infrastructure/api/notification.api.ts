@@ -25,7 +25,8 @@ export class NotificationApi {
 
   getNotifications(query: NotificationQuery): Observable<BaseResponse<NotificationListResponse>> {
     let params = new HttpParams()
-      .set('page', Math.max(0, query.page - 1))
+      // notification-service uses spring.data.web.pageable.one-indexed-parameters=true: `page` is 1-based.
+      .set('page', Math.max(1, query.page))
       .set('size', query.pageSize);
 
     if (query.status) {

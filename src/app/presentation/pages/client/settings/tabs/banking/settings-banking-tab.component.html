@@ -29,9 +29,9 @@
         <lucide-icon name="loader-2" class="w-5 h-5 animate-spin"></lucide-icon>Đang tải tài khoản...
       </div>
     } @else if (accounts().length) {
-      <div class="panel row-list">
+      <div class="account-grid">
         @for (account of accounts(); track account.bankAccountId) {
-          <div class="row">
+          <div class="panel info-cell account-card" [class.is-default]="account.isDefault && account.status !== 'REJECTED'">
             <span class="bank-logo">
               @if (getBank(account.bankBin); as bank) {
                 <img [src]="bank.logo" [alt]="bank.shortName" />
@@ -85,13 +85,13 @@
             <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
           </button>
         </header>
-        <div class="field">
-          <span class="field__label">Ngân hàng <b>*</b></span>
-          <app-select name="bankBin" [options]="bankOptions()" [(ngModel)]="bankBin" [searchable]="true"
-            leadingIcon="building-2" placeholder="Chọn ngân hàng" searchPlaceholder="Tìm ngân hàng..."
-            ariaLabel="Ngân hàng"></app-select>
-        </div>
-        <div class="form-grid">
+        <div class="form-grid form-grid--3">
+          <div class="field">
+            <span class="field__label">Ngân hàng <b>*</b></span>
+            <app-select name="bankBin" [options]="bankOptions()" [(ngModel)]="bankBin" [searchable]="true"
+              leadingIcon="building-2" placeholder="Chọn ngân hàng" searchPlaceholder="Tìm ngân hàng..."
+              ariaLabel="Ngân hàng"></app-select>
+          </div>
           <label class="field">
             <span class="field__label">Số tài khoản <b>*</b></span>
             <input id="account-number" class="field__control" name="accountNumber" inputmode="numeric" maxlength="19"

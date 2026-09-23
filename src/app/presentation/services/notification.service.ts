@@ -90,16 +90,8 @@ export class NotificationService implements OnDestroy {
     const requestedUserId = this.activeUserId;
     const requestSequence = ++this.notificationRequestSequence;
     this.activeStatus = requestedStatus;
-    if (!append) {
-      this.notificationsSubject.next([]);
-      this.pageStateSubject.next({
-        page: 0,
-        pageSize: normalizedQuery.pageSize,
-        total: 0,
-        totalPages: 0,
-        status: requestedStatus
-      });
-    }
+    // Page changes keep the current page on screen until the next one arrives, then swap it in one step:
+    // clearing up front collapses the list and makes the page jump.
 
     return this.getNotificationsUseCase.execute(normalizedQuery).pipe(
       tap(page => {
@@ -109,7 +101,9 @@ export class NotificationService implements OnDestroy {
           this.activeUserId !== requestedUserId
         ) return;
 
-        const items = this.mergeNotifications(page.items, this.notificationsSubject.value);
+        const items = append
+          ? this.mergeNotifications(page.items, this.notificationsSubject.value)
+          : this.sortNotifications(page.items);
 
         this.notificationsSubject.next(items);
         this.pageStateSubject.next({

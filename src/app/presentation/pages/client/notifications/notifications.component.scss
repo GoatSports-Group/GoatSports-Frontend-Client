@@ -180,29 +180,25 @@
   to { background-position: -100% 0; }
 }
 
-.inline-error {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
-  padding: 8px 8px 8px 16px;
-  border-radius: 12px;
-  background: #fff1f3;
-  color: #be123c;
-  font-size: 14px;
-  font-weight: 600;
+.notif-pagination {
+  display: block;
+  margin-top: 16px;
 }
 
-.load-more {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 16px;
-  color: var(--text-muted);
-  font-size: 13px;
+// Page change in flight: keep the old page (same height, no jump), dim it and block clicks.
+.notif-list,
+.notif-pagination {
+  transition: opacity var(--transition-smooth);
+
+  &.is-paging {
+    opacity: .55;
+    pointer-events: none;
+  }
+}
+
+// Scrolled-to anchor lands below the fixed 64px header.
+.list-anchor {
+  scroll-margin-top: 88px;
 }
 
 @media (max-width: 640px) {

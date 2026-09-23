@@ -281,8 +281,8 @@ export class SettingsSportsTabComponent implements OnInit {
     return SKILL_LEVEL_OPTIONS.find(option => option.value === skill)?.label ?? skill;
   }
 
-  dayShortLabel(day: PlayerDayOfWeek): string {
-    return PLAYER_DAY_OPTIONS.find(option => option.value === day)?.label.replace('Thứ ', 'T') ?? day;
+  dayLabel(day: PlayerDayOfWeek): string {
+    return PLAYER_DAY_OPTIONS.find(option => option.value === day)?.label ?? day;
   }
 
   formatWinRate(winRate: number): string {

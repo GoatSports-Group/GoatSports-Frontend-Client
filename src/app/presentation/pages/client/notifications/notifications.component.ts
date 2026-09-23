@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, ElementRef, OnInit, inject, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 import { Notification, NotificationStatus, NotificationType } from '@application/dto/notification/notification.dto';
@@ -22,7 +22,11 @@ export class NotificationsComponent implements OnInit {
 
   readonly activeFilter = signal<NotificationFilter>('ALL');
   readonly isLoading = signal(true);
-  readonly isLoadingMore = signal(false);
+  /** 0-based page shown by the shared pagination component. */
+  readonly pageIndex = signal(0);
+  /** Page change in flight: the current page stays on screen (dimmed) instead of a skeleton, so nothing jumps. */
+  readonly isPaging = signal(false);
+  private readonly listAnchor = viewChild<ElementRef<HTMLElement>>('listAnchor');
   readonly loadFailed = signal(false);
   readonly isMarkingAll = signal(false);
   readonly confirmingDeleteId = signal<string | null>(null);
@@ -34,11 +38,12 @@ export class NotificationsComponent implements OnInit {
   readonly unreadCount$ = this.notificationService.unreadCount$;
   readonly allCount$ = this.notificationService.allCount$;
 
-  private readonly pageSize = 10;
+  readonly pageSize = 10;
+  readonly pageState$ = this.notificationService.pageState$;
   private requestSequence = 0;
 
   ngOnInit(): void {
-    this.loadNotifications(true);
+    this.loadNotifications();
   }
 
   get avatarUrl(): string | null {
@@ -57,29 +62,22 @@ export class NotificationsComponent implements OnInit {
       .join('') || 'GS';
   }
 
-  get canLoadMore(): boolean {
-    const state = this.notificationService.pageState;
-    return state.page > 0 && state.page < state.totalPages;
-  }
-
-  get loadedCount(): number {
-    return this.notificationService.pageState.total;
-  }
-
   setFilter(filter: NotificationFilter): void {
     if (filter === this.activeFilter() && !this.loadFailed()) return;
     this.activeFilter.set(filter);
     this.confirmingDeleteId.set(null);
-    this.loadNotifications(true);
+    this.pageIndex.set(0);
+    this.loadNotifications();
   }
 
   retry(): void {
-    this.loadNotifications(true);
+    this.loadNotifications();
   }
 
-  loadMore(): void {
-    if (!this.canLoadMore || this.isLoadingMore()) return;
-    this.loadNotifications(false);
+  changePage(pageIndex: number): void {
+    this.pageIndex.set(pageIndex);
+    this.confirmingDeleteId.set(null);
+    this.loadNotifications(true);
   }
 
   onOpenNotification(notification: Notification): void {
@@ -91,11 +89,6 @@ export class NotificationsComponent implements OnInit {
     }
 
     this.navigateForNotification(notification);
-  }
-
-  onMarkRead(notification: Notification, event: Event): void {
-    event.stopPropagation();
-    this.markAsRead(notification, false);
   }
 
   onMarkAllRead(): void {
@@ -132,6 +125,7 @@ export class NotificationsComponent implements OnInit {
       next: () => {
         this.confirmingDeleteId.set(null);
         this.notifyService.success('Đã xóa thông báo.');
+        this.refillPageAfterDelete();
       },
       error: () => this.notifyService.error('Không thể xóa thông báo. Vui lòng thử lại.')
     });
@@ -235,31 +229,55 @@ export class NotificationsComponent implements OnInit {
     });
   }
 
-  private loadNotifications(reset: boolean): void {
+  /**
+   * Loads `pageIndex()` and replaces the list (page-based, not append). First load / filter change shows the
+   * skeleton; a page change keeps the old page dimmed until the new one lands, then scrolls the list back into view.
+   */
+  private loadNotifications(paging = false): void {
     const sequence = ++this.requestSequence;
-    const page = reset ? 1 : this.notificationService.pageState.page + 1;
     const status = this.activeFilter() === 'UNREAD' ? NotificationStatus.UNREAD : undefined;
 
-    if (reset) {
-      this.isLoading.set(true);
-    } else {
-      this.isLoadingMore.set(true);
-    }
+    (paging ? this.isPaging : this.isLoading).set(true);
     this.loadFailed.set(false);
 
-    this.notificationService.fetchNotifications({ status, page, pageSize: this.pageSize }, !reset).pipe(
+    this.notificationService.fetchNotifications({ status, page: this.pageIndex() + 1, pageSize: this.pageSize }).pipe(
       finalize(() => {
         if (sequence !== this.requestSequence) return;
         this.isLoading.set(false);
-        this.isLoadingMore.set(false);
+        this.isPaging.set(false);
       })
     ).subscribe({
+      next: () => {
+        if (paging && sequence === this.requestSequence) this.scrollListIntoView();
+      },
       error: () => {
         if (sequence !== this.requestSequence) return;
         this.loadFailed.set(true);
-        if (!reset) {
-          this.notifyService.error('Không thể tải thêm thông báo. Vui lòng thử lại.');
-        }
+        if (paging) this.notifyService.error('Không thể tải trang thông báo. Vui lòng thử lại.');
+      }
+    });
+  }
+
+  private scrollListIntoView(): void {
+    const anchor = this.listAnchor()?.nativeElement;
+    // Only scroll when the user paged from below the fold (the list top is off screen).
+    if (anchor && anchor.getBoundingClientRect().top < 64) {
+      anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  /**
+   * After a delete the page is one short: re-fetch it in append mode so the next item slides in without a
+   * skeleton flash. An emptied page (not the first) steps back one page instead.
+   */
+  private refillPageAfterDelete(): void {
+    const status = this.activeFilter() === 'UNREAD' ? NotificationStatus.UNREAD : undefined;
+    this.notificationService.fetchNotifications(
+      { status, page: this.pageIndex() + 1, pageSize: this.pageSize }, true
+    ).subscribe({
+      // A failed refill just leaves the page one item short; the next navigation reloads it.
+      next: page => {
+        if (page.items.length === 0 && this.pageIndex() > 0) this.changePage(this.pageIndex() - 1);
       }
     });
   }

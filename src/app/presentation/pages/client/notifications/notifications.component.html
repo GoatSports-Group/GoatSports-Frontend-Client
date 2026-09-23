@@ -43,7 +43,6 @@
     <main class="account-main">
       <header class="account-head">
         <div>
-          <span class="account-kicker">Hoạt động</span>
           <h1 class="account-title">Thông báo</h1>
           <p class="account-subtitle">Đặt sân, thanh toán, câu lạc bộ và tài khoản của bạn.</p>
         </div>
@@ -56,7 +55,7 @@
         }
       </header>
 
-      <nav class="account-tabs" role="tablist" aria-label="Lọc thông báo">
+      <nav #listAnchor class="account-tabs list-anchor" role="tablist" aria-label="Lọc thông báo">
         <button type="button" role="tab" class="account-tab" [class.is-active]="activeFilter() === 'ALL'"
           [attr.aria-selected]="activeFilter() === 'ALL'" (click)="setFilter('ALL')">
           Tất cả<span class="account-tab__count">{{ (allCount$ | async) ?? 0 }}</span>
@@ -92,14 +91,7 @@
               <p>{{ activeFilter() === 'UNREAD' ? 'Bạn đã đọc tất cả thông báo.' : 'Thông báo mới từ GOAT Sports sẽ xuất hiện tại đây.' }}</p>
             </div>
           } @else {
-            @if (loadFailed()) {
-              <div class="inline-error" role="alert">
-                <span>Chưa thể tải thêm thông báo.</span>
-                <button type="button" class="btn btn--ghost" (click)="loadMore()">Thử lại</button>
-              </div>
-            }
-
-            <div class="notif-list">
+            <div class="notif-list" [class.is-paging]="isPaging()" [attr.aria-busy]="isPaging()">
               @for (item of notifications; track item.notificationId) {
                 <article class="notif-row" [class.is-unread]="item.status === NotificationStatus.UNREAD"
                   [class.is-actionable]="canOpenNotification(item)"
@@ -120,20 +112,10 @@
                     @if (item.status === NotificationStatus.UNREAD) {
                       <span class="unread-dot" aria-label="Chưa đọc"></span>
                     }
-                    <button type="button" class="icon-btn" [matMenuTriggerFor]="notifMenu"
-                      [attr.aria-label]="'Tác vụ với thông báo ' + (item.title || '')">
-                      <lucide-icon name="ellipsis" class="w-5 h-5"></lucide-icon>
+                    <button type="button" class="icon-btn icon-btn--danger" [disabled]="isPending(item.notificationId)"
+                      [attr.aria-label]="'Xóa thông báo ' + (item.title || '')" (click)="requestDelete(item, $event)">
+                      <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon>
                     </button>
-                    <mat-menu #notifMenu="matMenu" xPosition="before" class="goat-action-menu">
-                      @if (item.status === NotificationStatus.UNREAD) {
-                        <button mat-menu-item type="button" [disabled]="isPending(item.notificationId)" (click)="onMarkRead(item, $event)">
-                          <lucide-icon name="check" class="w-4 h-4"></lucide-icon>Đánh dấu đã đọc
-                        </button>
-                      }
-                      <button mat-menu-item type="button" class="is-danger" (click)="requestDelete(item, $event)">
-                        <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon>Xóa thông báo
-                      </button>
-                    </mat-menu>
                   </div>
 
                   @if (confirmingDeleteId() === item.notificationId) {
@@ -150,15 +132,11 @@
               }
             </div>
 
-            @if (canLoadMore) {
-              <div class="load-more">
-                <span>Đang hiển thị {{ notifications.length }} / {{ loadedCount }} thông báo</span>
-                <button type="button" class="btn btn--secondary" [disabled]="isLoadingMore()" (click)="loadMore()">
-                  <lucide-icon [name]="isLoadingMore() ? 'loader-2' : 'arrow-down'" class="w-4 h-4"
-                    [class.animate-spin]="isLoadingMore()"></lucide-icon>
-                  {{ isLoadingMore() ? 'Đang tải...' : 'Xem thêm' }}
-                </button>
-              </div>
+            @if (pageState$ | async; as pageState) {
+              @if (pageState.total > pageSize) {
+                <app-pagination class="notif-pagination" [class.is-paging]="isPaging()" [pageIndex]="pageIndex()" [pageSize]="pageSize"
+                  [totalItems]="pageState.total" itemLabel="thông báo" (pageChange)="changePage($event)"></app-pagination>
+              }
             }
           }
         }

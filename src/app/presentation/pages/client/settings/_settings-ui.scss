@@ -126,6 +126,53 @@
     white-space: nowrap;
   }
 
+  // ---- Info groups: horizontal-first field layout ------------------------------------------------
+  // A group = one card holding a row of cells; auto-fit stretches cells across the row (no empty tracks),
+  // and wraps to more rows only when the width runs out. Dividers are outset shadows clipped by the card.
+  // All groups of one subject (e.g. the player's info) share ONE card; each group is a titled section in it.
+  .info-card {
+    overflow: hidden;
+  }
+
+  .info-group + .info-group {
+    border-top: 1px solid var(--border-color);
+  }
+
+  .info-group__title {
+    margin: 0;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border-color);
+    background: #f8faf9;
+    color: var(--text-dark);
+    font-size: 14px;
+    font-weight: 800;
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+
+  .info-cell {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    min-height: 76px;
+    padding: 16px 20px;
+    box-shadow: -1px 0 0 var(--border-color), 0 -1px 0 var(--border-color);
+
+    .row__icon {
+      width: 36px;
+      height: 36px;
+    }
+  }
+
+  // Long values (email) take two tracks when the row has room.
+  .info-cell--wide {
+    grid-column: span 2;
+  }
+
   // ---- Buttons (44px, radius 12, no shadow) --------------------------------------------------
   .btn {
     display: inline-flex;
@@ -225,6 +272,12 @@
       background: #f8faf9;
       color: var(--primary);
     }
+  }
+
+  .icon-btn--danger:hover:not(:disabled) {
+    border-color: #fecdd3;
+    background: #fff1f3;
+    color: #be123c;
   }
 
   // ---- Badges ---------------------------------------------------------------------------------
@@ -485,6 +538,10 @@
   @media (max-width: 640px) {
     .form-grid {
       grid-template-columns: minmax(0, 1fr);
+    }
+
+    .info-cell--wide {
+      grid-column: auto;
     }
 
     .row {

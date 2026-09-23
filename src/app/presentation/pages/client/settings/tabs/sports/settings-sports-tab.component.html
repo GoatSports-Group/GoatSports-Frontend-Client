@@ -95,7 +95,7 @@
         <div class="slot-row">
           @for (slot of profile.availabilities; track slot.availabilityId) {
           <span class="badge" [class.badge--primary]="slot.active">
-            {{ dayShortLabel(slot.dayOfWeek) }} {{ slot.startTime.slice(0, 5) }}–{{ slot.endTime.slice(0, 5) }}
+            {{ dayLabel(slot.dayOfWeek) }} · {{ slot.startTime.slice(0, 5) }}–{{ slot.endTime.slice(0, 5) }}
           </span>
           }
         </div>

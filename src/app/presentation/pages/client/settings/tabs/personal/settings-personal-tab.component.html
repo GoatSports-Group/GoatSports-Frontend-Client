@@ -9,69 +9,74 @@
     </button>
   </header>
 
-  <div class="panel row-list">
-    <div class="row">
-      <span class="row__icon"><lucide-icon name="user" class="w-5 h-5"></lucide-icon></span>
-      <div class="row__copy">
-        <span class="row__label">Họ và tên</span>
-        <p class="row__value" [class.is-empty]="!user?.fullName">{{ user?.fullName || 'Chưa cập nhật' }}</p>
-      </div>
-    </div>
-
-    <div class="row">
-      <span class="row__icon"><lucide-icon name="at-sign" class="w-5 h-5"></lucide-icon></span>
-      <div class="row__copy">
-        <span class="row__label">Tên đăng nhập</span>
-        <p class="row__value">{{ user?.username || '—' }}</p>
-      </div>
-    </div>
-
-    <div class="row">
-      <span class="row__icon"><lucide-icon name="mail" class="w-5 h-5"></lucide-icon></span>
-      <div class="row__copy">
-        <span class="row__label">Địa chỉ email</span>
-        <div class="row__meta">
-          <p class="row__value">{{ user?.email || '—' }}</p>
-          <span class="badge" [class.badge--success]="isEmailVerified" [class.badge--warning]="!isEmailVerified">
-            {{ isEmailVerified ? 'Đã xác thực' : 'Chờ xác thực' }}
-          </span>
+  <div class="panel info-card">
+    <section class="info-group">
+      <h3 class="info-group__title">Thông tin cơ bản</h3>
+      <div class="info-grid">
+        <div class="info-cell">
+          <span class="row__icon"><lucide-icon name="user" class="w-5 h-5"></lucide-icon></span>
+          <div class="row__copy">
+            <span class="row__label">Họ và tên</span>
+            <p class="row__value" [class.is-empty]="!user?.fullName">{{ user?.fullName || 'Chưa cập nhật' }}</p>
+          </div>
+        </div>
+        <div class="info-cell">
+          <span class="row__icon"><lucide-icon name="at-sign" class="w-5 h-5"></lucide-icon></span>
+          <div class="row__copy">
+            <span class="row__label">Tên đăng nhập</span>
+            <p class="row__value">{{ user?.username || '—' }}</p>
+          </div>
+        </div>
+        <div class="info-cell">
+          <span class="row__icon"><lucide-icon name="users" class="w-5 h-5"></lucide-icon></span>
+          <div class="row__copy">
+            <span class="row__label">Giới tính</span>
+            <p class="row__value" [class.is-empty]="!user?.gender">{{ formatGender(user?.gender) }}</p>
+          </div>
+        </div>
+        <div class="info-cell">
+          <span class="row__icon"><lucide-icon name="globe" class="w-5 h-5"></lucide-icon></span>
+          <div class="row__copy">
+            <span class="row__label">Quốc gia</span>
+            <p class="row__value" [class.is-empty]="!user?.country">{{ user?.country || 'Chưa cập nhật' }}</p>
+          </div>
         </div>
       </div>
-      <span class="row__locked"><lucide-icon name="lock" class="w-4 h-4"></lucide-icon></span>
-    </div>
+    </section>
 
-    <div class="row">
-      <span class="row__icon"><lucide-icon name="phone" class="w-5 h-5"></lucide-icon></span>
-      <div class="row__copy">
-        <span class="row__label">Số điện thoại</span>
-        <p class="row__value" [class.is-empty]="!user?.phone">{{ user?.phone || 'Chưa cập nhật' }}</p>
+    <section class="info-group">
+      <h3 class="info-group__title">Liên hệ &amp; tài khoản</h3>
+      <div class="info-grid">
+        <div class="info-cell info-cell--wide">
+          <span class="row__icon"><lucide-icon name="mail" class="w-5 h-5"></lucide-icon></span>
+          <div class="row__copy">
+            <span class="row__label">Địa chỉ email</span>
+            <div class="row__meta">
+              <p class="row__value" [title]="user?.email || ''">{{ user?.email || '—' }}</p>
+              <span class="badge" [class.badge--success]="isEmailVerified" [class.badge--warning]="!isEmailVerified">
+                {{ isEmailVerified ? 'Đã xác thực' : 'Chờ xác thực' }}
+              </span>
+            </div>
+          </div>
+          <span class="row__locked" title="Không thể thay đổi"><lucide-icon name="lock" class="w-4 h-4"></lucide-icon></span>
+        </div>
+        <div class="info-cell">
+          <span class="row__icon"><lucide-icon name="phone" class="w-5 h-5"></lucide-icon></span>
+          <div class="row__copy">
+            <span class="row__label">Số điện thoại</span>
+            <p class="row__value" [class.is-empty]="!user?.phone">{{ user?.phone || 'Chưa cập nhật' }}</p>
+          </div>
+        </div>
+        <div class="info-cell">
+          <span class="row__icon"><lucide-icon name="calendar-days" class="w-5 h-5"></lucide-icon></span>
+          <div class="row__copy">
+            <span class="row__label">Ngày tham gia</span>
+            <p class="row__value">{{ formatDate(user?.createdAt) }}</p>
+          </div>
+          <span class="row__locked" title="Không thể thay đổi"><lucide-icon name="lock" class="w-4 h-4"></lucide-icon></span>
+        </div>
       </div>
-    </div>
-
-    <div class="row">
-      <span class="row__icon"><lucide-icon name="globe" class="w-5 h-5"></lucide-icon></span>
-      <div class="row__copy">
-        <span class="row__label">Quốc gia</span>
-        <p class="row__value" [class.is-empty]="!user?.country">{{ user?.country || 'Chưa cập nhật' }}</p>
-      </div>
-    </div>
-
-    <div class="row">
-      <span class="row__icon"><lucide-icon name="users" class="w-5 h-5"></lucide-icon></span>
-      <div class="row__copy">
-        <span class="row__label">Giới tính</span>
-        <p class="row__value" [class.is-empty]="!user?.gender">{{ formatGender(user?.gender) }}</p>
-      </div>
-    </div>
-
-    <div class="row">
-      <span class="row__icon"><lucide-icon name="calendar-days" class="w-5 h-5"></lucide-icon></span>
-      <div class="row__copy">
-        <span class="row__label">Ngày tham gia</span>
-        <p class="row__value">{{ formatDate(user?.createdAt) }}</p>
-      </div>
-      <span class="row__locked"><lucide-icon name="lock" class="w-4 h-4"></lucide-icon></span>
-    </div>
+    </section>
   </div>
 </section>
 
@@ -90,16 +95,18 @@
       </header>
 
       <div class="modal__body">
-        <label class="field">
-          <span class="field__label">Họ và tên <b>*</b></span>
-          <input id="edit-fullname" class="field__control" type="text" name="fullName" maxlength="255" autocomplete="name"
-            placeholder="Nhập họ và tên đầy đủ" [(ngModel)]="formData.fullName" />
-        </label>
-        <label class="field">
-          <span class="field__label">Tên đăng nhập</span>
-          <input id="edit-username" class="field__control" type="text" name="username" maxlength="255"
-            autocomplete="username" placeholder="Nhập tên đăng nhập" [(ngModel)]="formData.username" />
-        </label>
+        <div class="form-grid">
+          <label class="field">
+            <span class="field__label">Họ và tên <b>*</b></span>
+            <input id="edit-fullname" class="field__control" type="text" name="fullName" maxlength="255" autocomplete="name"
+              placeholder="Nhập họ và tên đầy đủ" [(ngModel)]="formData.fullName" />
+          </label>
+          <label class="field">
+            <span class="field__label">Tên đăng nhập</span>
+            <input id="edit-username" class="field__control" type="text" name="username" maxlength="255"
+              autocomplete="username" placeholder="Nhập tên đăng nhập" [(ngModel)]="formData.username" />
+          </label>
+        </div>
         <div class="form-grid">
           <label class="field">
             <span class="field__label">Số điện thoại</span>

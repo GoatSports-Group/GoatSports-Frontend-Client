@@ -81,7 +81,7 @@ export class SettingsBankingTabComponent {
     return { PENDING_VERIFICATION: 'warning', VERIFIED: 'success', REJECTED: 'danger', DISABLED: '' }[status];
   }
   statusLabel(status: BankAccount['status']): string {
-    return { PENDING_VERIFICATION: 'Chờ giao dịch xác minh', VERIFIED: 'Đã xác minh bởi payOS', REJECTED: 'Xác minh thất bại', DISABLED: 'Đã ngừng sử dụng' }[status];
+    return { PENDING_VERIFICATION: 'Chờ xác minh', VERIFIED: 'Đã xác minh', REJECTED: 'Xác minh lỗi', DISABLED: 'Ngừng dùng' }[status];
   }
   private encryptBankingPayload(payload: object): Observable<EncryptedPayload> {
     return this.repository.getEncryptionPublicKey().pipe(

@@ -6,61 +6,65 @@
     </div>
   </header>
 
-  <div class="panel row-list">
-    <div class="row">
-      <span class="row__icon"><lucide-icon name="key-round" class="w-5 h-5"></lucide-icon></span>
-      <div class="row__copy">
-        <span class="row__label">Mật khẩu</span>
-        @if (hasPassword) {
-          <p class="row__value password-dots">••••••••••</p>
-        } @else {
-          <div class="row__meta"><span class="badge badge--warning">Chưa thiết lập</span></div>
-        }
-      </div>
-      <button type="button" class="btn btn--secondary" (click)="openPasswordModal()">
-        {{ hasPassword ? 'Đổi mật khẩu' : 'Thiết lập' }}
-      </button>
-    </div>
-
-    <div class="row">
-      <span class="row__icon"><lucide-icon name="badge-check" class="w-5 h-5"></lucide-icon></span>
-      <div class="row__copy">
-        <span class="row__label">Phương thức xác thực</span>
-        <p class="row__value">{{ authenticationMethods }}</p>
-      </div>
-      <span class="row__locked"><lucide-icon name="lock" class="w-4 h-4"></lucide-icon></span>
-    </div>
-
-    <div class="row">
-      <span class="row__icon"><lucide-icon name="shield-check" class="w-5 h-5"></lucide-icon></span>
-      <div class="row__copy">
-        <span class="row__label">Vai trò tài khoản</span>
-        <p class="row__value">{{ roleLabel }}</p>
-      </div>
-      <span class="row__locked"><lucide-icon name="lock" class="w-4 h-4"></lucide-icon></span>
-    </div>
-
-    <div class="row">
-      <span class="row__icon" [class.row__icon--danger]="!isActive"><lucide-icon name="activity" class="w-5 h-5"></lucide-icon></span>
-      <div class="row__copy">
-        <span class="row__label">Trạng thái tài khoản</span>
-        <div class="row__meta">
-          <span class="badge" [class.badge--success]="isActive" [class.badge--danger]="!isActive">{{ statusLabel }}</span>
+  <div class="panel info-card">
+    <section class="info-group">
+      <h3 class="info-group__title">Đăng nhập</h3>
+      <div class="info-grid">
+        <div class="info-cell">
+          <span class="row__icon"><lucide-icon name="key-round" class="w-5 h-5"></lucide-icon></span>
+          <div class="row__copy">
+            <span class="row__label">Mật khẩu</span>
+            @if (hasPassword) {
+              <p class="row__value password-dots">••••••••••</p>
+            } @else {
+              <div class="row__meta"><span class="badge badge--warning">Chưa thiết lập</span></div>
+            }
+          </div>
+          <button type="button" class="btn btn--ghost" (click)="openPasswordModal()">{{ hasPassword ? 'Thay đổi' : 'Thiết lập' }}</button>
+        </div>
+        <div class="info-cell">
+          <span class="row__icon"><lucide-icon name="badge-check" class="w-5 h-5"></lucide-icon></span>
+          <div class="row__copy">
+            <span class="row__label">Phương thức xác thực</span>
+            <p class="row__value" [title]="authenticationMethods">{{ authenticationMethods }}</p>
+          </div>
+        </div>
+        <div class="info-cell">
+          <span class="row__icon"><lucide-icon name="monitor" class="w-5 h-5"></lucide-icon></span>
+          <div class="row__copy">
+            <span class="row__label">Thiết bị hiện tại</span>
+            <p class="row__value">Trình duyệt này</p>
+          </div>
+          <button type="button" class="btn btn--ghost btn--danger-ghost" [disabled]="isLoggingOut" (click)="logoutCurrentSession()">
+            <lucide-icon name="log-out" class="w-4 h-4"></lucide-icon>{{ isLoggingOut ? 'Đang thoát...' : 'Đăng xuất' }}
+          </button>
         </div>
       </div>
-      <span class="row__locked"><lucide-icon name="lock" class="w-4 h-4"></lucide-icon></span>
-    </div>
+    </section>
 
-    <div class="row">
-      <span class="row__icon"><lucide-icon name="monitor" class="w-5 h-5"></lucide-icon></span>
-      <div class="row__copy">
-        <span class="row__label">Thiết bị hiện tại</span>
-        <p class="row__value is-empty">Đăng xuất an toàn khỏi trình duyệt này.</p>
+    <section class="info-group">
+      <h3 class="info-group__title">Tài khoản</h3>
+      <div class="info-grid">
+        <div class="info-cell">
+          <span class="row__icon"><lucide-icon name="shield-check" class="w-5 h-5"></lucide-icon></span>
+          <div class="row__copy">
+            <span class="row__label">Vai trò</span>
+            <p class="row__value">{{ roleLabel }}</p>
+          </div>
+          <span class="row__locked" title="Do hệ thống quản lý"><lucide-icon name="lock" class="w-4 h-4"></lucide-icon></span>
+        </div>
+        <div class="info-cell">
+          <span class="row__icon" [class.row__icon--danger]="!isActive"><lucide-icon name="activity" class="w-5 h-5"></lucide-icon></span>
+          <div class="row__copy">
+            <span class="row__label">Trạng thái</span>
+            <div class="row__meta">
+              <span class="badge" [class.badge--success]="isActive" [class.badge--danger]="!isActive">{{ statusLabel }}</span>
+            </div>
+          </div>
+          <span class="row__locked" title="Do hệ thống quản lý"><lucide-icon name="lock" class="w-4 h-4"></lucide-icon></span>
+        </div>
       </div>
-      <button type="button" class="btn btn--secondary btn--danger-ghost" [disabled]="isLoggingOut" (click)="logoutCurrentSession()">
-        <lucide-icon name="log-out" class="w-4 h-4"></lucide-icon>{{ isLoggingOut ? 'Đang đăng xuất...' : 'Đăng xuất' }}
-      </button>
-    </div>
+    </section>
   </div>
 </section>
 
