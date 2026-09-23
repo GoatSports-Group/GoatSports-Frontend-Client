@@ -148,38 +148,6 @@
   }
 }
 
-// Skeleton rows match the final row layout.
-.notif-row--skeleton {
-  align-items: center;
-}
-
-.skeleton {
-  display: block;
-  border-radius: 8px;
-  background: linear-gradient(90deg, #edf4f0 20%, #f8faf9 46%, #edf4f0 72%);
-  background-size: 240% 100%;
-  animation: notif-skeleton 1.35s ease-in-out infinite;
-}
-
-.skeleton--icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-}
-
-.skeleton-lines {
-  display: grid;
-  gap: 8px;
-
-  .skeleton:first-child { width: 40%; height: 14px; }
-  .skeleton:last-child { width: 80%; height: 12px; }
-}
-
-@keyframes notif-skeleton {
-  from { background-position: 100% 0; }
-  to { background-position: -100% 0; }
-}
-
 .notif-pagination {
   display: block;
   margin-top: 16px;

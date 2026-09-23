@@ -68,7 +68,6 @@ const COMPONENT_DECLARATIONS = [
   HeaderComponent,
   FooterComponent,
   StarRatingComponent,
-  LoadingSkeletonComponent,
   ConfirmDialogComponent,
   SelectComponent,
   FileUploadComponent,
@@ -89,6 +88,7 @@ const COMPONENT_DECLARATIONS = [
     RouterModule,
     OverlayModule,
     LucideIconComponent,
+    LoadingSkeletonComponent,
     PaginationComponent,
     FormFieldComponent,
     ...MATERIAL_MODULES
@@ -99,6 +99,7 @@ const COMPONENT_DECLARATIONS = [
     ReactiveFormsModule,
     RouterModule,
     LucideIconComponent,
+    LoadingSkeletonComponent,
     PaginationComponent,
     FormFieldComponent,
     ...MATERIAL_MODULES,

@@ -30,15 +30,7 @@
     </div>
 
     @if (loading()) {
-      <div class="tickets-grid" aria-label="Đang tải lịch sử đặt sân">
-        @for (item of [1, 2, 3, 4, 5, 6]; track item) {
-          <div class="p-6 bg-white rounded-2xl border border-slate-200">
-            <app-loading-skeleton height="24px" width="45%"></app-loading-skeleton>
-            <div class="mt-4"><app-loading-skeleton height="18px" width="75%"></app-loading-skeleton></div>
-            <div class="mt-3"><app-loading-skeleton height="16px" width="58%"></app-loading-skeleton></div>
-          </div>
-        }
-      </div>
+      <app-loading-skeleton variant="rows" [count]="6" label="Đang tải lịch sử đặt sân"></app-loading-skeleton>
     } @else if (error()) {
       <div class="state-card state-card--error" role="alert">
         <lucide-icon name="alert-triangle" class="w-10 h-10"></lucide-icon>

@@ -116,7 +116,7 @@ export class ClubExploreComponent {
   useLogoFallback(event: Event): void { this.applyImageFallback(event, this.defaultClubLogo); }
   useBannerFallback(event: Event): void { this.applyImageFallback(event, this.defaultClubBanner); }
 
-  private reload(): void {
+  reload(): void {
     const sport = this.selectedSport();
     const city = this.selectedCity();
     this.browse.load(sport === 'ALL' ? undefined : sport, city === 'ALL' ? undefined : city);

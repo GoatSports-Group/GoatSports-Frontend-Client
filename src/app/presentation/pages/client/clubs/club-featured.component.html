@@ -18,7 +18,16 @@
       searchPlaceholder="Tìm tỉnh, thành phố..."></app-select>
   </section>
 
-  @if (filteredClubs().length) {
+  @if (loading()) {
+    <app-loading-skeleton variant="cards" [count]="6" minWidth="260px" label="Đang tải danh sách câu lạc bộ"></app-loading-skeleton>
+  } @else if (error()) {
+    <section class="empty-state" role="alert">
+      <lucide-icon name="wifi-off" class="w-8 h-8"></lucide-icon>
+      <h2>Không tải được câu lạc bộ</h2>
+      <p>{{ error() }}</p>
+      <button type="button" class="retry-button" (click)="reload()">Thử lại</button>
+    </section>
+  } @else if (filteredClubs().length) {
     <section class="featured-grid" aria-label="Danh sách câu lạc bộ nổi bật">
       @for (club of pagedClubs(); track club.clubId; let rank = $index) {
         <article class="featured-card" role="link" tabindex="0" [attr.aria-label]="'Xem chi tiết ' + club.name"

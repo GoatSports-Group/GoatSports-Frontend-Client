@@ -25,9 +25,7 @@
     </div>
 
     @if (loading()) {
-      <div class="state state--inline" aria-live="polite">
-        <lucide-icon name="loader-2" class="w-5 h-5 animate-spin"></lucide-icon>Đang tải tài khoản...
-      </div>
+      <app-loading-skeleton variant="rows" [count]="2" label="Đang tải tài khoản ngân hàng"></app-loading-skeleton>
     } @else if (accounts().length) {
       <div class="account-grid">
         @for (account of accounts(); track account.bankAccountId) {

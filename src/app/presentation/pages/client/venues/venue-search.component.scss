@@ -383,19 +383,6 @@
   --venue-card-cta-size: .78rem;
 }
 
-.skeleton-card {
-  overflow: hidden;
-  border: 1px solid #d9e3de;
-  border-radius: 14px;
-  background: #fff;
-}
-
-.skeleton-lines {
-  display: grid;
-  gap: .75rem;
-  padding: 1rem;
-}
-
 .empty-state {
   min-height: 170px;
   display: grid;

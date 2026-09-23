@@ -73,9 +73,7 @@
 
       <section class="settings-content">
         @if (isLoadingProfile && !user) {
-          <div class="loading-line" aria-live="polite">
-            <lucide-icon name="loader-2" class="w-5 h-5 animate-spin"></lucide-icon>Đang tải hồ sơ...
-          </div>
+          <app-loading-skeleton variant="info" [count]="4" label="Đang tải hồ sơ"></app-loading-skeleton>
         } @else if (user) {
           @switch (activeTab) {
             @case ('personal') { <app-settings-personal-tab [user]="user" /> }

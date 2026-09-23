@@ -560,6 +560,37 @@ button:focus-visible {
   }
 }
 
+/* Featured card skeleton keeps the real card's split (cover | copy) and height. */
+.featured-skeleton {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+  min-height: 275px;
+  overflow: hidden;
+  border: 1px solid var(--club-border);
+  border-radius: 16px;
+  background: #fff;
+
+  > app-loading-skeleton,
+  > app-loading-skeleton ::ng-deep .sk {
+    height: 100%;
+  }
+}
+
+.featured-skeleton__body {
+  display: grid;
+  align-content: center;
+  gap: 16px;
+  padding: 24px;
+}
+
+@media (max-width: 760px) {
+  .featured-skeleton {
+    grid-template-columns: minmax(0, 1fr);
+
+    > app-loading-skeleton { height: 180px; }
+  }
+}
+
 .club-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

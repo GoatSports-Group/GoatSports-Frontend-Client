@@ -45,7 +45,25 @@
           </a>
         </header>
 
-        @if (featuredClub(); as club) {
+        @if (loading()) {
+        <div class="panel-skeleton featured-skeleton" role="status" aria-label="Đang tải câu lạc bộ nổi bật">
+          <app-loading-skeleton [decorative]="true" height="100%" radius="0"></app-loading-skeleton>
+          <div class="featured-skeleton__body">
+            <app-loading-skeleton [decorative]="true" width="45%" height="24px" radius="8px"></app-loading-skeleton>
+            <app-loading-skeleton [decorative]="true" variant="text" [lines]="3"></app-loading-skeleton>
+            <app-loading-skeleton [decorative]="true" width="160px" height="44px" radius="12px"></app-loading-skeleton>
+          </div>
+        </div>
+        } @else if (error()) {
+        <div class="empty-state" role="alert">
+          <lucide-icon name="wifi-off" class="w-9 h-9"></lucide-icon>
+          <div>
+            <h3>Không tải được câu lạc bộ</h3>
+            <p>{{ error() }}</p>
+          </div>
+          <button type="button" class="secondary-action" (click)="load()">Thử lại</button>
+        </div>
+        } @else if (featuredClub(); as club) {
         <article class="featured-club" role="link" tabindex="0" [attr.aria-label]="'Xem ' + club.name"
           (click)="goToClub(club)" (keydown.enter)="goToClubFromKeyboard($event, club)">
           <div class="featured-club__photo">
@@ -114,7 +132,9 @@
           </div>
         </header>
 
-        @if (discoveryClubs().length) {
+        @if (loading()) {
+        <app-loading-skeleton variant="cards" [count]="6" minWidth="240px" label="Đang tải danh sách câu lạc bộ"></app-loading-skeleton>
+        } @else if (discoveryClubs().length) {
         <div class="club-grid">
           @for (club of discoveryClubs(); track club.clubId) {
           <article class="club-card" role="link" tabindex="0" [attr.aria-label]="'Xem chi tiết ' + club.name"
@@ -185,6 +205,8 @@
           <p class="rail-empty">Đăng nhập để xem câu lạc bộ bạn đang sinh hoạt.
             <button type="button" class="link-action" (click)="goToLogin()">Đăng nhập</button>
           </p>
+          } @else if (loading()) {
+          <app-loading-skeleton variant="rows" [count]="3" [flush]="true" label="Đang tải câu lạc bộ của bạn"></app-loading-skeleton>
           } @else if (!myClubs().length) {
           <p class="rail-empty">Bạn chưa tham gia câu lạc bộ nào. Chọn một câu lạc bộ bên trái để bắt đầu.</p>
           }
@@ -214,6 +236,8 @@
           <p class="rail-empty">Đăng nhập để xem lời mời và yêu cầu tham gia của bạn.
             <button type="button" class="link-action" (click)="goToLogin()">Đăng nhập</button>
           </p>
+          } @else if (loading()) {
+          <app-loading-skeleton variant="rows" [count]="3" [flush]="true" label="Đang tải lời mời và yêu cầu"></app-loading-skeleton>
           } @else if (invitations().length || pendingRequests().length) {
           <div class="rail-list">
             @for (invitation of invitations(); track invitation.invitationId) {
@@ -253,6 +277,8 @@
           <p class="rail-empty">Đăng nhập để xem lịch hoạt động của câu lạc bộ bạn tham gia.
             <button type="button" class="link-action" (click)="goToLogin()">Đăng nhập</button>
           </p>
+          } @else if (loading()) {
+          <app-loading-skeleton variant="rows" [count]="3" [flush]="true" label="Đang tải hoạt động sắp tới"></app-loading-skeleton>
           } @else if (!upcomingActivities().length) {
           <p class="rail-empty">Chưa có hoạt động nào sắp diễn ra. Ban quản trị câu lạc bộ sẽ đăng lời nhắc ở đây.</p>
           }
@@ -269,7 +295,7 @@
             @if (signedIn() && upcomingActivities().length) {
             <div #activityLoadSentinel class="rail-load-sentinel" aria-live="polite">
               @if (activityLoading()) {
-              <span class="rail-load-spinner" aria-hidden="true"></span><span>Đang tải thêm...</span>
+              <app-loading-skeleton variant="rows" [count]="2" label="Đang tải thêm hoạt động" style="flex: 1 1 100%"></app-loading-skeleton>
               } @else if (activityLoadError()) {
               <button type="button" (click)="loadNextUpcomingActivities()">Thử lại</button>
               } @else if (!activityHasMore()) {

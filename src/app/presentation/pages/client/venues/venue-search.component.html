@@ -111,18 +111,7 @@
       </header>
 
       @if (loading) {
-      <div class="venues-grid" aria-label="Đang tải danh sách sân">
-        @for (item of [1,2,3,4,5,6]; track item) {
-        <div class="skeleton-card">
-          <app-loading-skeleton height="176px" borderRadius="14px"></app-loading-skeleton>
-          <div class="skeleton-lines">
-            <app-loading-skeleton height="22px" width="70%"></app-loading-skeleton>
-            <app-loading-skeleton height="15px" width="92%"></app-loading-skeleton>
-            <app-loading-skeleton height="38px" width="100%"></app-loading-skeleton>
-          </div>
-        </div>
-        }
-      </div>
+      <app-loading-skeleton variant="cards" [count]="6" minWidth="260px" label="Đang tải danh sách sân"></app-loading-skeleton>
       } @else if (errorMessage) {
       <section class="empty-state error-state" role="alert">
         <lucide-icon name="wifi-off" class="w-10 h-10"></lucide-icon>

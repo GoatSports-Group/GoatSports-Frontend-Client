@@ -1,7 +1,7 @@
 <div class="venue-detail-page">
   @if (loading) {
   <div class="venue-detail-shell venue-detail-loading" aria-label="Đang tải thông tin sân">
-    <app-loading-skeleton height="680px" borderRadius="12px"></app-loading-skeleton>
+    <app-loading-skeleton variant="detail" [lines]="4" label="Đang tải thông tin sân"></app-loading-skeleton>
   </div>
   } @else if (detailError) {
   <section class="detail-error neo-card" role="alert">
@@ -175,8 +175,7 @@
                   }}</strong><span>★</span><small>{{ venue.totalReviews || 0 }} đánh giá</small></div>
             </header>
             @if (reviewsLoading) {
-            <div class="reviews-state"><mat-progress-spinner mode="indeterminate"
-                diameter="32"></mat-progress-spinner><span>Đang tải đánh giá...</span></div>
+            <app-loading-skeleton variant="rows" [count]="3" label="Đang tải đánh giá"></app-loading-skeleton>
             } @else if (reviewsError) {
             <div class="reviews-state reviews-state--error"><lucide-icon name="circle-alert"
                 class="w-6 h-6"></lucide-icon><span>{{ reviewsError }}</span><button type="button"
@@ -259,8 +258,7 @@
             </div>
 
             @if (loadingSlots) {
-            <div class="slot-feedback"><mat-progress-spinner mode="indeterminate"
-                diameter="28"></mat-progress-spinner><span>Đang tải lịch trống...</span></div>
+            <app-loading-skeleton height="220px" radius="12px" label="Đang tải lịch trống"></app-loading-skeleton>
             } @else if (slotsError) {
             <div class="slot-feedback slot-feedback--error" role="alert"><lucide-icon name="wifi-off"
                 class="w-6 h-6"></lucide-icon><span>{{ slotsError }}</span><button type="button"

@@ -16,9 +16,7 @@
   </header>
 
   @if (isLoading) {
-  <div class="state state--inline" aria-live="polite">
-    <lucide-icon name="loader-2" class="w-5 h-5 animate-spin"></lucide-icon>Đang tải hồ sơ thể thao...
-  </div>
+  <app-loading-skeleton variant="cards" [count]="2" [media]="false" minWidth="320px" label="Đang tải hồ sơ thể thao"></app-loading-skeleton>
   } @else if (loadFailed) {
   <div class="state state--error" role="alert">
     <span class="state__icon"><lucide-icon name="alert-triangle" class="w-6 h-6"></lucide-icon></span>

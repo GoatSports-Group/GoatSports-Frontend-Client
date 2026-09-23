@@ -9,8 +9,8 @@
 
     @if (loading()) {
       <div class="detail-layout">
-        <div class="p-6 bg-white rounded-2xl"><app-loading-skeleton height="520px" borderRadius="16px"></app-loading-skeleton></div>
-        <div class="p-6 bg-white rounded-2xl"><app-loading-skeleton height="320px" borderRadius="16px"></app-loading-skeleton></div>
+        <div class="p-6 bg-white rounded-2xl"><app-loading-skeleton height="520px" radius="16px"></app-loading-skeleton></div>
+        <div class="p-6 bg-white rounded-2xl"><app-loading-skeleton height="320px" radius="16px"></app-loading-skeleton></div>
       </div>
     } @else if (error()) {
       <div class="detail-state" role="alert">

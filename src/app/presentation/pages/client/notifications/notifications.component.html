@@ -69,14 +69,7 @@
       <section aria-live="polite">
         @if (notifications$ | async; as notifications) {
           @if (isLoading()) {
-            <div class="notif-list" aria-label="Đang tải thông báo">
-              @for (item of [1, 2, 3, 4]; track item) {
-                <div class="notif-row notif-row--skeleton">
-                  <span class="skeleton skeleton--icon"></span>
-                  <span class="skeleton-lines"><span class="skeleton"></span><span class="skeleton"></span></span>
-                </div>
-              }
-            </div>
+            <app-loading-skeleton variant="rows" [count]="6" label="Đang tải thông báo"></app-loading-skeleton>
           } @else if (loadFailed() && notifications.length === 0) {
             <div class="state state--error" role="alert">
               <span class="state__icon"><lucide-icon name="alert-triangle" class="w-6 h-6"></lucide-icon></span>

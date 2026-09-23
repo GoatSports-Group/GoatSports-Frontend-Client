@@ -1,7 +1,7 @@
 <main class="club-detail-page">
   @if (loading()) {
   <section class="detail-loading" aria-label="Đang tải chi tiết câu lạc bộ">
-    <app-loading-skeleton height="520px"></app-loading-skeleton>
+    <app-loading-skeleton variant="detail" label="Đang tải chi tiết câu lạc bộ"></app-loading-skeleton>
   </section>
   } @else if (error()) {
   <section class="detail-empty" role="alert">
@@ -232,8 +232,7 @@
         </button>
         }
         <div #matchLoadSentinel class="match-load-sentinel" aria-live="polite">
-          @if (matchPageLoading()) { <span class="member-load-spinner" aria-hidden="true"></span><span>Đang tải thêm
-            trận đấu...</span> }
+          @if (matchPageLoading()) { <app-loading-skeleton variant="rows" [count]="2" label="Đang tải thêm trận đấu" style="flex: 1 1 100%"></app-loading-skeleton> }
           @else if (matchPageError()) { <button type="button" (click)="loadNextMatchPage()">Thử lại</button> }
           @else if (!matchHasMore()) { <span>Đã hiển thị toàn bộ {{ matchTotal() }} trận.</span> }
         </div>
@@ -374,8 +373,7 @@
         </button>
         }
         <div #matchLoadSentinel class="match-load-sentinel" aria-live="polite">
-          @if (matchPageLoading()) { <span class="member-load-spinner" aria-hidden="true"></span><span>Đang tải thêm
-            trận đấu...</span> }
+          @if (matchPageLoading()) { <app-loading-skeleton variant="rows" [count]="2" label="Đang tải thêm trận đấu" style="flex: 1 1 100%"></app-loading-skeleton> }
           @else if (matchPageError()) { <button type="button" (click)="loadNextMatchPage()">Thử lại</button> }
           @else if (!matchHasMore()) { <span>Đã hiển thị toàn bộ {{ matchTotal() }} trận.</span> }
         </div>
@@ -535,8 +533,7 @@
         </button>
         }
         <div #matchLoadSentinel class="match-load-sentinel" aria-live="polite">
-          @if (matchPageLoading()) { <span class="member-load-spinner" aria-hidden="true"></span><span>Đang tải thêm
-            trận đấu...</span> }
+          @if (matchPageLoading()) { <app-loading-skeleton variant="rows" [count]="2" label="Đang tải thêm trận đấu" style="flex: 1 1 100%"></app-loading-skeleton> }
           @else if (matchPageError()) { <button type="button" (click)="loadNextMatchPage()">Thử lại</button> }
           @else if (!matchHasMore()) { <span>Đã hiển thị toàn bộ {{ matchTotal() }} trận.</span> }
         </div>
@@ -722,7 +719,7 @@
     </div>
     <div #memberLoadSentinel class="member-load-sentinel" aria-live="polite">
       @if (memberPageLoading()) {
-      <span class="member-load-spinner" aria-hidden="true"></span><span>Đang tải thêm thành viên...</span>
+      <app-loading-skeleton variant="rows" [count]="2" label="Đang tải thêm thành viên" style="flex: 1 1 100%"></app-loading-skeleton>
       } @else if (memberPageError()) {
       <span>Không thể tải thêm thành viên.</span><button type="button" (click)="loadNextMemberPage()">Thử lại</button>
       } @else if (!memberHasMore()) {
@@ -730,8 +727,7 @@
       }
     </div>
     } @else if (memberPageLoading()) {
-    <div class="member-load-sentinel"><span class="member-load-spinner" aria-hidden="true"></span><span>Đang tải danh
-        sách thành viên...</span></div>
+    <app-loading-skeleton variant="rows" [count]="4" label="Đang tải danh sách thành viên"></app-loading-skeleton>
     } @else { <div class="detail-empty detail-empty--inline">
       <p>Chưa có thành viên nào trong câu lạc bộ.</p>
     </div> }
@@ -801,7 +797,7 @@
     </div>
     <div #activityLoadSentinel class="member-load-sentinel" aria-live="polite">
       @if (activityPageLoading()) {
-      <span class="member-load-spinner" aria-hidden="true"></span><span>Đang tải thêm hoạt động...</span>
+      <app-loading-skeleton variant="rows" [count]="2" label="Đang tải thêm hoạt động" style="flex: 1 1 100%"></app-loading-skeleton>
       } @else if (activityPageError()) {
       <span>Không thể tải thêm hoạt động.</span><button type="button" (click)="loadNextActivityPage()">Thử lại</button>
       } @else if (!activityHasMore()) {
@@ -870,8 +866,7 @@
           </button>
           }
           <div #matchLoadSentinel class="match-load-sentinel" aria-live="polite">
-            @if (matchPageLoading()) { <span class="member-load-spinner" aria-hidden="true"></span><span>Đang tải thêm
-              trận đấu...</span> }
+            @if (matchPageLoading()) { <app-loading-skeleton variant="rows" [count]="2" label="Đang tải thêm trận đấu" style="flex: 1 1 100%"></app-loading-skeleton> }
             @else if (matchPageError()) { <button type="button" (click)="loadNextMatchPage()">Thử lại</button> }
             @else if (!matchHasMore()) { <span>Đã hiển thị toàn bộ {{ matchTotal() }} trận.</span> }
           </div>
@@ -958,7 +953,7 @@
     </div>
     <div #photoLoadSentinel class="club-gallery-sentinel" aria-live="polite">
       @if (photoPageLoading()) {
-      <span class="member-load-spinner" aria-hidden="true"></span><span>Đang tải thêm ảnh...</span>
+      <app-loading-skeleton height="160px" radius="12px" label="Đang tải thêm ảnh" style="flex: 1 1 100%"></app-loading-skeleton>
       } @else if (photoPageError()) {
       <span>Không thể tải thêm ảnh.</span><button type="button" class="text-action" (click)="loadNextPhotoPage()">Thử lại</button>
       } @else if (!photoHasMore()) {

@@ -1,43 +1,131 @@
-<div class="skeleton-wrapper" [ngClass]="type">
-  @for (item of countArray; track $index) {
-    @if (type === 'card') {
-      <div class="skeleton-card">
-        <div class="skeleton-image skeleton-shimmer"></div>
-        <div class="skeleton-info">
-          <div class="skeleton-line title skeleton-shimmer"></div>
-          <div class="skeleton-line rating skeleton-shimmer"></div>
-          <div class="skeleton-row">
-            <div class="skeleton-line price skeleton-shimmer"></div>
-            <div class="skeleton-button skeleton-shimmer"></div>
+<div class="sk" [class]="'sk sk--' + variant" [attr.role]="decorative ? null : 'status'"
+  [attr.aria-live]="decorative ? null : 'polite'" [attr.aria-label]="decorative ? null : label"
+  [attr.aria-hidden]="decorative ? 'true' : null" [class.is-flush]="flush" [style.--sk-min]="minWidth">
+  @if (!decorative) { <span class="sk-sr">{{ label }}</span> }
+
+  @switch (variant) {
+    @case ('text') {
+      <div class="sk-text" aria-hidden="true">
+        @for (line of textLines; track line) {
+          <span class="sk-bone sk-line" [style.width]="$last && lines > 1 ? '60%' : '100%'"></span>
+        }
+      </div>
+    }
+
+    @case ('rows') {
+      <div class="sk-card sk-rows" aria-hidden="true">
+        @for (item of items; track item) {
+          <div class="sk-row">
+            <span class="sk-bone sk-icon"></span>
+            <span class="sk-stack">
+              <span class="sk-bone sk-line sk-line--title" [style.width]="item % 2 ? '46%' : '58%'"></span>
+              <span class="sk-bone sk-line" [style.width]="item % 2 ? '72%' : '84%'"></span>
+            </span>
+            <span class="sk-bone sk-chip"></span>
+          </div>
+        }
+      </div>
+    }
+
+    @case ('cards') {
+      <div class="sk-grid" aria-hidden="true">
+        @for (item of items; track item) {
+          <div class="sk-card sk-media-card">
+            @if (media) {
+              <span class="sk-bone sk-media"></span>
+            } @else {
+              <span class="sk-card-head">
+                <span class="sk-bone sk-icon"></span>
+                <span class="sk-stack">
+                  <span class="sk-bone sk-line sk-line--title" style="width: 50%"></span>
+                  <span class="sk-bone sk-line" style="width: 34%"></span>
+                </span>
+              </span>
+            }
+            <span class="sk-stack sk-pad">
+              <span class="sk-bone sk-line sk-line--title" style="width: 64%"></span>
+              <span class="sk-bone sk-line" style="width: 88%"></span>
+              <span class="sk-bone sk-line" style="width: 52%"></span>
+            </span>
+            <span class="sk-footer">
+              <span class="sk-bone sk-line" style="width: 34%"></span>
+              <span class="sk-bone sk-button"></span>
+            </span>
+          </div>
+        }
+      </div>
+    }
+
+    @case ('table') {
+      <div class="sk-card sk-table" aria-hidden="true">
+        @if (head) {
+          <div class="sk-table__row sk-table__head" [style.grid-template-columns]="tableColumns">
+            @for (cell of cells; track cell) { <span class="sk-bone sk-line" style="width: 56%"></span> }
+          </div>
+        }
+        @for (item of items; track item) {
+          <div class="sk-table__row" [style.grid-template-columns]="tableColumns">
+            @for (cell of cells; track cell) {
+              <span class="sk-bone sk-line" [style.width]="cell === 0 ? '82%' : ((item + cell) % 3 === 0 ? '48%' : '68%')"></span>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    @case ('stats') {
+      <div class="sk-stats" aria-hidden="true">
+        @for (item of items; track item) {
+          <div class="sk-card sk-stat">
+            <span class="sk-bone sk-line" style="width: 52%"></span>
+            <span class="sk-bone sk-number"></span>
+            <span class="sk-bone sk-line" style="width: 38%"></span>
+          </div>
+        }
+      </div>
+    }
+
+    @case ('info') {
+      <div class="sk-card sk-info" aria-hidden="true">
+        <span class="sk-info__title"><span class="sk-bone sk-line" style="width: 140px"></span></span>
+        <div class="sk-info__grid">
+          @for (item of items; track item) {
+            <div class="sk-info__cell">
+              <span class="sk-bone sk-icon sk-icon--sm"></span>
+              <span class="sk-stack">
+                <span class="sk-bone sk-line" style="width: 42%"></span>
+                <span class="sk-bone sk-line sk-line--title" style="width: 70%"></span>
+              </span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    @case ('detail') {
+      <div class="sk-detail" aria-hidden="true">
+        <span class="sk-bone sk-hero"></span>
+        <div class="sk-detail__body">
+          <div class="sk-card sk-pad sk-stack sk-stack--loose">
+            <span class="sk-bone sk-line sk-line--heading" style="width: 40%"></span>
+            @for (line of textLines; track line) {
+              <span class="sk-bone sk-line" [style.width]="$last ? '62%' : '100%'"></span>
+            }
+            <span class="sk-bone sk-block-lg"></span>
+          </div>
+          <div class="sk-card sk-pad sk-stack sk-stack--loose">
+            <span class="sk-bone sk-line sk-line--heading" style="width: 60%"></span>
+            <span class="sk-bone sk-line" style="width: 90%"></span>
+            <span class="sk-bone sk-line" style="width: 70%"></span>
+            <span class="sk-bone sk-button sk-button--block"></span>
           </div>
         </div>
       </div>
-    } @else if (type === 'list') {
-      <div class="skeleton-list-item">
-        <div class="skeleton-thumbnail skeleton-shimmer"></div>
-        <div class="skeleton-list-details">
-          <div class="skeleton-line name skeleton-shimmer"></div>
-          <div class="skeleton-line category skeleton-shimmer"></div>
-        </div>
-        <div class="skeleton-line qty skeleton-shimmer"></div>
-        <div class="skeleton-line price skeleton-shimmer"></div>
-      </div>
-    } @else if (type === 'detail') {
-      <div class="skeleton-detail-grid">
-        <div class="skeleton-large-image skeleton-shimmer"></div>
-        <div class="skeleton-detail-info">
-          <div class="skeleton-line main-title skeleton-shimmer"></div>
-          <div class="skeleton-line rating skeleton-shimmer"></div>
-          <div class="skeleton-line large-price skeleton-shimmer"></div>
-          <div class="skeleton-line desc skeleton-shimmer"></div>
-          <div class="skeleton-line desc skeleton-shimmer"></div>
-          <div class="skeleton-line desc skeleton-shimmer"></div>
-          <div class="skeleton-row buttons">
-            <div class="skeleton-button large skeleton-shimmer"></div>
-            <div class="skeleton-button large skeleton-shimmer"></div>
-          </div>
-        </div>
-      </div>
+    }
+
+    @default {
+      <span class="sk-bone sk-block" aria-hidden="true" [style.width]="width" [style.height]="height"
+        [style.border-radius]="radius"></span>
     }
   }
 </div>

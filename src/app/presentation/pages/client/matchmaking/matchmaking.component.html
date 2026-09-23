@@ -590,9 +590,7 @@
         </header>
 
         @if (historyLoading()) {
-        <div class="history-skeleton" aria-label="Đang tải lịch sử">
-          <span></span><span></span>
-        </div>
+        <app-loading-skeleton variant="rows" [count]="3" label="Đang tải lịch sử ghép trận"></app-loading-skeleton>
         } @else if (historyError()) {
         <div class="history-empty history-empty--error">
           <lucide-icon name="wifi-off" class="w-5 h-5"></lucide-icon>
@@ -623,10 +621,7 @@
           <div #historySentinel class="history-sentinel" aria-hidden="true"></div>
           }
           @if (historyLoadingMore()) {
-          <div class="history-load-more">
-            <span class="spinner spinner--small"></span>
-            <span>Đang tải thêm…</span>
-          </div>
+          <app-loading-skeleton variant="rows" [count]="2" label="Đang tải thêm lịch sử"></app-loading-skeleton>
           }
         </div>
         } @else {
