@@ -121,7 +121,8 @@
   </div>
 
   <footer class="panel__actions">
-    @if (player.profileVisible || shortlisted) {
+    <!-- Members need neither following nor inviting; an existing follow can still be removed. -->
+    @if ((player.profileVisible && relation !== 'MEMBER') || shortlisted) {
       <button type="button" class="btn btn--secondary" [class.is-active]="shortlisted" [disabled]="shortlistBusy"
         [attr.aria-pressed]="shortlisted" (click)="toggleShortlist.emit(player)">
         <lucide-icon [name]="shortlisted ? 'bookmark-check' : 'bookmark'" class="w-4 h-4"></lucide-icon>

@@ -196,6 +196,8 @@ export interface SentInvitationModel {
   invitedBy: string;
   createdAt?: string;
   respondedAt?: string;
+  /** Quan he hien tai voi CLB, vd MEMBER sau khi nhan loi moi. */
+  relation?: PlayerClubRelation;
   player?: ScoutedPlayerModel;
 }
 

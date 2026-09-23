@@ -288,9 +288,9 @@
               } @else if (pagedInvitations().length) {
                 <div class="rows">
                   @for (invitation of pagedInvitations(); track invitation.invitationId) {
-                    <article class="row row--invite" [class.is-selected]="selectedId() === invitation.player?.userId" tabindex="0"
+                    <article class="row row--invite" [class.is-selected]="selectedInvitationId() === invitation.invitationId" tabindex="0"
                       [attr.aria-label]="'Xem hồ sơ ' + (invitation.player?.fullName ?? 'người chơi')"
-                      (click)="select(invitation.player?.userId)" (keydown.enter)="select(invitation.player?.userId)">
+                      (click)="selectInvitation(invitation)" (keydown.enter)="selectInvitation(invitation)">
                       <span class="avatar">
                         @if (invitation.player?.avatarUrl) { <img [src]="invitation.player?.avatarUrl" alt="" /> } @else { {{ initials(invitation.player?.fullName) }} }
                       </span>

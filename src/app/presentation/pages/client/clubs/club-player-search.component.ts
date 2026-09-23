@@ -148,6 +148,8 @@ export class ClubPlayerSearchComponent {
 
   // ---- Selection & invite dialog ---------------------------------------------------------------
   readonly selectedId = signal<string | null>(null);
+  /** Tab Da moi chon theo tung loi moi: mot nguoi co the duoc moi nhieu lan. */
+  readonly selectedInvitationId = signal<string | null>(null);
   readonly selectedPlayer = computed(() => {
     const id = this.selectedId();
     if (!id) return null;
@@ -161,8 +163,10 @@ export class ClubPlayerSearchComponent {
     const id = this.selectedId();
     if (!id) return 'NONE';
     if (this.invitedIds().has(id)) return 'INVITED';
+    // Server tinh quan he tu thanh vien + loi moi dang cho, ke ca nguoi khong nam trong danh sach theo doi.
     return this.selectedEntry()?.relation
-      ?? (this.invitations().some(item => item.player?.userId === id && item.status === 'PENDING') ? 'INVITED' : 'NONE');
+      ?? this.invitations().find(item => item.player?.userId === id)?.relation
+      ?? 'NONE';
   });
 
   readonly inviteTarget = signal<ScoutedPlayerModel | null>(null);
@@ -259,11 +263,18 @@ export class ClubPlayerSearchComponent {
   setTab(tab: ScoutingTab): void {
     this.tab.set(tab);
     this.confirmCancelId.set(null);
+    const firstInvitation = this.filteredInvitations()[0];
     const first = tab === 'discover' ? this.visibleCandidates()[0]?.userId
       : tab === 'shortlist' ? this.shortlist()[0]?.userId
-        : this.filteredInvitations()[0]?.player?.userId;
+        : firstInvitation?.player?.userId;
     this.selectedId.set(null);
+    this.selectedInvitationId.set(tab === 'invited' ? firstInvitation?.invitationId ?? null : null);
     this.autoSelect(first);
+  }
+
+  selectInvitation(invitation: SentInvitationModel): void {
+    this.selectedInvitationId.set(invitation.invitationId);
+    this.select(invitation.player?.userId);
   }
 
   select(userId: string | undefined): void {
@@ -393,8 +404,12 @@ export class ClubPlayerSearchComponent {
         this.cancellingId.set(null);
         this.confirmCancelId.set(null);
         const userId = invitation.player?.userId;
-        this.invitations.update(items => items.map(item => item.invitationId === invitation.invitationId
-          ? { ...item, status: 'CANCELLED', respondedAt: new Date().toISOString() } : item));
+        this.invitations.update(items => items.map(item => {
+          const withdrawn = item.invitationId === invitation.invitationId
+            ? { ...item, status: 'CANCELLED' as const, respondedAt: new Date().toISOString() } : item;
+          return withdrawn.player?.userId === userId && withdrawn.relation === 'INVITED'
+            ? { ...withdrawn, relation: 'NONE' as const } : withdrawn;
+        }));
         if (userId) {
           this.invitedIds.update(ids => { const next = new Set(ids); next.delete(userId); return next; });
           this.shortlist.update(entries => entries.map(entry =>
