@@ -435,20 +435,6 @@
   }
 }
 
-.rail-card--callout {
-  background: linear-gradient(145deg, var(--surface-subtle) 0%, var(--primary-light) 100%);
-
-  .btn--ghost { justify-self: start; margin-left: -10px; }
-}
-
-.rail-card__kicker {
-  color: var(--primary);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-}
-
 .rail-card__name {
   overflow: hidden;
   margin: 0;

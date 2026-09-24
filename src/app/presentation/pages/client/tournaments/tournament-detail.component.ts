@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Observable, catchError, forkJoin, map, of } from 'rxjs';
-import { environment } from '@environments/environment';
 import { VENUE_SEARCH_REPOSITORY_TOKEN } from '@application/ports/persistence/venue-search.repository';
 import { TournamentRepositoryPort } from '@application/ports/tournament.repository.port';
 import { ClubRepositoryPort } from '@application/ports/club.repository.port';
@@ -38,7 +37,7 @@ const LOCKED: readonly TournamentStatus[] = ['IN_PROGRESS', 'COMPLETED', 'CANCEL
 
 /**
  * Trang giai phia nguoi choi: xem, dang ky ca nhan / lap doi, tra loi loi moi, dong le phi trong 24 gio,
- * rut dang ky. Ban to chuc (chu san) dieu hanh giai o goat-sports-admin.
+ * rut dang ky. Chu san tao va dieu hanh giai o goat-sports-admin (khong dang nhap client).
  */
 @Component({
   selector: 'app-tournament-detail', templateUrl: './tournament-detail.component.html',
@@ -55,7 +54,6 @@ export class TournamentDetailComponent {
   private readonly pendingPayment = inject(PendingBookingPaymentService);
   readonly tournamentId = this.route.snapshot.paramMap.get('id') ?? '';
   readonly me = this.auth.currentUser?.userId ?? null;
-  readonly adminUrl = `${environment.adminApiUrl}/tournaments/${this.tournamentId}`;
 
   readonly statusMeta = STATUS_META;
   readonly registrationMeta = REGISTRATION_META;
@@ -92,7 +90,6 @@ export class TournamentDetailComponent {
   readonly lineupOf = signal<TournamentRegistrationModel | null>(null);
   readonly confirm = signal<ConfirmState | null>(null);
 
-  readonly isOrganizer = computed(() => !!this.me && this.tournament()?.organizerId === this.me);
   readonly status = computed<TournamentStatus | null>(() => this.tournament()?.status ?? null);
   readonly isTeamEvent = computed(() => this.tournament()?.participantType === 'TEAM');
   readonly holdingTeams = computed(() => this.teams().filter(item => HOLDING_STATUSES.has(item.status)));
@@ -137,7 +134,7 @@ export class TournamentDetailComponent {
 
   readonly names = computed<ReadonlyMap<string, string>>(() =>
     new Map(this.teams().map(item => [item.registrationId, this.teamName(item)])));
-  readonly canRegister = computed(() => this.status() === 'REGISTRATION_OPEN' && !this.isHolding() && !this.isOrganizer()
+  readonly canRegister = computed(() => this.status() === 'REGISTRATION_OPEN' && !this.isHolding()
     && (this.tournament()?.currentParticipants ?? 0) < (this.tournament()?.maxParticipants ?? 0));
   readonly seatsLeft = computed(() => Math.max(0,
     (this.tournament()?.maxParticipants ?? 0) - (this.tournament()?.currentParticipants ?? 0)));

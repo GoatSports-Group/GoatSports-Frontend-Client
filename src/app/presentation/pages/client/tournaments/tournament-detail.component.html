@@ -29,10 +29,7 @@
         <span class="badge badge--neutral">{{ formatLabel[t.format] }}</span>
       </div>
       <div class="identity__actions">
-        @if (isOrganizer()) {
-        <a class="btn btn--primary" [href]="adminUrl" target="_blank" rel="noopener">
-          <lucide-icon name="settings" class="w-4 h-4"></lucide-icon>Điều hành giải</a>
-        } @else if (canRegister()) {
+        @if (canRegister()) {
         <button type="button" class="btn btn--primary" (click)="openRegister()">
           <lucide-icon [name]="isTeamEvent() ? 'users' : 'user-plus'" class="w-4 h-4"></lucide-icon>{{ isTeamEvent() ? 'Lập đội tham gia' : 'Đăng ký tham gia' }}
         </button>
@@ -318,16 +315,6 @@
           @if (canRegister()) {
           <button type="button" class="btn btn--secondary rail-card__action" (click)="openRegister()">Đăng ký lại</button>
           }
-        </div>
-      </section>
-      } @else if (isOrganizer()) {
-      <section class="card rail-card rail-card--callout">
-        <div class="card__body rail-card__body">
-          <span class="rail-card__kicker">Bạn là ban tổ chức</span>
-          <h2>Điều hành ở khu chủ sân</h2>
-          <p class="muted-copy">Duyệt đăng ký, xếp lịch, xếp sân và cập nhật tỷ số trong trang quản trị cơ sở.</p>
-          <a class="btn btn--ghost" [href]="adminUrl" target="_blank" rel="noopener">Mở trang điều hành
-            <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a>
         </div>
       </section>
       }
