@@ -2,11 +2,14 @@
   <p class="bracket-progress">
     <b>{{ progress().done }}/{{ progress().total }}</b> trận đã có kết quả
   </p>
+  <p class="bracket-hint">Chọn một trận để xem tỷ số và đội hình.</p>
 </div>
 
 <ng-template #match let-fixture>
-  <article class="match" [class.is-done]="fixture.status === 'COMPLETED'"
-    [class.is-mine]="highlightId && (fixture.registration1Id === highlightId || fixture.registration2Id === highlightId)">
+  <article class="match" role="button" tabindex="0" [class.is-done]="fixture.status === 'COMPLETED'"
+    [class.is-mine]="highlightId && (fixture.registration1Id === highlightId || fixture.registration2Id === highlightId)"
+    [attr.aria-label]="fixture.roundName + ' trận ' + fixture.matchNumber + ': ' + slotName(fixture.registration1Id, fixture) + ' gặp ' + slotName(fixture.registration2Id, fixture)"
+    (click)="open.emit(fixture)" (keydown.enter)="open.emit(fixture)" (keydown.space)="$event.preventDefault(); open.emit(fixture)">
     <header class="match__head">
       <span>Trận {{ fixture.matchNumber }}</span>
       @if (isBye(fixture)) { <span class="badge badge--neutral">Được miễn</span> }
@@ -34,27 +37,22 @@
   </article>
 </ng-template>
 
-@if (format === 'SINGLE_ELIMINATION') {
 <div class="rounds" role="list" aria-label="Sơ đồ loại trực tiếp">
-  @for (round of rounds(); track round.roundNumber) {
-  <section class="round" role="listitem" [attr.aria-label]="round.name">
+  @for (round of rounds(); track round.roundNumber; let first = $first; let last = $last) {
+  <section class="round" role="listitem" [class.has-feeders]="!first" [attr.aria-label]="round.name">
     <h3 class="round__title">{{ round.name }} <span>{{ round.fixtures.length }} trận</span></h3>
     <div class="round__matches">
-      @for (fixture of round.fixtures; track fixture.fixtureId) {
-      <ng-container *ngTemplateOutlet="match; context: { $implicit: fixture }"></ng-container>
+      <!-- Mỗi cặp trận đổ vào một trận của vòng sau; đường nối vẽ bằng CSS trên .pair và .slot. -->
+      @for (pair of round.pairs; track $index) {
+      <div class="pair" [class.is-joined]="!last && pair.length === 2">
+        @for (fixture of pair; track fixture.fixtureId) {
+        <div class="slot">
+          <ng-container *ngTemplateOutlet="match; context: { $implicit: fixture }"></ng-container>
+        </div>
+        }
+      </div>
       }
     </div>
   </section>
   }
 </div>
-} @else {
-<div class="round-robin">
-  @for (round of rounds(); track round.roundNumber) {
-  <div class="rr-grid">
-    @for (fixture of round.fixtures; track fixture.fixtureId) {
-    <ng-container *ngTemplateOutlet="match; context: { $implicit: fixture }"></ng-container>
-    }
-  </div>
-  }
-</div>
-}

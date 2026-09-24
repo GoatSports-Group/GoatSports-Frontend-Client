@@ -615,44 +615,116 @@
   width: min(100%, 480px);
 }
 
-.lineup-view {
-  display: grid;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.modal--lineup { width: min(100%, 640px); }
 
-  li {
-    display: grid;
-    grid-template-columns: 36px minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 12px;
-    min-height: 52px;
-    border-top: 1px solid var(--hairline);
+// ---- Lịch thi đấu theo ngày -------------------------------------------------------------------
+.match-days { display: grid; gap: 24px; }
 
-    &:first-child { border-top: 0; }
-  }
+.match-day__title {
+  margin: 0 0 12px;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 800;
 }
 
-.lineup-view__shirt {
+.match-day__grid {
   display: grid;
-  width: 36px;
-  height: 36px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.fixture {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 112px;
+  grid-template-areas: 'round round' 'teams status';
+  align-items: center;
+  gap: 8px 12px;
+  margin: 0 -1px -1px 0;
+  padding: 14px 16px;
+  border: 0;
+  border-right: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+
+  &:hover { background: var(--surface-subtle); }
+  &:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: -3px; }
+  &.is-mine { box-shadow: inset 3px 0 0 var(--primary); }
+}
+
+.fixture__round { grid-area: round; color: var(--body); font-size: 12px; font-weight: 700; }
+.fixture__teams { display: grid; grid-area: teams; min-width: 0; gap: 6px; }
+
+.fixture__team {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  color: var(--body);
+  font-size: 14px;
+  font-weight: 600;
+
+  &.is-winner { color: var(--ink); font-weight: 800; }
+  &.is-empty { font-style: italic; }
+}
+
+.fixture__crest {
+  display: grid;
+  width: 24px;
+  height: 24px;
   place-items: center;
-  border-radius: 12px;
-  background: var(--surface-strong);
-  color: var(--ink);
-  font-variant-numeric: tabular-nums;
+  border-radius: 8px;
+  background: var(--primary-light);
+  color: var(--primary-strong);
+  font-size: 12px;
+  font-weight: 900;
+  font-style: normal;
+
+  &.is-away { background: var(--danger-soft); color: var(--danger); }
+}
+
+.fixture__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fixture__score { min-width: 20px; color: inherit; font-variant-numeric: tabular-nums; text-align: right; }
+
+.fixture__status {
+  display: grid;
+  grid-area: status;
+  justify-items: center;
+  gap: 2px;
+  padding-left: 12px;
+  border-left: 1px solid var(--hairline);
+  text-align: center;
+
+  b { color: var(--ink); font-size: 14px; font-variant-numeric: tabular-nums; }
+  small { overflow: hidden; max-width: 100%; color: var(--body); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+}
+
+// ---- Phong độ 5 trận gần nhất ------------------------------------------------------------------
+.standings__form { white-space: nowrap; }
+
+.form { display: inline-flex; gap: 4px; }
+
+.form__dot {
+  display: inline-grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 10px;
   font-weight: 900;
 }
 
-.lineup-view__name {
-  overflow: hidden;
-  color: var(--ink);
-  font-size: 15px;
-  font-weight: 700;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+.form__dot--W { background: var(--success); }
+.form__dot--D { background: var(--body); }
+.form__dot--L { background: var(--danger); }
+.form__dot--none { background: var(--surface-strong); }
 
 // ---- Responsive -------------------------------------------------------------------------------
 @media (max-width: 1023px) {

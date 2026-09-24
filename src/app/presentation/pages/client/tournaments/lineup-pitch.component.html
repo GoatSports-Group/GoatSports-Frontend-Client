@@ -1,0 +1,75 @@
+<ng-template #player let-line let-away="away">
+  <li class="player" [attr.title]="fullName(line) + (line.shirtNumber != null ? ' · số ' + line.shirtNumber : '')">
+    <span class="player__disc" [class.is-away]="away">
+      {{ line.shirtNumber ?? '–' }}
+      @if (line.lineupRole === 'CAPTAIN') { <span class="player__captain" aria-label="Đội trưởng">C</span> }
+    </span>
+    <span class="player__name">{{ label(line) }}</span>
+  </li>
+</ng-template>
+
+<ng-template #rows let-side let-away="away">
+  @for (row of side.rows; track $index) {
+  <ul class="row" [attr.aria-label]="'Hàng ' + ($index + 1)">
+    @for (line of row; track line.lineupId) {
+    <ng-container *ngTemplateOutlet="player; context: { $implicit: line, away: away }"></ng-container>
+    }
+  </ul>
+  }
+</ng-template>
+
+@if (homeView(); as home) {
+<figure class="lineup" [attr.aria-label]="'Đội hình ' + home.name + (awayView() ? ' và ' + awayView()!.name : '')">
+  <header class="team-bar"><strong>{{ home.name }}</strong><span>{{ home.formation.label }}</span></header>
+
+  <div class="surface" [class]="'surface surface--' + surface()" [class.is-duel]="!!awayView()">
+    <div class="markings" aria-hidden="true">
+      <span class="markings__mid"></span>
+      <span class="markings__circle"></span>
+      <span class="markings__box markings__box--top"></span>
+      <span class="markings__box markings__box--bottom"></span>
+    </div>
+    @if (awayView(); as away) {
+    <div class="half half--top">
+      <ng-container *ngTemplateOutlet="rows; context: { $implicit: home, away: false }"></ng-container>
+    </div>
+    <div class="half half--bottom">
+      <ng-container *ngTemplateOutlet="rows; context: { $implicit: away, away: true }"></ng-container>
+    </div>
+    } @else {
+    <div class="half half--solo">
+      <ng-container *ngTemplateOutlet="rows; context: { $implicit: home, away: false }"></ng-container>
+    </div>
+    }
+    @if (!home.rows.length) { <p class="surface__empty">Chưa có người nhận lời vào đội hình.</p> }
+  </div>
+
+  @if (awayView(); as away) {
+  <footer class="team-bar team-bar--away"><strong>{{ away.name }}</strong><span>{{ away.formation.label }}</span></footer>
+  }
+</figure>
+
+<div class="benches" [class.is-duel]="!!awayView()">
+  @for (side of awayView() ? [home, awayView()!] : [home]; track $index) {
+  <section class="bench">
+    @if (awayView()) { <h4>{{ side.name }}</h4> }
+    <p class="bench__title">Dự bị <span>{{ side.bench.length }}</span></p>
+    @if (side.bench.length) {
+    <ul>
+      @for (line of side.bench; track line.lineupId) {
+      <li><b>{{ line.shirtNumber ?? '–' }}</b>{{ fullName(line) }}</li>
+      }
+    </ul>
+    } @else { <p class="bench__empty">Không có cầu thủ dự bị.</p> }
+    @if (side.pending.length) {
+    <p class="bench__title bench__title--pending">Chờ nhận lời <span>{{ side.pending.length }}</span></p>
+    <ul>
+      @for (line of side.pending; track line.lineupId) {
+      <li class="is-pending"><b>{{ line.shirtNumber ?? '–' }}</b>{{ fullName(line) }}</li>
+      }
+    </ul>
+    }
+  </section>
+  }
+</div>
+}

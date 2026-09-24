@@ -19,10 +19,15 @@ import { NotifyService } from '@shared/components/notify/notify.service';
 import { PendingBookingPaymentService } from '@presentation/services/pending-booking-payment.service';
 import {
   FORMAT_LABEL, HOLDING_STATUSES, LINEUP_ROLE_LABEL, MEMBER_META, PAYMENT_META, REGISTRATION_META, SKILL_LABEL,
-  SPORT_LABEL, STATUS_META, fillPercent, formatVnd, isoDate, ruleLabel
+  SPORT_LABEL, STATUS_META, dayLabel, fillPercent, formatVnd, isoDate, ruleLabel
 } from './tournament-view';
 
-type DetailTab = 'OVERVIEW' | 'FIXTURES' | 'STANDINGS' | 'TEAMS';
+type DetailTab = 'OVERVIEW' | 'MATCHES' | 'BRACKET' | 'STANDINGS' | 'TEAMS';
+
+/** Một ngày thi đấu trong tab Lịch thi đấu; trận chưa xếp sân gom vào nhóm cuối (date = null). */
+interface MatchDay { date: string | null; label: string; fixtures: TournamentFixtureModel[]; }
+
+type FormResult = 'W' | 'D' | 'L';
 
 interface ConfirmState {
   title: string;
@@ -88,6 +93,8 @@ export class TournamentDetailComponent {
   readonly showRegister = signal(false);
   readonly showInvite = signal(false);
   readonly lineupOf = signal<TournamentRegistrationModel | null>(null);
+  /** Trận đang mở xem trước (tỷ số, lịch, đội hình). */
+  readonly selectedFixture = signal<TournamentFixtureModel | null>(null);
   readonly confirm = signal<ConfirmState | null>(null);
 
   readonly status = computed<TournamentStatus | null>(() => this.tournament()?.status ?? null);
@@ -130,6 +137,48 @@ export class TournamentDetailComponent {
   readonly paymentUrgent = computed(() => {
     const deadline = this.myRegistration()?.paymentDeadline;
     return !!deadline && new Date(deadline).getTime() - this.now() < 3 * 3_600_000;
+  });
+
+  readonly teamById = computed<ReadonlyMap<string, TournamentRegistrationModel>>(() =>
+    new Map(this.teams().map(item => [item.registrationId, item])));
+  readonly reservationById = computed<ReadonlyMap<string, TournamentReservationModel>>(() =>
+    new Map(this.reservations().map(item => [item.reservationId, item])));
+  /** Tên người chơi (tài khoản thật) theo playerId, cho sơ đồ đội hình. */
+  readonly playerNames = computed<ReadonlyMap<string, string>>(() => new Map([...this.users()]
+    .map(([id, user]) => [id, user.fullName || user.email || ''] as [string, string])
+    .filter(([, name]) => !!name)));
+
+  /** Lịch theo ngày, trong ngày theo giờ; trận chưa có sân/giờ đứng cuối. */
+  readonly matchDays = computed<MatchDay[]>(() => {
+    const byDate = new Map<string, TournamentFixtureModel[]>();
+    const unscheduled: TournamentFixtureModel[] = [];
+    for (const fixture of this.fixtures()) {
+      const when = this.slotOf(fixture);
+      if (!when) { if (!this.isBye(fixture)) unscheduled.push(fixture); continue; }
+      byDate.set(when.playDate, [...(byDate.get(when.playDate) ?? []), fixture]);
+    }
+    const days: MatchDay[] = [...byDate.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([date, fixtures]) => ({
+      date, label: dayLabel(date),
+      fixtures: fixtures.sort((a, b) => (this.slotOf(a)?.startTime ?? '').localeCompare(this.slotOf(b)?.startTime ?? '')
+        || a.matchNumber - b.matchNumber)
+    }));
+    if (unscheduled.length) days.push({ date: null, label: 'Chưa xếp lịch', fixtures: unscheduled });
+    return days;
+  });
+
+  /** Phong độ 5 trận gần nhất của mỗi đội (mới nhất ở cuối), tính từ các trận đã có kết quả. */
+  readonly form = computed<ReadonlyMap<string, FormResult[]>>(() => {
+    const played = this.fixtures()
+      .filter(item => item.status === 'COMPLETED' && item.registration1Id && item.registration2Id)
+      .sort((a, b) => this.playedKey(a).localeCompare(this.playedKey(b)));
+    const result = new Map<string, FormResult[]>();
+    const push = (id: string, value: FormResult) => result.set(id, [...(result.get(id) ?? []), value].slice(-5));
+    for (const fixture of played) {
+      const [a, b] = [fixture.score1 ?? 0, fixture.score2 ?? 0];
+      push(fixture.registration1Id!, a > b ? 'W' : a < b ? 'L' : 'D');
+      push(fixture.registration2Id!, b > a ? 'W' : b < a ? 'L' : 'D');
+    }
+    return result;
   });
 
   readonly names = computed<ReadonlyMap<string, string>>(() =>
@@ -198,6 +247,30 @@ export class TournamentDetailComponent {
   }
 
   setTab(tab: DetailTab): void { this.activeTab.set(tab); }
+
+  slotOf(fixture: TournamentFixtureModel): TournamentReservationModel | undefined {
+    return fixture.reservationId ? this.reservationById().get(fixture.reservationId) : undefined;
+  }
+
+  isBye(fixture: TournamentFixtureModel): boolean {
+    return !!fixture.registration1Id && !fixture.registration2Id && fixture.status === 'COMPLETED';
+  }
+
+  sideName(id: string | undefined, fixture: TournamentFixtureModel): string {
+    if (id) return this.names().get(id) ?? 'Đội tham dự';
+    return fixture.roundNumber > 1 ? 'Chờ đội thắng' : 'Miễn thi đấu';
+  }
+
+  /** Luôn 5 ô: kết quả gần nhất ở cuối, ô trống khi đội chưa đá đủ 5 trận. */
+  formSlots(registrationId: string): (FormResult | null)[] {
+    const results = this.form().get(registrationId) ?? [];
+    return [...results, ...Array<null>(5 - results.length).fill(null)];
+  }
+
+  private playedKey(fixture: TournamentFixtureModel): string {
+    const when = this.slotOf(fixture);
+    return `${when?.playDate ?? ''}|${when?.startTime ?? ''}|${String(fixture.roundNumber).padStart(3, '0')}|${String(fixture.matchNumber).padStart(3, '0')}`;
+  }
 
   openRegister(): void {
     if (!this.auth.currentUser) {
@@ -348,8 +421,10 @@ export class TournamentDetailComponent {
   private resolveNames(): void {
     const tournament = this.tournament();
     if (!tournament) return;
+    // Cầu thủ trong đội hình đã lưu tên lúc được mời; chỉ tra auth-service cho người chưa có tên
+    // (đội trưởng, người đăng ký) — tra từng cầu thủ sẽ là vài chục request mỗi lần mở trang.
     const userIds = [tournament.organizerId, ...this.teams().flatMap(item =>
-      [item.registeredBy, item.playerId, ...(item.lineups ?? []).map(line => line.playerId)])]
+      [item.registeredBy, item.playerId, ...(item.lineups ?? []).filter(line => !line.playerName).map(line => line.playerId)])]
       .filter((id): id is string => !!id);
     this.directory.resolve(userIds).subscribe(users => this.users.set(users));
 

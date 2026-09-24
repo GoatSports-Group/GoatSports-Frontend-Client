@@ -138,3 +138,11 @@ export function nextMilestone(tournament: TournamentModel): string {
     default: return `Khai mạc ${day(tournament.startDate)}`;
   }
 }
+
+/** "Thứ 4, 24/09" / "Chủ nhật, 27/09" từ ngày dạng yyyy-MM-dd (app chưa đăng ký locale vi cho DatePipe). */
+export function dayLabel(isoDateValue: string): string {
+  const [year, month, day] = isoDateValue.split('-').map(Number);
+  const weekday = new Date(year, month - 1, day).getDay();
+  const name = weekday === 0 ? 'Chủ nhật' : `Thứ ${weekday + 1}`;
+  return `${name}, ${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}`;
+}

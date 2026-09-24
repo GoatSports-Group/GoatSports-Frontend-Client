@@ -1,0 +1,59 @@
+<div class="modal-backdrop" (click)="close()">
+  <section class="modal modal--wide" appAccessibleDialog aria-labelledby="match-title"
+    (dialogClosed)="close()" (click)="$event.stopPropagation()">
+    <header class="modal__header">
+      <div>
+        <h2 id="match-title">{{ fixture.roundName }} · Trận {{ fixture.matchNumber }}</h2>
+        <p>{{ tournament.name }}</p>
+      </div>
+      <button type="button" class="icon-btn" aria-label="Đóng" (click)="close()"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button>
+    </header>
+
+    <div class="modal__body">
+      <article class="scoreboard">
+        <p class="scoreboard__meta">{{ sportLabel[tournament.sportType] }} · {{ tournament.playFormatLabel || formatLabel[tournament.format] }}</p>
+        <div class="scoreboard__teams">
+          <div class="side" [class.is-winner]="isWinner(fixture.registration1Id)">
+            <span class="side__crest" aria-hidden="true">{{ sideName(fixture.registration1Id).charAt(0) }}</span>
+            <strong>{{ sideName(fixture.registration1Id) }}</strong>
+          </div>
+          <div class="scoreboard__center">
+            @if (reservation) { <span class="scoreboard__date">{{ dayLabel(reservation.playDate) }}</span> }
+            @if (fixture.status === 'COMPLETED' && !isBye) {
+            <b class="scoreboard__score">{{ fixture.score1 }} <span>–</span> {{ fixture.score2 }}</b>
+            } @else {
+            <b class="scoreboard__score scoreboard__score--time">{{ reservation ? reservation.startTime.slice(0, 5) : 'VS' }}</b>
+            }
+            <span class="badge" [class.badge--success]="fixture.status === 'COMPLETED'" [class.badge--info]="fixture.status !== 'COMPLETED'">{{ statusLabel }}</span>
+          </div>
+          <div class="side side--away" [class.is-winner]="isWinner(fixture.registration2Id)">
+            <span class="side__crest side__crest--away" aria-hidden="true">{{ sideName(fixture.registration2Id).charAt(0) }}</span>
+            <strong>{{ sideName(fixture.registration2Id) }}</strong>
+          </div>
+        </div>
+        @if (reservation) {
+        <p class="scoreboard__venue"><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>
+          {{ courtNames.get(reservation.courtId) ?? 'Sân thi đấu' }}{{ venueName ? ' · ' + venueName : '' }}
+          · {{ reservation.startTime.slice(0, 5) }}–{{ reservation.endTime.slice(0, 5) }}</p>
+        } @else if (!isBye) {
+        <p class="scoreboard__venue">Chưa xếp sân và giờ thi đấu.</p>
+        }
+      </article>
+
+      <section class="lineups" aria-labelledby="lineups-title">
+        <h3 id="lineups-title">{{ fixture.status === 'COMPLETED' ? 'Đội hình ra sân' : 'Đội hình dự kiến' }}</h3>
+        @if (!isTeamEvent) {
+        <p class="lineups__note">Nội dung đánh đơn: mỗi bên một vận động viên.</p>
+        } @else if (home) {
+        <app-lineup-pitch [home]="pitchTeam(home)" [away]="away ? pitchTeam(away) : null"
+          [sport]="tournament.sportType" [playFormat]="tournament.playFormat" [onField]="tournament.rosterMin"
+          [names]="playerNames"></app-lineup-pitch>
+        @if (!away && !isBye) { <p class="lineups__note">Đối thủ sẽ hiện khi trận trước có kết quả.</p> }
+        <p class="lineups__hint">Sơ đồ dự kiến xếp theo số áo tăng dần; ban tổ chức chốt đội hình chính thức trước giờ thi đấu.</p>
+        } @else {
+        <p class="lineups__note">Hai đội sẽ hiện khi các trận trước có kết quả.</p>
+        }
+      </section>
+    </div>
+  </section>
+</div>

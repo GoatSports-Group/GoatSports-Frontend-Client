@@ -73,11 +73,15 @@
     <button type="button" role="tab" class="tab" [class.is-active]="activeTab() === 'OVERVIEW'"
       [attr.aria-selected]="activeTab() === 'OVERVIEW'" (click)="setTab('OVERVIEW')">
       <lucide-icon name="file-text" class="w-4 h-4"></lucide-icon>Tổng quan</button>
-    <button type="button" role="tab" class="tab" [class.is-active]="activeTab() === 'FIXTURES'"
-      [attr.aria-selected]="activeTab() === 'FIXTURES'" (click)="setTab('FIXTURES')">
-      <lucide-icon name="swords" class="w-4 h-4"></lucide-icon>Lịch thi đấu
+    <button type="button" role="tab" class="tab" [class.is-active]="activeTab() === 'MATCHES'"
+      [attr.aria-selected]="activeTab() === 'MATCHES'" (click)="setTab('MATCHES')">
+      <lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon>Lịch thi đấu
       @if (fixtures().length) { <span class="tab__count">{{ fixtures().length }}</span> }</button>
-    @if (t.format === 'ROUND_ROBIN') {
+    @if (t.format === 'SINGLE_ELIMINATION') {
+    <button type="button" role="tab" class="tab" [class.is-active]="activeTab() === 'BRACKET'"
+      [attr.aria-selected]="activeTab() === 'BRACKET'" (click)="setTab('BRACKET')">
+      <lucide-icon name="swords" class="w-4 h-4"></lucide-icon>Nhánh đấu</button>
+    } @else {
     <button type="button" role="tab" class="tab" [class.is-active]="activeTab() === 'STANDINGS'"
       [attr.aria-selected]="activeTab() === 'STANDINGS'" (click)="setTab('STANDINGS')">
       <lucide-icon name="list" class="w-4 h-4"></lucide-icon>Bảng xếp hạng</button>
@@ -158,18 +162,62 @@
       </div>
       }
 
-      <!-- ----- Lich thi dau ----- -->
-      @case ('FIXTURES') {
+      <!-- ----- Lich thi dau: theo ngay, bam mot tran de xem truoc ----- -->
+      @case ('MATCHES') {
+      @if (fixtures().length) {
+      <div class="match-days">
+        @for (day of matchDays(); track day.label) {
+        <section class="match-day" [attr.aria-label]="day.label">
+          <h3 class="match-day__title">{{ day.label }}</h3>
+          <div class="match-day__grid">
+            @for (fixture of day.fixtures; track fixture.fixtureId) {
+            @let when = slotOf(fixture);
+            <button type="button" class="fixture" [class.is-mine]="highlightId() && (fixture.registration1Id === highlightId() || fixture.registration2Id === highlightId())"
+              (click)="selectedFixture.set(fixture)">
+              <span class="fixture__round">{{ fixture.roundName }}</span>
+              <span class="fixture__teams">
+                @for (side of [1, 2]; track side) {
+                @let id = side === 1 ? fixture.registration1Id : fixture.registration2Id;
+                @let score = side === 1 ? fixture.score1 : fixture.score2;
+                <span class="fixture__team" [class.is-winner]="id && fixture.winnerRegistrationId === id" [class.is-empty]="!id">
+                  <span class="fixture__crest" [class.is-away]="side === 2" aria-hidden="true">{{ sideName(id, fixture).charAt(0) }}</span>
+                  <span class="fixture__name">{{ sideName(id, fixture) }}</span>
+                  <b class="fixture__score">{{ fixture.status === 'COMPLETED' ? score : '' }}</b>
+                </span>
+                }
+              </span>
+              <span class="fixture__status">
+                @if (fixture.status === 'COMPLETED') { <b>KT</b> } @else { <b>{{ when ? when.startTime.slice(0, 5) : '—' }}</b> }
+                <small>{{ when ? (courtNames().get(when.courtId) ?? 'Sân') : 'Chưa xếp' }}</small>
+              </span>
+            </button>
+            }
+          </div>
+        </section>
+        }
+      </div>
+      <p class="muted-copy">KT: đã kết thúc. Chọn một trận để xem tỷ số, sân thi đấu và đội hình hai bên.</p>
+      } @else {
+      <div class="state">
+        <span class="state__icon"><lucide-icon name="calendar-days" class="w-6 h-6"></lucide-icon></span>
+        <strong>Chưa có lịch thi đấu</strong>
+        <p>Ban tổ chức xếp lịch sau khi chốt danh sách. Chỉ đăng ký đã xác nhận (đủ người, đã đóng phí) được xếp vào bảng.</p>
+      </div>
+      }
+      }
+
+      <!-- ----- Nhanh dau (loai truc tiep) ----- -->
+      @case ('BRACKET') {
       @if (fixtures().length) {
       <div class="card card__body">
-        <app-tournament-bracket [fixtures]="fixtures()" [reservations]="reservations()" [format]="t.format"
-          [names]="names()" [courtNames]="courtNames()" [highlightId]="highlightId()"></app-tournament-bracket>
+        <app-tournament-bracket [fixtures]="fixtures()" [reservations]="reservations()" [names]="names()"
+          [courtNames]="courtNames()" [highlightId]="highlightId()" (open)="selectedFixture.set($event)"></app-tournament-bracket>
       </div>
       } @else {
       <div class="state">
         <span class="state__icon"><lucide-icon name="swords" class="w-6 h-6"></lucide-icon></span>
-        <strong>Chưa có lịch thi đấu</strong>
-        <p>Ban tổ chức xếp lịch sau khi chốt danh sách. Chỉ đăng ký đã xác nhận (đủ người, đã đóng phí) được xếp vào bảng.</p>
+        <strong>Chưa có nhánh đấu</strong>
+        <p>Nhánh đấu hiện khi ban tổ chức xếp lịch từ danh sách đội đã xác nhận.</p>
       </div>
       }
       }
@@ -181,7 +229,8 @@
         <table class="standings">
           <thead>
             <tr><th scope="col">#</th><th scope="col" class="standings__team">Đội</th><th scope="col">Trận</th>
-              <th scope="col">T</th><th scope="col">H</th><th scope="col">B</th><th scope="col">HS</th><th scope="col">Điểm</th></tr>
+              <th scope="col">T</th><th scope="col">H</th><th scope="col">B</th><th scope="col">Ghi</th><th scope="col">Mất</th>
+              <th scope="col">HS</th><th scope="col">Điểm</th><th scope="col" class="standings__form">5 trận gần nhất</th></tr>
           </thead>
           <tbody>
             @for (row of standings(); track row.registrationId) {
@@ -189,14 +238,25 @@
               <td class="standings__rank">{{ row.rank }}</td>
               <td class="standings__team"><span>{{ names().get(row.registrationId) }}</span></td>
               <td>{{ row.played }}</td><td>{{ row.won }}</td><td>{{ row.drawn }}</td><td>{{ row.lost }}</td>
+              <td>{{ row.scoreFor }}</td><td>{{ row.scoreAgainst }}</td>
               <td>{{ row.scoreFor - row.scoreAgainst > 0 ? '+' : '' }}{{ row.scoreFor - row.scoreAgainst }}</td>
               <td class="standings__pts">{{ row.points }}</td>
+              <td class="standings__form">
+                <span class="form" [attr.aria-label]="'Phong độ: ' + (form().get(row.registrationId)?.join(' ') ?? 'chưa đá')">
+                  @for (result of formSlots(row.registrationId); track $index) {
+                  @if (result) {
+                  <span [class]="'form__dot form__dot--' + result">{{ result === 'W' ? 'T' : result === 'D' ? 'H' : 'B' }}</span>
+                  } @else { <span class="form__dot form__dot--none" aria-hidden="true"></span> }
+                  }
+                </span>
+              </td>
             </tr>
             }
           </tbody>
         </table>
       </div>
-      <p class="muted-copy">T/H/B: thắng, hòa, bại · HS: hiệu số. Bảng tính trực tiếp từ kết quả các trận.</p>
+      <p class="muted-copy">T/H/B: thắng, hòa, bại · Ghi/Mất: bàn (điểm) ghi được và để lọt · HS: hiệu số.
+        Phong độ xếp từ cũ đến mới. Bảng tính trực tiếp từ kết quả các trận.</p>
       } @else {
       <div class="state">
         <span class="state__icon"><lucide-icon name="list" class="w-6 h-6"></lucide-icon></span>
@@ -349,28 +409,25 @@
 
   @if (lineupOf(); as team) {
   <div class="modal-backdrop" (click)="lineupOf.set(null)">
-    <section class="modal modal--narrow" appAccessibleDialog aria-labelledby="lineup-title"
+    <section class="modal modal--lineup" appAccessibleDialog aria-labelledby="lineup-title"
       (dialogClosed)="lineupOf.set(null)" (click)="$event.stopPropagation()">
       <header class="modal__header">
         <div><h2 id="lineup-title">Đội hình</h2><p>{{ names().get(team.registrationId) }}</p></div>
         <button type="button" class="icon-btn" aria-label="Đóng" (click)="lineupOf.set(null)"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button>
       </header>
       <div class="modal__body">
-        <ul class="lineup-view">
-          @for (line of team.lineups; track line.lineupId) {
-          @if (line.memberStatus !== 'DECLINED') {
-          <li>
-            <span class="lineup-view__shirt">{{ line.shirtNumber ?? '–' }}</span>
-            <span class="lineup-view__name">{{ memberName(line) }}</span>
-            @if (line.memberStatus === 'INVITED') { <span class="badge badge--warning">Chờ nhận lời</span> }
-            @else { <span class="badge" [class.badge--primary]="line.lineupRole === 'CAPTAIN'">{{ lineupRoleLabel[line.lineupRole] }}</span> }
-          </li>
-          }
-          }
-        </ul>
+        <app-lineup-pitch [home]="{ name: names().get(team.registrationId) ?? 'Đội', lineups: team.lineups }"
+          [sport]="t.sportType" [playFormat]="t.playFormat" [onField]="t.rosterMin" [names]="playerNames()"></app-lineup-pitch>
+        <p class="muted-copy">Sơ đồ dự kiến xếp theo số áo tăng dần; ban tổ chức chốt đội hình chính thức trước mỗi trận.</p>
       </div>
     </section>
   </div>
+  }
+
+  @if (selectedFixture(); as fixture) {
+  <app-match-preview [fixture]="fixture" [tournament]="t" [teams]="teamById()" [names]="names()"
+    [playerNames]="playerNames()" [reservation]="slotOf(fixture) ?? null" [courtNames]="courtNames()"
+    [venueName]="venueName()" (closed)="selectedFixture.set(null)"></app-match-preview>
   }
 
   @if (confirm(); as state) {

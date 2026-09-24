@@ -12,6 +12,11 @@
   p { margin: 0; }
 }
 
+.bracket-hint {
+  color: var(--body);
+  font-size: 13px;
+}
+
 .bracket-progress {
   color: var(--body);
   font-size: 14px;
@@ -67,25 +72,51 @@
 .round__matches {
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
-  gap: 16px;
 }
 
-// ---- Round robin: plain grid of matches ---------------------------------------------------------
-.round-robin {
-  display: grid;
-  gap: 16px;
+// Chia đều chiều cao: tâm cặp trận vòng trước luôn thẳng hàng với trận vòng sau mà nó đổ vào.
+.pair {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
 }
 
-.rr-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  align-items: start;
-  gap: 16px;
+.slot {
+  position: relative;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  padding: 8px 0;
+
+  > .match { width: 100%; }
+}
+
+// Đường nối: ngoặc bên phải mỗi cặp + gạch ngang vào trận của vòng sau (nằm trong khe 24px giữa hai cột).
+.pair.is-joined::after {
+  position: absolute;
+  top: 25%;
+  right: -12px;
+  bottom: 25%;
+  width: 12px;
+  border: 2px solid var(--border-strong);
+  border-left: 0;
+  border-radius: 0 10px 10px 0;
+  content: '';
+}
+
+.round.has-feeders .slot::before {
+  position: absolute;
+  top: 50%;
+  left: -12px;
+  width: 12px;
+  border-top: 2px solid var(--border-strong);
+  content: '';
 }
 
 // ---- Match card -------------------------------------------------------------------------------
 .match {
+  cursor: pointer;
   display: grid;
   min-width: 0;
   grid-template-columns: minmax(0, 1fr);
@@ -95,6 +126,9 @@
   border-radius: 16px;
   background: var(--surface);
   box-shadow: var(--shadow-sm);
+
+  &:hover { border-color: var(--border-strong); }
+  &:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
 
   &.is-mine {
     border-color: var(--primary);

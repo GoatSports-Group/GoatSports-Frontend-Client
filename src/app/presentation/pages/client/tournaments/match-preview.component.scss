@@ -1,0 +1,108 @@
+@use 'tournament-ui' as t;
+@include t.tournament-ui;
+
+.modal--wide { width: min(100%, 880px); }
+
+.scoreboard {
+  display: grid;
+  gap: 12px;
+  padding: 20px;
+  border-radius: 16px;
+  background: var(--surface-subtle);
+}
+
+.scoreboard__meta { margin: 0; color: var(--body); font-size: 13px; font-weight: 700; }
+
+.scoreboard__teams {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+}
+
+.side {
+  display: grid;
+  min-width: 0;
+  justify-items: start;
+  gap: 8px;
+
+  strong {
+    overflow: hidden;
+    max-width: 100%;
+    color: var(--body);
+    font-size: 18px;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &.is-winner strong { color: var(--ink); }
+}
+
+.side--away { justify-items: end; text-align: right; }
+
+.side__crest {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--primary-light);
+  color: var(--primary-strong);
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.side__crest--away { background: var(--danger-soft); color: var(--danger); }
+
+.scoreboard__center { display: grid; justify-items: center; gap: 6px; }
+.scoreboard__date { color: var(--body); font-size: 13px; font-weight: 700; }
+
+.scoreboard__score {
+  color: var(--ink);
+  font-size: 36px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+
+  span { margin: 0 6px; color: var(--body); }
+}
+
+.scoreboard__score--time { font-size: 28px; }
+
+.scoreboard__venue {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--body);
+  font-size: 14px;
+
+  lucide-icon { color: var(--primary); }
+}
+
+.lineups {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+
+  h3 { margin: 0; color: var(--ink); font-size: 16px; font-weight: 800; }
+}
+
+.lineups__note, .lineups__hint { margin: 0; color: var(--body); font-size: 14px; }
+.lineups__hint { font-size: 13px; }
+
+@media (max-width: 639px) {
+  // Màn hẹp: cho tên đội xuống tối đa 2 dòng thay vì cắt còn vài chữ.
+  .side strong {
+    display: -webkit-box;
+    font-size: 15px;
+    white-space: normal;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  .side__crest { width: 40px; height: 40px; }
+  .scoreboard__score { font-size: 28px; }
+}

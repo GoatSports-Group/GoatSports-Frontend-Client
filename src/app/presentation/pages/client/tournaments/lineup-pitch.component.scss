@@ -1,0 +1,231 @@
+// Sơ đồ đội hình trên mặt sân. Màu mặt sân là nội dung (cỏ, sàn gỗ, sàn thi đấu) nên cố định ở cả chế độ sáng/tối.
+:host {
+  --grass: #1c7a3a;
+  --grass-stripe: #1f8540;
+  --hardwood: #c98d52;
+  --hardwood-stripe: #c28549;
+  --court: #2f6b8f;
+  --court-stripe: #2c6588;
+  --marking: rgb(255 255 255 / 55%);
+  --away-kit: #d62839;
+
+  display: block;
+}
+
+.lineup {
+  overflow: hidden;
+  margin: 0;
+  border-radius: 16px;
+  background: #16231e;
+}
+
+.team-bar {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  color: #fff;
+  font-size: 14px;
+
+  strong { overflow: hidden; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+  span { flex: none; font-variant-numeric: tabular-nums; font-weight: 700; opacity: .85; }
+}
+
+.surface {
+  position: relative;
+  display: flex;
+  min-height: 440px;
+  flex-direction: column;
+  background: repeating-linear-gradient(180deg, var(--grass) 0 44px, var(--grass-stripe) 44px 88px);
+
+  &.is-duel { min-height: 780px; }
+}
+
+.surface--hardwood {
+  background: repeating-linear-gradient(90deg, var(--hardwood) 0 22px, var(--hardwood-stripe) 22px 44px);
+}
+
+.surface--court {
+  background: repeating-linear-gradient(180deg, var(--court) 0 44px, var(--court-stripe) 44px 88px);
+}
+
+// ---- Vạch sân (một bộ đơn giản, dùng chung cho mọi môn) -----------------------------------------
+.markings {
+  position: absolute;
+  inset: 12px;
+  border: 2px solid var(--marking);
+  border-radius: 4px;
+  pointer-events: none;
+
+  span { position: absolute; border: 2px solid var(--marking); }
+}
+
+.markings__mid { top: 50%; right: 0; left: 0; border-width: 2px 0 0 !important; }
+
+.markings__circle {
+  top: 50%;
+  left: 50%;
+  width: 22%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.markings__box { left: 30%; width: 40%; height: 11%; }
+.markings__box--top { top: -2px; border-top: 0 !important; }
+.markings__box--bottom { bottom: -2px; border-bottom: 0 !important; }
+
+// Bóng chuyền, cầu lông, tennis: không có vòng cấm; vạch giữa sân là lưới.
+.surface--court .markings__box, .surface--court .markings__circle { display: none; }
+
+.surface:not(.is-duel) {
+  .markings__mid, .markings__circle, .markings__box--top { display: none; }
+  .markings__box--bottom { height: 16%; }
+}
+
+// ---- Cầu thủ ----------------------------------------------------------------------------------
+.half {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-around;
+  padding: 24px 12px;
+}
+
+// Nửa dưới và sơ đồ một đội: khung thành ở dưới nên hàng đầu tiên (thủ môn) nằm cuối.
+.half--bottom, .half--solo { flex-direction: column-reverse; }
+
+.row {
+  display: flex;
+  justify-content: space-evenly;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.player {
+  display: grid;
+  min-width: 0;
+  max-width: 120px;
+  flex: 1;
+  justify-items: center;
+  gap: 6px;
+}
+
+.player__disc {
+  position: relative;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 2px solid rgb(255 255 255 / 90%);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 25%);
+  color: #0b201b;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 900;
+
+  &.is-away { background: var(--away-kit); color: #fff; }
+}
+
+.player__captain {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 50%;
+  background: #f5b700;
+  color: #0b201b;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.player__name {
+  overflow: hidden;
+  max-width: 100%;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 55%);
+  white-space: nowrap;
+}
+
+.surface__empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  margin: 0;
+  place-items: center;
+  color: #fff;
+  font-weight: 700;
+}
+
+// ---- Dự bị ------------------------------------------------------------------------------------
+.benches {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+
+  &.is-duel { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.bench {
+  min-width: 0;
+
+  h4 { margin: 0 0 6px; color: var(--ink); font-size: 14px; font-weight: 800; }
+  ul { display: grid; gap: 6px; margin: 0 0 12px; padding: 0; list-style: none; }
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--ink);
+    font-size: 14px;
+
+    b {
+      display: grid;
+      width: 28px;
+      height: 28px;
+      flex: none;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--surface-subtle);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    &.is-pending { color: var(--body); }
+  }
+}
+
+.bench__title {
+  margin: 0 0 8px;
+  color: var(--body);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+
+  span { margin-left: 4px; color: var(--ink); }
+}
+
+.bench__title--pending { color: var(--warning); }
+.bench__empty { margin: 0; color: var(--body); font-size: 14px; }
+
+@media (max-width: 639px) {
+  .surface { min-height: 380px; }
+  .surface.is-duel { min-height: 660px; }
+  .player__disc { width: 36px; height: 36px; font-size: 13px; }
+  .player__name { font-size: 11px; }
+  .benches.is-duel { grid-template-columns: minmax(0, 1fr); }
+}
