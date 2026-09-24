@@ -25,10 +25,10 @@ export class TournamentRepository extends TournamentRepositoryPort {
   override getMyTournaments(role: MyTournamentRole, page: number, size: number): Observable<PageResult<TournamentModel>> {
     return this.getPage(`${this.baseUrl}/me`, new HttpParams().set('role', role).set('sort', 'startDate,desc'), page, size);
   }
-  /** club-service bat one-indexed-parameters: gui page + 1, tra ve page 0-based cho UI. */
+  /** club-service phan trang 0-based (EnableSpringDataWebSupport tat thuoc tinh one-indexed cua Boot). */
   private getPage(url: string, params: HttpParams, page: number, size: number): Observable<PageResult<TournamentModel>> {
     return this.http.get<BaseResponse<PagedModelResponse<TournamentModel>>>(url,
-      { params: params.set('page', page + 1).set('size', size) }).pipe(map(response => ({
+      { params: params.set('page', page).set('size', size) }).pipe(map(response => ({
         items: response.data?.content ?? [],
         total: response.data?.page?.totalElements ?? 0,
         page,
