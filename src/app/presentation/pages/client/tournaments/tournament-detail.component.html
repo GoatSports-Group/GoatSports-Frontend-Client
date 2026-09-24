@@ -169,7 +169,7 @@
         @for (day of matchDays(); track day.label) {
         <section class="match-day" [attr.aria-label]="day.label">
           <h3 class="match-day__title">{{ day.label }}</h3>
-          <div class="match-day__grid">
+          <div class="match-day__grid goat-stagger">
             @for (fixture of day.fixtures; track fixture.fixtureId) {
             @let when = slotOf(fixture);
             <button type="button" class="fixture" [class.is-mine]="highlightId() && (fixture.registration1Id === highlightId() || fixture.registration2Id === highlightId())"
@@ -269,7 +269,7 @@
       <!-- ----- Doi tham du ----- -->
       @case ('TEAMS') {
       @if (holdingTeams().length) {
-      <div class="team-grid">
+      <div class="team-grid goat-stagger">
         @for (team of holdingTeams(); track team.registrationId) {
         <article class="team-card" [class.is-mine]="team.registrationId === highlightId()">
           <span class="team-card__avatar" [class.is-club]="team.type !== 'INDIVIDUAL'">

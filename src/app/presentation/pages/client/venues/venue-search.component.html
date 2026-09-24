@@ -122,7 +122,7 @@
         <button type="button" (click)="loadVenues()">Thử lại</button>
       </section>
       } @else if (venues.length) {
-      <div class="venues-grid">
+      <div class="venues-grid goat-stagger">
         @for (venue of displayedVenues; track venue.venueId) {
         <app-venue-card [venue]="venue" [homeStyle]="true" [selectable]="true"
           [selected]="selectedVenue?.venueId === venue.venueId" (venueSelected)="selectVenue($event)"></app-venue-card>

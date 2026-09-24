@@ -37,7 +37,7 @@
   </article>
 </ng-template>
 
-<div class="rounds" role="list" aria-label="Sơ đồ loại trực tiếp">
+<div class="rounds goat-stagger" role="list" aria-label="Sơ đồ loại trực tiếp">
   @for (round of rounds(); track round.roundNumber; let first = $first; let last = $last) {
   <section class="round" role="listitem" [class.has-feeders]="!first" [attr.aria-label]="round.name">
     <h3 class="round__title">{{ round.name }} <span>{{ round.fixtures.length }} trận</span></h3>

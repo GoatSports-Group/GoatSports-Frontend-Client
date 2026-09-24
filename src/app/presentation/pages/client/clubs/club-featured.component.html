@@ -28,7 +28,7 @@
       <button type="button" class="retry-button" (click)="reload()">Thử lại</button>
     </section>
   } @else if (filteredClubs().length) {
-    <section class="featured-grid" aria-label="Danh sách câu lạc bộ nổi bật">
+    <section class="featured-grid goat-stagger" aria-label="Danh sách câu lạc bộ nổi bật">
       @for (club of pagedClubs(); track club.clubId; let rank = $index) {
         <article class="featured-card" role="link" tabindex="0" [attr.aria-label]="'Xem chi tiết ' + club.name"
           (click)="goToClub(club)" (keydown.enter)="goToClubFromKeyboard($event, club)">

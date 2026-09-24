@@ -37,7 +37,7 @@
       <button type="button" class="retry-button" (click)="reload()">Thử lại</button>
     </section>
   } @else if (pagedClubs().length) {
-    <section class="club-grid" aria-label="Danh sách câu lạc bộ">
+    <section class="club-grid goat-stagger" aria-label="Danh sách câu lạc bộ">
       @for (club of pagedClubs(); track club.clubId) {
         <article class="club-card" role="link" tabindex="0" [attr.aria-label]="'Xem chi tiết ' + club.name"
           (click)="goToClub(club)" (keydown.enter)="goToClub(club)">

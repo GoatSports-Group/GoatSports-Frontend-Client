@@ -30,14 +30,14 @@
       <span class="markings__box markings__box--bottom"></span>
     </div>
     @if (awayView(); as away) {
-    <div class="half half--top">
+    <div class="half half--top goat-stagger">
       <ng-container *ngTemplateOutlet="rows; context: { $implicit: home, away: false }"></ng-container>
     </div>
-    <div class="half half--bottom">
+    <div class="half half--bottom goat-stagger">
       <ng-container *ngTemplateOutlet="rows; context: { $implicit: away, away: true }"></ng-container>
     </div>
     } @else {
-    <div class="half half--solo">
+    <div class="half half--solo goat-stagger">
       <ng-container *ngTemplateOutlet="rows; context: { $implicit: home, away: false }"></ng-container>
     </div>
     }

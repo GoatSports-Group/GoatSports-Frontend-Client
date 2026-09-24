@@ -132,7 +132,7 @@
     <section class="my-clubs-results" id="my-clubs-grid" aria-labelledby="my-clubs-results-title">
       <h2 id="my-clubs-results-title" class="sr-only">Danh sách câu lạc bộ</h2>
       @if (pagedMemberships().length) {
-      <div class="my-clubs-grid">
+      <div class="my-clubs-grid goat-stagger">
         @for (item of pagedMemberships(); track item.membershipId) {
         <app-my-club-card [item]="item" [pendingRequestCount]="pendingRequestCounts()[item.club.clubId] ?? 0"
           (opened)="openClub($event)"></app-my-club-card>

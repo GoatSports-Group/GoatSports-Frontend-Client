@@ -1,0 +1,90 @@
+// ================================================================================================
+// GOAT motion: chuyển động dùng chung cho toàn app (xem GOAT-DESIGN.md §8 Motion).
+//
+// Nguyên tắc:
+// - Chỉ animate opacity + `translate`/`scale` (thuộc tính riêng, KHÔNG phải `transform`) nên không
+//   đè transform sẵn có của component (căn giữa, hover lift...).
+// - Fill mode `backwards`: sau khi chạy xong phần tử trở về đúng style của nó, không để lại
+//   transform khiến modal `position: fixed` bên trong bị lệch.
+// - Mọi selector bọc trong :where() (độ ưu tiên 0): component nào tự khai báo `animation` thì giữ nguyên.
+// - Chỉ có hiệu ứng vào; đóng modal/menu là tức thì để không chặn thao tác tiếp theo.
+// ================================================================================================
+:root {
+  --motion-fast: 180ms;
+  --motion-base: 220ms;
+  --motion-layout: 240ms;
+  --motion-page: 320ms;
+  --ease-standard: cubic-bezier(.2, .8, .2, 1);
+  --ease-layout: cubic-bezier(.16, 1, .3, 1);
+  --motion-rise: 10px;
+  --motion-drop: -6px;
+  --motion-pop: .98;
+  --motion-stagger: 40ms;
+}
+
+@keyframes goat-rise {
+  from { opacity: 0; translate: 0 var(--motion-rise); }
+}
+
+@keyframes goat-fade {
+  from { opacity: 0; }
+}
+
+@keyframes goat-pop {
+  from { opacity: 0; translate: 0 calc(var(--motion-rise) * .8); scale: var(--motion-pop); }
+}
+
+@keyframes goat-drop {
+  from { opacity: 0; translate: 0 var(--motion-drop); }
+}
+
+// ---- Trang: component vừa được router tạo (trang lá, không chứa router-outlet con) ----------------
+// Đổi tab/lọc/phân trang bằng query param không tạo lại component nên không chạy lại hiệu ứng.
+:where(router-outlet + :not(:has(router-outlet)) > *) {
+  animation: goat-rise var(--motion-page) var(--ease-standard) backwards;
+}
+
+// Nội dung tab đổi bằng @switch được tạo mới mỗi lần chọn tab.
+:where([role='tabpanel'] > *) {
+  --motion-rise: 4px;
+  animation: goat-rise var(--motion-base) var(--ease-standard) backwards;
+}
+
+// ---- Danh sách: thêm class `goat-stagger` vào lưới/danh sách để các phần tử lần lượt hiện ----------
+:where(.goat-stagger > *) {
+  --motion-rise: 8px;
+  animation: goat-rise var(--motion-page) var(--ease-standard) backwards;
+}
+
+@for $i from 2 through 8 {
+  :where(.goat-stagger > :nth-child(#{$i})) { animation-delay: calc(#{$i - 1} * var(--motion-stagger)); }
+}
+
+// Phần tử thứ 9 trở đi (cuộn thêm, danh sách dài) hiện cùng lúc với phần tử thứ 8.
+:where(.goat-stagger > :nth-child(n + 9)) { animation-delay: calc(8 * var(--motion-stagger)); }
+
+// ---- Lớp phủ: nền mờ fade, hộp thoại nổi lên, menu thả xuống --------------------------------------
+:where(.modal-backdrop, .modal-overlay, .dialog-backdrop, .sidebar-backdrop, .scout-rail__backdrop) {
+  animation: goat-fade var(--motion-fast) var(--ease-standard) backwards;
+}
+
+:where(.modal, .modal-card, .dialog) {
+  animation: goat-pop var(--motion-layout) var(--ease-layout) backwards;
+}
+
+:where(.app-select__panel, .goat-action-menu, .custom-menu, .custom-premium-menu, .member-more__menu,
+  .court-filter__menu, .connection-menu, .venue-select__menu, .sport-select__menu) {
+  animation: goat-drop var(--motion-base) var(--ease-standard) backwards;
+}
+
+// Giảm chuyển động: giữ fade để thấy nội dung đổi, bỏ mọi dịch chuyển/phóng to.
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-rise: 0px;
+    --motion-drop: 0px;
+    --motion-pop: 1;
+    --motion-stagger: 0ms;
+  }
+
+  :where([role='tabpanel'] > *, .goat-stagger > *) { --motion-rise: 0px; }
+}

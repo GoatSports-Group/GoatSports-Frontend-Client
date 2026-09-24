@@ -100,7 +100,7 @@
       </button>
     </div>
     } @else if (page()?.items?.length) {
-    <div class="grid" [class.is-paging]="paging()">
+    <div class="grid goat-stagger" [class.is-paging]="paging()">
       @for (item of page()!.items; track item.tournamentId) {
       <a class="t-card" [routerLink]="['/tournaments', item.tournamentId]" [attr.aria-label]="'Xem giải ' + item.name">
         <div class="t-card__top">

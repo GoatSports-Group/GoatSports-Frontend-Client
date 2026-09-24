@@ -135,7 +135,7 @@
         @if (loading()) {
         <app-loading-skeleton variant="cards" [count]="6" minWidth="240px" label="Đang tải danh sách câu lạc bộ"></app-loading-skeleton>
         } @else if (discoveryClubs().length) {
-        <div class="club-grid">
+        <div class="club-grid goat-stagger">
           @for (club of discoveryClubs(); track club.clubId) {
           <article class="club-card" role="link" tabindex="0" [attr.aria-label]="'Xem chi tiết ' + club.name"
             (click)="goToClub(club)" (keydown.enter)="goToClubFromKeyboard($event, club)">

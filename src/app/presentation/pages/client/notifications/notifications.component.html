@@ -84,7 +84,7 @@
               <p>{{ activeFilter() === 'UNREAD' ? 'Bạn đã đọc tất cả thông báo.' : 'Thông báo mới từ GOAT Sports sẽ xuất hiện tại đây.' }}</p>
             </div>
           } @else {
-            <div class="notif-list" [class.is-paging]="isPaging()" [attr.aria-busy]="isPaging()">
+            <div class="notif-list goat-stagger" [class.is-paging]="isPaging()" [attr.aria-busy]="isPaging()">
               @for (item of notifications; track item.notificationId) {
                 <article class="notif-row" [class.is-unread]="item.status === NotificationStatus.UNREAD"
                   [class.is-actionable]="canOpenNotification(item)"
