@@ -4,11 +4,13 @@ export {
   TournamentLineupModel as TournamentLineup,
   TournamentFixtureModel as TournamentFixture,
   TournamentStandingModel as TournamentStanding,
-  CreateTournamentPayload,
   TournamentRegistrationPayload,
   TournamentEligibilityRuleModel as TournamentEligibilityRule,
   TournamentReservationModel as TournamentReservation,
-  ReserveVenuePayload
+  TournamentSearchFilter,
+  TeamInvitee,
+  TeamInvitationModel as TeamInvitation,
+  FeeCheckoutModel as FeeCheckout
 } from '@domain/models/tournament.model';
 
 export type {
@@ -20,5 +22,9 @@ export type {
   EligibilityRuleType,
   EligibilityRuleOperator,
   LineupRole,
-  SkillLevel
+  SkillLevel,
+  MyTournamentRole,
+  FeePaymentStatus,
+  ParticipantType,
+  LineupMemberStatus
 } from '@domain/models/tournament.model';

@@ -37,6 +37,9 @@ import { ClubPlayerSearchComponent } from '@presentation/pages/client/clubs/club
 import { ClubTagEditorComponent } from '@presentation/pages/client/clubs/club-tag-editor.component';
 import { TournamentListComponent } from '@presentation/pages/client/tournaments/tournament-list.component';
 import { TournamentDetailComponent } from '@presentation/pages/client/tournaments/tournament-detail.component';
+import { TournamentBracketComponent } from '@presentation/pages/client/tournaments/tournament-bracket.component';
+import { TournamentRegisterDialogComponent } from '@presentation/pages/client/tournaments/tournament-register-dialog.component';
+import { TournamentInvitationsComponent } from '@presentation/pages/client/tournaments/tournament-invitations.component';
 import { MatchmakingComponent } from '@presentation/pages/client/matchmaking/matchmaking.component';
 import { SocialFeedComponent } from '@presentation/pages/client/feed/social-feed.component';
 import { AiAssistantModalComponent } from '@presentation/shared/components/ai-assistant-modal/ai-assistant-modal.component';
@@ -76,6 +79,9 @@ import { AiAssistantModalComponent } from '@presentation/shared/components/ai-as
     ClubTagEditorComponent,
     TournamentListComponent,
     TournamentDetailComponent,
+    TournamentBracketComponent,
+    TournamentRegisterDialogComponent,
+    TournamentInvitationsComponent,
     MatchmakingComponent,
     SocialFeedComponent,
     AiAssistantModalComponent

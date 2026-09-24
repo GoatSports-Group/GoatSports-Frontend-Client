@@ -1,0 +1,140 @@
+<div class="modal-backdrop" (click)="close()">
+  <section class="modal modal--wide" appAccessibleDialog aria-labelledby="register-title"
+    (dialogClosed)="close()" (click)="$event.stopPropagation()">
+    <header class="modal__header">
+      <div>
+        <h2 id="register-title">{{ inviteMode ? 'Mời thêm thành viên' : isTeam ? 'Lập đội tham gia' : 'Đăng ký tham gia' }}</h2>
+        <p>{{ tournament.name }}</p>
+      </div>
+      <button type="button" class="icon-btn" aria-label="Đóng" (click)="close()">
+        <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+      </button>
+    </header>
+
+    <div class="modal__body">
+      <fieldset class="form-body" [disabled]="saving()">
+        <div class="format">
+          <span class="format__icon"><lucide-icon [name]="isTeam ? 'users' : 'user'" class="w-5 h-5"></lucide-icon></span>
+          <div class="format__copy">
+            <strong>{{ tournament.playFormatLabel || (isTeam ? 'Thi đấu theo đội' : 'Đánh đơn') }}</strong>
+            @if (isTeam) {
+            <small>Đội {{ rosterMin === rosterMax ? rosterMin : rosterMin + '–' + rosterMax }} người, kể cả bạn (đội trưởng).
+              Người được mời phải tự nhận lời; đủ {{ rosterMin }} người thì đội mới giữ chỗ chính thức.</small>
+            } @else {
+            <small>Đăng ký cá nhân, bạn thi đấu với tư cách vận động viên.</small>
+            }
+          </div>
+        </div>
+
+        @if (!isTeam) {
+        <div class="form-grid">
+          <label class="field">
+            <span class="field__label">Tên thi đấu</span>
+            <input class="field__control" maxlength="100" [(ngModel)]="teamName" name="teamName"
+              placeholder="Để trống để dùng tên tài khoản" />
+          </label>
+          <div class="field">
+            <span class="field__label">Trình độ tự đánh giá</span>
+            <app-select [options]="skillOptions" [(ngModel)]="skillLevel" name="skill" ariaLabel="Trình độ"></app-select>
+          </div>
+        </div>
+        } @else {
+        @if (!inviteMode) {
+        <div class="form-grid">
+          <label class="field">
+            <span class="field__label">Tên đội <b>*</b></span>
+            <input class="field__control" maxlength="100" [(ngModel)]="teamName" name="teamName" placeholder="Ví dụ: Sấm Sét Quận 7" />
+          </label>
+          @if (managedClubs().length) {
+          <div class="field">
+            <span class="field__label">Đội của</span>
+            <app-select [options]="clubOptions()" [ngModel]="clubId()" (ngModelChange)="selectClub($event)"
+              name="club" leadingIcon="shield" ariaLabel="Đội tự lập hoặc đại diện câu lạc bộ"></app-select>
+          </div>
+          }
+          <label class="field">
+            <span class="field__label">Số áo của bạn</span>
+            <input class="field__control" type="number" min="0" max="999" inputmode="numeric" [(ngModel)]="captainShirt"
+              name="captainShirt" placeholder="Không bắt buộc" />
+          </label>
+        </div>
+        }
+
+        <section class="lineup" aria-labelledby="lineup-title">
+          <div class="lineup__head">
+            <h3 id="lineup-title">Mời thành viên <span>{{ rows.length }}/{{ openSeats }}</span></h3>
+            <button type="button" class="btn btn--ghost" (click)="addRow()"
+              [disabled]="candidatesLoading() || !candidateOptions().length || rows.length >= openSeats">
+              <lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon>Thêm người
+            </button>
+          </div>
+          @if (candidatesLoading()) {
+          <app-loading-skeleton variant="rows" [count]="2" [flush]="true" label="Đang tải danh sách"></app-loading-skeleton>
+          } @else if (!candidateOptions().length) {
+          <p class="lineup__empty">{{ clubId() ? 'Câu lạc bộ chưa có thành viên nào khác đang hoạt động.'
+            : 'Bạn chưa có bạn bè trên GOAT Sports. Kết bạn trước để mời vào đội.' }}
+            @if (!clubId()) { <a routerLink="/friends" (click)="close()">Tìm bạn bè</a> }</p>
+          } @else if (rows.length) {
+          <ul class="lineup__list">
+            @for (row of rows; track $index) {
+            <li class="lineup__row">
+              <app-select [options]="candidateOptions()" [(ngModel)]="row.playerId" [name]="'player' + $index"
+                [searchable]="true" searchPlaceholder="Tìm theo tên..." placeholder="Chọn người"
+                [ariaLabel]="'Người được mời ' + ($index + 1)"></app-select>
+              <app-select [options]="roleOptions" [(ngModel)]="row.lineupRole" [name]="'role' + $index"
+                [ariaLabel]="'Vai trò ' + ($index + 1)"></app-select>
+              <input class="field__control" type="number" min="0" max="999" inputmode="numeric" placeholder="Số áo"
+                [(ngModel)]="row.shirtNumber" [name]="'shirt' + $index" [attr.aria-label]="'Số áo ' + ($index + 1)" />
+              <button type="button" class="icon-btn icon-btn--danger" (click)="removeRow($index)"
+                [attr.aria-label]="'Bỏ người thứ ' + ($index + 1)">
+                <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon>
+              </button>
+            </li>
+            }
+          </ul>
+          } @else {
+          <p class="lineup__empty">{{ clubId() ? 'Chọn thành viên đang hoạt động của câu lạc bộ.' : 'Chọn từ danh sách bạn bè.' }}
+            Bạn có thể mời thêm sau khi gửi đăng ký.</p>
+          }
+          @if (problem(); as issue) {
+          @if (submitted() || rows.length) { <p class="field__error" role="alert">{{ issue }}</p> }
+          }
+        </section>
+        }
+
+        @if (eligibilityRules.length && !inviteMode) {
+        <div class="note">
+          <lucide-icon name="shield-check" class="w-4 h-4"></lucide-icon>
+          <div>
+            <strong class="note__title">Điều kiện tham dự</strong>
+            <ul class="note__list">
+              @for (rule of eligibilityRules; track rule.ruleId) { <li>{{ ruleLabel(rule) }}</li> }
+            </ul>
+            <span>Xét theo hồ sơ thể thao{{ isTeam ? ' của từng người khi họ nhận lời' : ' của bạn' }}.</span>
+          </div>
+        </div>
+        }
+
+        @if (!inviteMode) {
+        <div class="summary">
+          <span>Lệ phí {{ isTeam ? 'mỗi đội' : '' }}</span>
+          <strong>{{ formatVnd(tournament.entryFee) }}</strong>
+          @if (tournament.entryFee > 0) {
+          <small>{{ isTeam ? 'Khi đội đủ ' + rosterMin + ' người, bạn có 24 giờ để đóng lệ phí.' : 'Bạn có 24 giờ để đóng lệ phí sau khi đăng ký.' }}
+            Quá hạn, suất tự trả lại cho người khác.</small>
+          }
+        </div>
+        }
+      </fieldset>
+    </div>
+
+    <footer class="modal__footer">
+      <button type="button" class="btn btn--secondary" (click)="close()" [disabled]="saving()">Hủy</button>
+      <button type="button" class="btn btn--primary" (click)="submit()" [attr.aria-busy]="saving()"
+        [disabled]="saving() || (submitted() && !!problem())">
+        @if (saving()) { <lucide-icon name="loader-2" class="w-4 h-4 spin"></lucide-icon> }
+        {{ inviteMode ? 'Gửi lời mời' : isTeam ? 'Tạo đội & gửi lời mời' : tournament.entryFee > 0 ? 'Đăng ký & đóng phí' : 'Gửi đăng ký' }}
+      </button>
+    </footer>
+  </section>
+</div>

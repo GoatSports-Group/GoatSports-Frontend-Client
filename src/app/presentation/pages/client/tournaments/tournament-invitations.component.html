@@ -1,0 +1,23 @@
+@if (visible().length) {
+<section class="invites" aria-label="Lời mời vào đội">
+  @for (item of visible(); track item.registrationId) {
+  <article class="invite">
+    <span class="invite__icon"><lucide-icon name="mail" class="w-5 h-5"></lucide-icon></span>
+    <div class="invite__copy">
+      <strong>{{ captains().get(item.captainId) ?? 'Đội trưởng' }} mời bạn vào đội {{ item.teamName }}</strong>
+      <span>
+        @if (!tournamentId) { <a [routerLink]="['/tournaments', item.tournamentId]">{{ item.tournamentName }}</a> · }
+        {{ sportLabel[item.sportType] }} · vai trò {{ roleLabel[item.lineupRole] | lowercase }}@if (item.shirtNumber != null) {, áo số {{ item.shirtNumber }}}
+        · đội có {{ item.acceptedCount }}/{{ item.rosterMin }} người tối thiểu · trả lời trước {{ item.registrationCloseDate | date:'dd/MM' }}
+      </span>
+    </div>
+    <div class="invite__actions">
+      <button type="button" class="btn btn--secondary" [disabled]="!!busyId()" (click)="respond(item, false)">Từ chối</button>
+      <button type="button" class="btn btn--primary" [disabled]="!!busyId()" [attr.aria-busy]="busyId() === item.registrationId"
+        (click)="respond(item, true)">
+        @if (busyId() === item.registrationId) { <lucide-icon name="loader-2" class="w-4 h-4 spin"></lucide-icon> }Nhận lời</button>
+    </div>
+  </article>
+  }
+</section>
+}

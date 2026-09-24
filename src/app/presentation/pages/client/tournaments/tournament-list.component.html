@@ -1,119 +1,151 @@
 <main class="tournaments-page">
-  <section class="tournament-hero" aria-labelledby="tournament-page-title">
-    <div class="tournament-hero__copy">
-      <p>Những giải đấu kết nối cộng đồng thể thao</p>
-      <h1 id="tournament-page-title">Thi đấu. Vươn tầm.</h1>
-      <span>Khám phá các giải phong trào hấp dẫn, tìm đồng đội và chinh phục thử thách mới cùng cộng đồng GOAT Sports.</span>
-      <button type="button" class="primary-action" (click)="openCreateModal()">
-        Tạo giải đấu <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon>
-      </button>
+  <header class="page-head">
+    <div class="page-head__copy">
+      <h1 class="page-title">Giải đấu</h1>
+      <p>Giải do các chủ sân tổ chức ngay tại cơ sở. Đăng ký cá nhân hoặc lập đội, đóng lệ phí và theo dõi lịch, kết quả.</p>
     </div>
-    <div class="tournament-hero__media" aria-hidden="true">
-      <strong>Better players.<br />A brighter you.</strong>
+  </header>
+
+  @if (signedIn) { <app-tournament-invitations class="invitations" (answered)="onInvitationAnswered()"></app-tournament-invitations> }
+
+  @if (signedIn) {
+  <nav class="tabs" role="tablist" aria-label="Danh sách giải đấu">
+    <button type="button" role="tab" class="tab" [class.is-active]="tab() === 'explore'"
+      [attr.aria-selected]="tab() === 'explore'" (click)="setTab('explore')">
+      <lucide-icon name="compass" class="w-4 h-4"></lucide-icon>Khám phá
+    </button>
+    <button type="button" role="tab" class="tab" [class.is-active]="tab() === 'joined'"
+      [attr.aria-selected]="tab() === 'joined'" (click)="setTab('joined')">
+      <lucide-icon name="user-round-check" class="w-4 h-4"></lucide-icon>Tôi tham gia
+      @if (joinedCount(); as joined) { <span class="tab__count">{{ joined }}</span> }
+    </button>
+  </nav>
+  }
+
+  @if (showFeatured()) {
+  <section class="featured-slot" aria-label="Giải sắp đóng đăng ký">
+    @if (featuredLoading()) {
+    <div class="featured featured--skeleton" role="status" aria-label="Đang tải giải nổi bật">
+      <div class="featured__main">
+        <app-loading-skeleton [decorative]="true" width="160px" height="14px" radius="6px"></app-loading-skeleton>
+        <app-loading-skeleton [decorative]="true" width="70%" height="32px" radius="8px"></app-loading-skeleton>
+        <app-loading-skeleton [decorative]="true" variant="text" [lines]="2"></app-loading-skeleton>
+      </div>
+      <app-loading-skeleton [decorative]="true" width="100%" height="140px" radius="16px"></app-loading-skeleton>
+    </div>
+    } @else if (featured(); as item) {
+    <a class="featured" [routerLink]="['/tournaments', item.tournamentId]"
+      [attr.aria-label]="'Xem giải ' + item.name">
+      <div class="featured__main">
+        <span class="featured__kicker">Sắp đóng đăng ký · {{ sportLabel[item.sportType] }}</span>
+        <h2>{{ item.name }}</h2>
+        @if (item.description) { <p class="featured__desc">{{ item.description }}</p> }
+        <dl class="featured__facts">
+          <div><dt>Thi đấu</dt><dd>{{ item.startDate | date:'dd/MM' }} – {{ item.endDate | date:'dd/MM/yyyy' }}</dd></div>
+          <div><dt>Thể thức</dt><dd>{{ item.playFormatLabel ? item.playFormatLabel + ' · ' : '' }}{{ formatLabel[item.format] }}</dd></div>
+          <div><dt>Lệ phí</dt><dd>{{ formatVnd(item.entryFee) }}</dd></div>
+          @if (item.prizePool) { <div><dt>Giải thưởng</dt><dd>{{ formatVnd(item.prizePool) }}</dd></div> }
+        </dl>
+      </div>
+      <div class="featured__aside">
+        <div class="featured__countdown">
+          <strong>{{ daysLeft(item) }}</strong>
+          <span>{{ daysLeft(item) === 0 ? 'Hạn chót hôm nay' : 'ngày còn lại để đăng ký' }}</span>
+        </div>
+        <div class="fill fill--inverse">
+          <div class="fill__meta"><span>Đã đăng ký</span><b>{{ item.currentParticipants }}/{{ item.maxParticipants }}</b></div>
+          <div class="fill__track"><div class="fill__bar" [style.width.%]="fillPercent(item)"></div></div>
+        </div>
+        <span class="featured__cta">Xem & đăng ký <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></span>
+      </div>
+    </a>
+    }
+    <!-- Khong co giai dang mo hoac loi tai: an vung noi bat, luoi ben duoi van tu bao trang thai cua no. -->
+  </section>
+  }
+
+  @if (tab() === 'explore') {
+  <section class="filters card" aria-label="Bộ lọc giải đấu">
+    <label class="search">
+      <lucide-icon name="search" class="w-5 h-5"></lucide-icon>
+      <input type="search" placeholder="Tìm theo tên giải..." aria-label="Tìm theo tên giải" [value]="keyword()"
+        (input)="onKeyword($any($event.target).value)" />
+    </label>
+    <app-select class="filters__select" [options]="sportOptions" [ngModel]="sport()" (ngModelChange)="setSport($event)"
+      leadingIcon="trophy" ariaLabel="Lọc theo môn"></app-select>
+    <app-select class="filters__select" [options]="statusOptions" [ngModel]="status()" (ngModelChange)="setStatus($event)"
+      leadingIcon="circle-dot" ariaLabel="Lọc theo trạng thái"></app-select>
+    <div class="filters__meta">
+      @if (page(); as result) { <span class="result-count">{{ result.total }} giải đấu</span> }
+      @if (hasFilters()) {
+      <button type="button" class="btn btn--ghost" (click)="clearFilters()">
+        <lucide-icon name="rotate-ccw" class="w-4 h-4"></lucide-icon>Xóa bộ lọc
+      </button>
+      }
     </div>
   </section>
-
-  <nav class="sport-filter" aria-label="Lọc giải đấu theo môn thể thao">
-    <strong>Chọn môn thể thao</strong>
-    @for (sport of sports; track sport.value) {
-      <button type="button" [class.active]="selectedSport() === sport.value" (click)="selectSport(sport.value)">
-        {{ sport.label }}
-      </button>
-    }
-  </nav>
-
-  <div class="tournament-layout">
-    <section class="tournament-main" aria-labelledby="featured-tournament-title">
-      <header class="section-toolbar">
-        <div>
-          <h2 id="featured-tournament-title">Giải đấu nổi bật</h2>
-          <p>Những giải đấu đang nhận đăng ký từ cộng đồng.</p>
-        </div>
-        <label class="tournament-search">
-          <lucide-icon name="search" class="w-4 h-4"></lucide-icon>
-          <input type="search" aria-label="Tìm giải đấu" [ngModel]="keyword()" (ngModelChange)="updateKeyword($event)"
-            (keyup.enter)="load()" placeholder="Tìm giải đấu..." />
-        </label>
-      </header>
-
-      @if (loading()) {
-        <div class="featured-skeleton" aria-label="Đang tải giải đấu">
-          <app-loading-skeleton height="260px"></app-loading-skeleton>
-          <div><app-loading-skeleton height="24px" width="62%"></app-loading-skeleton><app-loading-skeleton height="14px" width="88%"></app-loading-skeleton></div>
-        </div>
-        <div class="tournament-grid">@for (item of [1,2,3,4]; track item) { <div class="tournament-card skeleton"><app-loading-skeleton height="150px"></app-loading-skeleton></div> }</div>
-      } @else if (error()) {
-        <section class="empty-state" role="alert"><lucide-icon name="alert-triangle" class="w-9 h-9"></lucide-icon><div><h2>Chưa tải được giải đấu</h2><p>{{ error() }}</p></div><button type="button" class="primary-action" (click)="load()">Thử lại</button></section>
-      } @else if (tournaments().length) {
-        @for (tournament of tournaments().slice(0, 1); track tournament.tournamentId) {
-          <article class="featured-tournament" tabindex="0" role="button" (click)="goToDetail(tournament.tournamentId)" (keydown.enter)="goToDetail(tournament.tournamentId)">
-            <div class="featured-tournament__image"><span>{{ statusLabel(tournament.status) }}</span></div>
-            <div class="featured-tournament__body">
-              <p>{{ tournament.sportType }} <span>·</span> GOAT Sports</p>
-              <h2>{{ tournament.name }}</h2>
-              <span>{{ tournament.description || 'Giải đấu dành cho cộng đồng yêu thể thao, cùng tranh tài và kết nối những người chơi phù hợp.' }}</span>
-              <dl>
-                <div><dt>Thời gian thi đấu</dt><dd>{{ tournament.startDate | date:'dd/MM/yyyy' }} – {{ tournament.endDate | date:'dd/MM/yyyy' }}</dd></div>
-                <div><dt>Số đội tham gia</dt><dd>{{ tournament.currentParticipants }}/{{ tournament.maxParticipants }}</dd></div>
-                <div><dt>Phí tham gia</dt><dd>{{ tournament.entryFee | number }} đ</dd></div>
-              </dl>
-              <button type="button" class="primary-action">Xem chi tiết <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></button>
-            </div>
-          </article>
-        }
-
-        @if (tournaments().length > 1) {
-          <header class="list-heading"><div><h2>Các giải đấu sắp diễn ra</h2><p>Chọn giải phù hợp với môn chơi và lịch của bạn.</p></div><span>{{ tournaments().length - 1 }} giải đấu</span></header>
-          <div class="tournament-grid">
-            @for (tournament of tournaments().slice(1); track tournament.tournamentId) {
-              <article class="tournament-card" tabindex="0" role="button" (click)="goToDetail(tournament.tournamentId)" (keydown.enter)="goToDetail(tournament.tournamentId)">
-                <div class="card-banner"><span>{{ tournament.sportType }}</span><b>{{ statusLabel(tournament.status) }}</b></div>
-                <div class="card-body">
-                  <h3>{{ tournament.name }}</h3>
-                  <p><lucide-icon name="calendar" class="w-4 h-4"></lucide-icon>{{ tournament.startDate | date:'dd/MM/yyyy' }}</p>
-                  <p><lucide-icon name="users" class="w-4 h-4"></lucide-icon>{{ tournament.currentParticipants }}/{{ tournament.maxParticipants }} đăng ký</p>
-                  <footer><strong>{{ tournament.entryFee | number }} đ</strong><span>Xem chi tiết <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></span></footer>
-                </div>
-              </article>
-            }
-          </div>
-        }
-      } @else {
-        <section class="empty-state"><lucide-icon name="trophy" class="w-10 h-10"></lucide-icon><div><h2>Chưa có giải đấu phù hợp</h2><p>Thử chọn môn khác hoặc tạo giải đấu đầu tiên cho cộng đồng.</p></div><button type="button" class="primary-action" (click)="openCreateModal()">Tạo giải đấu</button></section>
-      }
-    </section>
-
-    <aside class="tournament-rail">
-      <section>
-        <header><h2>Giải của bạn</h2><a routerLink="/tournaments">Xem tất cả <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a></header>
-        <div class="rail-intro"><lucide-icon name="shield-check" class="w-6 h-6"></lucide-icon><div><strong>Theo dõi hành trình thi đấu</strong><p>Đăng nhập để xem các giải đã đăng ký và trạng thái đội hình.</p></div></div>
-      </section>
-      <section>
-        <header><h2>Lịch giải sắp tới</h2></header>
-        @if (tournaments().length) {
-          @for (tournament of tournaments().slice(0, 4); track tournament.tournamentId) {
-            <button type="button" class="schedule-row" (click)="goToDetail(tournament.tournamentId)">
-              <time><b>{{ tournament.startDate | date:'dd' }}</b><span>THG {{ tournament.startDate | date:'MM' }}</span></time>
-              <span><strong>{{ tournament.name }}</strong><small>{{ tournament.sportType }} · {{ tournament.currentParticipants }}/{{ tournament.maxParticipants }} đăng ký</small></span>
-              <lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon>
-            </button>
-          }
-        } @else { <p class="rail-empty">Lịch giải sẽ xuất hiện khi có dữ liệu phù hợp.</p> }
-      </section>
-      <a class="matchmaking-callout" routerLink="/matchmaking"><lucide-icon name="brain" class="w-6 h-6"></lucide-icon><span><strong>Chưa có đội?</strong><small>Để GOAT AI tìm người chơi phù hợp.</small></span><lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a>
-    </aside>
-  </div>
-
-  @if (showCreateModal()) {
-    <div class="modal-overlay" (click)="closeCreateModal()"><section class="modal-card" appAccessibleDialog aria-labelledby="tournament-modal-title" (dialogClosed)="closeCreateModal()" (click)="$event.stopPropagation()">
-      <div class="modal-header"><h2 id="tournament-modal-title">Tạo giải đấu</h2><button type="button" class="btn-close" aria-label="Đóng" (click)="closeCreateModal()"><lucide-icon name="x"></lucide-icon></button></div>
-      <div class="modal-body"><div class="form-group"><label for="t-name">Tên giải đấu *</label><input id="t-name" [(ngModel)]="createForm.name" /></div>
-        <div class="form-group"><label for="t-description">Mô tả</label><textarea id="t-description" rows="3" [(ngModel)]="createForm.description"></textarea></div>
-        <div class="form-row"><div class="form-group"><label for="t-sport">Môn thể thao</label><select id="t-sport" [(ngModel)]="createForm.sportType">@for (sport of sports.slice(1); track sport.value) { <option [ngValue]="sport.value">{{ sport.label }}</option> }</select></div><div class="form-group"><label for="t-format">Thể thức</label><select id="t-format" [(ngModel)]="createForm.format"><option value="SINGLE_ELIMINATION">Loại trực tiếp</option><option value="ROUND_ROBIN">Vòng tròn</option></select></div></div>
-        <div class="form-row"><div class="form-group"><label for="t-max">Số đăng ký tối đa</label><input id="t-max" type="number" min="2" [(ngModel)]="createForm.maxParticipants" /></div><div class="form-group"><label for="t-fee">Lệ phí</label><input id="t-fee" type="number" min="0" [(ngModel)]="createForm.entryFee" /></div></div>
-        <div class="form-row"><div class="form-group"><label for="t-open">Mở đăng ký</label><input id="t-open" type="date" [(ngModel)]="createForm.registrationOpenDate" /></div><div class="form-group"><label for="t-close">Đóng đăng ký</label><input id="t-close" type="date" [(ngModel)]="createForm.registrationCloseDate" /></div></div>
-        <div class="form-row"><div class="form-group"><label for="t-start">Bắt đầu</label><input id="t-start" type="date" [(ngModel)]="createForm.startDate" /></div><div class="form-group"><label for="t-end">Kết thúc</label><input id="t-end" type="date" [(ngModel)]="createForm.endDate" /></div></div>
-      </div><div class="modal-footer"><button class="btn-secondary" (click)="closeCreateModal()">Hủy</button><button class="primary-action" [disabled]="saving() || !createForm.name.trim()" (click)="createTournament()">{{ saving() ? 'Đang tạo...' : 'Tạo giải đấu' }}</button></div>
-    </section></div>
   }
+
+  <section class="results" #listTop aria-live="polite">
+    @if (loading()) {
+    <app-loading-skeleton variant="cards" [count]="8" minWidth="280px" [media]="false"
+      label="Đang tải danh sách giải đấu"></app-loading-skeleton>
+    } @else if (error()) {
+    <div class="state state--error" role="alert">
+      <span class="state__icon"><lucide-icon name="wifi-off" class="w-6 h-6"></lucide-icon></span>
+      <strong>Không tải được giải đấu</strong>
+      <p>{{ error() }}</p>
+      <button type="button" class="btn btn--secondary" (click)="load()">
+        <lucide-icon name="rotate-ccw" class="w-4 h-4"></lucide-icon>Thử lại
+      </button>
+    </div>
+    } @else if (page()?.items?.length) {
+    <div class="grid" [class.is-paging]="paging()">
+      @for (item of page()!.items; track item.tournamentId) {
+      <a class="t-card" [routerLink]="['/tournaments', item.tournamentId]" [attr.aria-label]="'Xem giải ' + item.name">
+        <div class="t-card__top">
+          <span class="badge badge--sport">{{ sportLabel[item.sportType] }}</span>
+          <span class="badge" [ngClass]="'badge--' + statusMeta[item.status].tone">{{ statusMeta[item.status].label }}</span>
+        </div>
+        <h3 class="t-card__title">{{ item.name }}</h3>
+        <ul class="t-card__meta">
+          <li><lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon>
+            <span>{{ item.startDate | date:'dd/MM' }} – {{ item.endDate | date:'dd/MM/yyyy' }}</span></li>
+          <li><lucide-icon name="swords" class="w-4 h-4"></lucide-icon><span>{{ item.playFormatLabel ? item.playFormatLabel + ' · ' : '' }}{{ formatLabel[item.format] }}</span></li>
+        </ul>
+        <div class="fill">
+          <div class="fill__meta"><span>Đăng ký</span><b>{{ item.currentParticipants }}/{{ item.maxParticipants }}</b></div>
+          <div class="fill__track"><div class="fill__bar" [style.width.%]="fillPercent(item)"></div></div>
+        </div>
+        <footer class="t-card__foot">
+          <strong class="t-card__fee">{{ formatVnd(item.entryFee) }}</strong>
+          <span class="t-card__milestone">{{ nextMilestone(item) }}</span>
+        </footer>
+      </a>
+      }
+    </div>
+    @if (page(); as result) {
+    @if (result.totalPages > 1) {
+    <app-pagination [pageIndex]="pageIndex()" [pageSize]="pageSize" [totalItems]="result.total"
+      itemLabel="giải đấu" (pageChange)="goToPage($event)"></app-pagination>
+    }
+    }
+    } @else if (tab() === 'explore') {
+    <div class="state">
+      <span class="state__icon"><lucide-icon [name]="hasFilters() ? 'search-x' : 'trophy'" class="w-6 h-6"></lucide-icon></span>
+      <strong>{{ hasFilters() ? 'Không có giải phù hợp' : 'Chưa có giải đấu nào' }}</strong>
+      <p>{{ hasFilters() ? 'Thử đổi môn, trạng thái hoặc từ khóa tìm kiếm.' : 'Các chủ sân chưa mở giải nào. Quay lại sau nhé.' }}</p>
+      @if (hasFilters()) {
+      <button type="button" class="btn btn--secondary" (click)="clearFilters()">Xóa bộ lọc</button>
+      }
+    </div>
+    } @else if (tab() === 'joined') {
+    <div class="state">
+      <span class="state__icon"><lucide-icon name="user-round-check" class="w-6 h-6"></lucide-icon></span>
+      <strong>Bạn chưa tham gia giải nào</strong>
+      <p>Các giải bạn đăng ký hoặc đã nhận lời vào đội sẽ hiện ở đây.</p>
+      <button type="button" class="btn btn--primary" (click)="setTab('explore')">Khám phá giải đấu</button>
+    </div>
+    }
+  </section>
 </main>

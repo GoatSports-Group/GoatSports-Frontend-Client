@@ -1,26 +1,45 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { Observable, catchError, forkJoin, map, of } from 'rxjs';
+import { environment } from '@environments/environment';
+import { VENUE_SEARCH_REPOSITORY_TOKEN } from '@application/ports/persistence/venue-search.repository';
 import { TournamentRepositoryPort } from '@application/ports/tournament.repository.port';
-import { CreateTournamentFeeCheckoutUseCase } from '@application/usecase/payment/create-tournament-fee-checkout.usecase';
+import { ClubRepositoryPort } from '@application/ports/club.repository.port';
 import { User } from '@application/dto/user/user.dto';
 import {
-  ReserveVenuePayload,
   TournamentEligibilityRule as TournamentEligibilityRuleModel,
   TournamentFixture as TournamentFixtureModel, Tournament as TournamentModel,
-  TournamentRegistration as TournamentRegistrationModel, TournamentRegistrationPayload,
+  TournamentLineup, TournamentRegistration as TournamentRegistrationModel,
   TournamentReservation as TournamentReservationModel,
   TournamentStanding as TournamentStandingModel,
-  TournamentStatus,
-  LineupRole
+  TournamentStatus
 } from '@application/dto/tournament/tournament.dto';
 import { AuthService } from '@presentation/services/auth.service';
 import { PlayerDirectoryService } from '@presentation/services/player-directory.service';
 import { NotifyService } from '@shared/components/notify/notify.service';
 import { PendingBookingPaymentService } from '@presentation/services/pending-booking-payment.service';
+import {
+  FORMAT_LABEL, HOLDING_STATUSES, LINEUP_ROLE_LABEL, MEMBER_META, PAYMENT_META, REGISTRATION_META, SKILL_LABEL,
+  SPORT_LABEL, STATUS_META, fillPercent, formatVnd, isoDate, ruleLabel
+} from './tournament-view';
 
-type TournamentTab = 'FIXTURES' | 'STANDINGS' | 'TEAMS';
+type DetailTab = 'OVERVIEW' | 'FIXTURES' | 'STANDINGS' | 'TEAMS';
 
+interface ConfirmState {
+  title: string;
+  message: string;
+  confirmLabel: string;
+  run: () => void;
+}
+
+interface TimelineStep { label: string; date: string; state: 'done' | 'current' | 'upcoming'; }
+
+const LOCKED: readonly TournamentStatus[] = ['IN_PROGRESS', 'COMPLETED', 'CANCELLED'];
+
+/**
+ * Trang giai phia nguoi choi: xem, dang ky ca nhan / lap doi, tra loi loi moi, dong le phi trong 24 gio,
+ * rut dang ky. Ban to chuc (chu san) dieu hanh giai o goat-sports-admin.
+ */
 @Component({
   selector: 'app-tournament-detail', templateUrl: './tournament-detail.component.html',
   styleUrls: ['./tournament-detail.component.scss'], changeDetection: ChangeDetectionStrategy.OnPush, standalone: false
@@ -28,12 +47,27 @@ type TournamentTab = 'FIXTURES' | 'STANDINGS' | 'TEAMS';
 export class TournamentDetailComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly repository = inject(TournamentRepositoryPort);
+  private readonly clubs = inject(ClubRepositoryPort);
+  private readonly venues = inject(VENUE_SEARCH_REPOSITORY_TOKEN);
   private readonly auth = inject(AuthService);
   private readonly directory = inject(PlayerDirectoryService);
   private readonly notify = inject(NotifyService);
-  private readonly createFeeCheckout = inject(CreateTournamentFeeCheckoutUseCase);
   private readonly pendingPayment = inject(PendingBookingPaymentService);
   readonly tournamentId = this.route.snapshot.paramMap.get('id') ?? '';
+  readonly me = this.auth.currentUser?.userId ?? null;
+  readonly adminUrl = `${environment.adminApiUrl}/tournaments/${this.tournamentId}`;
+
+  readonly statusMeta = STATUS_META;
+  readonly registrationMeta = REGISTRATION_META;
+  readonly paymentMeta = PAYMENT_META;
+  readonly memberMeta = MEMBER_META;
+  readonly sportLabel = SPORT_LABEL;
+  readonly formatLabel = FORMAT_LABEL;
+  readonly skillLabel = SKILL_LABEL;
+  readonly lineupRoleLabel = LINEUP_ROLE_LABEL;
+  readonly formatVnd = formatVnd;
+  readonly ruleLabel = ruleLabel;
+  readonly fillPercent = fillPercent;
 
   readonly tournament = signal<TournamentModel | null>(null);
   readonly teams = signal<TournamentRegistrationModel[]>([]);
@@ -41,208 +75,305 @@ export class TournamentDetailComponent {
   readonly standings = signal<TournamentStandingModel[]>([]);
   readonly eligibilityRules = signal<TournamentEligibilityRuleModel[]>([]);
   readonly reservations = signal<TournamentReservationModel[]>([]);
-  readonly showReserveModal = signal(false);
   readonly users = signal<ReadonlyMap<string, User>>(new Map());
-  readonly activeTab = signal<TournamentTab>('FIXTURES');
+  readonly clubNames = signal<ReadonlyMap<string, string>>(new Map());
+  readonly venueName = signal<string | null>(null);
+  readonly courtNames = signal<ReadonlyMap<string, string>>(new Map());
+
+  readonly activeTab = signal<DetailTab>('OVERVIEW');
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly mutating = signal(false);
-  readonly showRegisterModal = signal(false);
-  readonly showScoreModal = signal(false);
-  readonly selectedFixture = signal<TournamentFixtureModel | null>(null);
-  readonly isOrganizer = computed(() => this.tournament()?.organizerId === this.auth.currentUser?.userId);
-  readonly myRegistration = computed(() => {
-    const userId = this.auth.currentUser?.userId;
-    return userId ? this.teams().find(item => item.registeredBy === userId && item.status !== 'CANCELLED') ?? null : null;
-  });
-  registrationForm: TournamentRegistrationPayload = { type: 'INDIVIDUAL', skillLevel: 'INTERMEDIATE', teamName: '' };
-  score1 = 0;
-  score2 = 0;
-  reserveForm: ReserveVenuePayload = { venueId: '', courtId: '', playDate: '', startTime: '', endTime: '' };
-  lineupRows: Array<{ playerId: string; playerName: string; lineupRole: LineupRole; shirtNumber?: number }> = [];
+  /** Dong ho cho dem nguoc han dong phi, cap nhat moi 30 giay. */
+  readonly now = signal(Date.now());
 
-  constructor() { if (this.tournamentId) this.load(); else this.error.set('Mã giải đấu không hợp lệ.'); }
+  readonly showRegister = signal(false);
+  readonly showInvite = signal(false);
+  readonly lineupOf = signal<TournamentRegistrationModel | null>(null);
+  readonly confirm = signal<ConfirmState | null>(null);
+
+  readonly isOrganizer = computed(() => !!this.me && this.tournament()?.organizerId === this.me);
+  readonly status = computed<TournamentStatus | null>(() => this.tournament()?.status ?? null);
+  readonly isTeamEvent = computed(() => this.tournament()?.participantType === 'TEAM');
+  readonly holdingTeams = computed(() => this.teams().filter(item => HOLDING_STATUSES.has(item.status)));
+
+  /**
+   * Dang ky cua toi: toi dang ky (doi truong / ca nhan) hoac da nhan loi vao doi.
+   * Uu tien dang ky con giu suat; khong co thi lay cai gan nhat de thay ly do dong / trang thai hoan phi.
+   */
+  readonly myRegistration = computed(() => {
+    if (!this.me) return null;
+    const mine = this.teams().filter(item => item.registeredBy === this.me
+      || item.lineups?.some(line => line.playerId === this.me && line.memberStatus !== 'INVITED' && line.memberStatus !== 'DECLINED'));
+    return mine.find(item => HOLDING_STATUSES.has(item.status)) ?? mine[mine.length - 1] ?? null;
+  });
+  readonly isRegistrant = computed(() => this.myRegistration()?.registeredBy === this.me);
+  readonly isHolding = computed(() => !!this.myRegistration() && HOLDING_STATUSES.has(this.myRegistration()!.status));
+  readonly highlightId = computed(() => this.isHolding() ? this.myRegistration()!.registrationId : null);
+  /** Doi hinh con hieu luc (bo nguoi da tu choi). */
+  readonly myLineup = computed<TournamentLineup[]>(() => (this.myRegistration()?.lineups ?? [])
+    .filter(line => line.memberStatus !== 'DECLINED'));
+  readonly acceptedCount = computed(() => this.myLineup().filter(line => (line.memberStatus ?? 'ACCEPTED') === 'ACCEPTED').length);
+  readonly missingMembers = computed(() => Math.max(0, (this.tournament()?.rosterMin ?? 1) - this.acceptedCount()));
+  readonly canInvite = computed(() => this.isRegistrant() && this.isHolding() && this.isTeamEvent()
+    && !LOCKED.includes(this.status()!) && this.myLineup().length < (this.tournament()?.rosterMax ?? 1));
+  readonly canWithdraw = computed(() => this.isHolding() && !LOCKED.includes(this.status()!));
+
+  readonly feeAmount = computed(() => this.myRegistration()?.feeAmount ?? this.tournament()?.entryFee ?? 0);
+  /** Thoi gian con lai de dong phi, null neu khong ap dung. */
+  readonly paymentLeft = computed<string | null>(() => {
+    const deadline = this.myRegistration()?.paymentDeadline;
+    if (this.myRegistration()?.status !== 'PENDING_PAYMENT' || !deadline) return null;
+    const ms = new Date(deadline).getTime() - this.now();
+    if (ms <= 0) return 'Đã quá hạn';
+    const hours = Math.floor(ms / 3_600_000);
+    const minutes = Math.floor((ms % 3_600_000) / 60_000);
+    return hours ? `Còn ${hours} giờ ${minutes} phút` : `Còn ${minutes} phút`;
+  });
+  readonly paymentUrgent = computed(() => {
+    const deadline = this.myRegistration()?.paymentDeadline;
+    return !!deadline && new Date(deadline).getTime() - this.now() < 3 * 3_600_000;
+  });
+
+  readonly names = computed<ReadonlyMap<string, string>>(() =>
+    new Map(this.teams().map(item => [item.registrationId, this.teamName(item)])));
+  readonly canRegister = computed(() => this.status() === 'REGISTRATION_OPEN' && !this.isHolding() && !this.isOrganizer()
+    && (this.tournament()?.currentParticipants ?? 0) < (this.tournament()?.maxParticipants ?? 0));
+  readonly seatsLeft = computed(() => Math.max(0,
+    (this.tournament()?.maxParticipants ?? 0) - (this.tournament()?.currentParticipants ?? 0)));
+  readonly tournamentCourts = computed(() => (this.tournament()?.courtIds ?? [])
+    .map(id => this.courtNames().get(id)).filter((name): name is string => !!name));
+
+  /** Nha vo dich: thang chung ket (loai truc tiep) hoac hang 1 bang xep hang (vong tron) khi giai da xong. */
+  readonly champion = computed<string | null>(() => {
+    const tournament = this.tournament();
+    if (!tournament || tournament.status !== 'COMPLETED') return null;
+    if (tournament.format === 'ROUND_ROBIN') {
+      const top = this.standings().find(item => item.rank === 1);
+      return top ? this.names().get(top.registrationId) ?? null : null;
+    }
+    const final = [...this.fixtures()].sort((a, b) => b.roundNumber - a.roundNumber)[0];
+    return final?.winnerRegistrationId ? this.names().get(final.winnerRegistrationId) ?? null : null;
+  });
+
+  readonly timeline = computed<TimelineStep[]>(() => {
+    const t = this.tournament();
+    if (!t) return [];
+    const today = isoDate(new Date());
+    const steps = [
+      { label: 'Mở đăng ký', date: t.registrationOpenDate },
+      { label: 'Đóng đăng ký', date: t.registrationCloseDate },
+      { label: 'Khai mạc', date: t.startDate },
+      { label: 'Kết thúc', date: t.endDate }
+    ];
+    const current = steps.findIndex(step => step.date >= today);
+    return steps.map((step, index) => ({
+      ...step,
+      state: t.status === 'COMPLETED' || (current === -1) || index < current ? 'done'
+        : index === current ? 'current' : 'upcoming'
+    }));
+  });
+
+  constructor() {
+    const timer = setInterval(() => this.now.set(Date.now()), 30_000);
+    inject(DestroyRef).onDestroy(() => clearInterval(timer));
+    if (this.tournamentId) this.load();
+    else { this.error.set('Mã giải đấu không hợp lệ.'); this.loading.set(false); }
+  }
+
   load(): void {
-    this.loading.set(true); this.error.set(null);
-    forkJoin({ tournament: this.repository.getTournamentDetails(this.tournamentId),
-      teams: this.repository.getTournamentTeams(this.tournamentId), fixtures: this.repository.getFixtures(this.tournamentId),
-      standings: this.repository.getStandings(this.tournamentId),
-      rules: this.repository.getEligibilityRules(this.tournamentId),
-      reservations: this.repository.getReservations(this.tournamentId) }).subscribe({
-      next: data => { this.tournament.set(data.tournament); this.teams.set(data.teams); this.fixtures.set(data.fixtures);
-        this.standings.set(data.standings); this.eligibilityRules.set(data.rules);
-        this.reservations.set(data.reservations);
-        this.loading.set(false); this.resolveUsers(data.tournament, data.teams); },
-      error: () => { this.error.set('Không thể tải thông tin giải đấu.'); this.loading.set(false); }
+    this.loading.set(true);
+    this.error.set(null);
+    this.fetch().subscribe({
+      next: () => this.loading.set(false),
+      error: error => {
+        this.loading.set(false);
+        this.error.set(error?.status === 400 || error?.status === 404
+          ? 'Giải đấu không tồn tại hoặc chưa được công bố.'
+          : 'Không tải được giải đấu. Kiểm tra kết nối rồi thử lại.');
+      }
     });
   }
-  setTab(tab: TournamentTab): void { this.activeTab.set(tab); }
-  register(): void {
+
+  /** Tai lai du lieu sau thao tac ma khong hien lai skeleton ca trang. */
+  refresh(): void {
+    this.fetch().subscribe({ error: () => this.notify.error('Không tải lại được dữ liệu giải đấu.') });
+  }
+
+  setTab(tab: DetailTab): void { this.activeTab.set(tab); }
+
+  openRegister(): void {
     if (!this.auth.currentUser) {
       this.auth.notifyAuthenticationRequired('Vui lòng đăng nhập để đăng ký giải đấu.');
       return;
     }
-    if (this.registrationForm.type === 'CLUB' && !this.registrationForm.clubId) {
-      this.notify.warning('Vui lòng nhập mã câu lạc bộ.'); return;
-    }
-    this.mutating.set(true);
-    const lineups = this.registrationForm.type === 'CLUB'
-      ? this.lineupRows.filter(row => row.playerId.trim()).map(row => ({
-          playerId: row.playerId.trim(),
-          playerName: row.playerName.trim(),
-          lineupRole: row.lineupRole,
-          shirtNumber: row.shirtNumber
-        }))
-      : undefined;
-    const payload: TournamentRegistrationPayload = { ...this.registrationForm,
-      playerId: this.registrationForm.type === 'INDIVIDUAL' ? this.auth.currentUser.userId : undefined,
-      lineups: lineups?.length ? lineups : undefined };
-    this.repository.registerTeam(this.tournamentId, payload).subscribe({
-      next: registration => { this.mutating.set(false); this.showRegisterModal.set(false);
-        if (registration.status === 'PENDING_PAYMENT') this.payRegistration(registration);
-        else { this.notify.success('Đăng ký giải đấu thành công.'); this.load(); } },
-      error: error => { this.mutating.set(false); this.notify.error(error?.error?.message ?? 'Không thể đăng ký giải đấu.'); }
-    });
-  }
-  payRegistration(registration: TournamentRegistrationModel): void {
-    const tournament = this.tournament();
-    if (!tournament || tournament.entryFee <= 0 || this.mutating()) return;
-    this.mutating.set(true);
-    this.createFeeCheckout.execute(registration.registrationId, tournament.name, tournament.entryFee).subscribe({
-      next: checkout => {
-        this.pendingPayment.save({ kind: 'TOURNAMENT', tournamentId: tournament.tournamentId,
-          registrationId: registration.registrationId, paymentId: checkout.payment.paymentId });
-        if (!checkout.attempt.checkoutUrl) {
-          this.mutating.set(false); this.notify.error('Cổng thanh toán không trả về liên kết thanh toán.'); return;
-        }
-        window.location.href = checkout.attempt.checkoutUrl;
-      },
-      error: error => { this.mutating.set(false); this.notify.error(error?.error?.message ?? 'Không thể khởi tạo thanh toán lệ phí.'); }
-    });
-  }
-  cancelRegistration(): void {
-    const registration = this.myRegistration(); if (!registration || this.mutating()) return;
-    this.mutating.set(true); this.repository.cancelRegistration(this.tournamentId, registration.registrationId).subscribe({
-      next: () => { this.mutating.set(false); this.notify.success('Đã hủy đăng ký.'); this.load(); },
-      error: error => { this.mutating.set(false); this.notify.error(error?.error?.message ?? 'Không thể hủy đăng ký.'); }
-    });
-  }
-  generateFixtures(): void {
-    this.mutating.set(true); this.repository.generateFixtures(this.tournamentId).subscribe({
-      next: fixtures => { this.fixtures.set(fixtures); this.mutating.set(false); this.activeTab.set('FIXTURES'); this.notify.success('Đã tạo lịch thi đấu.'); },
-      error: error => { this.mutating.set(false); this.notify.error(error?.error?.message ?? 'Không thể tạo lịch thi đấu.'); }
-    });
-  }
-  openScore(fixture: TournamentFixtureModel): void {
-    if (!this.isOrganizer() || !fixture.registration2Id) return;
-    this.selectedFixture.set(fixture); this.score1 = fixture.score1 ?? 0; this.score2 = fixture.score2 ?? 0; this.showScoreModal.set(true);
-  }
-  saveScore(): void {
-    const fixture = this.selectedFixture(); if (!fixture || this.mutating()) return;
-    this.mutating.set(true); this.repository.updateFixtureResult(this.tournamentId, fixture.fixtureId,
-      { score1: this.score1, score2: this.score2 }).subscribe({
-      next: () => { this.mutating.set(false); this.showScoreModal.set(false); this.load(); this.notify.success('Đã cập nhật tỷ số.'); },
-      error: error => { this.mutating.set(false); this.notify.error(error?.error?.message ?? 'Không thể cập nhật tỷ số.'); }
-    });
-  }
-  registrationName(id?: string): string {
-    if (!id) return 'Được miễn';
-    const registration = this.teams().find(item => item.registrationId === id);
-    return registration?.teamName || (registration ? this.displayName(registration.registeredBy) : 'Chưa xác định');
-  }
-  displayName(userId: string): string { return this.users().get(userId)?.fullName || this.users().get(userId)?.email || `Người dùng ${userId.slice(0, 8)}`; }
-  statusLabel(status: TournamentModel['status']): string {
-    return ({ DRAFT: 'Bản nháp', PUBLISHED: 'Đã công bố', REGISTRATION_OPEN: 'Đang mở đăng ký', REGISTRATION_CLOSED: 'Đã đóng đăng ký',
-      IN_PROGRESS: 'Đang diễn ra', COMPLETED: 'Đã kết thúc', CANCELLED: 'Đã hủy' })[status];
-  }
-  addLineupRow(): void {
-    this.lineupRows = [...this.lineupRows,
-      { playerId: '', playerName: '', lineupRole: this.lineupRows.length ? 'PLAYER' : 'CAPTAIN' }];
+    this.showRegister.set(true);
   }
 
-  removeLineupRow(index: number): void {
-    this.lineupRows = this.lineupRows.filter((_, position) => position !== index);
+  onRegistered(registration: TournamentRegistrationModel): void {
+    this.showRegister.set(false);
+    if (registration.status === 'PENDING_PAYMENT') { this.pay(registration); return; }
+    this.notify.success(registration.status === 'PENDING_MEMBERS'
+      ? 'Đã tạo đội và gửi lời mời. Đội giữ chỗ khi đủ người nhận lời.'
+      : 'Đăng ký thành công. Chúc bạn thi đấu tốt!');
+    this.refresh();
   }
 
-  /** Cung mot nguoi hoac cung so ao hai lan se bi backend tu choi, bao truoc ngay tren form. */
-  lineupProblem(): string | null {
-    const rows = this.lineupRows.filter(row => row.playerId.trim());
-    const players = new Set<string>();
-    const shirts = new Set<number>();
-    let captains = 0;
-    for (const row of rows) {
-      if (players.has(row.playerId.trim())) return 'Một người chơi không thể xuất hiện hai lần trong đội hình.';
-      players.add(row.playerId.trim());
-      if (row.shirtNumber != null) {
-        if (shirts.has(row.shirtNumber)) return `Số áo ${row.shirtNumber} bị trùng trong đội hình.`;
-        shirts.add(row.shirtNumber);
-      }
-      if (row.lineupRole === 'CAPTAIN') captains++;
-    }
-    if (captains > 1) return 'Đội hình chỉ được có một đội trưởng.';
-    return null;
+  onInvited(): void {
+    this.showInvite.set(false);
+    this.notify.success('Đã gửi lời mời.');
+    this.refresh();
   }
 
-  changeStatus(status: TournamentStatus): void {
+  /** So tien va nguoi nhan do server tinh; client chi mo trang thanh toan. */
+  pay(registration: TournamentRegistrationModel): void {
     if (this.mutating()) return;
     this.mutating.set(true);
-    this.repository.changeStatus(this.tournamentId, status).subscribe({
-      next: tournament => {
-        this.tournament.set(tournament);
-        this.mutating.set(false);
-        this.notify.success('Đã cập nhật trạng thái giải đấu.');
+    this.repository.checkout(this.tournamentId, registration.registrationId).subscribe({
+      next: checkout => {
+        this.pendingPayment.save({ kind: 'TOURNAMENT', tournamentId: this.tournamentId,
+          registrationId: registration.registrationId, paymentId: checkout.paymentId });
+        if (!checkout.checkoutUrl) {
+          this.mutating.set(false);
+          this.notify.error('Cổng thanh toán không trả về liên kết thanh toán. Thử lại sau ít phút.');
+          this.refresh();
+          return;
+        }
+        window.location.href = checkout.checkoutUrl;
       },
       error: error => {
         this.mutating.set(false);
-        this.notify.error(error?.error?.message ?? 'Không thể cập nhật trạng thái giải đấu.');
+        this.notify.error(error?.error?.message ?? 'Không thể khởi tạo thanh toán lệ phí.');
+        this.refresh();
       }
     });
   }
 
-  reserveVenue(): void {
-    if (this.mutating() || !this.reserveForm.venueId || !this.reserveForm.courtId
-      || !this.reserveForm.playDate || !this.reserveForm.startTime || !this.reserveForm.endTime) return;
-    this.mutating.set(true);
-    this.repository.reserveVenue(this.tournamentId, this.reserveForm).subscribe({
-      next: reservation => {
-        this.reservations.update(items => [...items, reservation]);
-        this.showReserveModal.set(false);
-        this.mutating.set(false);
-        this.reserveForm = { venueId: '', courtId: '', playDate: '', startTime: '', endTime: '' };
-        this.notify.success('Đã giữ sân cho giải đấu.');
-      },
-      error: error => { this.mutating.set(false); this.notify.error(error?.error?.message ?? 'Không thể giữ sân.'); }
+  askWithdraw(): void {
+    const registration = this.myRegistration();
+    if (!registration) return;
+    const paid = registration.paymentStatus === 'SUCCEEDED';
+    const team = this.isTeamEvent();
+    this.confirm.set(this.isRegistrant() ? {
+      title: team ? 'Rút đội khỏi giải?' : 'Rút khỏi giải?',
+      message: (team ? 'Cả đội sẽ rời giải và suất được nhường cho người khác.' : 'Suất của bạn sẽ nhường cho người khác.')
+        + (paid ? ` Lệ phí ${formatVnd(this.feeAmount())} được gửi yêu cầu hoàn tự động.` : ''),
+      confirmLabel: team ? 'Rút đội' : 'Rút đăng ký',
+      run: () => this.mutate(this.repository.cancelRegistration(this.tournamentId, registration.registrationId),
+        paid ? 'Đã rút đăng ký, yêu cầu hoàn phí đã được gửi.' : 'Đã rút đăng ký.')
+    } : {
+      title: 'Rời đội?',
+      message: `Bạn sẽ rời ${this.teamName(registration)}.`
+        + (registration.status === 'CONFIRMED' || registration.status === 'PENDING_PAYMENT'
+          ? ` Đội phải còn đủ ${this.tournament()?.rosterMin} người, nếu không bạn cần báo đội trưởng mời người thay trước.` : ''),
+      confirmLabel: 'Rời đội',
+      run: () => this.mutate(this.repository.removeMember(this.tournamentId, registration.registrationId, this.me!), 'Bạn đã rời đội.')
     });
   }
 
-  releaseReservation(reservation: TournamentReservationModel): void {
+  askRemove(line: TournamentLineup): void {
+    const registration = this.myRegistration();
+    if (!registration) return;
+    const name = this.memberName(line);
+    this.confirm.set({
+      title: line.memberStatus === 'INVITED' ? `Thu hồi lời mời ${name}?` : `Bỏ ${name} khỏi đội?`,
+      message: 'Bạn có thể mời người khác thay vào chỗ này.',
+      confirmLabel: line.memberStatus === 'INVITED' ? 'Thu hồi' : 'Bỏ khỏi đội',
+      run: () => this.mutate(this.repository.removeMember(this.tournamentId, registration.registrationId, line.playerId),
+        'Đã cập nhật đội hình.')
+    });
+  }
+
+  runConfirm(): void {
+    const state = this.confirm();
+    if (state && !this.mutating()) state.run();
+  }
+
+  closeConfirm(): void { if (!this.mutating()) this.confirm.set(null); }
+
+  teamName(registration: TournamentRegistrationModel): string {
+    if (registration.teamName) return registration.teamName;
+    if (registration.clubId) return this.clubNames().get(registration.clubId) ?? 'Câu lạc bộ';
+    return this.displayName(registration.playerId ?? registration.registeredBy);
+  }
+
+  displayName(userId: string): string {
+    const user = this.users().get(userId);
+    return user?.fullName || user?.email || 'Người chơi';
+  }
+
+  memberName(line: TournamentLineup): string {
+    const user = this.users().get(line.playerId);
+    return user?.fullName || line.playerName || user?.email || 'Người chơi';
+  }
+
+  acceptedOf(registration: TournamentRegistrationModel): number {
+    return (registration.lineups ?? []).filter(line => (line.memberStatus ?? 'ACCEPTED') === 'ACCEPTED').length;
+  }
+
+  private fetch(): Observable<void> {
+    return forkJoin({
+      tournament: this.repository.getTournamentDetails(this.tournamentId),
+      teams: this.repository.getTournamentTeams(this.tournamentId),
+      fixtures: this.repository.getFixtures(this.tournamentId),
+      standings: this.repository.getStandings(this.tournamentId),
+      rules: this.repository.getEligibilityRules(this.tournamentId),
+      reservations: this.repository.getReservations(this.tournamentId).pipe(catchError(() => of([])))
+    }).pipe(map(data => {
+      this.tournament.set(data.tournament);
+      this.teams.set(data.teams);
+      this.fixtures.set(data.fixtures);
+      this.standings.set(data.standings);
+      this.eligibilityRules.set(data.rules);
+      this.reservations.set(data.reservations);
+      this.resolveNames();
+    }));
+  }
+
+  private mutate(request: Observable<unknown>, success: string): void {
     if (this.mutating()) return;
     this.mutating.set(true);
-    this.repository.releaseReservation(this.tournamentId, reservation.reservationId).subscribe({
+    request.subscribe({
       next: () => {
         this.mutating.set(false);
-        this.notify.success('Đã trả sân.');
-        this.load();
+        this.confirm.set(null);
+        this.notify.success(success);
+        this.refresh();
       },
-      error: error => { this.mutating.set(false); this.notify.error(error?.error?.message ?? 'Không thể trả sân.'); }
+      error: error => {
+        this.mutating.set(false);
+        this.notify.error(error?.error?.message ?? 'Không thể thực hiện thao tác.');
+      }
     });
   }
 
-  ruleLabel(rule: TournamentEligibilityRuleModel): string {
-    const subject = {
-      AGE: 'Tuổi', GENDER: 'Giới tính', SKILL_LEVEL: 'Trình độ',
-      ELO_RATING: 'Điểm ELO', CLUB_MEMBERSHIP: 'Câu lạc bộ', TEAM_SIZE: 'Số thành viên'
-    }[rule.ruleType];
-    const operator = {
-      EQUAL: 'bằng', NOT_EQUAL: 'khác', GREATER_THAN: 'lớn hơn',
-      GREATER_THAN_OR_EQUAL: 'từ', LESS_THAN: 'nhỏ hơn', LESS_THAN_OR_EQUAL: 'tối đa',
-      IN: 'thuộc', BETWEEN: 'trong khoảng'
-    }[rule.operator];
-    return `${subject} ${operator} ${rule.expectedValue}`;
-  }
+  /** Ten nguoi, ten CLB va ten co so/san deu la tham chieu logic — tai song song, loi thi giu nhan mac dinh. */
+  private resolveNames(): void {
+    const tournament = this.tournament();
+    if (!tournament) return;
+    const userIds = [tournament.organizerId, ...this.teams().flatMap(item =>
+      [item.registeredBy, item.playerId, ...(item.lineups ?? []).map(line => line.playerId)])]
+      .filter((id): id is string => !!id);
+    this.directory.resolve(userIds).subscribe(users => this.users.set(users));
 
-  private resolveUsers(tournament: TournamentModel, registrations: TournamentRegistrationModel[]): void {
-    this.directory.resolve([tournament.organizerId, ...registrations.map(item => item.registeredBy)])
-      .subscribe(users => this.users.set(users));
+    const clubIds = [...new Set(this.teams().map(item => item.clubId).filter((id): id is string => !!id))]
+      .filter(id => !this.clubNames().has(id));
+    if (clubIds.length) {
+      forkJoin(clubIds.map(id => this.clubs.getClubDetails(id).pipe(map(club => [id, club.name] as const),
+        catchError(() => of(null))))).subscribe(entries => {
+        const next = new Map(this.clubNames());
+        entries.forEach(entry => { if (entry) next.set(entry[0], entry[1]); });
+        this.clubNames.set(next);
+      });
+    }
+
+    if (tournament.venueId && !this.venueName()) {
+      this.venues.getVenueDetails(tournament.venueId).pipe(map(response => response.data), catchError(() => of(null)))
+        .subscribe(venue => {
+          if (!venue) return;
+          this.venueName.set(venue.name);
+          this.courtNames.set(new Map((venue.courts ?? []).map(court => [court.venueCourtId, court.name])));
+        });
+    }
   }
 }

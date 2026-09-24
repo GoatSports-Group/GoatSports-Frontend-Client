@@ -2,8 +2,13 @@ import { SportType } from './club.model';
 
 export type TournamentFormat = 'SINGLE_ELIMINATION' | 'ROUND_ROBIN';
 export type TournamentStatus = 'DRAFT' | 'PUBLISHED' | 'REGISTRATION_OPEN' | 'REGISTRATION_CLOSED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
-export type RegistrationType = 'INDIVIDUAL' | 'CLUB';
-export type RegistrationStatus = 'PENDING_ELIGIBILITY' | 'PENDING_PAYMENT' | 'CONFIRMED' | 'REJECTED' | 'CANCELLED';
+/** CLUB la kieu cu (nay backend doi thanh TEAM dai dien CLB). */
+export type RegistrationType = 'INDIVIDUAL' | 'TEAM' | 'CLUB';
+export type RegistrationStatus =
+  | 'PENDING_MEMBERS' | 'PENDING_ELIGIBILITY' | 'PENDING_PAYMENT' | 'CONFIRMED' | 'REJECTED' | 'CANCELLED';
+export type FeePaymentStatus = 'PENDING' | 'SUCCEEDED' | 'FAILED' | 'WAIVED' | 'REFUND_REQUESTED';
+export type ParticipantType = 'INDIVIDUAL' | 'TEAM';
+export type LineupMemberStatus = 'INVITED' | 'ACCEPTED' | 'DECLINED';
 export type SkillLevel = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'PRO';
 export type LineupRole = 'CAPTAIN' | 'PLAYER' | 'SUBSTITUTE';
 
@@ -24,24 +29,32 @@ export interface TournamentModel {
   startDate: string;
   endDate: string;
   rules: string[];
+  /** Co so + cac san chu san giu cho ca thoi gian giai, trong khung gio moi ngay. */
+  venueId?: string;
+  courtIds?: string[];
+  dailyStartTime?: string;
+  dailyEndTime?: string;
+  matchDurationMinutes?: number;
+  /** Noi dung thi dau (don, doi, 5 nguoi...) quyet dinh dang ky ca nhan hay theo doi. */
+  playFormat?: string;
+  playFormatLabel?: string;
+  participantType?: ParticipantType;
+  rosterMin?: number;
+  rosterMax?: number;
   createdAt?: string;
   updatedAt?: string;
 }
 
-export interface CreateTournamentPayload {
-  name: string;
-  description?: string;
-  sportType: SportType;
-  format: TournamentFormat;
-  maxParticipants: number;
-  entryFee: number;
-  prizePool: number;
-  registrationOpenDate: string;
-  registrationCloseDate: string;
-  startDate: string;
-  endDate: string;
-  rules: string[];
+export interface TournamentSearchFilter {
+  sportType?: SportType;
+  status?: TournamentStatus;
+  keyword?: string;
+  /** Spring sort, mac dinh 'startDate,desc'. */
+  sort?: string;
 }
+
+/** ORGANIZING: giai toi to chuc; PARTICIPATING: giai toi co ten trong mot dang ky. */
+export type MyTournamentRole = 'ORGANIZING' | 'PARTICIPATING';
 
 export interface TournamentRegistrationPayload {
   playerId?: string;
@@ -49,12 +62,16 @@ export interface TournamentRegistrationPayload {
   teamName?: string;
   type: RegistrationType;
   skillLevel?: SkillLevel;
-  lineups?: Array<{
-    playerId: string;
-    playerName: string;
-    lineupRole: LineupRole;
-    shirtNumber?: number;
-  }>;
+  captainShirtNumber?: number;
+  /** Doi: nhung nguoi duoc moi (khong gom doi truong); moi nguoi phai tu nhan loi. */
+  lineups?: TeamInvitee[];
+}
+
+export interface TeamInvitee {
+  playerId: string;
+  playerName: string;
+  lineupRole: LineupRole;
+  shirtNumber?: number;
 }
 
 export interface TournamentRegistrationModel extends TournamentRegistrationPayload {
@@ -65,6 +82,10 @@ export interface TournamentRegistrationModel extends TournamentRegistrationPaylo
   statusReason?: string;
   registeredAt: string;
   confirmedAt?: string;
+  /** Han dong le phi (24 gio tu khi du dieu kien); qua han suat tu tra lai. */
+  paymentDeadline?: string;
+  paymentStatus?: FeePaymentStatus;
+  feeAmount?: number;
   lineups: TournamentLineupModel[];
 }
 
@@ -74,6 +95,35 @@ export interface TournamentLineupModel {
   playerName: string;
   lineupRole: LineupRole;
   shirtNumber?: number;
+  memberStatus?: LineupMemberStatus;
+  respondedAt?: string;
+}
+
+/** Loi moi vao doi dang cho toi tra loi. */
+export interface TeamInvitationModel {
+  tournamentId: string;
+  tournamentName: string;
+  sportType: SportType;
+  startDate: string;
+  registrationCloseDate: string;
+  registrationId: string;
+  teamName?: string;
+  captainId: string;
+  clubId?: string;
+  lineupRole: LineupRole;
+  shirtNumber?: number;
+  acceptedCount: number;
+  rosterMin: number;
+  rosterMax: number;
+}
+
+/** Ma thanh toan le phi do club-service tao; so tien do server tinh. */
+export interface FeeCheckoutModel {
+  paymentId: string;
+  checkoutUrl?: string;
+  qrCodeContent?: string;
+  amount: number;
+  expiresAt?: string;
 }
 
 export interface TournamentFixtureModel {
@@ -133,13 +183,4 @@ export interface TournamentReservationModel {
   startTime: string;
   endTime: string;
   status: ReservationStatus;
-}
-
-export interface ReserveVenuePayload {
-  venueId: string;
-  courtId: string;
-  fixtureId?: string | null;
-  playDate: string;
-  startTime: string;
-  endTime: string;
 }

@@ -1,0 +1,156 @@
+@use 'tournament-ui' as t;
+@include t.tournament-ui;
+
+.form-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.format {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--primary-light);
+}
+
+.format__icon {
+  display: grid;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--primary-strong);
+}
+
+.format__copy {
+  display: grid;
+  gap: 2px;
+
+  strong { color: var(--ink); font-size: 15px; }
+  small { color: var(--body); font-size: 13px; line-height: 1.5; }
+}
+
+.lineup {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+
+.lineup__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    color: var(--ink);
+    font-size: 16px;
+    font-weight: 800;
+
+    span {
+      display: inline-grid;
+      min-width: 22px;
+      height: 22px;
+      place-items: center;
+      padding: 0 6px;
+      border-radius: 9999px;
+      background: var(--surface-strong);
+      color: var(--body);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+      font-weight: 800;
+    }
+  }
+}
+
+.lineup__list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// player | role | shirt | remove
+.lineup__row {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1.2fr) 96px 40px;
+  align-items: center;
+  gap: 8px;
+}
+
+.lineup__empty {
+  a { color: var(--primary); font-weight: 700; }
+
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 12px;
+  color: var(--body);
+  font-size: 14px;
+}
+
+.note__title {
+  display: block;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.note__list {
+  margin: 4px 0;
+  padding-left: 18px;
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 2px 12px;
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--surface-subtle);
+
+  span {
+    color: var(--body);
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  strong {
+    color: var(--ink);
+    font-size: 20px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 900;
+  }
+
+  small {
+    grid-column: 1 / -1;
+    color: var(--body);
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 640px) {
+  .lineup__row {
+    grid-template-columns: minmax(0, 1fr) 88px 40px;
+
+    > :first-child { grid-column: 1 / -1; }
+  }
+}

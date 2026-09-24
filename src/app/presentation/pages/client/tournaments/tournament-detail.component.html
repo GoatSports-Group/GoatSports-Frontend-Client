@@ -1,152 +1,404 @@
-<main class="tournament-detail-page">
-  @if (loading()) { <div class="header-card"><app-loading-skeleton height="240px"></app-loading-skeleton></div> }
-  @else if (error()) { <section class="empty-bracket" role="alert"><lucide-icon name="alert-triangle" class="empty-icon"></lucide-icon>
-    <h2>Chưa tải được giải đấu</h2><p>{{ error() }}</p><button class="btn-primary" (click)="load()">Thử lại</button></section> }
-  @else if (tournament(); as currentTournament) {
-    <section class="header-card"><div class="header-top"><div class="badges"><span class="sport-pill">{{ currentTournament.sportType }}</span>
-      <span class="status-pill">{{ statusLabel(currentTournament.status) }}</span><span class="format-pill">{{ currentTournament.format === 'SINGLE_ELIMINATION' ? 'Loại trực tiếp' : 'Vòng tròn' }}</span></div>
-      <div class="header-actions">
-        @if (currentTournament.status === 'REGISTRATION_OPEN' && !myRegistration()) { <button class="btn-register" (click)="showRegisterModal.set(true)">Đăng ký tham gia</button> }
-        @if (myRegistration(); as registration) { <span class="status-pill">{{ registration.status }}</span>
-          @if (registration.status === 'PENDING_PAYMENT') { <button class="btn-generate" [disabled]="mutating()" (click)="payRegistration(registration)">Thanh toán lệ phí</button> }
-          @if (registration.status !== 'CANCELLED') { <button class="btn-register" [disabled]="mutating()" (click)="cancelRegistration()">Hủy đăng ký</button> } }
-        @if (isOrganizer() && fixtures().length === 0 && teams().length >= 2) { <button class="btn-generate" [disabled]="mutating()" (click)="generateFixtures()">Tạo lịch đấu</button> }
-        @if (isOrganizer()) {
-          @if (currentTournament.status === 'DRAFT') {
-            <button class="btn-generate" [disabled]="mutating()" (click)="changeStatus('PUBLISHED')">Công bố giải</button>
-          }
-          @if (currentTournament.status === 'IN_PROGRESS') {
-            <button class="btn-generate" [disabled]="mutating()" (click)="changeStatus('COMPLETED')">Kết thúc giải</button>
-          }
-          @if (currentTournament.status !== 'COMPLETED' && currentTournament.status !== 'CANCELLED') {
-            <button class="btn-register" [disabled]="mutating()" (click)="changeStatus('CANCELLED')">Hủy giải</button>
-          }
-        }
-      </div></div>
-      <h1 class="title">{{ currentTournament.name }}</h1><p class="organizer">Ban tổ chức: {{ displayName(currentTournament.organizerId) }}</p>
-      <p>{{ currentTournament.description || 'Giải đấu chưa cập nhật mô tả.' }}</p>
-      <div class="stats-row"><div class="stat-box"><span class="label">Giải thưởng</span><span class="val prize">{{ currentTournament.prizePool | number }} đ</span></div>
-        <div class="stat-box"><span class="label">Lệ phí</span><span class="val">{{ currentTournament.entryFee | number }} đ</span></div>
-        <div class="stat-box"><span class="label">Đăng ký</span><span class="val">{{ currentTournament.currentParticipants }}/{{ currentTournament.maxParticipants }}</span></div>
-        <div class="stat-box"><span class="label">Thời gian</span><span class="val">{{ currentTournament.startDate | date:'dd/MM' }} – {{ currentTournament.endDate | date:'dd/MM/yyyy' }}</span></div></div>
+<main class="detail-page">
+  <nav class="breadcrumb" aria-label="Đường dẫn">
+    <a routerLink="/tournaments">Giải đấu</a>
+    <lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon>
+    <strong>{{ tournament()?.name ?? 'Chi tiết giải' }}</strong>
+  </nav>
 
-      @if (eligibilityRules().length) {
-        <div class="eligibility-panel">
-          <h2>Điều kiện tham dự</h2>
-          <ul>
-            @for (rule of eligibilityRules(); track rule.ruleId) {
-              <li><lucide-icon name="check" class="rule-icon"></lucide-icon>{{ ruleLabel(rule) }}</li>
+  @if (loading()) {
+  <app-loading-skeleton variant="detail" [lines]="6" label="Đang tải giải đấu"></app-loading-skeleton>
+  } @else if (error()) {
+  <div class="state state--error" role="alert">
+    <span class="state__icon"><lucide-icon name="wifi-off" class="w-6 h-6"></lucide-icon></span>
+    <strong>Không mở được giải đấu</strong>
+    <p>{{ error() }}</p>
+    <div class="state__actions">
+      <a class="btn btn--secondary" routerLink="/tournaments">Về danh sách</a>
+      <button type="button" class="btn btn--primary" (click)="load()">Thử lại</button>
+    </div>
+  </div>
+  } @else if (tournament(); as t) {
+
+  <!-- ===== Identity ===== -->
+  <header class="identity card">
+    <div class="identity__top">
+      <div class="identity__badges">
+        <span class="badge badge--sport">{{ sportLabel[t.sportType] }}</span>
+        <span class="badge" [ngClass]="'badge--' + statusMeta[t.status].tone">{{ statusMeta[t.status].label }}</span>
+        @if (t.playFormatLabel) { <span class="badge badge--neutral">{{ t.playFormatLabel }}</span> }
+        <span class="badge badge--neutral">{{ formatLabel[t.format] }}</span>
+      </div>
+      <div class="identity__actions">
+        @if (isOrganizer()) {
+        <a class="btn btn--primary" [href]="adminUrl" target="_blank" rel="noopener">
+          <lucide-icon name="settings" class="w-4 h-4"></lucide-icon>Điều hành giải</a>
+        } @else if (canRegister()) {
+        <button type="button" class="btn btn--primary" (click)="openRegister()">
+          <lucide-icon [name]="isTeamEvent() ? 'users' : 'user-plus'" class="w-4 h-4"></lucide-icon>{{ isTeamEvent() ? 'Lập đội tham gia' : 'Đăng ký tham gia' }}
+        </button>
+        }
+      </div>
+    </div>
+
+    <h1 class="page-title identity__title">{{ t.name }}</h1>
+    <p class="identity__by">
+      Tổ chức bởi <b>{{ displayName(t.organizerId) }}</b>
+      @if (venueName(); as venue) { <span> tại <b>{{ venue }}</b></span> }
+    </p>
+
+    <dl class="kpis">
+      <div class="kpi kpi--wide">
+        <dt>Đăng ký</dt>
+        <dd><span class="kpi__value">{{ t.currentParticipants }}<small>/{{ t.maxParticipants }}</small></span>
+          <span class="fill__track"><span class="fill__bar" [style.width.%]="fillPercent(t)"></span></span></dd>
+      </div>
+      <div class="kpi"><dt>Lệ phí{{ isTeamEvent() ? ' / đội' : '' }}</dt><dd class="kpi__value">{{ formatVnd(t.entryFee) }}</dd></div>
+      <div class="kpi"><dt>Giải thưởng</dt><dd class="kpi__value">{{ t.prizePool ? formatVnd(t.prizePool) : '—' }}</dd></div>
+      <div class="kpi"><dt>Thi đấu</dt><dd class="kpi__value kpi__value--sm">{{ t.startDate | date:'dd/MM' }} – {{ t.endDate | date:'dd/MM/yyyy' }}</dd></div>
+    </dl>
+  </header>
+
+  @if (champion(); as winner) {
+  <section class="champion" aria-label="Nhà vô địch">
+    <span class="champion__icon"><lucide-icon name="crown" class="w-6 h-6"></lucide-icon></span>
+    <div><span>Nhà vô địch</span><strong>{{ winner }}</strong></div>
+  </section>
+  }
+  @if (t.status === 'CANCELLED') {
+  <p class="note note--danger"><lucide-icon name="circle-alert" class="w-4 h-4"></lucide-icon>
+    Giải đã bị hủy. Các đăng ký đã đóng và lệ phí đã đóng được gửi yêu cầu hoàn tự động.</p>
+  }
+
+  <app-tournament-invitations [tournamentId]="tournamentId" (answered)="refresh()"></app-tournament-invitations>
+
+  <!-- ===== Tabs ===== -->
+  <nav class="tabs" role="tablist" aria-label="Nội dung giải đấu">
+    <button type="button" role="tab" class="tab" [class.is-active]="activeTab() === 'OVERVIEW'"
+      [attr.aria-selected]="activeTab() === 'OVERVIEW'" (click)="setTab('OVERVIEW')">
+      <lucide-icon name="file-text" class="w-4 h-4"></lucide-icon>Tổng quan</button>
+    <button type="button" role="tab" class="tab" [class.is-active]="activeTab() === 'FIXTURES'"
+      [attr.aria-selected]="activeTab() === 'FIXTURES'" (click)="setTab('FIXTURES')">
+      <lucide-icon name="swords" class="w-4 h-4"></lucide-icon>Lịch thi đấu
+      @if (fixtures().length) { <span class="tab__count">{{ fixtures().length }}</span> }</button>
+    @if (t.format === 'ROUND_ROBIN') {
+    <button type="button" role="tab" class="tab" [class.is-active]="activeTab() === 'STANDINGS'"
+      [attr.aria-selected]="activeTab() === 'STANDINGS'" (click)="setTab('STANDINGS')">
+      <lucide-icon name="list" class="w-4 h-4"></lucide-icon>Bảng xếp hạng</button>
+    }
+    <button type="button" role="tab" class="tab" [class.is-active]="activeTab() === 'TEAMS'"
+      [attr.aria-selected]="activeTab() === 'TEAMS'" (click)="setTab('TEAMS')">
+      <lucide-icon name="users" class="w-4 h-4"></lucide-icon>Đội tham dự
+      <span class="tab__count">{{ holdingTeams().length }}</span></button>
+  </nav>
+
+  <div class="layout">
+    <section class="main" role="tabpanel">
+      @switch (activeTab()) {
+
+      <!-- ----- Tong quan ----- -->
+      @case ('OVERVIEW') {
+      <div class="overview">
+        <article class="card">
+          <header class="card__head"><h2>Giới thiệu</h2></header>
+          <div class="card__body">
+            @if (t.description) { <p class="prose">{{ t.description }}</p> }
+            @else { <p class="muted-copy">Ban tổ chức chưa thêm mô tả cho giải này.</p> }
+          </div>
+        </article>
+
+        <article class="card">
+          <header class="card__head"><h2>Địa điểm & giờ thi đấu</h2></header>
+          <div class="card__body">
+            <ul class="check-list">
+              <li><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>{{ venueName() ?? 'Cơ sở của ban tổ chức' }}
+                @if (tournamentCourts().length) { · {{ tournamentCourts().join(', ') }} }</li>
+              @if (t.dailyStartTime && t.dailyEndTime) {
+              <li><lucide-icon name="clock" class="w-4 h-4"></lucide-icon>{{ t.dailyStartTime.slice(0, 5) }}–{{ t.dailyEndTime.slice(0, 5) }} mỗi ngày,
+                {{ t.startDate | date:'dd/MM' }} – {{ t.endDate | date:'dd/MM/yyyy' }}@if (t.matchDurationMinutes) {, mỗi trận {{ t.matchDurationMinutes }} phút}</li>
+              }
+              <li><lucide-icon [name]="isTeamEvent() ? 'users' : 'user'" class="w-4 h-4"></lucide-icon>
+                {{ isTeamEvent() ? 'Đăng ký theo đội ' + (t.rosterMin === t.rosterMax ? t.rosterMin : t.rosterMin + '–' + t.rosterMax) + ' người' : 'Đăng ký cá nhân' }}</li>
+            </ul>
+            <p class="muted-copy">Các sân này được giữ riêng cho giải trong khung giờ trên, nên không nhận đặt sân lẻ.</p>
+          </div>
+        </article>
+
+        <article class="card">
+          <header class="card__head"><h2>Thể thức · {{ formatLabel[t.format] }}</h2></header>
+          <div class="card__body">
+            @if (t.format === 'SINGLE_ELIMINATION') {
+            <p class="prose">Thua một trận là dừng cuộc chơi. Khi số đội không tròn 4, 8, 16…, một số đội được miễn vòng đầu và tự vào vòng sau. Không có tỷ số hòa.</p>
+            } @else {
+            <p class="prose">Mỗi đội gặp tất cả các đội còn lại. Thắng 3 điểm, hòa 1, thua 0. Bằng điểm thì xét hiệu số, rồi đến tổng điểm ghi được.</p>
             }
-          </ul>
-          <p class="eligibility-note">Hệ thống kiểm tra tự động theo hồ sơ người chơi khi bạn đăng ký.</p>
-        </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <header class="card__head"><h2>Điều kiện tham dự</h2></header>
+          <div class="card__body">
+            @if (eligibilityRules().length) {
+            <ul class="check-list">
+              @for (rule of eligibilityRules(); track rule.ruleId) {
+              <li><lucide-icon name="shield-check" class="w-4 h-4"></lucide-icon>{{ ruleLabel(rule) }}</li>
+              }
+            </ul>
+            <p class="muted-copy">Hệ thống tự xét theo hồ sơ thể thao khi đăng ký; với đội, xét từng người khi họ nhận lời.</p>
+            } @else {
+            <p class="muted-copy">Không giới hạn — mọi người chơi đều đăng ký được.</p>
+            }
+          </div>
+        </article>
+
+        <article class="card">
+          <header class="card__head"><h2>Điều lệ</h2></header>
+          <div class="card__body">
+            @if (t.rules.length) {
+            <ol class="rules-list">@for (rule of t.rules; track $index) { <li>{{ rule }}</li> }</ol>
+            } @else { <p class="muted-copy">Chưa có điều lệ riêng. Áp dụng luật thi đấu chuẩn của môn.</p> }
+          </div>
+        </article>
+      </div>
+      }
+
+      <!-- ----- Lich thi dau ----- -->
+      @case ('FIXTURES') {
+      @if (fixtures().length) {
+      <div class="card card__body">
+        <app-tournament-bracket [fixtures]="fixtures()" [reservations]="reservations()" [format]="t.format"
+          [names]="names()" [courtNames]="courtNames()" [highlightId]="highlightId()"></app-tournament-bracket>
+      </div>
+      } @else {
+      <div class="state">
+        <span class="state__icon"><lucide-icon name="swords" class="w-6 h-6"></lucide-icon></span>
+        <strong>Chưa có lịch thi đấu</strong>
+        <p>Ban tổ chức xếp lịch sau khi chốt danh sách. Chỉ đăng ký đã xác nhận (đủ người, đã đóng phí) được xếp vào bảng.</p>
+      </div>
+      }
+      }
+
+      <!-- ----- Bang xep hang ----- -->
+      @case ('STANDINGS') {
+      @if (standings().length) {
+      <div class="table-card card">
+        <table class="standings">
+          <thead>
+            <tr><th scope="col">#</th><th scope="col" class="standings__team">Đội</th><th scope="col">Trận</th>
+              <th scope="col">T</th><th scope="col">H</th><th scope="col">B</th><th scope="col">HS</th><th scope="col">Điểm</th></tr>
+          </thead>
+          <tbody>
+            @for (row of standings(); track row.registrationId) {
+            <tr [class.is-mine]="row.registrationId === highlightId()" [class.is-top]="row.rank === 1 && row.played > 0">
+              <td class="standings__rank">{{ row.rank }}</td>
+              <td class="standings__team"><span>{{ names().get(row.registrationId) }}</span></td>
+              <td>{{ row.played }}</td><td>{{ row.won }}</td><td>{{ row.drawn }}</td><td>{{ row.lost }}</td>
+              <td>{{ row.scoreFor - row.scoreAgainst > 0 ? '+' : '' }}{{ row.scoreFor - row.scoreAgainst }}</td>
+              <td class="standings__pts">{{ row.points }}</td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="muted-copy">T/H/B: thắng, hòa, bại · HS: hiệu số. Bảng tính trực tiếp từ kết quả các trận.</p>
+      } @else {
+      <div class="state">
+        <span class="state__icon"><lucide-icon name="list" class="w-6 h-6"></lucide-icon></span>
+        <strong>Chưa có bảng xếp hạng</strong>
+        <p>Bảng xếp hạng xuất hiện khi có đội đã xác nhận tham dự.</p>
+      </div>
+      }
+      }
+
+      <!-- ----- Doi tham du ----- -->
+      @case ('TEAMS') {
+      @if (holdingTeams().length) {
+      <div class="team-grid">
+        @for (team of holdingTeams(); track team.registrationId) {
+        <article class="team-card" [class.is-mine]="team.registrationId === highlightId()">
+          <span class="team-card__avatar" [class.is-club]="team.type !== 'INDIVIDUAL'">
+            <lucide-icon [name]="team.type === 'INDIVIDUAL' ? 'user' : team.clubId ? 'shield' : 'users'" class="w-5 h-5"></lucide-icon>
+          </span>
+          <div class="team-card__copy">
+            <h3>{{ names().get(team.registrationId) }}</h3>
+            <p>
+              <span class="badge" [ngClass]="'badge--' + registrationMeta[team.status].tone">{{ registrationMeta[team.status].label }}</span>
+              <span class="team-card__meta">{{ team.type === 'INDIVIDUAL' ? (team.skillLevel ? skillLabel[team.skillLevel] : 'Cá nhân')
+                : acceptedOf(team) + '/' + t.rosterMin + ' người' }}</span>
+            </p>
+          </div>
+          @if (team.type !== 'INDIVIDUAL') {
+          <button type="button" class="icon-btn" (click)="lineupOf.set(team)"
+            [attr.aria-label]="'Xem đội hình ' + names().get(team.registrationId)"><lucide-icon name="users" class="w-5 h-5"></lucide-icon></button>
+          }
+        </article>
+        }
+      </div>
+      } @else {
+      <div class="state">
+        <span class="state__icon"><lucide-icon name="users" class="w-6 h-6"></lucide-icon></span>
+        <strong>Chưa có đăng ký nào</strong>
+        <p>{{ t.status === 'REGISTRATION_OPEN' ? 'Hãy là người đầu tiên ghi danh vào giải.' : 'Danh sách sẽ hiện khi giải mở đăng ký.' }}</p>
+        @if (canRegister()) { <button type="button" class="btn btn--primary" (click)="openRegister()">{{ isTeamEvent() ? 'Lập đội tham gia' : 'Đăng ký tham gia' }}</button> }
+      </div>
+      }
+
+      }
       }
     </section>
 
-    @if (isOrganizer()) {
-      <section class="reservation-panel">
-        <div class="reservation-head">
-          <h2>Sân đã giữ</h2>
-          <button class="btn-generate" [disabled]="mutating()" (click)="showReserveModal.set(true)">Giữ sân</button>
-        </div>
-        @if (reservations().length) {
-          <ul class="reservation-list">
-            @for (reservation of reservations(); track reservation.reservationId) {
+    <!-- ===== Rail ===== -->
+    <aside class="rail">
+      @if (myRegistration(); as mine) {
+      <section class="card rail-card" aria-labelledby="mine-title">
+        <header class="card__head"><h2 id="mine-title">{{ isTeamEvent() ? 'Đội của bạn' : 'Đăng ký của bạn' }}</h2>
+          <span class="badge" [ngClass]="'badge--' + registrationMeta[mine.status].tone">{{ registrationMeta[mine.status].label }}</span></header>
+        <div class="card__body rail-card__body">
+          <p class="rail-card__name">{{ names().get(mine.registrationId) }}</p>
+          @if (mine.statusReason) { <p class="rail-card__reason">{{ mine.statusReason }}</p> }
+
+          @if (mine.status === 'PENDING_MEMBERS') {
+          <p class="muted-copy">Còn thiếu <b>{{ missingMembers() }}</b> người nhận lời. Đội tự chuyển sang đóng lệ phí khi đủ
+            {{ t.rosterMin }} người; hết hạn đăng ký {{ t.registrationCloseDate | date:'dd/MM' }} mà chưa đủ thì đội bị đóng.</p>
+          }
+
+          @if (mine.status === 'PENDING_PAYMENT') {
+          <div class="fee" [class.is-urgent]="paymentUrgent()">
+            <div class="fee__row"><span>Lệ phí</span><strong>{{ formatVnd(feeAmount()) }}</strong></div>
+            @if (paymentLeft(); as left) {
+            <p class="fee__deadline"><lucide-icon name="hourglass" class="w-4 h-4"></lucide-icon>{{ left }}
+              <span>· hạn {{ mine.paymentDeadline | date:'HH:mm dd/MM' }}</span></p>
+            }
+            @if (mine.paymentStatus === 'FAILED') { <p class="fee__hint">Lần thanh toán trước chưa thành công, bạn có thể thử lại.</p> }
+          </div>
+          @if (isRegistrant()) {
+          <button type="button" class="btn btn--primary rail-card__action" [disabled]="mutating()" [attr.aria-busy]="mutating()" (click)="pay(mine)">
+            @if (mutating()) { <lucide-icon name="loader-2" class="w-4 h-4 spin"></lucide-icon> }
+            @else { <lucide-icon name="credit-card" class="w-4 h-4"></lucide-icon> }
+            {{ mine.paymentStatus === 'FAILED' ? 'Thanh toán lại' : 'Đóng lệ phí' }}</button>
+          <p class="muted-copy">Quá hạn chưa đóng, suất tự trả lại cho người khác.</p>
+          } @else {
+          <p class="muted-copy">Đội trưởng đang đóng lệ phí cho cả đội.</p>
+          }
+          }
+
+          @if (mine.status === 'CONFIRMED' && mine.paymentStatus === 'SUCCEEDED') {
+          <p class="paid"><lucide-icon name="circle-check" class="w-4 h-4"></lucide-icon>Đã đóng lệ phí {{ formatVnd(feeAmount()) }}</p>
+          }
+          @if (mine.paymentStatus === 'REFUND_REQUESTED') {
+          <p class="paid paid--refund"><lucide-icon name="undo-2" class="w-4 h-4"></lucide-icon>Đang hoàn {{ formatVnd(feeAmount()) }} về tài khoản đã thanh toán</p>
+          }
+
+          @if (isTeamEvent() && myLineup().length) {
+          <div class="roster">
+            <div class="roster__head"><span>Thành viên</span><b>{{ acceptedCount() }}/{{ t.rosterMin }}{{ t.rosterMax !== t.rosterMin ? ' – ' + t.rosterMax : '' }}</b></div>
+            <ul>
+              @for (line of myLineup(); track line.lineupId) {
               <li>
-                <div>
-                  <strong>{{ reservation.playDate | date:'dd/MM/yyyy' }}</strong>
-                  <span>{{ reservation.startTime }} – {{ reservation.endTime }}</span>
-                </div>
-                <span class="status-pill">{{ reservation.status }}</span>
-                @if (reservation.status === 'PENDING' || reservation.status === 'CONFIRMED') {
-                  <button class="btn-register" [disabled]="mutating()"
-                    (click)="releaseReservation(reservation)">Trả sân</button>
+                <span class="roster__shirt">{{ line.shirtNumber ?? '–' }}</span>
+                <span class="roster__name">{{ memberName(line) }}@if (line.playerId === me) { <small> (bạn)</small> }</span>
+                <span class="badge" [ngClass]="'badge--' + memberMeta[line.memberStatus ?? 'ACCEPTED'].tone">{{ line.lineupRole === 'CAPTAIN' ? 'Đội trưởng' : memberMeta[line.memberStatus ?? 'ACCEPTED'].label }}</span>
+                @if (isRegistrant() && isHolding() && line.lineupRole !== 'CAPTAIN' && t.status !== 'IN_PROGRESS' && t.status !== 'COMPLETED') {
+                <button type="button" class="icon-btn icon-btn--danger" [disabled]="mutating()" (click)="askRemove(line)"
+                  [attr.aria-label]="'Bỏ ' + memberName(line) + ' khỏi đội'"><lucide-icon name="user-minus" class="w-4 h-4"></lucide-icon></button>
                 }
               </li>
+              }
+            </ul>
+            @if (canInvite()) {
+            <button type="button" class="btn btn--secondary rail-card__action" (click)="showInvite.set(true)">
+              <lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon>Mời thêm</button>
             }
-          </ul>
-        } @else {
-          <p class="reservation-empty">Chưa giữ sân nào cho giải đấu này.</p>
+          </div>
+          }
+
+          @if (canWithdraw()) {
+          <button type="button" class="btn btn--danger-ghost rail-card__action" [disabled]="mutating()" (click)="askWithdraw()">
+            {{ isRegistrant() ? (isTeamEvent() ? 'Rút đội khỏi giải' : 'Rút đăng ký') : 'Rời đội' }}</button>
+          }
+          @if (canRegister()) {
+          <button type="button" class="btn btn--secondary rail-card__action" (click)="openRegister()">Đăng ký lại</button>
+          }
+        </div>
+      </section>
+      } @else if (isOrganizer()) {
+      <section class="card rail-card rail-card--callout">
+        <div class="card__body rail-card__body">
+          <span class="rail-card__kicker">Bạn là ban tổ chức</span>
+          <h2>Điều hành ở khu chủ sân</h2>
+          <p class="muted-copy">Duyệt đăng ký, xếp lịch, xếp sân và cập nhật tỷ số trong trang quản trị cơ sở.</p>
+          <a class="btn btn--ghost" [href]="adminUrl" target="_blank" rel="noopener">Mở trang điều hành
+            <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a>
+        </div>
+      </section>
+      }
+
+      <section class="card rail-card" aria-labelledby="timeline-title">
+        <header class="card__head"><h2 id="timeline-title">Mốc thời gian</h2></header>
+        <ol class="timeline">
+          @for (step of timeline(); track step.label) {
+          <li [class]="'timeline__step is-' + step.state">
+            <span class="timeline__dot" aria-hidden="true"></span>
+            <span class="timeline__label">{{ step.label }}</span>
+            <time [attr.datetime]="step.date">{{ step.date | date:'dd/MM/yyyy' }}</time>
+          </li>
+          }
+        </ol>
+        @if (t.status === 'REGISTRATION_OPEN') {
+        <p class="rail-card__foot">Còn <b>{{ seatsLeft() }}</b> suất · đăng ký tự đóng sau {{ t.registrationCloseDate | date:'dd/MM' }}</p>
         }
       </section>
-    }
+    </aside>
+  </div>
 
-    <nav class="tabs-nav" role="tablist"><button role="tab" [class.active]="activeTab() === 'FIXTURES'" (click)="setTab('FIXTURES')">Lịch đấu ({{ fixtures().length }})</button>
-      @if (currentTournament.format === 'ROUND_ROBIN') { <button role="tab" [class.active]="activeTab() === 'STANDINGS'" (click)="setTab('STANDINGS')">Bảng xếp hạng</button> }
-      <button role="tab" [class.active]="activeTab() === 'TEAMS'" (click)="setTab('TEAMS')">Đăng ký ({{ teams().length }})</button></nav>
+  <!-- ===== Dialogs ===== -->
+  @if (showRegister()) {
+  <app-tournament-register-dialog [tournament]="t" [eligibilityRules]="eligibilityRules()"
+    (registered)="onRegistered($event)" (closed)="showRegister.set(false)"></app-tournament-register-dialog>
+  }
+  @if (showInvite() && myRegistration()) {
+  <app-tournament-register-dialog [tournament]="t" [registration]="myRegistration()"
+    (registered)="onInvited()" (closed)="showInvite.set(false)"></app-tournament-register-dialog>
+  }
 
-    <section class="tab-body">
-      @if (activeTab() === 'FIXTURES') {
-        @if (fixtures().length) { <div class="bracket-grid">@for (fixture of fixtures(); track fixture.fixtureId) {
-          <article class="bracket-match" [class.editable]="isOrganizer()" (click)="openScore(fixture)"><div class="round-label">{{ fixture.roundName }} · Trận {{ fixture.matchNumber }}</div>
-            <div class="team-row" [class.winner]="fixture.winnerRegistrationId === fixture.registration1Id"><span>{{ registrationName(fixture.registration1Id) }}</span><strong>{{ fixture.score1 ?? '-' }}</strong></div>
-            <div class="team-row" [class.winner]="fixture.winnerRegistrationId === fixture.registration2Id"><span>{{ registrationName(fixture.registration2Id) }}</span><strong>{{ fixture.score2 ?? '-' }}</strong></div>
-            <span class="edit-hint">{{ fixture.status }}</span></article>
-        }</div> } @else { <div class="empty-bracket"><lucide-icon name="swords" class="empty-icon"></lucide-icon><h2>Chưa có lịch thi đấu</h2><p>Ban tổ chức sẽ tạo lịch sau khi có đủ đăng ký.</p></div> }
-      } @else if (activeTab() === 'STANDINGS') {
-        <div class="standings-container"><table class="standings-table"><thead><tr><th>#</th><th>Đội / VĐV</th><th>Trận</th><th>Thắng</th><th>Hòa</th><th>Thua</th><th>HS</th><th>Điểm</th></tr></thead>
-          <tbody>@for (standing of standings(); track standing.registrationId) { <tr><td>{{ standing.rank }}</td><td>{{ registrationName(standing.registrationId) }}</td>
-            <td>{{ standing.played }}</td><td>{{ standing.won }}</td><td>{{ standing.drawn }}</td><td>{{ standing.lost }}</td><td>{{ standing.scoreFor - standing.scoreAgainst }}</td><td class="pts">{{ standing.points }}</td></tr> }</tbody></table></div>
-      } @else {
-        <div class="teams-grid">@for (registration of teams(); track registration.registrationId) { <article class="team-card"><div class="avatar"><lucide-icon name="shield"></lucide-icon></div>
-          <div class="team-info"><h2>{{ registration.teamName || displayName(registration.registeredBy) }}</h2><span class="player-name">Đại diện: {{ displayName(registration.registeredBy) }}</span>
-            <span class="badge">{{ registration.skillLevel || 'Chưa khai báo' }} · {{ registration.status }}</span></div></article> }</div>
-      }
-    </section>
-
-    @if (showRegisterModal()) { <div class="modal-overlay" (click)="showRegisterModal.set(false)"><section class="modal-card" appAccessibleDialog aria-labelledby="registration-modal-title" (dialogClosed)="showRegisterModal.set(false)" (click)="$event.stopPropagation()">
-      <h2 id="registration-modal-title">Đăng ký giải đấu</h2><div class="form-group"><label for="reg-type">Hình thức</label><select id="reg-type" [(ngModel)]="registrationForm.type"><option value="INDIVIDUAL">Cá nhân</option><option value="CLUB">Câu lạc bộ</option></select></div>
-      @if (registrationForm.type === 'CLUB') { <div class="form-group"><label for="reg-club">Mã câu lạc bộ *</label><input id="reg-club" [(ngModel)]="registrationForm.clubId" /></div> }
-      <div class="form-group"><label for="reg-name">Tên thi đấu / tên đội</label><input id="reg-name" [(ngModel)]="registrationForm.teamName" /></div>
-      <div class="form-group"><label for="reg-skill">Trình độ</label><select id="reg-skill" [(ngModel)]="registrationForm.skillLevel"><option value="BEGINNER">Mới chơi</option><option value="INTERMEDIATE">Trung bình</option><option value="ADVANCED">Nâng cao</option><option value="PRO">Chuyên nghiệp</option></select></div>
-
-      @if (registrationForm.type === 'CLUB') {
-        <div class="lineup-editor">
-          <div class="lineup-head">
-            <h3>Đội hình</h3>
-            <button type="button" class="btn-secondary" (click)="addLineupRow()">Thêm người</button>
-          </div>
-          @if (lineupRows.length) {
-            @for (row of lineupRows; track $index) {
-              <div class="lineup-row">
-                <input [(ngModel)]="row.playerId" [attr.aria-label]="'Mã người chơi ' + ($index + 1)" placeholder="Mã người chơi *" />
-                <input [(ngModel)]="row.playerName" [attr.aria-label]="'Tên người chơi ' + ($index + 1)" placeholder="Tên hiển thị" />
-                <select [(ngModel)]="row.lineupRole" [attr.aria-label]="'Vai trò ' + ($index + 1)">
-                  <option value="CAPTAIN">Đội trưởng</option>
-                  <option value="PLAYER">Thi đấu</option>
-                  <option value="SUBSTITUTE">Dự bị</option>
-                </select>
-                <input type="number" min="0" [(ngModel)]="row.shirtNumber" [attr.aria-label]="'Số áo ' + ($index + 1)" placeholder="Số áo" />
-                <button type="button" class="lineup-remove" (click)="removeLineupRow($index)" aria-label="Xóa khỏi đội hình">×</button>
-              </div>
-            }
-          } @else {
-            <p class="lineup-empty">Chưa thêm ai. Để trống nếu giải không yêu cầu đội hình.</p>
+  @if (lineupOf(); as team) {
+  <div class="modal-backdrop" (click)="lineupOf.set(null)">
+    <section class="modal modal--narrow" appAccessibleDialog aria-labelledby="lineup-title"
+      (dialogClosed)="lineupOf.set(null)" (click)="$event.stopPropagation()">
+      <header class="modal__header">
+        <div><h2 id="lineup-title">Đội hình</h2><p>{{ names().get(team.registrationId) }}</p></div>
+        <button type="button" class="icon-btn" aria-label="Đóng" (click)="lineupOf.set(null)"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button>
+      </header>
+      <div class="modal__body">
+        <ul class="lineup-view">
+          @for (line of team.lineups; track line.lineupId) {
+          @if (line.memberStatus !== 'DECLINED') {
+          <li>
+            <span class="lineup-view__shirt">{{ line.shirtNumber ?? '–' }}</span>
+            <span class="lineup-view__name">{{ memberName(line) }}</span>
+            @if (line.memberStatus === 'INVITED') { <span class="badge badge--warning">Chờ nhận lời</span> }
+            @else { <span class="badge" [class.badge--primary]="line.lineupRole === 'CAPTAIN'">{{ lineupRoleLabel[line.lineupRole] }}</span> }
+          </li>
           }
-          @if (lineupProblem(); as problem) { <p class="lineup-error">{{ problem }}</p> }
-        </div>
-      }
-
-      <div class="modal-footer"><button class="btn-secondary" (click)="showRegisterModal.set(false)">Hủy</button><button class="btn-primary" [disabled]="mutating() || !!lineupProblem()" (click)="register()">Xác nhận đăng ký</button></div>
-    </section></div> }
-
-    @if (showScoreModal() && selectedFixture(); as fixture) { <div class="modal-overlay" (click)="showScoreModal.set(false)"><section class="modal-card" appAccessibleDialog aria-labelledby="score-modal-title" (dialogClosed)="showScoreModal.set(false)" (click)="$event.stopPropagation()">
-      <h2 id="score-modal-title">Cập nhật kết quả</h2><div class="score-inputs"><div class="team-input"><label for="score-team-one">{{ registrationName(fixture.registration1Id) }}</label><input id="score-team-one" type="number" min="0" [(ngModel)]="score1" /></div>
-        <div class="vs">VS</div><div class="team-input"><label for="score-team-two">{{ registrationName(fixture.registration2Id) }}</label><input id="score-team-two" type="number" min="0" [(ngModel)]="score2" /></div></div>
-      <div class="modal-footer"><button class="btn-secondary" (click)="showScoreModal.set(false)">Hủy</button><button class="btn-primary" [disabled]="mutating()" (click)="saveScore()">Lưu tỷ số</button></div>
-    </section></div> }
-
-    @if (showReserveModal()) { <div class="modal-overlay" (click)="showReserveModal.set(false)"><section class="modal-card" appAccessibleDialog aria-labelledby="reserve-modal-title" (dialogClosed)="showReserveModal.set(false)" (click)="$event.stopPropagation()">
-      <h2 id="reserve-modal-title">Giữ sân cho giải</h2>
-      <div class="form-group"><label for="reserve-venue">Mã cơ sở *</label><input id="reserve-venue" [(ngModel)]="reserveForm.venueId" /></div>
-      <div class="form-group"><label for="reserve-court">Mã sân *</label><input id="reserve-court" [(ngModel)]="reserveForm.courtId" /></div>
-      <div class="form-group"><label for="reserve-date">Ngày thi đấu *</label><input id="reserve-date" type="date" [(ngModel)]="reserveForm.playDate" /></div>
-      <div class="score-inputs">
-        <div class="team-input"><label for="reserve-start">Giờ bắt đầu *</label><input id="reserve-start" type="time" [(ngModel)]="reserveForm.startTime" /></div>
-        <div class="team-input"><label for="reserve-end">Giờ kết thúc *</label><input id="reserve-end" type="time" [(ngModel)]="reserveForm.endTime" /></div>
+          }
+        </ul>
       </div>
-      <div class="modal-footer"><button class="btn-secondary" (click)="showReserveModal.set(false)">Hủy</button>
-        <button class="btn-primary" [disabled]="mutating()" (click)="reserveVenue()">Giữ sân</button></div>
-    </section></div> }
+    </section>
+  </div>
+  }
+
+  @if (confirm(); as state) {
+  <div class="modal-backdrop" (click)="closeConfirm()">
+    <section class="modal modal--narrow" appAccessibleDialog aria-labelledby="confirm-title" role="alertdialog"
+      (dialogClosed)="closeConfirm()" (click)="$event.stopPropagation()">
+      <header class="modal__header"><div><h2 id="confirm-title">{{ state.title }}</h2></div></header>
+      <div class="modal__body"><p class="prose">{{ state.message }}</p></div>
+      <footer class="modal__footer">
+        <button type="button" class="btn btn--secondary" (click)="closeConfirm()" [disabled]="mutating()">Quay lại</button>
+        <button type="button" class="btn btn--danger" (click)="runConfirm()" [disabled]="mutating()" [attr.aria-busy]="mutating()">
+          @if (mutating()) { <lucide-icon name="loader-2" class="w-4 h-4 spin"></lucide-icon> }{{ state.confirmLabel }}</button>
+      </footer>
+    </section>
+  </div>
+  }
   }
 </main>

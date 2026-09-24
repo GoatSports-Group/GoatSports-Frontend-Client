@@ -1,0 +1,60 @@
+<div class="bracket-head">
+  <p class="bracket-progress">
+    <b>{{ progress().done }}/{{ progress().total }}</b> trận đã có kết quả
+  </p>
+</div>
+
+<ng-template #match let-fixture>
+  <article class="match" [class.is-done]="fixture.status === 'COMPLETED'"
+    [class.is-mine]="highlightId && (fixture.registration1Id === highlightId || fixture.registration2Id === highlightId)">
+    <header class="match__head">
+      <span>Trận {{ fixture.matchNumber }}</span>
+      @if (isBye(fixture)) { <span class="badge badge--neutral">Được miễn</span> }
+      @else if (fixture.status === 'COMPLETED') { <span class="badge badge--success">Đã xong</span> }
+    </header>
+    @for (side of [1, 2]; track side) {
+    @let id = side === 1 ? fixture.registration1Id : fixture.registration2Id;
+    @let score = side === 1 ? fixture.score1 : fixture.score2;
+    <div class="match__team" [class.is-winner]="id && fixture.winnerRegistrationId === id"
+      [class.is-empty]="!id" [class.is-mine]="id && id === highlightId">
+      <span class="match__name">{{ slotName(id, fixture) }}</span>
+      @if (id && fixture.winnerRegistrationId === id) {
+      <lucide-icon name="check" class="w-4 h-4 match__win" aria-label="Thắng"></lucide-icon>
+      }
+      <b class="match__score">{{ score ?? '–' }}</b>
+    </div>
+    }
+    <footer class="match__foot">
+      @if (schedule(fixture); as when) {
+      <span class="match__when" [attr.title]="when"><lucide-icon name="calendar-clock" class="w-4 h-4"></lucide-icon>{{ when }}</span>
+      } @else if (!isBye(fixture)) {
+      <span class="match__when is-empty">Chưa xếp sân</span>
+      }
+    </footer>
+  </article>
+</ng-template>
+
+@if (format === 'SINGLE_ELIMINATION') {
+<div class="rounds" role="list" aria-label="Sơ đồ loại trực tiếp">
+  @for (round of rounds(); track round.roundNumber) {
+  <section class="round" role="listitem" [attr.aria-label]="round.name">
+    <h3 class="round__title">{{ round.name }} <span>{{ round.fixtures.length }} trận</span></h3>
+    <div class="round__matches">
+      @for (fixture of round.fixtures; track fixture.fixtureId) {
+      <ng-container *ngTemplateOutlet="match; context: { $implicit: fixture }"></ng-container>
+      }
+    </div>
+  </section>
+  }
+</div>
+} @else {
+<div class="round-robin">
+  @for (round of rounds(); track round.roundNumber) {
+  <div class="rr-grid">
+    @for (fixture of round.fixtures; track fixture.fixtureId) {
+    <ng-container *ngTemplateOutlet="match; context: { $implicit: fixture }"></ng-container>
+    }
+  </div>
+  }
+</div>
+}

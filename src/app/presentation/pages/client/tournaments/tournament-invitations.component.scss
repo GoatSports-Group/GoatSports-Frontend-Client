@@ -1,0 +1,46 @@
+@use 'tournament-ui' as t;
+@include t.tournament-ui;
+
+:host { display: block; }
+
+.invites { display: grid; gap: 12px; }
+
+.invite {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  border: 1px solid var(--primary-light);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.invite__icon {
+  display: grid;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--primary-light);
+  color: var(--primary-strong);
+}
+
+.invite__copy {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 4px;
+
+  strong { color: var(--ink); font-size: 15px; }
+  span { color: var(--body); font-size: 14px; line-height: 1.5; }
+  a { color: var(--primary); font-weight: 700; text-decoration: none; &:hover { text-decoration: underline; } }
+}
+
+.invite__actions { display: flex; flex: none; gap: 8px; }
+
+@media (max-width: 767px) {
+  .invite { flex-wrap: wrap; }
+  .invite__actions { width: 100%; .btn { flex: 1; } }
+}
