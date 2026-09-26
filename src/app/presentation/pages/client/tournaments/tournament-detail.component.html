@@ -353,7 +353,8 @@
           <p class="paid"><lucide-icon name="circle-check" class="w-4 h-4"></lucide-icon>Đã đóng lệ phí {{ formatVnd(feeAmount()) }}</p>
           }
           @if (mine.paymentStatus === 'REFUND_REQUESTED') {
-          <p class="paid paid--refund"><lucide-icon name="undo-2" class="w-4 h-4"></lucide-icon>Đang hoàn {{ formatVnd(feeAmount()) }} về tài khoản đã thanh toán</p>
+          <p class="paid paid--refund"><lucide-icon name="undo-2" class="w-4 h-4"></lucide-icon>Đang hoàn {{ formatVnd(feeAmount()) }} về tài khoản ngân hàng đã liên kết.
+            <a routerLink="/settings" [queryParams]="{ tab: 'banking' }">Kiểm tra hoặc liên kết ngân hàng</a></p>
           }
 
           @if (isTeamEvent() && myLineup().length) {

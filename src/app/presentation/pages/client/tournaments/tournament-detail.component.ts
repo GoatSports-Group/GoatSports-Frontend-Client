@@ -328,7 +328,8 @@ export class TournamentDetailComponent {
     this.confirm.set(this.isRegistrant() ? {
       title: team ? 'Rút đội khỏi giải?' : 'Rút khỏi giải?',
       message: (team ? 'Cả đội sẽ rời giải và suất được nhường cho người khác.' : 'Suất của bạn sẽ nhường cho người khác.')
-        + (paid ? ` Lệ phí ${formatVnd(this.feeAmount())} được gửi yêu cầu hoàn tự động.` : ''),
+        + (paid ? ` Lệ phí ${formatVnd(this.feeAmount())} được hoàn đủ vào tài khoản ngân hàng bạn đã liên kết;`
+          + ' chưa liên kết thì liên kết xong sẽ tự nhận.' : ''),
       confirmLabel: team ? 'Rút đội' : 'Rút đăng ký',
       run: () => this.mutate(this.repository.cancelRegistration(this.tournamentId, registration.registrationId),
         paid ? 'Đã rút đăng ký, yêu cầu hoàn phí đã được gửi.' : 'Đã rút đăng ký.')
