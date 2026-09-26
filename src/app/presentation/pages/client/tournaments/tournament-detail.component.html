@@ -98,65 +98,76 @@
 
       <!-- ----- Tong quan ----- -->
       @case ('OVERVIEW') {
+      <!-- Một cột, hai thẻ đủ rộng: thông tin nhanh ở trên, luật thi đấu gom một chỗ ở dưới. -->
       <div class="overview">
         <article class="card">
-          <header class="card__head"><h2>Giới thiệu</h2></header>
-          <div class="card__body">
+          <header class="card__head"><h2>Thông tin giải</h2></header>
+          <div class="card__body overview__body">
             @if (t.description) { <p class="prose">{{ t.description }}</p> }
             @else { <p class="muted-copy">Ban tổ chức chưa thêm mô tả cho giải này.</p> }
+
+            <dl class="facts">
+              <div class="fact">
+                <span class="fact__icon" aria-hidden="true"><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon></span>
+                <dt>Địa điểm</dt>
+                <dd>{{ venueName() ?? 'Cơ sở của ban tổ chức' }}
+                  @if (tournamentCourts().length) { <small>{{ tournamentCourts().join(', ') }}</small> }</dd>
+              </div>
+              <div class="fact">
+                <span class="fact__icon" aria-hidden="true"><lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon></span>
+                <dt>Thời gian</dt>
+                <dd>{{ t.startDate | date:'dd/MM' }} – {{ t.endDate | date:'dd/MM/yyyy' }}
+                  @if (t.dailyStartTime && t.dailyEndTime) { <small>{{ t.dailyStartTime.slice(0, 5) }}–{{ t.dailyEndTime.slice(0, 5) }} mỗi ngày</small> }</dd>
+              </div>
+              <div class="fact">
+                <span class="fact__icon" aria-hidden="true"><lucide-icon name="swords" class="w-4 h-4"></lucide-icon></span>
+                <dt>Thể thức</dt>
+                <dd>{{ formatLabel[t.format] }}
+                  @if (t.matchDurationMinutes) { <small>Mỗi trận {{ t.matchDurationMinutes }} phút</small> }</dd>
+              </div>
+              <div class="fact">
+                <span class="fact__icon" aria-hidden="true"><lucide-icon [name]="isTeamEvent() ? 'users' : 'user'" class="w-4 h-4"></lucide-icon></span>
+                <dt>Đăng ký</dt>
+                <dd>{{ isTeamEvent() ? 'Theo đội' : 'Cá nhân' }}
+                  @if (isTeamEvent()) { <small>{{ t.rosterMin === t.rosterMax ? t.rosterMin : t.rosterMin + '–' + t.rosterMax }} người mỗi đội</small> }</dd>
+              </div>
+            </dl>
+
+            <p class="overview__note"><lucide-icon name="lock" class="w-4 h-4"></lucide-icon>
+              Sân được giữ riêng cho giải trong khung giờ thi đấu, không nhận đặt sân lẻ.</p>
           </div>
         </article>
 
         <article class="card">
-          <header class="card__head"><h2>Địa điểm & giờ thi đấu</h2></header>
-          <div class="card__body">
-            <ul class="check-list">
-              <li><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>{{ venueName() ?? 'Cơ sở của ban tổ chức' }}
-                @if (tournamentCourts().length) { · {{ tournamentCourts().join(', ') }} }</li>
-              @if (t.dailyStartTime && t.dailyEndTime) {
-              <li><lucide-icon name="clock" class="w-4 h-4"></lucide-icon>{{ t.dailyStartTime.slice(0, 5) }}–{{ t.dailyEndTime.slice(0, 5) }} mỗi ngày,
-                {{ t.startDate | date:'dd/MM' }} – {{ t.endDate | date:'dd/MM/yyyy' }}@if (t.matchDurationMinutes) {, mỗi trận {{ t.matchDurationMinutes }} phút}</li>
+          <header class="card__head"><h2>Luật thi đấu</h2></header>
+          <div class="rule-blocks">
+            <section class="rule-block">
+              <h3>Thể thức · {{ formatLabel[t.format] }}</h3>
+              @if (t.format === 'SINGLE_ELIMINATION') {
+              <p class="prose">Thua một trận là dừng cuộc chơi. Khi số đội không tròn 4, 8, 16…, một số đội được miễn vòng đầu và tự vào vòng sau. Không có tỷ số hòa.</p>
+              } @else {
+              <p class="prose">Mỗi đội gặp tất cả các đội còn lại. Thắng 3 điểm, hòa 1, thua 0. Bằng điểm thì xét hiệu số, rồi đến tổng điểm ghi được.</p>
               }
-              <li><lucide-icon [name]="isTeamEvent() ? 'users' : 'user'" class="w-4 h-4"></lucide-icon>
-                {{ isTeamEvent() ? 'Đăng ký theo đội ' + (t.rosterMin === t.rosterMax ? t.rosterMin : t.rosterMin + '–' + t.rosterMax) + ' người' : 'Đăng ký cá nhân' }}</li>
-            </ul>
-            <p class="muted-copy">Các sân này được giữ riêng cho giải trong khung giờ trên, nên không nhận đặt sân lẻ.</p>
-          </div>
-        </article>
-
-        <article class="card">
-          <header class="card__head"><h2>Thể thức · {{ formatLabel[t.format] }}</h2></header>
-          <div class="card__body">
-            @if (t.format === 'SINGLE_ELIMINATION') {
-            <p class="prose">Thua một trận là dừng cuộc chơi. Khi số đội không tròn 4, 8, 16…, một số đội được miễn vòng đầu và tự vào vòng sau. Không có tỷ số hòa.</p>
-            } @else {
-            <p class="prose">Mỗi đội gặp tất cả các đội còn lại. Thắng 3 điểm, hòa 1, thua 0. Bằng điểm thì xét hiệu số, rồi đến tổng điểm ghi được.</p>
-            }
-          </div>
-        </article>
-
-        <article class="card">
-          <header class="card__head"><h2>Điều kiện tham dự</h2></header>
-          <div class="card__body">
-            @if (eligibilityRules().length) {
-            <ul class="check-list">
-              @for (rule of eligibilityRules(); track rule.ruleId) {
-              <li><lucide-icon name="shield-check" class="w-4 h-4"></lucide-icon>{{ ruleLabel(rule) }}</li>
+            </section>
+            <section class="rule-block">
+              <h3>Điều kiện tham dự</h3>
+              @if (eligibilityRules().length) {
+              <ul class="check-list">
+                @for (rule of eligibilityRules(); track rule.ruleId) {
+                <li><lucide-icon name="shield-check" class="w-4 h-4"></lucide-icon>{{ ruleLabel(rule) }}</li>
+                }
+              </ul>
+              <p class="muted-copy">Hệ thống tự xét theo hồ sơ thể thao khi đăng ký; với đội, xét từng người khi họ nhận lời.</p>
+              } @else {
+              <p class="muted-copy">Không giới hạn, mọi người chơi đều đăng ký được.</p>
               }
-            </ul>
-            <p class="muted-copy">Hệ thống tự xét theo hồ sơ thể thao khi đăng ký; với đội, xét từng người khi họ nhận lời.</p>
-            } @else {
-            <p class="muted-copy">Không giới hạn — mọi người chơi đều đăng ký được.</p>
-            }
-          </div>
-        </article>
-
-        <article class="card">
-          <header class="card__head"><h2>Điều lệ</h2></header>
-          <div class="card__body">
-            @if (t.rules.length) {
-            <ol class="rules-list">@for (rule of t.rules; track $index) { <li>{{ rule }}</li> }</ol>
-            } @else { <p class="muted-copy">Chưa có điều lệ riêng. Áp dụng luật thi đấu chuẩn của môn.</p> }
+            </section>
+            <section class="rule-block">
+              <h3>Điều lệ</h3>
+              @if (t.rules.length) {
+              <ol class="rules-list">@for (rule of t.rules; track $index) { <li>{{ rule }}</li> }</ol>
+              } @else { <p class="muted-copy">Chưa có điều lệ riêng. Áp dụng luật thi đấu chuẩn của môn.</p> }
+            </section>
           </div>
         </article>
       </div>

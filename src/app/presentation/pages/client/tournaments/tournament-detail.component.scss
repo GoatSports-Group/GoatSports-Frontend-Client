@@ -230,13 +230,84 @@
 // ---- Overview ---------------------------------------------------------------------------------
 .overview {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: start;
   gap: 16px;
+}
 
-  // Gioi thieu va Dieu le trai het chieu ngang, the thuc + dieu kien chia doi: khong de khoang trong.
-  > .card:first-child,
-  > .card:last-child { grid-column: 1 / -1; }
+.overview__body {
+  display: grid;
+  gap: 20px;
+}
+
+// Thông tin nhanh: nhãn nhỏ ở trên, giá trị đậm, dòng phụ nhạt. Hai cột đều nhau, không lệch đáy.
+.facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.fact {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  column-gap: 12px;
+  align-items: start;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--surface-subtle);
+
+  dt {
+    grid-column: 2;
+    color: var(--body);
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  dd {
+    display: grid;
+    grid-column: 2;
+    gap: 2px;
+    margin: 2px 0 0;
+    color: var(--ink);
+    font-size: 15px;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+
+    small { color: var(--body); font-size: 13px; font-weight: 600; }
+  }
+}
+
+.fact__icon {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  grid-row: 1 / span 2;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--primary-light);
+  color: var(--primary-strong);
+}
+
+.overview__note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--body);
+  font-size: 13px;
+
+  lucide-icon { flex: none; color: var(--primary); }
+}
+
+// Luật thi đấu: ba phần trong một thẻ, ngăn bằng đường kẻ mảnh.
+.rule-block {
+  display: grid;
+  gap: 8px;
+  padding: 18px 20px;
+
+  & + & { border-top: 1px solid var(--hairline); }
+
+  h3 { margin: 0; color: var(--ink); font-size: 15px; font-weight: 800; }
+  .check-list { margin: 0; }
 }
 
 .prose {
@@ -741,7 +812,7 @@
   .identity { padding: 16px; }
   .identity__actions { width: 100%; }
   .identity__actions .btn { flex: 1 1 auto; }
-  .overview { grid-template-columns: minmax(0, 1fr); }
+  .facts { grid-template-columns: minmax(0, 1fr); }
   .kpi { padding-right: 12px; }
   .kpi:nth-child(even) { padding-left: 12px; }
   .kpi__value { font-size: 18px; }
