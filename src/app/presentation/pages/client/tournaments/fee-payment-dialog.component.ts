@@ -65,6 +65,12 @@ export class FeePaymentDialogComponent implements OnInit {
     this.repository.checkout(this.tournamentId, this.registrationId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: checkout => {
         this.checkout.set(checkout);
+        if (checkout.status === 'SUCCEEDED') {
+          // Đã trả từ trước: club-service vừa đồng bộ lại đăng ký, không cần mã mới.
+          this.pendingPayment.clear();
+          this.phase.set('paid');
+          return;
+        }
         this.pendingPayment.save({ kind: 'TOURNAMENT', tournamentId: this.tournamentId,
           registrationId: this.registrationId, paymentId: checkout.paymentId });
         this.phase.set('waiting');

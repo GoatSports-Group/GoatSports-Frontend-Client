@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Observable, catchError, forkJoin, map, of } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Observable, catchError, debounceTime, filter, forkJoin, map, of } from 'rxjs';
 import { VENUE_SEARCH_REPOSITORY_TOKEN } from '@application/ports/persistence/venue-search.repository';
 import { TournamentRepositoryPort } from '@application/ports/tournament.repository.port';
 import { ClubRepositoryPort } from '@application/ports/club.repository.port';
@@ -16,6 +17,7 @@ import {
 import { AuthService } from '@presentation/services/auth.service';
 import { PlayerDirectoryService } from '@presentation/services/player-directory.service';
 import { NotifyService } from '@shared/components/notify/notify.service';
+import { NotificationService } from '@presentation/services/notification.service';
 import {
   FORMAT_LABEL, HOLDING_STATUSES, LINEUP_ROLE_LABEL, MEMBER_META, PAYMENT_META, REGISTRATION_META, SKILL_LABEL,
   SPORT_LABEL, STATUS_META, dayLabel, fillPercent, formatVnd, isoDate, ruleLabel
@@ -225,6 +227,13 @@ export class TournamentDetailComponent {
     inject(DestroyRef).onDestroy(() => clearInterval(timer));
     if (this.tournamentId) this.load();
     else { this.error.set('Mã giải đấu không hợp lệ.'); this.loading.set(false); }
+    // Realtime: đồng đội nhận lời/từ chối, tới hạn đóng phí, đăng ký được xác nhận hay bị đóng đều gửi thông báo
+    // gắn với giải này qua WebSocket. Nhận được là tải lại dữ liệu giải, người dùng không phải F5.
+    inject(NotificationService).realtimeNotifications$.pipe(
+      filter(item => item.referenceType === 'TOURNAMENT' && item.referenceId === this.tournamentId),
+      debounceTime(300),
+      takeUntilDestroyed()
+    ).subscribe(() => { if (this.tournament()) this.refresh(); });
   }
 
   load(): void {

@@ -1,9 +1,12 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { debounceTime, filter } from 'rxjs';
 import { TournamentRepositoryPort } from '@application/ports/tournament.repository.port';
 import { TeamInvitation, TournamentRegistration } from '@application/dto/tournament/tournament.dto';
 import { AuthService } from '@presentation/services/auth.service';
 import { PlayerDirectoryService } from '@presentation/services/player-directory.service';
 import { NotifyService } from '@shared/components/notify/notify.service';
+import { NotificationService } from '@presentation/services/notification.service';
 import { LINEUP_ROLE_LABEL, SPORT_LABEL } from './tournament-view';
 
 /**
@@ -34,6 +37,16 @@ export class TournamentInvitationsComponent implements OnInit {
   readonly busyId = signal<string | null>(null);
   readonly visible = computed(() => this.invitations().filter(item =>
     !this.tournamentId || item.tournamentId === this.tournamentId));
+
+  constructor() {
+    // Lời mời mới (hoặc bị thu hồi) hiện ngay khi thông báo giải đấu tới, không cần tải lại trang.
+    inject(NotificationService).realtimeNotifications$.pipe(
+      filter(item => item.referenceType === 'TOURNAMENT'
+        && (!this.tournamentId || item.referenceId === this.tournamentId)),
+      debounceTime(300),
+      takeUntilDestroyed()
+    ).subscribe(() => this.load());
+  }
 
   ngOnInit(): void { this.load(); }
 

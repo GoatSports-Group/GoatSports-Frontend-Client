@@ -120,6 +120,8 @@ export interface TeamInvitationModel {
 /** Ma thanh toan le phi do club-service tao; so tien do server tinh. */
 export interface FeeCheckoutModel {
   paymentId: string;
+  /** SUCCEEDED khi khoản phí đã được trả trước đó (không có mã QR). */
+  status?: string;
   checkoutUrl?: string;
   qrCodeContent?: string;
   amount: number;
