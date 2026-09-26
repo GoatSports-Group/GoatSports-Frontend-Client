@@ -158,6 +158,9 @@ export class HeaderComponent implements OnInit {
       case 'MATCHMAKING_SESSION':
         void this.router.navigate(['/matchmaking']);
         break;
+      case 'REFUND':
+        void this.router.navigate(['/settings'], { queryParams: { tab: 'banking' } });
+        break;
       default:
         if (notification.type === NotificationType.BOOKING) {
           void this.router.navigate(['/booking/history']);

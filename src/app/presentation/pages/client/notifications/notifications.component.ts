@@ -300,6 +300,11 @@ export class NotificationsComponent implements OnInit {
   }
 
   private navigateForNotification(notification: Notification): void {
+    // Hoàn tiền: mở trang Ngân hàng & hoàn tiền, nơi người chơi xem và nhận / thử lại khoản hoàn.
+    if ((notification.referenceType || '').toUpperCase() === 'REFUND') {
+      void this.router.navigate(['/settings'], { queryParams: { tab: 'banking' } });
+      return;
+    }
     const route = this.getNotificationRoute(notification);
     if (route) void this.router.navigate(route);
   }
