@@ -29,7 +29,8 @@ export const STATUS_META: Readonly<Record<TournamentStatus, { label: string; ton
 /** Trang thai co the loc tren trang kham pha (ban nhap khong bao gio cong khai). */
 export const STATUS_FILTER_OPTIONS: readonly SelectOption[] = [
   { value: '', label: 'Mọi trạng thái' },
-  ...(['REGISTRATION_OPEN', 'PUBLISHED', 'REGISTRATION_CLOSED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'] as TournamentStatus[])
+  // Khám phá không liệt kê giải đã hủy (club-service lọc sẵn), nên không có lựa chọn "Đã hủy".
+  ...(['REGISTRATION_OPEN', 'PUBLISHED', 'REGISTRATION_CLOSED', 'IN_PROGRESS', 'COMPLETED'] as TournamentStatus[])
     .map(value => ({ value, label: STATUS_META[value].label }))
 ];
 

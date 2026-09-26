@@ -435,6 +435,11 @@
   </div>
   }
 
+  @if (paying(); as registration) {
+  <app-fee-payment-dialog [tournamentId]="tournamentId" [registrationId]="registration.registrationId"
+    [tournamentName]="t.name" [teamName]="registration.teamName ?? ''" (closed)="onFeeDialogClosed($event)"></app-fee-payment-dialog>
+  }
+
   @if (selectedFixture(); as fixture) {
   <app-match-preview [fixture]="fixture" [tournament]="t" [teams]="teamById()" [names]="names()"
     [playerNames]="playerNames()" [reservation]="slotOf(fixture) ?? null" [courtNames]="courtNames()"

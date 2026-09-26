@@ -42,6 +42,7 @@ import { TournamentRegisterDialogComponent } from '@presentation/pages/client/to
 import { TournamentInvitationsComponent } from '@presentation/pages/client/tournaments/tournament-invitations.component';
 import { LineupPitchComponent } from '@presentation/pages/client/tournaments/lineup-pitch.component';
 import { MatchPreviewComponent } from '@presentation/pages/client/tournaments/match-preview.component';
+import { FeePaymentDialogComponent } from '@presentation/pages/client/tournaments/fee-payment-dialog.component';
 import { MatchmakingComponent } from '@presentation/pages/client/matchmaking/matchmaking.component';
 import { SocialFeedComponent } from '@presentation/pages/client/feed/social-feed.component';
 import { AiAssistantModalComponent } from '@presentation/shared/components/ai-assistant-modal/ai-assistant-modal.component';
@@ -86,6 +87,7 @@ import { AiAssistantModalComponent } from '@presentation/shared/components/ai-as
     TournamentInvitationsComponent,
     LineupPitchComponent,
     MatchPreviewComponent,
+    FeePaymentDialogComponent,
     MatchmakingComponent,
     SocialFeedComponent,
     AiAssistantModalComponent

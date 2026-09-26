@@ -1,0 +1,72 @@
+<div class="modal-backdrop" (click)="close()">
+  <section class="modal modal--pay" appAccessibleDialog aria-labelledby="fee-title" (dialogClosed)="close()"
+    (click)="$event.stopPropagation()">
+    <header class="modal__header">
+      <div>
+        <h2 id="fee-title">Đóng lệ phí</h2>
+        <p>{{ tournamentName }}@if (teamName) { · {{ teamName }} }</p>
+      </div>
+      <button type="button" class="icon-btn" aria-label="Đóng" (click)="close()"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button>
+    </header>
+
+    <div class="modal__body pay">
+      @switch (phase()) {
+      @case ('loading') {
+      <div class="pay__state" aria-live="polite">
+        <span class="spinner" aria-hidden="true"></span>
+        <strong>Đang tạo mã thanh toán…</strong>
+      </div>
+      }
+
+      @case ('waiting') {
+      @if (checkout(); as c) {
+      <p class="pay__hint">Mở ứng dụng ngân hàng và quét mã VietQR. Số tiền và nội dung đã được điền sẵn.</p>
+      <div class="pay__qr" [class.pay__qr--empty]="!hasQr()">
+        @if (hasQr()) { <img [src]="c.qrCodeContent" alt="Mã VietQR thanh toán lệ phí giải" /> }
+        @else { <lucide-icon name="qr-code" class="w-8 h-8"></lucide-icon><span>Không tải được mã QR</span> }
+      </div>
+      <div class="pay__amount">
+        <div><span>Số tiền cần chuyển</span><strong>{{ formatVnd(c.amount) }}</strong></div>
+        <button type="button" class="btn btn--secondary btn--sm" (click)="copyAmount()">Sao chép</button>
+      </div>
+      <div class="pay__waiting" aria-live="polite">
+        <span class="spinner" aria-hidden="true"></span>
+        <div><strong>Đang chờ thanh toán</strong><span>Tự cập nhật khi ngân hàng xác nhận</span></div>
+        @if (countdown()) { <time>{{ countdown() }}</time> }
+      </div>
+      @if (!hasQr() && c.checkoutUrl) {
+      <a class="pay__fallback" [href]="c.checkoutUrl" target="_blank" rel="noopener">Mở trang thanh toán payOS</a>
+      }
+      }
+      }
+
+      @case ('paid') {
+      <div class="pay__state pay__state--success" aria-live="assertive">
+        <span class="pay__icon"><lucide-icon name="circle-check" class="w-8 h-8"></lucide-icon></span>
+        <strong>Đã đóng lệ phí</strong>
+        <p>Khoản {{ formatVnd(checkout()?.amount) }} đã được ghi nhận. Đăng ký của bạn sẽ chuyển sang "Đã xác nhận".</p>
+      </div>
+      }
+
+      @case ('failed') {
+      <div class="pay__state pay__state--failed" role="alert">
+        <span class="pay__icon"><lucide-icon name="alert-triangle" class="w-8 h-8"></lucide-icon></span>
+        <strong>Chưa thanh toán được</strong>
+        <p>{{ failure() }}</p>
+      </div>
+      }
+      }
+    </div>
+
+    <footer class="modal__footer">
+      @switch (phase()) {
+      @case ('paid') { <button type="button" class="btn btn--primary" (click)="close()">Xong</button> }
+      @case ('failed') {
+      <button type="button" class="btn btn--secondary" (click)="close()">Đóng</button>
+      <button type="button" class="btn btn--primary" (click)="start()">Tạo mã mới</button>
+      }
+      @default { <button type="button" class="btn btn--secondary" (click)="close()">Để sau</button> }
+      }
+    </footer>
+  </section>
+</div>

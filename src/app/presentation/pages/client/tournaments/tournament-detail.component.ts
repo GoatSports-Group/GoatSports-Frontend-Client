@@ -16,7 +16,6 @@ import {
 import { AuthService } from '@presentation/services/auth.service';
 import { PlayerDirectoryService } from '@presentation/services/player-directory.service';
 import { NotifyService } from '@shared/components/notify/notify.service';
-import { PendingBookingPaymentService } from '@presentation/services/pending-booking-payment.service';
 import {
   FORMAT_LABEL, HOLDING_STATUSES, LINEUP_ROLE_LABEL, MEMBER_META, PAYMENT_META, REGISTRATION_META, SKILL_LABEL,
   SPORT_LABEL, STATUS_META, dayLabel, fillPercent, formatVnd, isoDate, ruleLabel
@@ -56,13 +55,14 @@ export class TournamentDetailComponent {
   private readonly auth = inject(AuthService);
   private readonly directory = inject(PlayerDirectoryService);
   private readonly notify = inject(NotifyService);
-  private readonly pendingPayment = inject(PendingBookingPaymentService);
   readonly tournamentId = this.route.snapshot.paramMap.get('id') ?? '';
   readonly me = this.auth.currentUser?.userId ?? null;
 
   readonly statusMeta = STATUS_META;
   readonly registrationMeta = REGISTRATION_META;
   readonly paymentMeta = PAYMENT_META;
+  /** Đăng ký đang mở hộp thoại đóng lệ phí. */
+  readonly paying = signal<TournamentRegistrationModel | null>(null);
   readonly memberMeta = MEMBER_META;
   readonly sportLabel = SPORT_LABEL;
   readonly formatLabel = FORMAT_LABEL;
@@ -295,28 +295,20 @@ export class TournamentDetailComponent {
     this.refresh();
   }
 
-  /** So tien va nguoi nhan do server tinh; client chi mo trang thanh toan. */
+  /** Mở hộp thoại VietQR ngay trong trang; số tiền và người nhận do server tính. */
   pay(registration: TournamentRegistrationModel): void {
     if (this.mutating()) return;
-    this.mutating.set(true);
-    this.repository.checkout(this.tournamentId, registration.registrationId).subscribe({
-      next: checkout => {
-        this.pendingPayment.save({ kind: 'TOURNAMENT', tournamentId: this.tournamentId,
-          registrationId: registration.registrationId, paymentId: checkout.paymentId });
-        if (!checkout.checkoutUrl) {
-          this.mutating.set(false);
-          this.notify.error('Cổng thanh toán không trả về liên kết thanh toán. Thử lại sau ít phút.');
-          this.refresh();
-          return;
-        }
-        window.location.href = checkout.checkoutUrl;
-      },
-      error: error => {
-        this.mutating.set(false);
-        this.notify.error(error?.error?.message ?? 'Không thể khởi tạo thanh toán lệ phí.');
-        this.refresh();
-      }
-    });
+    this.paying.set(registration);
+  }
+
+  onFeeDialogClosed(paid: boolean): void {
+    this.paying.set(null);
+    if (paid) {
+      this.notify.success('Đã đóng lệ phí. Đăng ký của bạn đã được xác nhận.');
+      // Club-service xác nhận đăng ký qua sự kiện thanh toán, có thể trễ một nhịp.
+      setTimeout(() => this.refresh(), 1500);
+    }
+    this.refresh();
   }
 
   askWithdraw(): void {
