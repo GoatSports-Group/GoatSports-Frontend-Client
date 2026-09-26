@@ -3,6 +3,7 @@ import { map, Observable } from 'rxjs';
 import {
   BankAccount,
   BankDirectoryEntry,
+  MyRefund,
   RefundResult
 } from '@application/dto/payment/bank-account.dto';
 import { EncryptedPayload } from '@application/dto/security/encrypted-payload.dto';
@@ -35,6 +36,10 @@ export class BankAccountRepositoryImpl implements BankAccountRepository {
 
   disable(request: EncryptedPayload): Observable<void> {
     return this.api.disable(request);
+  }
+
+  getMyRefunds(): Observable<MyRefund[]> {
+    return this.api.getMyRefunds().pipe(map(response => response.data ?? []));
   }
 
   claimRefund(refundId: string): Observable<RefundResult> {

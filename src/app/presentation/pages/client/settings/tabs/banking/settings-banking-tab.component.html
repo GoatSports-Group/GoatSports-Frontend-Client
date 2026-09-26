@@ -115,6 +115,39 @@
       </form>
     }
 
+    @if (!loading() && refunds().length) {
+      <section class="panel refunds" aria-labelledby="refunds-title">
+        <header class="refunds__head">
+          <h3 id="refunds-title">Khoản hoàn tiền</h3>
+          <p>Tiền hoàn chuyển về tài khoản mặc định ở trên. Lần chuyển lỗi có thể thử lại.</p>
+        </header>
+        <ul class="refunds__list">
+          @for (refund of refunds(); track refund.refundId) {
+          <li class="refund">
+            <span class="refund__icon" aria-hidden="true">
+              <lucide-icon [name]="refund.purpose === 'TOURNAMENT_FEE' ? 'trophy' : 'calendar-check'" class="w-4 h-4"></lucide-icon>
+            </span>
+            <div class="refund__copy">
+              <strong>{{ refundTitle(refund) }}</strong>
+              <span>{{ refund.createdAt | date:'HH:mm dd/MM/yyyy' }}@if (refund.reason) { · {{ refund.reason }} }</span>
+              @if (refund.failureReason && refund.status !== 'SUCCEEDED') { <small class="refund__error">{{ refund.failureReason }}</small> }
+            </div>
+            <div class="refund__side">
+              <b>{{ formatVnd(refund.amount) }}</b>
+              <span class="badge" [ngClass]="refundTone(refund.status) ? 'badge--' + refundTone(refund.status) : ''">{{ refundLabel(refund.status) }}</span>
+              @if (refund.claimable) {
+              <button type="button" class="btn btn--primary btn--sm" [disabled]="claimingId() === refund.refundId" (click)="claim(refund)">
+                @if (claimingId() === refund.refundId) { <lucide-icon name="loader-2" class="w-4 h-4 animate-spin"></lucide-icon> }
+                {{ refund.status === 'FAILED' ? 'Thử lại' : 'Nhận hoàn tiền' }}
+              </button>
+              }
+            </div>
+          </li>
+          }
+        </ul>
+      </section>
+    }
+
     @if (returnUrl && accounts().length > 0) {
       <button type="button" class="btn btn--secondary continue-btn" (click)="continueFlow()">
         Quay lại nhận hoàn tiền<lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon>

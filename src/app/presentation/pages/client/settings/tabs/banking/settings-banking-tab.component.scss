@@ -101,3 +101,50 @@
 .continue-btn {
   justify-self: start;
 }
+
+// ---- Khoản hoàn tiền ----
+.refunds { display: grid; gap: 12px; padding: 20px; }
+.refunds__head {
+  h3 { margin: 0; color: var(--ink); font-size: 16px; font-weight: 800; }
+  p { margin: 4px 0 0; color: var(--body); font-size: 13px; }
+}
+.refunds__list { display: grid; margin: 0; padding: 0; list-style: none; }
+.refund {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--hairline);
+}
+.refund__icon {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--primary-light);
+  color: var(--primary-strong);
+}
+.refund__copy {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  strong { overflow: hidden; color: var(--ink); font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+  span { color: var(--body); font-size: 13px; }
+}
+.refund__error { color: var(--danger); font-size: 12px; }
+.refund__side {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  b { color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 900; }
+}
+.btn--sm { min-height: 36px; padding: 0 14px; font-size: 14px; }
+
+@media (max-width: 639px) {
+  .refund { grid-template-columns: 36px minmax(0, 1fr); }
+  .refund__side { grid-column: 1 / -1; justify-content: flex-start; }
+}

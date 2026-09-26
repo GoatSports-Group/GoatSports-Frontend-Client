@@ -5,7 +5,7 @@ import { BaseResponse } from '@application/dto/base/base-response';
 import {
   BankAccount,
   BankDirectoryEntry,
-  RefundResult
+  MyRefund, RefundResult
 } from '@application/dto/payment/bank-account.dto';
 import { EncryptedPayload } from '@application/dto/security/encrypted-payload.dto';
 import { API_ENDPOINTS } from '@infrastructure/config/api-endpoints';
@@ -37,6 +37,10 @@ export class BankAccountApi {
 
   disable(request: EncryptedPayload): Observable<void> {
     return this.http.patch<void>(`${this.apiBase}/bank-accounts/disable`, request);
+  }
+
+  getMyRefunds(): Observable<BaseResponse<MyRefund[]>> {
+    return this.http.get<BaseResponse<MyRefund[]>>(`${this.apiBase}/refunds/me`);
   }
 
   claimRefund(refundId: string): Observable<BaseResponse<RefundResult>> {

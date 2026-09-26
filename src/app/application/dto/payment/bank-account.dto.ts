@@ -35,3 +35,21 @@ export interface RefundResult {
   status: 'AWAITING_CLAIM' | 'AWAITING_BANK_ACCOUNT' | 'PROCESSING' | 'SUCCEEDED' | 'FAILED';
   failureReason?: string;
 }
+
+/** Một khoản hoàn tiền của người chơi (payment-service GET /refunds/me). */
+export interface MyRefund {
+  refundId: string;
+  paymentId: string;
+  amount: number;
+  status: 'CREATED' | 'AWAITING_CLAIM' | 'AWAITING_BANK_ACCOUNT' | 'PENDING' | 'PROCESSING' | 'SUCCEEDED' | 'FAILED' | 'MANUAL_REVIEW';
+  reason?: string;
+  failureReason?: string;
+  refundedAt?: string;
+  createdAt?: string;
+  purpose?: 'BOOKING_DEPOSIT' | 'BOOKING_REMAINING' | 'TOURNAMENT_FEE';
+  referenceType?: 'BOOKING' | 'TOURNAMENT_REGISTRATION';
+  referenceId?: string;
+  description?: string;
+  /** Người chơi tự bấm nhận / thử lại được. */
+  claimable: boolean;
+}
