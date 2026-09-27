@@ -1,0 +1,743 @@
+@use 'community-ui' as c;
+
+:host {
+  display: block;
+}
+
+@include c.community-ui;
+
+.post {
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+// ---- Header ----------------------------------------------------------------------------------
+.post__head {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 16px 12px 20px;
+}
+
+.post__avatar img {
+  width: 44px;
+  height: 44px;
+}
+
+.post__who {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.post__name {
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 800;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &:hover {
+    color: var(--primary);
+  }
+}
+
+.post__verb {
+  color: var(--body);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.post__time {
+  color: inherit;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--primary);
+    text-decoration: underline;
+  }
+}
+
+.post__visibility {
+  display: inline-flex;
+  color: var(--body);
+}
+
+.post__tools {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.post__follow {
+  min-height: 40px;
+}
+
+// ---- Body ------------------------------------------------------------------------------------
+.post__body {
+  padding: 0 20px 12px;
+}
+
+.post__text {
+  margin: 0;
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+
+  &.is-clamped {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 6;
+  }
+}
+
+.link-btn {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--primary);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    text-decoration: underline;
+  }
+
+  &:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+  }
+}
+
+.link-btn--muted {
+  color: var(--body);
+  font-weight: 700;
+}
+
+.link-btn--danger {
+  color: var(--danger);
+}
+
+// Inline confirm strip (GOAT-DESIGN §6 List cards: one destructive action opens an inline confirm)
+.confirm {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 16px 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--danger-soft);
+  border-radius: 12px;
+  background: var(--danger-soft);
+  color: var(--ink);
+
+  > lucide-icon {
+    flex: none;
+    color: var(--danger);
+  }
+
+  p {
+    flex: 1;
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    text-wrap: balance;
+  }
+}
+
+.confirm__actions {
+  display: flex;
+  flex: none;
+  gap: 8px;
+}
+
+// ---- Shared post embed -----------------------------------------------------------------------
+.embed {
+  display: grid;
+  gap: 10px;
+  margin: 0 16px 12px;
+  overflow: hidden;
+  padding: 14px 14px 0;
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color var(--transition-smooth), background-color var(--transition-smooth);
+
+  &:hover {
+    border-color: var(--border-strong);
+    background: var(--surface-subtle);
+  }
+
+  .media {
+    margin: 0 -14px;
+  }
+
+  &:not(:has(.media)) {
+    padding-bottom: 14px;
+  }
+}
+
+.embed__head {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+
+  img {
+    width: 32px;
+    height: 32px;
+  }
+
+  > div {
+    display: grid;
+    min-width: 0;
+  }
+
+  strong {
+    overflow: hidden;
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.embed__text {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0;
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+.embed--gone {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  padding: 14px;
+  border-style: dashed;
+  background: var(--surface-subtle);
+  color: var(--body);
+
+  &:hover {
+    border-color: var(--hairline);
+  }
+
+  div {
+    display: grid;
+    gap: 2px;
+  }
+
+  strong {
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 800;
+  }
+
+  span {
+    font-size: 13px;
+  }
+}
+
+// ---- Media grid: 1 → full, 2 → halves, 3 → 1 tall + 2, 4+ → 2×2 with +N ------------------------
+.media {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 220px;
+  gap: 2px;
+  background: var(--hairline);
+
+  &[data-count='1'] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: auto;
+
+    .media__cell img,
+    .media__cell video {
+      max-height: 560px;
+      object-fit: contain;
+    }
+  }
+
+  &[data-count='3'] .media__cell:first-child {
+    grid-row: span 2;
+  }
+}
+
+.media__cell {
+  position: relative;
+  display: block;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--sports-navy);
+
+  img,
+  video {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+  }
+}
+
+a.media__cell img {
+  transition: scale var(--transition-smooth);
+}
+
+a.media__cell:hover img {
+  scale: 1.02;
+}
+
+.media__cell--loading {
+  min-height: 220px;
+  background: linear-gradient(90deg, var(--surface-strong), var(--surface-subtle), var(--surface-strong));
+  background-size: 200% 100%;
+  animation: media-shimmer 1.35s linear infinite;
+}
+
+.media__more {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgb(7 25 45 / 62%);
+  color: #fff;
+  font-size: 28px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 900;
+}
+
+.media__file {
+  display: flex;
+  min-height: 120px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--surface-subtle);
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+// ---- Stats + actions -------------------------------------------------------------------------
+.post__stats {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 20px;
+  color: var(--body);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.post__likes {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-variant-numeric: tabular-nums;
+
+  &.is-empty .like-dot {
+    background: var(--surface-strong);
+    color: var(--body);
+  }
+}
+
+.like-dot {
+  display: inline-grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 9999px;
+  background: var(--danger);
+  color: var(--surface);
+}
+
+.post__counts {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  white-space: nowrap;
+
+  .link-btn {
+    font-size: 13px;
+  }
+}
+
+.post__actions {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: 4px;
+  padding: 4px 8px;
+  border-top: 1px solid var(--hairline);
+}
+
+.action {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--body);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--transition-smooth), color var(--transition-smooth), transform var(--transition-smooth);
+
+  &:hover:not(:disabled) {
+    background: var(--surface-subtle);
+    color: var(--ink);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  &:disabled {
+    cursor: progress;
+  }
+
+  &.is-liked {
+    color: var(--danger);
+
+    lucide-icon {
+      animation: like-pop 260ms var(--ease-standard, ease-out);
+    }
+
+    ::ng-deep svg {
+      fill: currentColor;
+    }
+  }
+
+  &.is-saved {
+    color: var(--primary);
+  }
+}
+
+// ---- Comments --------------------------------------------------------------------------------
+.comments {
+  display: grid;
+  gap: 12px;
+  padding: 14px 20px 16px;
+  border-top: 1px solid var(--hairline);
+  background: var(--surface-subtle);
+}
+
+.comments__state,
+.comments__empty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--body);
+  font-size: 14px;
+}
+
+.comments__more {
+  justify-self: start;
+}
+
+.thread {
+  display: grid;
+  gap: 10px;
+}
+
+.thread__replies {
+  display: grid;
+  gap: 10px;
+  margin-left: 22px;
+  padding-left: 20px;
+  border-left: 2px solid var(--hairline);
+}
+
+.comment {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 10px;
+
+  > img {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+.comment__main {
+  display: grid;
+  min-width: 0;
+  justify-items: start;
+  gap: 4px;
+}
+
+.comment__bubble {
+  max-width: 100%;
+  padding: 8px 12px;
+  border-radius: 4px 14px 14px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--hairline);
+
+  a {
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 800;
+    text-decoration: none;
+
+    &:hover {
+      color: var(--primary);
+    }
+  }
+
+  p {
+    margin: 2px 0 0;
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+  }
+}
+
+.comment__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  padding-left: 4px;
+  color: var(--body);
+  font-size: 13px;
+  font-weight: 600;
+
+  button {
+    min-height: 28px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--body);
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+
+    &:hover {
+      color: var(--primary);
+    }
+  }
+}
+
+.comment__confirm {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: var(--danger-soft);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.comment__edit {
+  display: grid;
+  width: 100%;
+  gap: 4px;
+
+  div {
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+  }
+}
+
+.comment__edit textarea,
+.comment-box textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  outline: none;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.45;
+  resize: none;
+
+  &:hover {
+    border-color: var(--border-strong);
+  }
+}
+
+.comment-box {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) 44px;
+  align-items: end;
+  gap: 10px;
+
+  > img {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 6px;
+  }
+
+  textarea {
+    min-height: 44px;
+    field-sizing: content;
+    max-height: 160px;
+  }
+}
+
+.icon-btn--send {
+  width: 44px;
+  height: 44px;
+  border-color: var(--primary);
+  background: var(--primary-fill);
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    border-color: var(--primary-hover);
+    background: var(--primary-fill-hover);
+    color: #fff;
+  }
+
+  &:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+  }
+}
+
+.reply-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 42px;
+  color: var(--body);
+  font-size: 13px;
+
+  strong {
+    color: var(--ink);
+  }
+}
+
+// ---- Report chips ----------------------------------------------------------------------------
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--hairline);
+  border-radius: 9999px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color var(--transition-smooth), background-color var(--transition-smooth);
+
+  &:hover {
+    border-color: var(--primary);
+    background: var(--primary-light);
+    color: var(--primary-strong);
+  }
+}
+
+@keyframes like-pop {
+  40% { scale: 1.25; }
+  100% { scale: 1; }
+}
+
+@keyframes media-shimmer {
+  to { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .action.is-liked lucide-icon,
+  .media__cell--loading {
+    animation: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .post__head {
+    padding: 14px 12px 10px 16px;
+  }
+
+  .post__body,
+  .post__stats {
+    padding-inline: 16px;
+  }
+
+  .post__tools .badge {
+    display: none;
+  }
+
+  .post__follow {
+    width: 40px;
+    padding: 0;
+    font-size: 0;
+    gap: 0;
+  }
+
+  .media {
+    grid-auto-rows: 160px;
+  }
+
+  // Icon-only on phones, but the label stays in the accessibility tree as the button name.
+  .action span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .confirm {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .confirm__actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .comments {
+    padding-inline: 16px;
+  }
+
+  .thread__replies {
+    margin-left: 14px;
+    padding-left: 12px;
+  }
+}

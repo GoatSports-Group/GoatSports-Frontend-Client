@@ -9,7 +9,10 @@ import {
   SaveSocialPostRequest,
   SocialComment,
   SocialPost,
-  SocialPostShare,
+  AuthorStats,
+  FeedFilter,
+  FollowSuggestion,
+  PostVisibility,
   UserFollowStatus
 } from '@application/dto/social-feed/social-feed.dto';
 import { API_ENDPOINTS } from '@infrastructure/config/api-endpoints';
@@ -21,13 +24,34 @@ export class SocialFeedApi {
   private readonly reportUrl = `${API_ENDPOINTS.social}/reports`;
   private readonly followUrl = `${API_ENDPOINTS.social}/follows/users`;
 
-  getFeed(
-    page: number,
-    size: number,
-    followingOnly = false
-  ): Observable<BaseResponse<SpringPageResponse<SocialPost>>> {
-    return this.http.get<BaseResponse<SpringPageResponse<SocialPost>>>(this.postUrl, {
-      params: this.pageParams(page, size).set('followingOnly', followingOnly)
+  getFeed(page: number, size: number, filter: FeedFilter = {}): Observable<BaseResponse<SpringPageResponse<SocialPost>>> {
+    let params = this.pageParams(page, size).set('followingOnly', !!filter.followingOnly);
+    if (filter.sport) params = params.set('sport', filter.sport);
+    if (filter.authorId) params = params.set('authorId', filter.authorId);
+    return this.http.get<BaseResponse<SpringPageResponse<SocialPost>>>(this.postUrl, { params });
+  }
+
+  getSavedPosts(page: number, size: number): Observable<BaseResponse<SpringPageResponse<SocialPost>>> {
+    return this.http.get<BaseResponse<SpringPageResponse<SocialPost>>>(`${this.postUrl}/saved`, {
+      params: this.pageParams(page, size)
+    });
+  }
+
+  getPost(postId: string): Observable<BaseResponse<SocialPost>> {
+    return this.http.get<BaseResponse<SocialPost>>(`${this.postUrl}/${postId}`);
+  }
+
+  getAuthorStats(authorId: string): Observable<BaseResponse<AuthorStats>> {
+    return this.http.get<BaseResponse<AuthorStats>>(`${this.postUrl}/authors/${authorId}/stats`);
+  }
+
+  getFollowStatus(userId: string): Observable<BaseResponse<UserFollowStatus>> {
+    return this.http.get<BaseResponse<UserFollowStatus>>(`${this.followUrl}/${userId}`);
+  }
+
+  getFollowSuggestions(limit: number): Observable<BaseResponse<FollowSuggestion[]>> {
+    return this.http.get<BaseResponse<FollowSuggestion[]>>(`${this.followUrl}/suggestions`, {
+      params: new HttpParams().set('limit', limit)
     });
   }
 
@@ -81,8 +105,16 @@ export class SocialFeedApi {
     return this.http.delete<BaseResponse<SocialPost>>(`${this.postUrl}/${postId}/like`);
   }
 
-  sharePost(postId: string, caption: string): Observable<BaseResponse<SocialPostShare>> {
-    return this.http.post<BaseResponse<SocialPostShare>>(`${this.postUrl}/${postId}/shares`, { caption });
+  savePost(postId: string): Observable<BaseResponse<SocialPost>> {
+    return this.http.put<BaseResponse<SocialPost>>(`${this.postUrl}/${postId}/save`, {});
+  }
+
+  unsavePost(postId: string): Observable<BaseResponse<SocialPost>> {
+    return this.http.delete<BaseResponse<SocialPost>>(`${this.postUrl}/${postId}/save`);
+  }
+
+  sharePost(postId: string, caption: string, visibility: PostVisibility): Observable<BaseResponse<SocialPost>> {
+    return this.http.post<BaseResponse<SocialPost>>(`${this.postUrl}/${postId}/shares`, { caption, visibility });
   }
 
   reportContent(request: CreateContentReportRequest): Observable<BaseResponse<ContentReport>> {

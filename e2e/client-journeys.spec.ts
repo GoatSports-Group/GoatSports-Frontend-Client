@@ -30,7 +30,7 @@ test('trang chính không tràn ngang ở viewport hiện tại', async ({ page 
 test('modal chia sẻ giữ focus và đóng bằng Escape', async ({ page }) => {
   await page.goto('/feed');
   await page.getByRole('button', { name: 'Chia sẻ', exact: true }).click();
-  const dialog = page.getByRole('dialog', { name: 'Chia sẻ bài viết' });
+  const dialog = page.getByRole('dialog', { name: 'Chia sẻ lên bảng tin' });
   await expect(dialog).toBeVisible();
   await expect(dialog.locator('textarea')).toBeFocused();
   await page.keyboard.press('Escape');
@@ -42,5 +42,5 @@ test('tiêu đề tài liệu thay đổi theo route', async ({ page }) => {
   await page.goto('/venues');
   await expect(page).toHaveTitle('Tìm sân đấu | GOAT Sports');
   await page.goto('/feed');
-  await expect(page).toHaveTitle('Bảng tin | GOAT Sports');
+  await expect(page).toHaveTitle('Cộng đồng | GOAT Sports');
 });

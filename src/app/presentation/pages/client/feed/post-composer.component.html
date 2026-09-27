@@ -1,0 +1,93 @@
+<section class="composer" [class.composer--inline]="isEdit" [class.composer--share]="isShare" [attr.aria-busy]="publishing()">
+  @if (!isEdit && auth.currentUser; as me) {
+    <header class="composer__who">
+      <img [src]="store.avatar(me.userId)" alt="" />
+      <div>
+        <strong>{{ me.fullName }}</strong>
+        <span>Chia sẻ trận đấu, tìm đồng đội hay rủ kèo cuối tuần</span>
+      </div>
+    </header>
+  }
+
+  <label class="sr-only" [attr.for]="isEdit ? 'edit-' + post?.postId : 'composer-content'">
+    {{ isShare ? 'Lời dẫn khi chia sẻ' : 'Nội dung bài viết' }}
+  </label>
+  <textarea
+    class="composer__text"
+    [id]="isEdit ? 'edit-' + post?.postId : 'composer-content'"
+    [rows]="isEdit ? 4 : 3"
+    [attr.maxlength]="isShare ? 1000 : maxContent"
+    [placeholder]="isShare ? 'Viết lời dẫn (không bắt buộc)…' : 'Tối thứ Sáu ai rảnh đá sân 7 ở Thủ Đức không?'"
+    [ngModel]="content()"
+    (ngModelChange)="content.set($event)"
+    (keydown)="onKeydown($event)"></textarea>
+
+  @if (retained().length || pending().length) {
+    <div class="composer__media" aria-label="Tệp đính kèm">
+      @for (item of retained(); track item.attachmentId) {
+        <figure class="thumb">
+          @if (item.type === 'IMAGE' && store.mediaUrl(item.storageKey)) {
+            <img [src]="store.mediaUrl(item.storageKey)" alt="Ảnh đã đính kèm" />
+          } @else if (item.type === 'VIDEO' && store.mediaUrl(item.storageKey)) {
+            <video [src]="store.mediaUrl(item.storageKey)" muted aria-label="Video đã đính kèm"></video>
+          } @else {
+            <span class="thumb__file"><lucide-icon name="file-text" class="w-5 h-5"></lucide-icon></span>
+          }
+          <button type="button" class="thumb__remove" (click)="removeRetained(item.attachmentId)" aria-label="Gỡ tệp">
+            <lucide-icon name="x" class="w-4 h-4"></lucide-icon>
+          </button>
+        </figure>
+      }
+      @for (item of pending(); track item.previewUrl; let index = $index) {
+        <figure class="thumb">
+          @if (item.type === 'IMAGE') {
+            <img [src]="item.previewUrl" [alt]="item.file.name" />
+          } @else if (item.type === 'VIDEO') {
+            <video [src]="item.previewUrl" muted [attr.aria-label]="item.file.name"></video>
+          } @else {
+            <span class="thumb__file"><lucide-icon name="file-text" class="w-5 h-5"></lucide-icon><small>{{ item.file.name }}</small></span>
+          }
+          <button type="button" class="thumb__remove" (click)="removePending(index)" aria-label="Gỡ tệp">
+            <lucide-icon name="x" class="w-4 h-4"></lucide-icon>
+          </button>
+        </figure>
+      }
+    </div>
+  }
+
+  <footer class="composer__bar">
+    <div class="composer__tools">
+      @if (!isShare) {
+        <label class="tool" [class.is-disabled]="attachmentCount() >= 10">
+          <input type="file" multiple accept="image/*,video/*,.pdf,.doc,.docx" (change)="onFilesSelected($event)"
+            [disabled]="attachmentCount() >= 10" aria-label="Thêm ảnh, video hoặc tệp" />
+          <lucide-icon name="image" class="w-5 h-5"></lucide-icon>
+          <span>Ảnh / video</span>
+          @if (attachmentCount()) { <b>{{ attachmentCount() }}/10</b> }
+        </label>
+        <div class="tool-select">
+          <app-select size="sm" leadingIcon="trophy" ariaLabel="Môn thể thao" placeholder="Chọn môn" [options]="sportOptions"
+            [ngModel]="sport()" (ngModelChange)="sport.set($event)"></app-select>
+        </div>
+      }
+      <div class="tool-select">
+        <app-select size="sm" [leadingIcon]="visibilityIcon" ariaLabel="Ai có thể xem" [options]="visibilityOptions"
+          [ngModel]="visibility()" (ngModelChange)="visibility.set($event)"></app-select>
+      </div>
+    </div>
+
+    <div class="composer__submit">
+      @if (content().length > maxContent - 300) {
+        <small class="counter" [class.is-over]="content().length > maxContent">{{ content().length }}/{{ maxContent }}</small>
+      }
+      @if (isEdit) {
+        <button type="button" class="btn btn--secondary" [disabled]="publishing()" (click)="cancelled.emit()">Hủy</button>
+      }
+      <button type="button" class="btn btn--primary" [disabled]="!canPublish()" [attr.aria-busy]="publishing()" (click)="submit()">
+        @if (publishing()) { <span class="spinner" aria-hidden="true"></span> }
+        @else { <lucide-icon [name]="isEdit ? 'check' : 'send'" class="w-4 h-4"></lucide-icon> }
+        {{ isEdit ? 'Lưu thay đổi' : 'Đăng bài' }}
+      </button>
+    </div>
+  </footer>
+</section>

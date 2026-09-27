@@ -158,6 +158,12 @@ export class HeaderComponent implements OnInit {
       case 'MATCHMAKING_SESSION':
         void this.router.navigate(['/matchmaking']);
         break;
+      case 'POST':
+        void this.router.navigate(referenceId ? ['/feed/posts', referenceId] : ['/feed']);
+        break;
+      case 'COMMUNITY_USER':
+        void this.router.navigate(['/feed'], { queryParams: referenceId ? { author: referenceId } : {} });
+        break;
       case 'REFUND':
         void this.router.navigate(['/settings'], { queryParams: { tab: 'banking' } });
         break;

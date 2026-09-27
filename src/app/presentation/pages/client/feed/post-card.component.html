@@ -1,0 +1,356 @@
+<article class="post" [attr.aria-labelledby]="'post-author-' + post.postId">
+  <header class="post__head">
+    <a class="post__avatar" [routerLink]="['/feed']" [queryParams]="{ author: post.authorId }" tabindex="-1" aria-hidden="true">
+      <img class="avatar" [src]="store.avatar(post.authorId)" alt="" width="44" height="44" />
+    </a>
+    <div class="post__who">
+      <a class="post__name" [id]="'post-author-' + post.postId" [routerLink]="['/feed']" [queryParams]="{ author: post.authorId }">
+        {{ store.authorName(post.authorId) }}
+        @if (post.sharedPostId) { <span class="post__verb">đã chia sẻ một bài viết</span> }
+      </a>
+      <div class="meta">
+        <a class="post__time" [routerLink]="['/feed/posts', post.postId]" [title]="post.publishedAt | date:'HH:mm dd/MM/yyyy'">
+          {{ relativeTime(post.publishedAt || post.createdAt) }}
+        </a>
+        @if (isEdited(post)) { <span class="meta__dot" aria-hidden="true"></span><span>Đã sửa</span> }
+        <span class="meta__dot" aria-hidden="true"></span>
+        <span class="post__visibility" [title]="visibilityMeta[post.visibility].label">
+          <lucide-icon [name]="visibilityMeta[post.visibility].icon" class="w-3.5 h-3.5"></lucide-icon>
+          <span class="sr-only">{{ visibilityMeta[post.visibility].label }}</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="post__tools">
+      @if (post.sport) { <span class="badge badge--sport">{{ sportLabel(post.sport) }}</span> }
+      @if (!isOwn && !store.isFollowing(post.authorId)) {
+        <button type="button" class="btn btn--ghost post__follow" [disabled]="store.pendingFollowIds().has(post.authorId)"
+          (click)="toggleFollow()">
+          <lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon>Theo dõi
+        </button>
+      }
+      <button type="button" class="icon-btn" [matMenuTriggerFor]="postMenu" aria-label="Tác vụ bài viết">
+        <lucide-icon name="ellipsis" class="w-5 h-5"></lucide-icon>
+      </button>
+      <mat-menu #postMenu="matMenu" xPosition="before" class="goat-action-menu">
+        <button mat-menu-item type="button" (click)="copyLink()">
+          <lucide-icon name="link" class="w-4 h-4"></lucide-icon>Sao chép liên kết
+        </button>
+        @if (isOwn) {
+          <button mat-menu-item type="button" (click)="editing.set(true)">
+            <lucide-icon name="pencil" class="w-4 h-4"></lucide-icon>{{ post.sharedPostId ? 'Sửa lời dẫn' : 'Chỉnh sửa bài viết' }}
+          </button>
+          <button mat-menu-item type="button" class="is-danger" (click)="confirm.set({ kind: 'delete-post' })">
+            <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon>Xóa bài viết
+          </button>
+        } @else {
+          @if (store.isFollowing(post.authorId)) {
+            <button mat-menu-item type="button" (click)="toggleFollow()">
+              <lucide-icon name="user-minus" class="w-4 h-4"></lucide-icon>Bỏ theo dõi {{ store.authorName(post.authorId) }}
+            </button>
+          }
+          <button mat-menu-item type="button" (click)="openReport('POST', post.postId)">
+            <lucide-icon name="flag" class="w-4 h-4"></lucide-icon>Báo cáo bài viết
+          </button>
+          <button mat-menu-item type="button" class="is-danger" (click)="confirm.set({ kind: 'block' })">
+            <lucide-icon name="ban" class="w-4 h-4"></lucide-icon>Chặn {{ store.authorName(post.authorId) }}
+          </button>
+        }
+      </mat-menu>
+    </div>
+  </header>
+
+  @if (confirm(); as pending) {
+    @if (pending.kind !== 'delete-comment') {
+      <div class="confirm" role="alertdialog" [attr.aria-label]="pending.kind === 'block' ? 'Xác nhận chặn' : 'Xác nhận xóa bài viết'">
+        <lucide-icon [name]="pending.kind === 'block' ? 'ban' : 'trash-2'" class="w-5 h-5"></lucide-icon>
+        <p>
+          @if (pending.kind === 'block') {
+            Chặn <strong>{{ store.authorName(post.authorId) }}</strong>? Hai bạn sẽ không thấy bài và không nhắn tin được cho nhau.
+          } @else {
+            Xóa bài viết này? Bình luận và lượt thích cũng sẽ mất.
+          }
+        </p>
+        <div class="confirm__actions">
+          <button type="button" class="btn btn--secondary" (click)="confirm.set(null)">Giữ lại</button>
+          <button type="button" class="btn btn--danger" [disabled]="busy()" (click)="confirmAction()">
+            {{ pending.kind === 'block' ? 'Chặn' : 'Xóa' }}
+          </button>
+        </div>
+      </div>
+    }
+  }
+
+  @if (editing()) {
+    <div class="post__body">
+      <app-post-composer [post]="post" (saved)="onEdited($event)" (cancelled)="editing.set(false)"></app-post-composer>
+    </div>
+  } @else {
+    @if (post.content) {
+      <div class="post__body">
+        <p class="post__text" [class.is-clamped]="isLong && !expanded()">{{ post.content }}</p>
+        @if (isLong) {
+          <button type="button" class="link-btn" (click)="expanded.set(!expanded())">{{ expanded() ? 'Thu gọn' : 'Xem thêm' }}</button>
+        }
+      </div>
+    }
+
+    @if (post.sharedPostId) {
+      @if (post.sharedPost; as original) {
+        <a class="embed" [routerLink]="['/feed/posts', original.postId]" [attr.aria-label]="'Bài gốc của ' + store.authorName(original.authorId)">
+          <div class="embed__head">
+            <img class="avatar" [src]="store.avatar(original.authorId)" alt="" width="32" height="32" />
+            <div>
+              <strong>{{ store.authorName(original.authorId) }}</strong>
+              <span class="meta">
+                {{ relativeTime(original.publishedAt) }}
+                @if (original.sport) { <span class="meta__dot" aria-hidden="true"></span>{{ sportLabel(original.sport) }} }
+              </span>
+            </div>
+          </div>
+          @if (original.content) { <p class="embed__text">{{ original.content }}</p> }
+          @if (original.attachments.length) {
+            <ng-container [ngTemplateOutlet]="mediaGrid" [ngTemplateOutletContext]="{ $implicit: original.attachments, linked: false }"></ng-container>
+          }
+        </a>
+      } @else {
+        <div class="embed embed--gone">
+          <lucide-icon name="eye-off" class="w-5 h-5"></lucide-icon>
+          <div><strong>Nội dung này không còn hiển thị</strong><span>Bài gốc đã bị xóa, bị ẩn hoặc bạn không có quyền xem.</span></div>
+        </div>
+      }
+    } @else if (post.attachments.length) {
+      <ng-container [ngTemplateOutlet]="mediaGrid" [ngTemplateOutletContext]="{ $implicit: post.attachments, linked: true }"></ng-container>
+    }
+  }
+
+  <div class="post__stats">
+    <span class="post__likes" [class.is-empty]="!post.likeCount">
+      <span class="like-dot" aria-hidden="true"><lucide-icon name="heart" class="w-3 h-3"></lucide-icon></span>
+      {{ compactCount(post.likeCount) }}<span class="sr-only"> lượt thích</span>
+    </span>
+    <span class="post__counts">
+      <button type="button" class="link-btn link-btn--muted" (click)="toggleComments()">{{ compactCount(post.commentCount) }} bình luận</button>
+      @if (!post.sharedPostId) { <span>{{ compactCount(post.shareCount) }} lượt chia sẻ</span> }
+    </span>
+  </div>
+
+  <div class="post__actions" role="group" aria-label="Tương tác">
+    <button type="button" class="action" [class.is-liked]="post.likedByCurrentUser" [attr.aria-pressed]="post.likedByCurrentUser"
+      [disabled]="busy()" (click)="toggleLike()">
+      <lucide-icon name="heart" class="w-5 h-5"></lucide-icon><span>Thích</span>
+    </button>
+    <button type="button" class="action" [attr.aria-expanded]="commentsOpen()" (click)="toggleComments()">
+      <lucide-icon name="message-circle" class="w-5 h-5"></lucide-icon><span>Bình luận</span>
+    </button>
+    @if (canShare) {
+      <button type="button" class="action" (click)="openShare()">
+        <lucide-icon name="repeat-2" class="w-5 h-5"></lucide-icon><span>Chia sẻ</span>
+      </button>
+    }
+    <button type="button" class="action" [class.is-saved]="post.savedByCurrentUser" [attr.aria-pressed]="post.savedByCurrentUser"
+      [disabled]="busy()" (click)="toggleSave()">
+      <lucide-icon [name]="post.savedByCurrentUser ? 'bookmark-check' : 'bookmark'" class="w-5 h-5"></lucide-icon>
+      <span>{{ post.savedByCurrentUser ? 'Đã lưu' : 'Lưu' }}</span>
+    </button>
+  </div>
+
+  @if (commentsOpen()) {
+    <section class="comments" [attr.aria-label]="'Bình luận bài viết của ' + store.authorName(post.authorId)">
+      @if (commentsError()) {
+        <div class="comments__state">
+          <lucide-icon name="wifi-off" class="w-4 h-4"></lucide-icon>Không tải được bình luận.
+          <button type="button" class="link-btn" (click)="loadComments(commentsPage())">Thử lại</button>
+        </div>
+      } @else if (commentsLoading() && !comments().length) {
+        <app-loading-skeleton variant="rows" [count]="2" [flush]="true" label="Đang tải bình luận"></app-loading-skeleton>
+      } @else if (!comments().length) {
+        <p class="comments__empty">Chưa có bình luận. Mở lời trước nhé.</p>
+      }
+
+      @for (thread of threads(); track thread.comment.commentId) {
+        <div class="thread">
+          <ng-container [ngTemplateOutlet]="commentRow" [ngTemplateOutletContext]="{ $implicit: thread.comment }"></ng-container>
+          @if (thread.replies.length) {
+            <div class="thread__replies">
+              @for (reply of thread.replies; track reply.commentId) {
+                <ng-container [ngTemplateOutlet]="commentRow" [ngTemplateOutletContext]="{ $implicit: reply }"></ng-container>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      @if (commentsHasMore()) {
+        <button type="button" class="link-btn comments__more" [disabled]="commentsLoading()" (click)="loadComments(commentsPage() + 1)">
+          @if (commentsLoading()) { <span class="spinner" aria-hidden="true"></span> }
+          Xem thêm bình luận
+        </button>
+      }
+
+      @if (auth.currentUser; as me) {
+        @if (replyTo(); as target) {
+          <div class="reply-note">
+            Đang trả lời <strong>{{ store.authorName(target.authorId) }}</strong>
+            <button type="button" class="link-btn" (click)="replyTo.set(null)">Hủy</button>
+          </div>
+        }
+        <div class="comment-box">
+          <img class="avatar" [src]="store.avatar(me.userId)" alt="" width="32" height="32" />
+          <label class="sr-only" [attr.for]="'comment-input-' + post.postId">Viết bình luận</label>
+          <textarea rows="1" maxlength="1000" [id]="'comment-input-' + post.postId" placeholder="Viết bình luận…"
+            [ngModel]="commentDraft()" (ngModelChange)="commentDraft.set($event)" (keydown)="onCommentKeydown($event)"></textarea>
+          <button type="button" class="icon-btn icon-btn--send" [disabled]="!commentDraft().trim() || sendingComment()"
+            (click)="submitComment()" aria-label="Gửi bình luận" [attr.aria-busy]="sendingComment()">
+            @if (sendingComment()) { <span class="spinner" aria-hidden="true"></span> }
+            @else { <lucide-icon name="send" class="w-4 h-4"></lucide-icon> }
+          </button>
+        </div>
+      }
+    </section>
+  }
+</article>
+
+<ng-template #mediaGrid let-items let-linked="linked">
+  <div class="media" [attr.data-count]="items.length > 4 ? 4 : items.length">
+    @for (item of items.slice(0, 4); track item.attachmentId; let index = $index) {
+      @if (store.mediaUrl(item.storageKey); as url) {
+        @if (item.type === 'IMAGE') {
+          @if (linked) {
+            <a class="media__cell" [href]="url" target="_blank" rel="noopener noreferrer" [attr.aria-label]="'Mở ảnh ' + (index + 1)">
+              <img [src]="url" alt="" loading="lazy" />
+              @if (index === 3 && items.length > 4) { <span class="media__more">+{{ items.length - 4 }}</span> }
+            </a>
+          } @else {
+            <span class="media__cell">
+              <img [src]="url" alt="" loading="lazy" />
+              @if (index === 3 && items.length > 4) { <span class="media__more">+{{ items.length - 4 }}</span> }
+            </span>
+          }
+        } @else if (item.type === 'VIDEO') {
+          <span class="media__cell"><video [src]="url" controls preload="metadata">Trình duyệt không hỗ trợ video.</video></span>
+        } @else {
+          <a class="media__cell media__file" [href]="url" target="_blank" rel="noopener noreferrer">
+            <lucide-icon name="file-text" class="w-6 h-6"></lucide-icon><span>Mở tệp đính kèm</span>
+          </a>
+        }
+      } @else {
+        <span class="media__cell media__cell--loading" aria-hidden="true"></span>
+      }
+    }
+  </div>
+</ng-template>
+
+<ng-template #commentRow let-comment>
+  <article class="comment">
+    <img class="avatar" [src]="store.avatar(comment.authorId)" alt="" width="32" height="32" />
+    <div class="comment__main">
+      @if (editingCommentId() === comment.commentId) {
+        <div class="comment__edit">
+          <label class="sr-only" [attr.for]="'edit-comment-' + comment.commentId">Sửa bình luận</label>
+          <textarea rows="2" maxlength="1000" [id]="'edit-comment-' + comment.commentId"
+            [ngModel]="editDraft()" (ngModelChange)="editDraft.set($event)"></textarea>
+          <div>
+            <button type="button" class="link-btn link-btn--muted" (click)="editingCommentId.set(null)">Hủy</button>
+            <button type="button" class="link-btn" (click)="saveComment(comment)">Lưu</button>
+          </div>
+        </div>
+      } @else {
+        <div class="comment__bubble">
+          <a [routerLink]="['/feed']" [queryParams]="{ author: comment.authorId }">{{ store.authorName(comment.authorId) }}</a>
+          <p>{{ comment.content }}</p>
+        </div>
+        @if (confirm(); as pending) {
+          @if (pending.kind === 'delete-comment' && pending.commentId === comment.commentId) {
+            <div class="comment__confirm" role="alertdialog" aria-label="Xác nhận xóa bình luận">
+              Xóa bình luận này?
+              <button type="button" class="link-btn link-btn--muted" (click)="confirm.set(null)">Giữ lại</button>
+              <button type="button" class="link-btn link-btn--danger" (click)="confirmAction()">Xóa</button>
+            </div>
+          }
+        }
+        <div class="comment__meta">
+          <span>{{ relativeTime(comment.createdAt) }}@if (isEdited(comment)) { · đã sửa }</span>
+          @if (auth.currentUser) { <button type="button" (click)="reply(comment)">Trả lời</button> }
+          @if (me === comment.authorId) {
+            <button type="button" (click)="startEditComment(comment)">Sửa</button>
+            <button type="button" (click)="confirm.set({ kind: 'delete-comment', commentId: comment.commentId })">Xóa</button>
+          } @else if (auth.currentUser) {
+            <button type="button" (click)="openReport('COMMENT', comment.commentId)">Báo cáo</button>
+          }
+        </div>
+      }
+    </div>
+  </article>
+</ng-template>
+
+@if (shareOpen()) {
+  <div class="modal-backdrop" role="presentation" (click)="closeShare()">
+    <section class="modal" appAccessibleDialog aria-labelledby="share-title" (dialogClosed)="closeShare()" (click)="$event.stopPropagation()">
+      <header class="modal__header">
+        <div>
+          <h2 id="share-title">Chia sẻ lên bảng tin</h2>
+          <p>Bài của {{ store.authorName(source()?.authorId ?? post.authorId) }} sẽ hiện kèm lời dẫn của bạn.</p>
+        </div>
+        <button type="button" class="icon-btn" (click)="closeShare()" aria-label="Đóng"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button>
+      </header>
+      <div class="modal__body">
+        <label class="field">
+          <span class="field__label">Lời dẫn</span>
+          <textarea class="field__control" cdkFocusInitial rows="4" maxlength="1000" placeholder="Viết vài dòng (không bắt buộc)…"
+            [ngModel]="shareCaption()" (ngModelChange)="shareCaption.set($event)"></textarea>
+        </label>
+        <div class="field">
+          <span class="field__label">Ai có thể xem</span>
+          <app-select ariaLabel="Ai có thể xem" [options]="visibilityOptions" [leadingIcon]="visibilityMeta[shareVisibility()].icon"
+            [ngModel]="shareVisibility()" (ngModelChange)="shareVisibility.set($event)"></app-select>
+        </div>
+      </div>
+      <footer class="modal__footer">
+        <button type="button" class="btn btn--secondary" [disabled]="sharing()" (click)="closeShare()">Hủy</button>
+        <button type="button" class="btn btn--primary" [disabled]="sharing()" [attr.aria-busy]="sharing()" (click)="submitShare()">
+          @if (sharing()) { <span class="spinner" aria-hidden="true"></span> } @else { <lucide-icon name="repeat-2" class="w-4 h-4"></lucide-icon> }
+          Chia sẻ
+        </button>
+      </footer>
+    </section>
+  </div>
+}
+
+@if (reportTarget(); as target) {
+  <div class="modal-backdrop" role="presentation" (click)="closeReport()">
+    <section class="modal" appAccessibleDialog aria-labelledby="report-title" (dialogClosed)="closeReport()" (click)="$event.stopPropagation()">
+      <header class="modal__header">
+        <div>
+          <h2 id="report-title">Báo cáo {{ target.type === 'POST' ? 'bài viết' : 'bình luận' }}</h2>
+          <p>Đội kiểm duyệt sẽ xem xét. Người bị báo cáo không biết ai đã gửi.</p>
+        </div>
+        <button type="button" class="icon-btn" (click)="closeReport()" aria-label="Đóng"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button>
+      </header>
+      <div class="modal__body">
+        <div class="field">
+          <span class="field__label">Lý do thường gặp</span>
+          <div class="chips">
+            @for (reason of reportReasons; track reason) {
+              <button type="button" class="chip" (click)="pickReason(reason)">{{ reason }}</button>
+            }
+          </div>
+        </div>
+        <label class="field" [class.is-invalid]="reportReason().trim().length > 0 && reportReason().trim().length < 10">
+          <span class="field__label">Mô tả <b>*</b></span>
+          <textarea class="field__control" cdkFocusInitial rows="4" maxlength="2000" aria-describedby="report-hint"
+            placeholder="Nội dung vi phạm điều gì?" [ngModel]="reportReason()" (ngModelChange)="reportReason.set($event)"></textarea>
+          <small id="report-hint" class="field__hint">{{ reportReason().trim().length }}/2000 · tối thiểu 10 ký tự</small>
+        </label>
+      </div>
+      <footer class="modal__footer">
+        <button type="button" class="btn btn--secondary" [disabled]="reporting()" (click)="closeReport()">Hủy</button>
+        <button type="button" class="btn btn--danger" [disabled]="reporting() || reportReason().trim().length < 10"
+          [attr.aria-busy]="reporting()" (click)="submitReport()">
+          @if (reporting()) { <span class="spinner" aria-hidden="true"></span> }
+          Gửi báo cáo
+        </button>
+      </footer>
+    </section>
+  </div>
+}

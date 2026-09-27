@@ -22,6 +22,7 @@ import { TournamentListComponent } from '@presentation/pages/client/tournaments/
 import { TournamentDetailComponent } from '@presentation/pages/client/tournaments/tournament-detail.component';
 import { MatchmakingComponent } from '@presentation/pages/client/matchmaking/matchmaking.component';
 import { SocialFeedComponent } from '@presentation/pages/client/feed/social-feed.component';
+import { PostDetailComponent } from '@presentation/pages/client/feed/post-detail.component';
 import { AuthGuard } from '@presentation/guards/auth.guard';
 
 const routes: Routes = [
@@ -60,7 +61,8 @@ const routes: Routes = [
       { path: 'tournaments', component: TournamentListComponent, title: 'Giải đấu | GOAT Sports' },
       { path: 'tournaments/:id', component: TournamentDetailComponent, title: 'Chi tiết giải đấu | GOAT Sports' },
       { path: 'matchmaking', component: MatchmakingComponent, canActivate: [AuthGuard], title: 'AI ghép trận | GOAT Sports' },
-      { path: 'feed', component: SocialFeedComponent, canActivate: [AuthGuard], title: 'Bảng tin | GOAT Sports' },
+      { path: 'feed', component: SocialFeedComponent, canActivate: [AuthGuard], title: 'Cộng đồng | GOAT Sports' },
+      { path: 'feed/posts/:postId', component: PostDetailComponent, canActivate: [AuthGuard], title: 'Bài viết | GOAT Sports' },
       { path: 'ai-recommendation', redirectTo: 'matchmaking', pathMatch: 'full' },
       { path: 'chat', component: ChatComponent, canActivate: [AuthGuard], title: 'Tin nhắn | GOAT Sports' },
       { path: 'chat/:roomId', component: ChatComponent, canActivate: [AuthGuard], title: 'Cuộc trò chuyện | GOAT Sports' },

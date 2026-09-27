@@ -205,7 +205,9 @@ import {
   LucideUpload,
   LucideArchive,
   LucideGlobe2,
-  LucideArrowDownAZ
+  LucideArrowDownAZ,
+  LucideLink,
+  LucideRepeat2,
 } from '@lucide/angular';
 
 @NgModule({
@@ -248,6 +250,8 @@ import {
     { provide: AiRepositoryPort, useClass: AiRepository },
 
     provideLucideIcons(
+      LucideLink,
+      LucideRepeat2,
       LucideQrCode,
       LucideMenu,
       LucideSearch,

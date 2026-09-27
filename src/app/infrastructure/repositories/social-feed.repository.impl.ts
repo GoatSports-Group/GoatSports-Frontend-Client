@@ -8,7 +8,10 @@ import {
   SaveSocialPostRequest,
   SocialComment,
   SocialPost,
-  SocialPostShare,
+  AuthorStats,
+  FeedFilter,
+  FollowSuggestion,
+  PostVisibility,
   UserFollowStatus
 } from '@application/dto/social-feed/social-feed.dto';
 import { SocialFeedRepository } from '@application/ports/persistence/social-feed.repository';
@@ -18,8 +21,28 @@ import { SocialFeedApi } from '@infrastructure/api/social-feed.api';
 export class SocialFeedRepositoryImpl implements SocialFeedRepository {
   private readonly api = inject(SocialFeedApi);
 
-  getFeed(page: number, size: number, followingOnly = false): Observable<SpringPageResponse<SocialPost>> {
-    return this.api.getFeed(page, size, followingOnly).pipe(map(response => response.data));
+  getFeed(page: number, size: number, filter: FeedFilter = {}): Observable<SpringPageResponse<SocialPost>> {
+    return this.api.getFeed(page, size, filter).pipe(map(response => response.data));
+  }
+
+  getSavedPosts(page: number, size: number): Observable<SpringPageResponse<SocialPost>> {
+    return this.api.getSavedPosts(page, size).pipe(map(response => response.data));
+  }
+
+  getPost(postId: string): Observable<SocialPost> {
+    return this.api.getPost(postId).pipe(map(response => response.data));
+  }
+
+  getAuthorStats(authorId: string): Observable<AuthorStats> {
+    return this.api.getAuthorStats(authorId).pipe(map(response => response.data));
+  }
+
+  getFollowStatus(userId: string): Observable<UserFollowStatus> {
+    return this.api.getFollowStatus(userId).pipe(map(response => response.data));
+  }
+
+  getFollowSuggestions(limit: number): Observable<FollowSuggestion[]> {
+    return this.api.getFollowSuggestions(limit).pipe(map(response => response.data ?? []));
   }
 
   getFollowingUserIds(): Observable<string[]> {
@@ -70,8 +93,16 @@ export class SocialFeedRepositoryImpl implements SocialFeedRepository {
     return this.api.unlikePost(postId).pipe(map(response => response.data));
   }
 
-  sharePost(postId: string, caption: string): Observable<SocialPostShare> {
-    return this.api.sharePost(postId, caption).pipe(map(response => response.data));
+  savePost(postId: string): Observable<SocialPost> {
+    return this.api.savePost(postId).pipe(map(response => response.data));
+  }
+
+  unsavePost(postId: string): Observable<SocialPost> {
+    return this.api.unsavePost(postId).pipe(map(response => response.data));
+  }
+
+  sharePost(postId: string, caption: string, visibility: PostVisibility): Observable<SocialPost> {
+    return this.api.sharePost(postId, caption, visibility).pipe(map(response => response.data));
   }
 
   reportContent(request: CreateContentReportRequest): Observable<ContentReport> {

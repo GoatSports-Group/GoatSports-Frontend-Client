@@ -1,0 +1,306 @@
+@use 'community-ui' as c;
+
+:host {
+  display: block;
+}
+
+@include c.community-ui;
+
+.composer {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+// Inline edit sits inside a post card: no second border.
+.composer--inline {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.composer__who {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+
+  img {
+    width: 44px;
+    height: 44px;
+    flex: none;
+    border-radius: 9999px;
+    background: var(--surface-strong);
+    object-fit: cover;
+  }
+
+  div {
+    display: grid;
+    min-width: 0;
+    gap: 2px;
+  }
+
+  strong,
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  strong {
+    color: var(--ink);
+    font-size: 15px;
+    font-weight: 800;
+  }
+
+  span {
+    color: var(--body);
+    font-size: 13px;
+    font-weight: 600;
+  }
+}
+
+.composer__text {
+  display: block;
+  width: 100%;
+  min-height: 88px;
+  padding: 12px 14px;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  outline: none;
+  background: var(--surface-subtle);
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.55;
+  resize: vertical;
+  transition: border-color var(--transition-smooth), background-color var(--transition-smooth);
+
+  &::placeholder {
+    color: var(--body);
+    font-weight: 500;
+  }
+
+  &:hover {
+    border-color: var(--border-strong);
+  }
+
+  &:focus {
+    background: var(--surface);
+  }
+}
+
+.composer__media {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 8px;
+}
+
+.thumb {
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  background: var(--surface-strong);
+
+  img,
+  video {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+  }
+}
+
+.thumb__file {
+  display: grid;
+  height: 100%;
+  place-items: center;
+  align-content: center;
+  gap: 4px;
+  padding: 8px;
+  color: var(--body);
+  text-align: center;
+
+  small {
+    overflow: hidden;
+    max-width: 100%;
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.thumb__remove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 9999px;
+  background: rgb(7 25 45 / 78%);
+  color: #fff;
+  cursor: pointer;
+
+  &::after {
+    // 44px hit area on a 28px control
+    content: '';
+    position: absolute;
+    inset: -8px;
+  }
+}
+
+.composer__bar {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--hairline);
+}
+
+.composer__tools,
+.composer__submit {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.tool {
+  position: relative;
+  display: inline-flex;
+  min-height: 36px;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--transition-smooth), border-color var(--transition-smooth);
+
+  &:hover {
+    border-color: var(--border-strong);
+    background: var(--primary-light);
+  }
+
+  &:focus-within {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 3px;
+  }
+
+  &.is-disabled {
+    opacity: .55;
+    cursor: not-allowed;
+  }
+
+  input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    opacity: 0;
+  }
+
+  b {
+    color: var(--body);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.tool-select {
+  width: 168px;
+  min-width: 0;
+}
+
+.counter {
+  color: var(--body);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+
+  &.is-over {
+    color: var(--danger);
+  }
+}
+
+// Phones: row 1 = the two selects at equal width, row 2 = media button + submit.
+// 4 tracks (44 · 1fr · 44 · 1fr) give both selects the same width while the media button keeps 44px.
+@media (max-width: 720px) {
+  .composer__bar {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) 44px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .composer__tools,
+  .composer__submit {
+    display: contents;
+  }
+
+  .tool-select {
+    grid-row: 1;
+    width: auto;
+
+    &:nth-of-type(1) { grid-column: 1 / 3; }
+    &:nth-of-type(2) { grid-column: 3 / 5; }
+    &:only-of-type { grid-column: 1 / -1; }
+
+    ::ng-deep .app-select__leading {
+      display: none;
+    }
+  }
+
+  .tool {
+    grid-row: 2;
+    grid-column: 1;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0;
+
+    span,
+    b {
+      display: none;
+    }
+  }
+
+  .counter {
+    grid-row: 3;
+    grid-column: 1 / -1;
+    justify-self: end;
+  }
+
+  .composer__submit .btn--secondary {
+    grid-row: 2;
+    grid-column: 2 / 3;
+  }
+
+  .composer__submit .btn--primary {
+    grid-row: 2;
+    grid-column: 2 / -1;
+  }
+
+  .composer__submit .btn--secondary + .btn--primary {
+    grid-column: 3 / -1;
+  }
+
+  .composer--share .composer__submit .btn--secondary {
+    grid-column: 1 / 3;
+  }
+}

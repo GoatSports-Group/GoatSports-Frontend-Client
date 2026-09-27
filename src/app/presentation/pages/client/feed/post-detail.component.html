@@ -1,0 +1,24 @@
+<main class="post-page">
+  <nav class="crumbs" aria-label="Đường dẫn">
+    <a routerLink="/feed">Cộng đồng</a>
+    <lucide-icon name="chevron-right" class="w-4 h-4" aria-hidden="true"></lucide-icon>
+    <span aria-current="page">Bài viết</span>
+  </nav>
+
+  @if (loading() && !post()) {
+    <app-loading-skeleton variant="cards" [count]="1" minWidth="100%" label="Đang tải bài viết"></app-loading-skeleton>
+  } @else if (error()) {
+    <div class="state state--error">
+      <span class="state__icon"><lucide-icon name="eye-off" class="w-6 h-6"></lucide-icon></span>
+      <strong>Không mở được bài viết</strong>
+      <p>{{ error() }}</p>
+      <div class="state__actions">
+        <button type="button" class="btn btn--secondary" (click)="load()"><lucide-icon name="refresh-cw" class="w-4 h-4"></lucide-icon>Thử lại</button>
+        <a class="btn btn--primary" routerLink="/feed">Về bảng tin</a>
+      </div>
+    </div>
+  } @else if (post(); as current) {
+    <app-post-card [post]="current" [openComments]="true" (changed)="post.set($event)" (removed)="leave()"
+      (authorBlocked)="leave()"></app-post-card>
+  }
+</main>

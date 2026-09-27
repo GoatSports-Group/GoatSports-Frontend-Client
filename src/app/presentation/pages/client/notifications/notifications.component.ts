@@ -167,6 +167,8 @@ export class NotificationsComponent implements OnInit {
         return 'swords';
       case NotificationType.TOURNAMENT:
         return 'trophy';
+      case NotificationType.COMMUNITY:
+        return 'message-circle';
       case NotificationType.SYSTEM:
       default:
         return 'bell';
@@ -305,6 +307,11 @@ export class NotificationsComponent implements OnInit {
       void this.router.navigate(['/settings'], { queryParams: { tab: 'banking' } });
       return;
     }
+    // Nguoi theo doi moi: mo bang tin loc theo bai cua nguoi do.
+    if ((notification.referenceType || '').toUpperCase() === 'COMMUNITY_USER') {
+      void this.router.navigate(['/feed'], { queryParams: notification.referenceId ? { author: notification.referenceId } : {} });
+      return;
+    }
     const route = this.getNotificationRoute(notification);
     if (route) void this.router.navigate(route);
   }
@@ -319,6 +326,7 @@ export class NotificationsComponent implements OnInit {
       case 'CLUB_DISBANDED': return ['/clubs'];
       case 'TOURNAMENT': return id ? ['/tournaments', id] : ['/tournaments'];
       case 'MATCHMAKING_SESSION': return ['/matchmaking'];
+      case 'POST': return id ? ['/feed/posts', id] : ['/feed'];
       default: return null;
     }
   }

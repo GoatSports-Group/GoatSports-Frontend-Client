@@ -54,6 +54,20 @@ async function handleApi(route: Route): Promise<void> {
     await route.fulfill({ json: baseResponse({ items: [], total: 0, page: 0, pageSize: 12, totalPages: 0 }) });
     return;
   }
+  if (path.endsWith('/social-service/api/v1/social/follows/users/me/following')
+    || path.endsWith('/social-service/api/v1/social/follows/users/suggestions')) {
+    await route.fulfill({ json: baseResponse([]) });
+    return;
+  }
+  if (path.includes('/social-service/api/v1/social/follows/users/')) {
+    const userId = path.split('/').pop();
+    await route.fulfill({ json: baseResponse({ userId, followed: false, followerCount: 12, followingCount: 4 }) });
+    return;
+  }
+  if (path.includes('/social-service/api/v1/social/posts/authors/')) {
+    await route.fulfill({ json: baseResponse({ authorId: path.split('/').at(-2), postCount: 3 }) });
+    return;
+  }
   if (path.endsWith('/social-service/api/v1/social/posts')) {
     await route.fulfill({ json: baseResponse({
       ...emptySpringPage,
@@ -67,6 +81,10 @@ async function handleApi(route: Route): Promise<void> {
         content: 'Cuối tuần này có ai muốn giao lưu cầu lông không?',
         visibility: 'PUBLIC',
         status: 'PUBLISHED',
+        sport: 'BADMINTON',
+        sharedPostId: null,
+        sharedPost: null,
+        sharedPostUnavailable: false,
         createdAt: '2026-09-08T08:00:00',
         updatedAt: '2026-09-08T08:00:00',
         publishedAt: '2026-09-08T08:00:00',
@@ -74,7 +92,8 @@ async function handleApi(route: Route): Promise<void> {
         likeCount: 2,
         commentCount: 0,
         shareCount: 0,
-        likedByCurrentUser: false
+        likedByCurrentUser: false,
+        savedByCurrentUser: false
       }]
     }) });
     return;

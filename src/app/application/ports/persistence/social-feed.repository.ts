@@ -8,12 +8,20 @@ import {
   SaveSocialPostRequest,
   SocialComment,
   SocialPost,
-  SocialPostShare,
+  PostVisibility,
+  AuthorStats,
+  FeedFilter,
+  FollowSuggestion,
   UserFollowStatus
 } from '@application/dto/social-feed/social-feed.dto';
 
 export interface SocialFeedRepository {
-  getFeed(page: number, size: number, followingOnly?: boolean): Observable<SpringPageResponse<SocialPost>>;
+  getFeed(page: number, size: number, filter?: FeedFilter): Observable<SpringPageResponse<SocialPost>>;
+  getSavedPosts(page: number, size: number): Observable<SpringPageResponse<SocialPost>>;
+  getPost(postId: string): Observable<SocialPost>;
+  getAuthorStats(authorId: string): Observable<AuthorStats>;
+  getFollowStatus(userId: string): Observable<UserFollowStatus>;
+  getFollowSuggestions(limit: number): Observable<FollowSuggestion[]>;
   getFollowingUserIds(): Observable<string[]>;
   followUser(userId: string): Observable<UserFollowStatus>;
   unfollowUser(userId: string): Observable<UserFollowStatus>;
@@ -26,7 +34,10 @@ export interface SocialFeedRepository {
   deleteComment(commentId: string): Observable<void>;
   likePost(postId: string): Observable<SocialPost>;
   unlikePost(postId: string): Observable<SocialPost>;
-  sharePost(postId: string, caption: string): Observable<SocialPostShare>;
+  savePost(postId: string): Observable<SocialPost>;
+  unsavePost(postId: string): Observable<SocialPost>;
+  /** Tra ve bai chia se moi (bai goc nam trong sharedPost). */
+  sharePost(postId: string, caption: string, visibility: PostVisibility): Observable<SocialPost>;
   reportContent(request: CreateContentReportRequest): Observable<ContentReport>;
 }
 

@@ -45,6 +45,9 @@ import { MatchPreviewComponent } from '@presentation/pages/client/tournaments/ma
 import { FeePaymentDialogComponent } from '@presentation/pages/client/tournaments/fee-payment-dialog.component';
 import { MatchmakingComponent } from '@presentation/pages/client/matchmaking/matchmaking.component';
 import { SocialFeedComponent } from '@presentation/pages/client/feed/social-feed.component';
+import { PostCardComponent } from '@presentation/pages/client/feed/post-card.component';
+import { PostComposerComponent } from '@presentation/pages/client/feed/post-composer.component';
+import { PostDetailComponent } from '@presentation/pages/client/feed/post-detail.component';
 import { AiAssistantModalComponent } from '@presentation/shared/components/ai-assistant-modal/ai-assistant-modal.component';
 
 @NgModule({
@@ -90,6 +93,9 @@ import { AiAssistantModalComponent } from '@presentation/shared/components/ai-as
     FeePaymentDialogComponent,
     MatchmakingComponent,
     SocialFeedComponent,
+    PostCardComponent,
+    PostComposerComponent,
+    PostDetailComponent,
     AiAssistantModalComponent
   ],
   imports: [

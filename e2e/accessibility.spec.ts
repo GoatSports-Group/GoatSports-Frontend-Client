@@ -5,7 +5,7 @@ import { mockGoatSportsApi } from './fixtures/api.fixture';
 const pages = [
   { path: '/home', heading: 'Tìm Sân Thể Thao' },
   { path: '/venues', heading: 'Khám Phá Sân Thể Thao' },
-  { path: '/feed', heading: 'Bảng tin thể thao' },
+  { path: '/feed', heading: 'Cộng đồng' },
   { path: '/policy/booking-policy', heading: 'Chính sách đặt sân' }
 ];
 

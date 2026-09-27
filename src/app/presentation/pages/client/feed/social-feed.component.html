@@ -1,302 +1,256 @@
-<main class="feed-page">
-  <div class="feed-layout">
-    <aside class="feed-navigation" aria-label="Điều hướng cộng đồng">
-      @if (currentUser) {
-        <section class="profile-summary">
-          <img [src]="currentUser.avatarUrl || avatar(currentUser.userId)" [alt]="currentUser.fullName" />
-          <div><strong>{{ currentUser.fullName }}</strong><span>Thành viên GOAT Sports</span></div>
-          <dl><div><dt>Bài viết</dt><dd>—</dd></div><div><dt>Kết nối</dt><dd>—</dd></div><div><dt>CLB</dt><dd>—</dd></div></dl>
-        </section>
-      }
-      <nav>
-        <a class="active" routerLink="/feed"><lucide-icon name="home" class="w-5 h-5"></lucide-icon>Bảng tin</a>
+<main class="community">
+  <header class="community__identity">
+    <h1 class="page-title">Cộng đồng</h1>
+    <p>Khoe trận đấu, rủ kèo và theo dõi những người chơi cùng nhịp với bạn.</p>
+  </header>
+
+  <div class="community__layout">
+    <!-- Left rail: who I am + shortcuts (desktop wide only; the profile card moves into the right rail below 1200px) -->
+    <aside class="rail rail--left" aria-label="Hồ sơ cộng đồng của bạn">
+      <ng-container [ngTemplateOutlet]="profileCard"></ng-container>
+      <nav class="card shortcuts" aria-label="Lối tắt">
         <a routerLink="/friends"><lucide-icon name="users" class="w-5 h-5"></lucide-icon>Bạn bè</a>
-        <a routerLink="/clubs"><lucide-icon name="shield" class="w-5 h-5"></lucide-icon>Nhóm cộng đồng</a>
-        <a routerLink="/tournaments"><lucide-icon name="calendar" class="w-5 h-5"></lucide-icon>Sự kiện</a>
-        <a routerLink="/notifications"><lucide-icon name="bell" class="w-5 h-5"></lucide-icon>Thông báo</a>
-        <a routerLink="/settings"><lucide-icon name="settings" class="w-5 h-5"></lucide-icon>Cài đặt</a>
+        <a routerLink="/chat"><lucide-icon name="messages-square" class="w-5 h-5"></lucide-icon>Tin nhắn</a>
+        <a routerLink="/clubs/my"><lucide-icon name="shield" class="w-5 h-5"></lucide-icon>Câu lạc bộ của tôi</a>
+        <a routerLink="/tournaments"><lucide-icon name="trophy" class="w-5 h-5"></lucide-icon>Giải đấu</a>
+        <a routerLink="/matchmaking"><lucide-icon name="target" class="w-5 h-5"></lucide-icon>Ghép kèo AI</a>
       </nav>
-      <section class="navigation-callout">
-        <p>Cùng chơi cuối tuần?</p>
-        <strong>GOAT AI tìm người cùng trình độ và khung giờ.</strong>
-        <a routerLink="/matchmaking">Ghép kèo ngay <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a>
-      </section>
     </aside>
 
-    <section class="feed-main">
-      <header class="feed-heading"><div><p class="eyebrow">Cộng đồng GOAT Sports</p><h1>Bảng tin</h1></div><span>Kết nối qua từng trận đấu</span></header>
-      @if (currentUser) {
-        <nav class="feed-scope" aria-label="Phạm vi bảng tin">
-          <button type="button" [class.active]="!followingOnly()" [disabled]="loading()" (click)="setFeedScope(false)">
-            <lucide-icon name="compass" class="w-4 h-4"></lucide-icon>Khám phá
+    <section class="feed" aria-labelledby="feed-heading">
+      <h2 id="feed-heading" class="sr-only">Bảng tin</h2>
+
+      @if (authorId(); as viewedId) {
+        <section class="card author-card">
+          <button type="button" class="btn btn--ghost author-card__back" (click)="clearAuthor()">
+            <lucide-icon name="arrow-left" class="w-4 h-4"></lucide-icon>Toàn bộ bảng tin
           </button>
-          <button type="button" [class.active]="followingOnly()" [disabled]="loading()" (click)="setFeedScope(true)">
-            <lucide-icon name="user-check" class="w-4 h-4"></lucide-icon>Đang theo dõi
-          </button>
+          <div class="author-card__main">
+            <img class="avatar" [src]="store.avatar(viewedId)" alt="" width="64" height="64" />
+            <div class="author-card__who">
+              <strong>{{ store.authorName(viewedId) }}</strong>
+              <span>{{ isMyAuthorView() ? 'Trang cá nhân của bạn trong cộng đồng' : 'Bài viết bạn được phép xem' }}</span>
+            </div>
+            @if (!isMyAuthorView()) {
+              <button type="button" class="btn" [class.btn--primary]="!store.isFollowing(viewedId)"
+                [class.btn--secondary]="store.isFollowing(viewedId)" [disabled]="store.pendingFollowIds().has(viewedId)"
+                (click)="toggleAuthorFollow()">
+                <lucide-icon [name]="store.isFollowing(viewedId) ? 'user-check' : 'user-plus'" class="w-4 h-4"></lucide-icon>
+                {{ store.isFollowing(viewedId) ? 'Đang theo dõi' : 'Theo dõi' }}
+              </button>
+            }
+          </div>
+          <ng-container [ngTemplateOutlet]="statStrip" [ngTemplateOutletContext]="{ $implicit: authorStats() }"></ng-container>
+        </section>
+      } @else {
+        <nav class="tabs" aria-label="Phạm vi bảng tin">
+          @for (item of tabs; track item.value) {
+            <button type="button" class="tab" [class.is-active]="tab() === item.value" [attr.aria-current]="tab() === item.value ? 'page' : null"
+              (click)="selectTab(item.value)">
+              <lucide-icon [name]="item.icon" class="w-4 h-4"></lucide-icon>{{ item.label }}
+            </button>
+          }
         </nav>
       }
-      @if (currentUser) {
-        <article class="composer card">
-          <div class="composer-heading">
-            <img [src]="currentUser.avatarUrl || avatar(currentUser.userId)" [alt]="currentUser.fullName" />
-            <div>
-              <strong>{{ editingPostId() ? 'Chỉnh sửa bài viết' : 'Bạn đang nghĩ gì?' }}</strong>
-              <span>{{ currentUser.fullName }}</span>
-            </div>
-          </div>
 
-          <label class="sr-only" for="post-content">Nội dung bài viết</label>
-          <textarea
-            id="post-content"
-            rows="4"
-            maxlength="5000"
-            placeholder="Chia sẻ câu chuyện thể thao của bạn..."
-            [ngModel]="composerContent()"
-            (ngModelChange)="composerContent.set($event)"></textarea>
-
-          @if (retainedAttachments().length || pendingAttachments().length) {
-            <div class="attachment-preview-grid">
-              @for (attachment of retainedAttachments(); track attachment.attachmentId) {
-                <div class="attachment-preview">
-                  @if (attachment.type === 'IMAGE' && mediaUrl(attachment.storageKey)) {
-                    <img [src]="mediaUrl(attachment.storageKey)" alt="Ảnh đã đính kèm" />
-                  } @else if (attachment.type === 'VIDEO' && mediaUrl(attachment.storageKey)) {
-                    <video [src]="mediaUrl(attachment.storageKey)" aria-label="Video đã đính kèm"></video>
-                  } @else {
-                    <div class="file-preview"><lucide-icon name="file-text" class="w-6 h-6"></lucide-icon></div>
-                  }
-                  <button type="button" class="remove-media" (click)="removeRetainedAttachment(attachment.attachmentId)" aria-label="Gỡ tệp">
-                    <lucide-icon name="x" class="w-4 h-4"></lucide-icon>
-                  </button>
-                </div>
-              }
-              @for (attachment of pendingAttachments(); track attachment.previewUrl; let index = $index) {
-                <div class="attachment-preview">
-                  @if (attachment.type === 'IMAGE') {
-                    <img [src]="attachment.previewUrl" [alt]="attachment.file.name" />
-                  } @else if (attachment.type === 'VIDEO') {
-                    <video [src]="attachment.previewUrl" [attr.aria-label]="attachment.file.name"></video>
-                  } @else {
-                    <div class="file-preview"><lucide-icon name="file-text" class="w-6 h-6"></lucide-icon><span>{{ attachment.file.name }}</span></div>
-                  }
-                  <button type="button" class="remove-media" (click)="removePendingAttachment(index)" aria-label="Gỡ tệp">
-                    <lucide-icon name="x" class="w-4 h-4"></lucide-icon>
-                  </button>
-                </div>
-              }
-            </div>
+      @if (showSportFilter()) {
+        <div class="sport-filter" role="group" aria-label="Lọc theo môn">
+          <button type="button" class="chip" [class.is-active]="!sport()" [attr.aria-pressed]="!sport()" (click)="selectSport(null)">Tất cả môn</button>
+          @for (item of sports; track item) {
+            <button type="button" class="chip" [class.is-active]="sport() === item" [attr.aria-pressed]="sport() === item"
+              (click)="selectSport(item)">{{ sportLabel(item) }}</button>
           }
+        </div>
+      }
 
-          <div class="composer-actions">
-            <div class="composer-tools">
-              <label class="media-picker">
-                <input type="file" multiple accept="image/*,video/*,.pdf,.doc,.docx" aria-label="Chọn ảnh, video hoặc tệp đính kèm" (change)="onFilesSelected($event)" />
-                <lucide-icon name="image" class="w-5 h-5"></lucide-icon>
-                <span>Ảnh / video</span>
-              </label>
-              <label class="visibility-picker">
-                <lucide-icon [name]="visibilityIcon(composerVisibility())" class="w-4 h-4"></lucide-icon>
-                <select [ngModel]="composerVisibility()" (ngModelChange)="composerVisibility.set($event)" aria-label="Quyền riêng tư">
-                  @for (option of visibilityOptions; track option.value) {
-                    <option [value]="option.value">{{ option.label }}</option>
-                  }
-                </select>
-              </label>
-            </div>
-            <div class="composer-submit">
-              @if (editingPostId()) {
-                <button type="button" class="button ghost" [disabled]="publishing()" (click)="cancelEdit()">Hủy</button>
-              }
-              <button type="button" class="button primary" [disabled]="!canPublish()" (click)="publish()">
-                @if (publishing()) { <span class="spinner"></span> }
-                @else { <lucide-icon name="send" class="w-4 h-4"></lucide-icon> }
-                {{ editingPostId() ? 'Lưu thay đổi' : 'Đăng bài' }}
-              </button>
-            </div>
-          </div>
-        </article>
-      } @else {
-        <article class="login-card card">
-          <lucide-icon name="log-in" class="w-6 h-6"></lucide-icon>
-          <div><strong>Đăng nhập để tham gia cộng đồng</strong><p>Bạn vẫn có thể xem các bài viết công khai.</p></div>
-          <button type="button" class="button primary" (click)="authService.redirectToLogin()">Đăng nhập</button>
-        </article>
+      @if (showComposer()) {
+        <app-post-composer [defaultSport]="sport()" (saved)="onPublished($event)"></app-post-composer>
       }
 
       @if (loading()) {
-        <div class="loading-state card" aria-live="polite"><span class="spinner large"></span><p>Đang tải bảng tin...</p></div>
+        <app-loading-skeleton variant="cards" [count]="2" minWidth="100%" label="Đang tải bảng tin"></app-loading-skeleton>
+      } @else if (loadError()) {
+        <div class="state state--error">
+          <span class="state__icon"><lucide-icon name="wifi-off" class="w-6 h-6"></lucide-icon></span>
+          <strong>Không tải được bảng tin</strong>
+          <p>Kiểm tra kết nối mạng rồi thử lại.</p>
+          <button type="button" class="btn btn--primary" (click)="reload()"><lucide-icon name="refresh-cw" class="w-4 h-4"></lucide-icon>Thử lại</button>
+        </div>
       } @else if (!posts().length) {
-        <div class="empty-state card">
-          <lucide-icon name="inbox" class="w-10 h-10"></lucide-icon>
-          <h2>Chưa có bài viết nào</h2>
-          <p>Hãy là người đầu tiên chia sẻ một khoảnh khắc thể thao.</p>
+        <div class="state">
+          <span class="state__icon">
+            <lucide-icon [name]="tab() === 'saved' && !authorId() ? 'bookmark' : tab() === 'following' && !authorId() ? 'user-plus' : 'inbox'" class="w-6 h-6"></lucide-icon>
+          </span>
+          @if (authorId()) {
+            <strong>{{ isMyAuthorView() ? 'Bạn chưa đăng bài nào' : 'Chưa có bài viết để hiển thị' }}</strong>
+            <p>{{ isMyAuthorView() ? 'Kể về trận gần nhất của bạn ở ô phía trên.' : 'Người này chưa đăng bài công khai, hoặc bài chỉ dành cho bạn bè của họ.' }}</p>
+          } @else if (sport()) {
+            <strong>Chưa có bài {{ sportLabel(sport()) }} nào</strong>
+            <p>Thử môn khác hoặc bỏ bộ lọc để xem toàn bộ bảng tin.</p>
+            <button type="button" class="btn btn--secondary" (click)="selectSport(null)">Xóa bộ lọc</button>
+          } @else {
+            @switch (tab()) {
+              @case ('following') {
+                <strong>Bảng tin theo dõi đang trống</strong>
+                <p>Theo dõi vài người chơi ở mục gợi ý, bài của họ và bạn bè sẽ xuất hiện ở đây.</p>
+                <button type="button" class="btn btn--secondary" (click)="selectTab('explore')">Sang Khám phá</button>
+              }
+              @case ('saved') {
+                <strong>Chưa lưu bài nào</strong>
+                <p>Bấm “Lưu” dưới một bài viết để đọc lại sau, ví dụ lịch kèo hay mẹo tập luyện.</p>
+              }
+              @case ('mine') {
+                <strong>Bạn chưa đăng bài nào</strong>
+                <p>Kể về trận gần nhất, hoặc rủ đồng đội cho kèo cuối tuần.</p>
+              }
+              @default {
+                <strong>Chưa có bài viết nào</strong>
+                <p>Hãy là người mở màn cho cộng đồng GOAT Sports.</p>
+              }
+            }
+          }
         </div>
       } @else {
-        @for (post of posts(); track post.postId) {
-          <article class="post-card card">
-            <header class="post-header">
-              <img class="avatar" [src]="avatar(post.authorId)" [alt]="authorName(post.authorId)" />
-              <div class="post-author">
-                <strong>{{ authorName(post.authorId) }}</strong>
-                <span>
-                  {{ relativeTime(post.publishedAt || post.createdAt) }}
-                  <span aria-hidden="true">·</span>
-                  <lucide-icon [name]="visibilityIcon(post.visibility)" class="w-3.5 h-3.5"></lucide-icon>
-                  {{ visibilityLabel(post.visibility) }}
-                </span>
-              </div>
-              <div class="post-menu">
-                @if (isOwner(post.authorId)) {
-                  <button type="button" class="icon-button" (click)="editPost(post)" aria-label="Sửa bài viết">
-                    <lucide-icon name="pencil" class="w-4 h-4"></lucide-icon>
-                  </button>
-                  <button type="button" class="icon-button danger" [disabled]="actionPostIds().has(post.postId)" (click)="deletePost(post)" aria-label="Xóa bài viết">
-                    <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon>
-                  </button>
-                } @else if (currentUser) {
-                  <button type="button" class="follow-button" [class.following]="isFollowing(post.authorId)"
-                    [disabled]="isFollowPending(post.authorId)" (click)="toggleFollow(post.authorId)"
-                    [attr.aria-label]="isFollowing(post.authorId) ? 'Bỏ theo dõi' : 'Theo dõi'">
-                    <lucide-icon [name]="isFollowing(post.authorId) ? 'user-check' : 'user-plus'" class="w-4 h-4"></lucide-icon>
-                    {{ isFollowing(post.authorId) ? 'Đang theo dõi' : 'Theo dõi' }}
-                  </button>
-                  <button type="button" class="icon-button" (click)="openReport('POST', post.postId)" aria-label="Báo cáo bài viết">
-                    <lucide-icon name="flag" class="w-4 h-4"></lucide-icon>
-                  </button>
-                }
-              </div>
-            </header>
+        <div class="feed__list goat-stagger">
+          @for (post of posts(); track post.postId) {
+            <app-post-card [post]="post" (changed)="onChanged($event)" (removed)="onRemoved($event)"
+              (shared)="onPublished($event)" (authorBlocked)="onAuthorBlocked($event)"></app-post-card>
+          }
+        </div>
 
-            @if (post.content) { <p class="post-content">{{ post.content }}</p> }
-
-            @if (post.attachments.length) {
-              <div class="post-media" [class.post-media-single]="post.attachments.length === 1">
-                @for (attachment of post.attachments; track attachment.attachmentId) {
-                  @if (mediaUrl(attachment.storageKey); as url) {
-                    @if (attachment.type === 'IMAGE') {
-                      <a [href]="url" target="_blank" rel="noopener noreferrer"><img [src]="url" alt="Ảnh trong bài viết" loading="lazy" /></a>
-                    } @else if (attachment.type === 'VIDEO') {
-                      <video [src]="url" controls preload="metadata">Trình duyệt không hỗ trợ video.</video>
-                    } @else {
-                      <a class="file-link" [href]="url" target="_blank" rel="noopener noreferrer">
-                        <lucide-icon name="file-text" class="w-6 h-6"></lucide-icon><span>Xem tệp đính kèm</span>
-                      </a>
-                    }
-                  } @else {
-                    <div class="media-loading"><span class="spinner"></span></div>
-                  }
-                }
-              </div>
-            }
-
-            <div class="engagement-summary" aria-label="Tương tác bài viết">
-              <span>{{ post.likeCount }} lượt thích</span>
-              <span>{{ post.commentCount }} bình luận · {{ post.shareCount }} lượt chia sẻ</span>
-            </div>
-            <div class="post-actions">
-              <button type="button" [class.active]="post.likedByCurrentUser" [disabled]="actionPostIds().has(post.postId)" (click)="toggleLike(post)">
-                <lucide-icon name="heart" class="w-5 h-5"></lucide-icon> Thích
-              </button>
-              <button type="button" (click)="toggleComments(post)">
-                <lucide-icon name="message-circle" class="w-5 h-5"></lucide-icon> Bình luận
-              </button>
-              <button type="button" (click)="openShare(post)">
-                <lucide-icon name="share-2" class="w-5 h-5"></lucide-icon> Chia sẻ
-              </button>
-            </div>
-
-            @if (expandedComments().has(post.postId)) {
-              <section class="comments-section">
-                @for (comment of comments().get(post.postId) ?? []; track comment.commentId) {
-                  <article class="comment" [class.reply]="comment.parentCommentId">
-                    <img [src]="avatar(comment.authorId)" [alt]="authorName(comment.authorId)" />
-                    <div class="comment-body">
-                      <div class="comment-bubble"><strong>{{ authorName(comment.authorId) }}</strong><p>{{ comment.content }}</p></div>
-                      <div class="comment-actions">
-                        <span>{{ relativeTime(comment.createdAt) }}</span>
-                        @if (currentUser) { <button type="button" (click)="setReply(post.postId, comment)">Trả lời</button> }
-                        @if (isOwner(comment.authorId)) {
-                          <button type="button" (click)="editComment(comment)">Sửa</button>
-                          <button type="button" [disabled]="deletingCommentIds().has(comment.commentId)" (click)="deleteComment(comment)">Xóa</button>
-                        } @else if (currentUser) {
-                          <button type="button" (click)="openReport('COMMENT', comment.commentId)">Báo cáo</button>
-                        }
-                      </div>
-                    </div>
-                  </article>
-                }
-
-                @if (currentUser) {
-                  @if (replyTo().get(post.postId); as reply) {
-                    <div class="reply-notice">Đang trả lời {{ authorName(reply.authorId) }} <button type="button" (click)="clearReply(post.postId)">Hủy</button></div>
-                  }
-                  <div class="comment-composer">
-                    <img [src]="currentUser.avatarUrl || avatar(currentUser.userId)" [alt]="currentUser.fullName" />
-                    <input
-                      type="text"
-                      maxlength="1000"
-                      placeholder="Viết bình luận..."
-                      [ngModel]="commentDrafts().get(post.postId) ?? ''"
-                      (ngModelChange)="updateCommentDraft(post.postId, $event)"
-                      (keyup.enter)="submitComment(post)" />
-                    <button type="button" [disabled]="actionPostIds().has(post.postId)" (click)="submitComment(post)" aria-label="Gửi bình luận">
-                      <lucide-icon name="send" class="w-4 h-4"></lucide-icon>
-                    </button>
-                  </div>
-                }
-              </section>
-            }
-          </article>
+        @if (loadingMore()) {
+          <app-loading-skeleton variant="cards" [count]="1" minWidth="100%" label="Đang tải thêm bài viết"></app-loading-skeleton>
+        } @else if (moreError()) {
+          <div class="state state--inline">
+            <lucide-icon name="wifi-off" class="w-4 h-4"></lucide-icon>Không tải được bài tiếp theo.
+            <button type="button" class="btn btn--ghost" (click)="retryMore()">Thử lại</button>
+          </div>
+        } @else if (!hasMore()) {
+          <p class="feed__end"><lucide-icon name="check-circle" class="w-4 h-4"></lucide-icon>Bạn đã xem hết bài viết</p>
         }
-
-        @if (hasMore()) {
-          <button type="button" class="load-more" [disabled]="loadingMore()" (click)="loadMore()">
-            @if (loadingMore()) { <span class="spinner"></span> }
-            {{ loadingMore() ? 'Đang tải...' : 'Xem thêm bài viết' }}
-          </button>
-        }
+        <div #sentinel class="feed__sentinel" aria-hidden="true"></div>
       }
     </section>
 
-    <aside class="feed-sidebar">
-      <section class="rail-section">
-        <header><h2>Trận đấu sắp tới</h2><a routerLink="/tournaments">Xem tất cả <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a></header>
-        <a class="rail-event" routerLink="/tournaments"><time><b>20</b><span>THG 9</span></time><span><strong>Kèo bóng cuối tuần</strong><small>15:00 · Tìm thêm người chơi</small></span><lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon></a>
-        <a class="rail-event" routerLink="/matchmaking"><time><b>23</b><span>THG 9</span></time><span><strong>Ghép kèo cùng GOAT AI</strong><small>Chọn thời gian phù hợp</small></span><lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon></a>
+    <aside class="rail rail--right" aria-label="Gợi ý cộng đồng">
+      <div class="rail__profile"><ng-container [ngTemplateOutlet]="profileCard"></ng-container></div>
+
+      <section class="card rail-card">
+        <header class="card__head"><h3>Gợi ý theo dõi</h3></header>
+        @if (suggestions().loading) {
+          <app-loading-skeleton variant="rows" [count]="3" [flush]="true" label="Đang tải gợi ý"></app-loading-skeleton>
+        } @else if (suggestions().error) {
+          <div class="rail-card__state">Không tải được gợi ý. <button type="button" class="btn btn--ghost" (click)="loadSuggestions()">Thử lại</button></div>
+        } @else if (!suggestions().data.length) {
+          <p class="rail-card__state">Bạn đã theo dõi những người năng nổ nhất. Quay lại sau nhé.</p>
+        } @else {
+          <ul class="people">
+            @for (person of suggestions().data; track person.authorId) {
+              <li>
+                <a class="people__who" [routerLink]="['/feed']" [queryParams]="{ author: person.authorId }">
+                  <img class="avatar" [src]="store.avatar(person.authorId)" alt="" width="40" height="40" />
+                  <span>
+                    <strong>{{ store.authorName(person.authorId) }}</strong>
+                    <small>{{ person.postCount }} bài trong 30 ngày</small>
+                  </span>
+                </a>
+                <button type="button" class="icon-btn" [class.is-on]="store.isFollowing(person.authorId)"
+                  [disabled]="store.pendingFollowIds().has(person.authorId)" (click)="followSuggestion(person.authorId)"
+                  [attr.aria-label]="(store.isFollowing(person.authorId) ? 'Bỏ theo dõi ' : 'Theo dõi ') + store.authorName(person.authorId)">
+                  <lucide-icon [name]="store.isFollowing(person.authorId) ? 'user-check' : 'user-plus'" class="w-5 h-5"></lucide-icon>
+                </button>
+              </li>
+            }
+          </ul>
+        }
       </section>
-      <section class="rail-section">
-        <header><h2>Khám phá cộng đồng</h2><a routerLink="/clubs">Xem tất cả <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a></header>
-        <a class="community-row" routerLink="/clubs"><span class="community-thumb football"></span><span><strong>GOAT Football</strong><small>Kết nối người yêu bóng đá</small></span><b>Tham gia</b></a>
-        <a class="community-row" routerLink="/clubs"><span class="community-thumb badminton"></span><span><strong>Cầu lông phong trào</strong><small>Tìm bạn đánh cuối tuần</small></span><b>Tham gia</b></a>
-        <a class="community-row" routerLink="/clubs"><span class="community-thumb running"></span><span><strong>Chạy bộ cùng GOAT</strong><small>Chia sẻ cung đường đẹp</small></span><b>Tham gia</b></a>
+
+      <section class="card rail-card">
+        <header class="card__head">
+          <h3>Giải đang mở đăng ký</h3>
+          <a class="btn btn--ghost" routerLink="/tournaments">Tất cả</a>
+        </header>
+        @if (openTournaments().loading) {
+          <app-loading-skeleton variant="rows" [count]="2" [flush]="true" label="Đang tải giải đấu"></app-loading-skeleton>
+        } @else if (openTournaments().error) {
+          <div class="rail-card__state">Không tải được giải đấu. <button type="button" class="btn btn--ghost" (click)="loadRails()">Thử lại</button></div>
+        } @else if (!openTournaments().data.length) {
+          <p class="rail-card__state">Chưa có giải {{ sport() ? sportLabel(sport()) + ' ' : '' }}nào đang mở đăng ký.</p>
+        } @else {
+          <ul class="events">
+            @for (item of openTournaments().data; track item.tournamentId) {
+              <li>
+                <a [routerLink]="['/tournaments', item.tournamentId]">
+                  <time [attr.datetime]="item.registrationCloseDate">
+                    <b>{{ item.registrationCloseDate | date:'dd' }}</b><span>TH{{ item.registrationCloseDate | date:'M' }}</span>
+                  </time>
+                  <span class="events__text">
+                    <strong>{{ item.name }}</strong>
+                    <small>{{ sportLabel(item.sportType) }} · {{ item.currentParticipants }}/{{ item.maxParticipants }} suất · hạn đăng ký</small>
+                  </span>
+                  <lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon>
+                </a>
+              </li>
+            }
+          </ul>
+        }
       </section>
-      <section class="card community-card">
-        <lucide-icon name="shield-check" class="w-6 h-6"></lucide-icon>
-        <div><h2>Cộng đồng văn minh</h2><p>Tôn trọng người chơi khác và báo cáo nội dung vi phạm.</p></div>
+
+      <section class="card rail-card">
+        <header class="card__head">
+          <h3>{{ sport() ? 'CLB ' + sportLabel(sport()) : 'Câu lạc bộ nổi bật' }}</h3>
+          <a class="btn btn--ghost" routerLink="/clubs">Khám phá</a>
+        </header>
+        @if (sportClubs().loading) {
+          <app-loading-skeleton variant="rows" [count]="2" [flush]="true" label="Đang tải câu lạc bộ"></app-loading-skeleton>
+        } @else if (sportClubs().error) {
+          <div class="rail-card__state">Không tải được câu lạc bộ. <button type="button" class="btn btn--ghost" (click)="loadRails()">Thử lại</button></div>
+        } @else if (!sportClubs().data.length) {
+          <p class="rail-card__state">Chưa có câu lạc bộ nào. Lập CLB đầu tiên cho môn này?</p>
+        } @else {
+          <ul class="people">
+            @for (club of sportClubs().data; track club.clubId) {
+              <li>
+                <a class="people__who" [routerLink]="['/clubs', club.clubId]">
+                  <img class="club-logo" [src]="club.logoUrl || defaultClubLogo" (error)="useLogoFallback($event)" alt="" width="40" height="40" />
+                  <span>
+                    <strong>{{ club.name }}</strong>
+                    <small>{{ sportLabel(club.sportType) }} · {{ club.memberCount }} thành viên</small>
+                  </span>
+                </a>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
+      <section class="guideline">
+        <lucide-icon name="shield-check" class="w-5 h-5"></lucide-icon>
+        <p><strong>Chơi đẹp cả trên mạng.</strong> Tôn trọng người chơi khác; gặp nội dung xấu thì bấm “Báo cáo” trong menu ⋯ của bài.</p>
       </section>
     </aside>
   </div>
 </main>
 
-@if (shareTarget(); as post) {
-  <div class="modal-backdrop" role="presentation" (click)="closeShare()">
-    <section class="modal-card" appAccessibleDialog aria-labelledby="share-title" (dialogClosed)="closeShare()" (click)="$event.stopPropagation()">
-      <header><h2 id="share-title">Chia sẻ bài viết</h2><button type="button" class="icon-button" (click)="closeShare()" aria-label="Đóng"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button></header>
-      <p>Bài viết của <strong>{{ authorName(post.authorId) }}</strong> sẽ được chia sẻ tới cộng đồng.</p>
-      <textarea cdkFocusInitial rows="4" maxlength="1000" aria-label="Cảm nghĩ khi chia sẻ" placeholder="Viết thêm cảm nghĩ (không bắt buộc)..." [ngModel]="shareCaption()" (ngModelChange)="shareCaption.set($event)"></textarea>
-      <footer><button type="button" class="button ghost" [disabled]="sharing()" (click)="closeShare()">Hủy</button><button type="button" class="button primary" [disabled]="sharing()" (click)="submitShare()">{{ sharing() ? 'Đang chia sẻ...' : 'Chia sẻ' }}</button></footer>
+<ng-template #profileCard>
+  @if (auth.currentUser; as me) {
+    <section class="card profile">
+      <a class="profile__who" [routerLink]="['/feed']" [queryParams]="{ author: me.userId }">
+        <img class="avatar" [src]="store.avatar(me.userId)" alt="" width="56" height="56" />
+        <span>
+          <strong>{{ me.fullName }}</strong>
+          <small>Xem trang cá nhân cộng đồng</small>
+        </span>
+      </a>
+      <ng-container [ngTemplateOutlet]="statStrip" [ngTemplateOutletContext]="{ $implicit: myStats() }"></ng-container>
     </section>
-  </div>
-}
+  }
+</ng-template>
 
-@if (reportTarget(); as target) {
-  <div class="modal-backdrop" role="presentation" (click)="closeReport()">
-    <section class="modal-card" appAccessibleDialog aria-labelledby="report-title" (dialogClosed)="closeReport()" (click)="$event.stopPropagation()">
-      <header><h2 id="report-title">Báo cáo {{ target.type === 'POST' ? 'bài viết' : 'bình luận' }}</h2><button type="button" class="icon-button" (click)="closeReport()" aria-label="Đóng"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button></header>
-      <p>Hãy mô tả rõ lý do để đội ngũ kiểm duyệt có đủ thông tin xử lý.</p>
-      <textarea cdkFocusInitial rows="5" minlength="10" maxlength="2000" aria-label="Lý do báo cáo" placeholder="Nội dung vi phạm điều gì?" [ngModel]="reportReason()" (ngModelChange)="reportReason.set($event)"></textarea>
-      <small>{{ reportReason().trim().length }}/2000 ký tự · tối thiểu 10 ký tự</small>
-      <footer><button type="button" class="button ghost" [disabled]="reporting()" (click)="closeReport()">Hủy</button><button type="button" class="button danger-button" [disabled]="reporting() || reportReason().trim().length < 10" (click)="submitReport()">{{ reporting() ? 'Đang gửi...' : 'Gửi báo cáo' }}</button></footer>
-    </section>
-  </div>
-}
+<ng-template #statStrip let-section>
+  <dl class="stats" [attr.aria-busy]="section.loading">
+    <div><dt>Bài viết</dt><dd>{{ section.data ? compactCount(section.data.postCount) : '–' }}</dd></div>
+    <div><dt>Người theo dõi</dt><dd>{{ section.data ? compactCount(section.data.followerCount) : '–' }}</dd></div>
+    <div><dt>Đang theo dõi</dt><dd>{{ section.data ? compactCount(section.data.followingCount) : '–' }}</dd></div>
+  </dl>
+</ng-template>

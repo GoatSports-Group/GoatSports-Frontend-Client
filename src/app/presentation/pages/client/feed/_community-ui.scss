@@ -1,0 +1,68 @@
+// Shared UI for the community pages (feed, post card, composer, post detail) — GOAT-DESIGN.md §7 Community.
+// Buttons, badges, fields, state panels, underline tabs, card and the flex-column modal come from the
+// tournament partial (which wraps the Settings partial), so every consumer page shares one look.
+// Include once per component: `@use 'community-ui' as c; @include c.community-ui;`
+@use '../tournaments/tournament-ui' as t;
+
+@mixin community-ui {
+  @include t.tournament-ui;
+
+  .avatar {
+    display: block;
+    flex: none;
+    border-radius: 9999px;
+    background: var(--surface-strong);
+    object-fit: cover;
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    flex: none;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 9999px;
+    animation: community-spin 750ms linear infinite;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  // One-line metadata with dot separators (`caption`, body colour)
+  .meta {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 6px;
+    color: var(--body);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+
+    > * {
+      flex: none;
+    }
+  }
+
+  .meta__dot {
+    width: 3px;
+    height: 3px;
+    border-radius: 9999px;
+    background: var(--muted);
+  }
+
+  @keyframes community-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .spinner { animation-duration: 1.6s; }
+  }
+}

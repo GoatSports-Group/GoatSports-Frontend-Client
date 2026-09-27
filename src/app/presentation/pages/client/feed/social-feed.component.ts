@@ -1,40 +1,35 @@
 import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnDestroy,
-  OnInit,
-  computed,
-  inject,
-  signal
+  ChangeDetectionStrategy, Component, DestroyRef, ElementRef, OnDestroy, OnInit, ViewChild, computed, inject, signal
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { finalize, forkJoin, map, of, switchMap, catchError } from 'rxjs';
-import {
-  AttachmentType,
-  PostVisibility,
-  ReportTargetType,
-  SaveSocialPostRequest,
-  SocialComment,
-  SocialPost,
-  SocialPostAttachment
-} from '@application/dto/social-feed/social-feed.dto';
-import { User } from '@application/dto/user/user.dto';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Observable, Subscription, catchError, finalize, forkJoin, map, of } from 'rxjs';
+import { SpringPageResponse } from '@application/dto/base/base-response';
+import { FollowSuggestion, PostSport, SocialPost, UserFollowStatus } from '@application/dto/social-feed/social-feed.dto';
 import { SOCIAL_FEED_REPOSITORY_TOKEN } from '@application/ports/persistence/social-feed.repository';
-import { STORAGE_REPOSITORY_TOKEN } from '@application/ports/persistence/storage.repository';
+import { ClubRepositoryPort } from '@application/ports/club.repository.port';
+import { TournamentRepositoryPort } from '@application/ports/tournament.repository.port';
+import { ClubModel } from '@domain/models/club.model';
+import { TournamentModel } from '@domain/models/tournament.model';
 import { AuthService } from '@presentation/services/auth.service';
-import { PlayerDirectoryService } from '@presentation/services/player-directory.service';
 import { NotifyService } from '@shared/components/notify/notify.service';
+import { DEFAULT_CLUB_LOGO } from '@presentation/pages/client/clubs/club-view.model';
+import { CommunityStore } from './community.store';
+import { FEED_TABS, FeedTab, POST_SPORTS, compactCount, errorMessage, sportLabel } from './community-view';
 
-interface PendingAttachment {
-  file: File;
-  type: AttachmentType;
-  previewUrl: string;
+const PAGE_SIZE = 10;
+
+interface ProfileStats {
+  postCount: number;
+  followerCount: number;
+  followingCount: number;
 }
 
-interface ReportTarget {
-  type: ReportTargetType;
-  id: string;
+/** Trang thai tai cua mot khoi du lieu tren trang (GOAT-DESIGN §6: loading → error → empty/content). */
+interface Section<T> {
+  loading: boolean;
+  error: boolean;
+  data: T;
 }
 
 @Component({
@@ -46,589 +41,287 @@ interface ReportTarget {
 })
 export class SocialFeedComponent implements OnInit, OnDestroy {
   private readonly repository = inject(SOCIAL_FEED_REPOSITORY_TOKEN);
-  private readonly storageRepository = inject(STORAGE_REPOSITORY_TOKEN);
-  readonly authService = inject(AuthService);
-  private readonly directory = inject(PlayerDirectoryService);
+  private readonly tournaments = inject(TournamentRepositoryPort);
+  private readonly clubs = inject(ClubRepositoryPort);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly notify = inject(NotifyService);
   private readonly destroyRef = inject(DestroyRef);
+  readonly auth = inject(AuthService);
+  readonly store = inject(CommunityStore);
+
+  readonly tabs = FEED_TABS;
+  readonly sports = POST_SPORTS;
+  readonly sportLabel = sportLabel;
+  readonly compactCount = compactCount;
+  readonly defaultClubLogo = DEFAULT_CLUB_LOGO;
+
+  readonly tab = signal<FeedTab>('explore');
+  readonly sport = signal<PostSport | null>(null);
+  readonly authorId = signal<string | null>(null);
 
   readonly posts = signal<SocialPost[]>([]);
-  readonly authors = signal<ReadonlyMap<string, User>>(new Map());
-  readonly mediaUrls = signal<ReadonlyMap<string, string>>(new Map());
-  readonly comments = signal<ReadonlyMap<string, SocialComment[]>>(new Map());
-  readonly expandedComments = signal<ReadonlySet<string>>(new Set());
-  readonly commentDrafts = signal<ReadonlyMap<string, string>>(new Map());
-  readonly replyTo = signal<ReadonlyMap<string, SocialComment>>(new Map());
   readonly loading = signal(true);
+  readonly loadError = signal(false);
   readonly loadingMore = signal(false);
-  readonly publishing = signal(false);
-  readonly actionPostIds = signal<ReadonlySet<string>>(new Set());
-  readonly deletingCommentIds = signal<ReadonlySet<string>>(new Set());
+  readonly moreError = signal(false);
   readonly hasMore = signal(false);
-  readonly page = signal(1);
-  readonly followingOnly = signal(false);
-  readonly followingAuthorIds = signal<ReadonlySet<string>>(new Set());
-  readonly pendingFollowIds = signal<ReadonlySet<string>>(new Set());
+  private page = 1;
+  private request?: Subscription;
+  private observer?: IntersectionObserver;
 
-  readonly composerContent = signal('');
-  readonly composerVisibility = signal<PostVisibility>('PUBLIC');
-  readonly pendingAttachments = signal<PendingAttachment[]>([]);
-  readonly retainedAttachments = signal<SocialPostAttachment[]>([]);
-  readonly editingPostId = signal<string | null>(null);
+  readonly myStats = signal<Section<ProfileStats | null>>({ loading: true, error: false, data: null });
+  readonly authorStats = signal<Section<ProfileStats | null>>({ loading: true, error: false, data: null });
+  readonly suggestions = signal<Section<FollowSuggestion[]>>({ loading: true, error: false, data: [] });
+  readonly openTournaments = signal<Section<TournamentModel[]>>({ loading: true, error: false, data: [] });
+  readonly sportClubs = signal<Section<ClubModel[]>>({ loading: true, error: false, data: [] });
 
-  readonly shareTarget = signal<SocialPost | null>(null);
-  readonly shareCaption = signal('');
-  readonly sharing = signal(false);
-  readonly reportTarget = signal<ReportTarget | null>(null);
-  readonly reportReason = signal('');
-  readonly reporting = signal(false);
+  readonly isAuthorView = computed(() => !!this.authorId());
+  readonly isMyAuthorView = computed(() => this.authorId() === this.me);
+  /** Bai moi / bai chia se chi chen vao dau danh sach neu no thuoc bo loc dang xem. */
+  readonly showComposer = computed(() =>
+    this.tab() !== 'saved' && (!this.isAuthorView() || this.isMyAuthorView()));
+  readonly showSportFilter = computed(() => this.tab() !== 'saved');
 
-  readonly visibilityOptions: ReadonlyArray<{ value: PostVisibility; label: string; icon: string }> = [
-    { value: 'PUBLIC', label: 'Công khai', icon: 'globe' },
-    { value: 'FRIENDS', label: 'Bạn bè', icon: 'users' },
-    { value: 'PRIVATE', label: 'Chỉ mình tôi', icon: 'lock' }
-  ];
+  @ViewChild('sentinel') set sentinel(element: ElementRef<HTMLElement> | undefined) {
+    this.observer?.disconnect();
+    if (!element || typeof IntersectionObserver === 'undefined') return;
+    // Tai trang tiep khi con ~600px nua la het danh sach.
+    this.observer = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) this.loadMore();
+    }, { rootMargin: '600px 0px' });
+    this.observer.observe(element.nativeElement);
+  }
 
-  readonly attachmentCount = computed(() =>
-    this.pendingAttachments().length + this.retainedAttachments().length
-  );
-  readonly canPublish = computed(() =>
-    !this.publishing()
-      && (this.composerContent().trim().length > 0 || this.attachmentCount() > 0)
-      && this.attachmentCount() <= 10
-  );
+  get me(): string | null {
+    return this.auth.currentUser?.userId ?? null;
+  }
 
   ngOnInit(): void {
-    this.loadFeed(true);
-    this.loadFollowing();
+    this.store.loadFollowing(this.me);
+    this.loadMyStats();
+    this.loadSuggestions();
+
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
+      const tab = params.get('tab') as FeedTab | null;
+      const sport = params.get('sport') as PostSport | null;
+      this.tab.set(FEED_TABS.some(item => item.value === tab) ? tab! : 'explore');
+      this.sport.set(sport && POST_SPORTS.includes(sport) ? sport : null);
+      this.authorId.set(params.get('author'));
+      this.reload();
+      this.loadRails();
+      if (this.authorId()) this.loadAuthorStats(this.authorId()!);
+    });
   }
 
   ngOnDestroy(): void {
-    this.pendingAttachments().forEach(item => URL.revokeObjectURL(item.previewUrl));
+    this.observer?.disconnect();
+    this.request?.unsubscribe();
   }
 
-  get currentUser(): User | null {
-    return this.authService.currentUser;
+  // ---- navigation (state lives in the URL so back/forward and shared links work) --------------
+
+  selectTab(tab: FeedTab): void {
+    void this.router.navigate([], { queryParams: { tab: tab === 'explore' ? null : tab, author: null }, queryParamsHandling: 'merge' });
   }
 
-  loadFeed(reset = false): void {
-    if (reset) {
-      this.page.set(1);
-      this.loading.set(true);
-    } else {
-      this.loadingMore.set(true);
-    }
+  selectSport(sport: PostSport | null): void {
+    void this.router.navigate([], { queryParams: { sport }, queryParamsHandling: 'merge' });
+  }
 
-    this.repository.getFeed(this.page(), 10, this.followingOnly()).pipe(
-      takeUntilDestroyed(this.destroyRef),
-      finalize(() => {
-        this.loading.set(false);
-        this.loadingMore.set(false);
-      })
-    ).subscribe({
+  clearAuthor(): void {
+    void this.router.navigate([], { queryParams: { author: null }, queryParamsHandling: 'merge' });
+  }
+
+  // ---- feed -----------------------------------------------------------------------------------
+
+  reload(): void {
+    this.request?.unsubscribe();
+    this.page = 1;
+    this.loading.set(true);
+    this.loadError.set(false);
+    this.moreError.set(false);
+    this.request = this.fetch(1).pipe(finalize(() => this.loading.set(false))).subscribe({
       next: response => {
-        this.posts.update(current => reset ? response.content : [...current, ...response.content]);
+        this.posts.set(response.content);
         this.hasMore.set(!response.last);
-        this.hydratePosts(response.content);
+        this.store.hydrate(response.content);
       },
-      error: error => this.notify.error(this.errorMessage(error, 'Không thể tải bảng tin.'))
-    });
-  }
-
-  setFeedScope(followingOnly: boolean): void {
-    if (this.followingOnly() === followingOnly || this.loading()) return;
-    this.followingOnly.set(followingOnly);
-    this.loadFeed(true);
-  }
-
-  loadFollowing(): void {
-    if (!this.currentUser) return;
-    this.repository.getFollowingUserIds().pipe(
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe({
-      next: ids => this.followingAuthorIds.set(new Set(ids)),
-      error: () => this.followingAuthorIds.set(new Set())
-    });
-  }
-
-  isFollowing(authorId: string): boolean {
-    return this.followingAuthorIds().has(authorId);
-  }
-
-  isFollowPending(authorId: string): boolean {
-    return this.pendingFollowIds().has(authorId);
-  }
-
-  toggleFollow(authorId: string): void {
-    if (!this.currentUser || this.isOwner(authorId) || this.isFollowPending(authorId)) return;
-    const wasFollowing = this.isFollowing(authorId);
-    this.markFollowPending(authorId, true);
-
-    const request$ = wasFollowing
-      ? this.repository.unfollowUser(authorId)
-      : this.repository.followUser(authorId);
-
-    request$.pipe(
-      takeUntilDestroyed(this.destroyRef),
-      finalize(() => this.markFollowPending(authorId, false))
-    ).subscribe({
-      next: status => {
-        this.followingAuthorIds.update(current => {
-          const next = new Set(current);
-          if (status.followed) next.add(authorId); else next.delete(authorId);
-          return next;
-        });
-        this.notify.success(status.followed ? 'Đã theo dõi.' : 'Đã bỏ theo dõi.');
-        if (this.followingOnly()) this.loadFeed(true);
-      },
-      error: error => this.notify.error(this.errorMessage(error, 'Không thể cập nhật theo dõi.'))
-    });
-  }
-
-  private markFollowPending(authorId: string, pending: boolean): void {
-    this.pendingFollowIds.update(current => {
-      const next = new Set(current);
-      if (pending) next.add(authorId); else next.delete(authorId);
-      return next;
+      error: () => {
+        this.posts.set([]);
+        this.loadError.set(true);
+      }
     });
   }
 
   loadMore(): void {
-    if (!this.hasMore() || this.loadingMore()) return;
-    this.page.update(value => value + 1);
-    this.loadFeed();
+    if (!this.hasMore() || this.loading() || this.loadingMore() || this.moreError()) return;
+    this.loadingMore.set(true);
+    this.request = this.fetch(this.page + 1).pipe(finalize(() => this.loadingMore.set(false))).subscribe({
+      next: response => {
+        this.page += 1;
+        // Bai moi dang trong luc cuon co the day mot bai sang trang sau; bo trung theo id.
+        const seen = new Set(this.posts().map(post => post.postId));
+        this.posts.update(current => [...current, ...response.content.filter(post => !seen.has(post.postId))]);
+        this.hasMore.set(!response.last);
+        this.store.hydrate(response.content);
+      },
+      error: () => this.moreError.set(true)
+    });
   }
 
-  onFilesSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const files = Array.from(input.files ?? []);
-    input.value = '';
-    if (!this.requireLogin() || !files.length) return;
+  retryMore(): void {
+    this.moreError.set(false);
+    this.loadMore();
+  }
 
-    const available = 10 - this.attachmentCount();
-    if (available <= 0) {
-      this.notify.warning('Mỗi bài viết chỉ được đính kèm tối đa 10 tệp.');
+  private fetch(page: number): Observable<SpringPageResponse<SocialPost>> {
+    if (this.tab() === 'saved' && !this.authorId()) return this.repository.getSavedPosts(page, PAGE_SIZE);
+    const authorId = this.authorId() ?? (this.tab() === 'mine' ? this.me : null);
+    return this.repository.getFeed(page, PAGE_SIZE, {
+      followingOnly: !authorId && this.tab() === 'following',
+      sport: this.sport(),
+      authorId
+    });
+  }
+
+  // ---- card events ----------------------------------------------------------------------------
+
+  onPublished(post: SocialPost): void {
+    if (this.fits(post)) this.posts.update(items => [post, ...items]);
+    this.bumpMyPosts(1);
+  }
+
+  onChanged(post: SocialPost): void {
+    if (this.tab() === 'saved' && !this.authorId() && !post.savedByCurrentUser) {
+      this.posts.update(items => items.filter(item => item.postId !== post.postId));
       return;
     }
-
-    const accepted: PendingAttachment[] = [];
-    for (const file of files.slice(0, available)) {
-      if (file.size > 20 * 1024 * 1024) {
-        this.notify.warning(`Tệp ${file.name} vượt quá giới hạn 20 MB.`);
-        continue;
-      }
-      accepted.push({
-        file,
-        type: this.attachmentType(file),
-        previewUrl: URL.createObjectURL(file)
-      });
-    }
-    this.pendingAttachments.update(current => [...current, ...accepted]);
-    if (files.length > available) this.notify.warning('Chỉ 10 tệp đầu tiên được chọn.');
-  }
-
-  removePendingAttachment(index: number): void {
-    const item = this.pendingAttachments()[index];
-    if (item) URL.revokeObjectURL(item.previewUrl);
-    this.pendingAttachments.update(items => items.filter((_, itemIndex) => itemIndex !== index));
-  }
-
-  removeRetainedAttachment(attachmentId: string): void {
-    this.retainedAttachments.update(items => items.filter(item => item.attachmentId !== attachmentId));
-  }
-
-  publish(): void {
-    if (!this.requireLogin() || !this.canPublish()) return;
-    this.publishing.set(true);
-
-    const retained = this.retainedAttachments().map((item, index) => ({
-      storageKey: item.storageKey,
-      type: item.type,
-      displayOrder: index
-    }));
-    const startOrder = retained.length;
-    const attachments$ = this.uploadAttachments(this.pendingAttachments(), startOrder);
-
-    attachments$.pipe(
-      switchMap(uploaded => {
-        const request: SaveSocialPostRequest = {
-          content: this.composerContent().trim(),
-          visibility: this.composerVisibility(),
-          attachments: [...retained, ...uploaded]
-        };
-        const editingId = this.editingPostId();
-        return editingId
-          ? this.repository.updatePost(editingId, request)
-          : this.repository.createPost(request);
-      }),
-      takeUntilDestroyed(this.destroyRef),
-      finalize(() => this.publishing.set(false))
-    ).subscribe({
-      next: post => {
-        const editingId = this.editingPostId();
-        this.posts.update(items => editingId
-          ? items.map(item => item.postId === post.postId ? post : item)
-          : [post, ...items]
-        );
-        this.resetComposer();
-        this.hydratePosts([post]);
-        this.notify.success(editingId ? 'Đã cập nhật bài viết.' : 'Đã đăng bài viết.');
-      },
-      error: error => this.notify.error(this.errorMessage(error, 'Không thể lưu bài viết.'))
-    });
-  }
-
-  editPost(post: SocialPost): void {
-    if (!this.isOwner(post.authorId)) return;
-    this.resetPendingAttachments();
-    this.editingPostId.set(post.postId);
-    this.composerContent.set(post.content ?? '');
-    this.composerVisibility.set(post.visibility);
-    this.retainedAttachments.set([...post.attachments]);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  cancelEdit(): void {
-    this.resetComposer();
-  }
-
-  deletePost(post: SocialPost): void {
-    if (!this.isOwner(post.authorId) || !window.confirm('Bạn chắc chắn muốn xóa bài viết này?')) return;
-    this.markPostAction(post.postId, true);
-    this.repository.deletePost(post.postId).pipe(
-      takeUntilDestroyed(this.destroyRef),
-      finalize(() => this.markPostAction(post.postId, false))
-    ).subscribe({
-      next: () => {
-        this.posts.update(items => items.filter(item => item.postId !== post.postId));
-        if (this.editingPostId() === post.postId) this.resetComposer();
-        this.notify.success('Đã xóa bài viết.');
-      },
-      error: error => this.notify.error(this.errorMessage(error, 'Không thể xóa bài viết.'))
-    });
-  }
-
-  toggleLike(post: SocialPost): void {
-    if (!this.requireLogin() || this.actionPostIds().has(post.postId)) return;
-    this.markPostAction(post.postId, true);
-    const action = post.likedByCurrentUser
-      ? this.repository.unlikePost(post.postId)
-      : this.repository.likePost(post.postId);
-    action.pipe(
-      takeUntilDestroyed(this.destroyRef),
-      finalize(() => this.markPostAction(post.postId, false))
-    ).subscribe({
-      next: updated => this.replacePost(updated),
-      error: error => this.notify.error(this.errorMessage(error, 'Không thể cập nhật lượt thích.'))
-    });
-  }
-
-  toggleComments(post: SocialPost): void {
-    const expanded = new Set(this.expandedComments());
-    if (expanded.has(post.postId)) {
-      expanded.delete(post.postId);
-      this.expandedComments.set(expanded);
-      return;
-    }
-    expanded.add(post.postId);
-    this.expandedComments.set(expanded);
-    if (!this.comments().has(post.postId)) this.loadComments(post.postId);
-  }
-
-  submitComment(post: SocialPost): void {
-    if (!this.requireLogin()) return;
-    const content = (this.commentDrafts().get(post.postId) ?? '').trim();
-    if (!content) return;
-    const parent = this.replyTo().get(post.postId) ?? null;
-    this.markPostAction(post.postId, true);
-    this.repository.createComment(post.postId, {
-      parentCommentId: parent?.commentId ?? null,
-      content
-    }).pipe(
-      takeUntilDestroyed(this.destroyRef),
-      finalize(() => this.markPostAction(post.postId, false))
-    ).subscribe({
-      next: comment => {
-        this.comments.update(current => this.setMapValue(current, post.postId, [
-          ...(current.get(post.postId) ?? []),
-          comment
-        ]));
-        this.commentDrafts.update(current => this.setMapValue(current, post.postId, ''));
-        this.clearReply(post.postId);
-        this.posts.update(items => items.map(item => item.postId === post.postId
-          ? { ...item, commentCount: item.commentCount + 1 }
-          : item
-        ));
-        this.hydrateAuthors([comment.authorId]);
-      },
-      error: error => this.notify.error(this.errorMessage(error, 'Không thể gửi bình luận.'))
-    });
-  }
-
-  editComment(comment: SocialComment): void {
-    if (!this.isOwner(comment.authorId)) return;
-    const content = window.prompt('Chỉnh sửa bình luận', comment.content)?.trim();
-    if (!content || content === comment.content) return;
-    this.repository.updateComment(comment.commentId, content)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: updated => this.comments.update(current => this.setMapValue(
-          current,
-          comment.postId,
-          (current.get(comment.postId) ?? []).map(item => item.commentId === updated.commentId ? updated : item)
-        )),
-        error: error => this.notify.error(this.errorMessage(error, 'Không thể sửa bình luận.'))
-      });
-  }
-
-  deleteComment(comment: SocialComment): void {
-    if (!this.isOwner(comment.authorId) || !window.confirm('Xóa bình luận này?')) return;
-    this.deletingCommentIds.update(ids => new Set(ids).add(comment.commentId));
-    this.repository.deleteComment(comment.commentId).pipe(
-      takeUntilDestroyed(this.destroyRef),
-      finalize(() => this.deletingCommentIds.update(ids => {
-        const next = new Set(ids);
-        next.delete(comment.commentId);
-        return next;
-      }))
-    ).subscribe({
-      next: () => {
-        this.comments.update(current => this.setMapValue(
-          current,
-          comment.postId,
-          (current.get(comment.postId) ?? []).filter(item => item.commentId !== comment.commentId)
-        ));
-        this.posts.update(items => items.map(item => item.postId === comment.postId
-          ? { ...item, commentCount: Math.max(0, item.commentCount - 1) }
-          : item
-        ));
-      },
-      error: error => this.notify.error(this.errorMessage(error, 'Không thể xóa bình luận.'))
-    });
-  }
-
-  setReply(postId: string, comment: SocialComment): void {
-    this.replyTo.update(current => this.setMapValue(current, postId, comment));
-  }
-
-  clearReply(postId: string): void {
-    this.replyTo.update(current => {
-      const next = new Map(current);
-      next.delete(postId);
-      return next;
-    });
-  }
-
-  updateCommentDraft(postId: string, value: string): void {
-    this.commentDrafts.update(current => this.setMapValue(current, postId, value));
-  }
-
-  openShare(post: SocialPost): void {
-    if (!this.requireLogin()) return;
-    this.shareTarget.set(post);
-    this.shareCaption.set('');
-  }
-
-  closeShare(): void {
-    if (!this.sharing()) this.shareTarget.set(null);
-  }
-
-  submitShare(): void {
-    const post = this.shareTarget();
-    if (!post || this.sharing()) return;
-    this.sharing.set(true);
-    this.repository.sharePost(post.postId, this.shareCaption().trim()).pipe(
-      takeUntilDestroyed(this.destroyRef),
-      finalize(() => this.sharing.set(false))
-    ).subscribe({
-      next: () => {
-        this.posts.update(items => items.map(item => item.postId === post.postId
-          ? { ...item, shareCount: item.shareCount + 1 }
-          : item
-        ));
-        this.shareTarget.set(null);
-        this.notify.success('Đã chia sẻ bài viết.');
-      },
-      error: error => this.notify.error(this.errorMessage(error, 'Không thể chia sẻ bài viết.'))
-    });
-  }
-
-  openReport(type: ReportTargetType, id: string): void {
-    if (!this.requireLogin()) return;
-    this.reportTarget.set({ type, id });
-    this.reportReason.set('');
-  }
-
-  closeReport(): void {
-    if (!this.reporting()) this.reportTarget.set(null);
-  }
-
-  submitReport(): void {
-    const target = this.reportTarget();
-    const reason = this.reportReason().trim();
-    if (!target || reason.length < 10 || this.reporting()) {
-      if (reason.length < 10) this.notify.warning('Lý do báo cáo phải có ít nhất 10 ký tự.');
-      return;
-    }
-    this.reporting.set(true);
-    this.repository.reportContent({
-      targetType: target.type,
-      targetId: target.id,
-      reason,
-      evidence: []
-    }).pipe(
-      takeUntilDestroyed(this.destroyRef),
-      finalize(() => this.reporting.set(false))
-    ).subscribe({
-      next: () => {
-        this.reportTarget.set(null);
-        this.notify.success('Báo cáo đã được gửi để kiểm duyệt.');
-      },
-      error: error => this.notify.error(this.errorMessage(error, 'Không thể gửi báo cáo.'))
-    });
-  }
-
-  author(userId: string): User | null {
-    return this.authors().get(userId) ?? null;
-  }
-
-  mediaUrl(storageKey: string): string {
-    return this.mediaUrls().get(storageKey) ?? '';
-  }
-
-  isOwner(userId: string): boolean {
-    return this.currentUser?.userId === userId;
-  }
-
-  visibilityLabel(value: PostVisibility): string {
-    return this.visibilityOptions.find(item => item.value === value)?.label ?? value;
-  }
-
-  visibilityIcon(value: PostVisibility): string {
-    return this.visibilityOptions.find(item => item.value === value)?.icon ?? 'globe';
-  }
-
-  relativeTime(value: string): string {
-    const timestamp = new Date(value).getTime();
-    if (!Number.isFinite(timestamp)) return '';
-    const seconds = Math.max(0, Math.floor((Date.now() - timestamp) / 1000));
-    if (seconds < 60) return 'Vừa xong';
-    if (seconds < 3600) return `${Math.floor(seconds / 60)} phút trước`;
-    if (seconds < 86400) return `${Math.floor(seconds / 3600)} giờ trước`;
-    if (seconds < 604800) return `${Math.floor(seconds / 86400)} ngày trước`;
-    return new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
-      .format(new Date(timestamp));
-  }
-
-  avatar(userId: string): string {
-    const user = this.author(userId);
-    if (user?.avatarUrl) return user.avatarUrl;
-    const name = user?.fullName || user?.username || 'GOAT Sports';
-    return `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`;
-  }
-
-  authorName(userId: string): string {
-    const user = this.author(userId);
-    return user?.fullName || user?.username || 'Người dùng GOAT Sports';
-  }
-
-  private loadComments(postId: string): void {
-    this.repository.getComments(postId, 1, 100)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: response => {
-          this.comments.update(current => this.setMapValue(current, postId, response.content));
-          this.hydrateAuthors(response.content.map(item => item.authorId));
-        },
-        error: error => this.notify.error(this.errorMessage(error, 'Không thể tải bình luận.'))
-      });
-  }
-
-  private uploadAttachments(items: readonly PendingAttachment[], startOrder: number) {
-    return this.storageRepository.uploadImages(items.map(item => item.file), 'social-posts').pipe(
-      map(keys => keys.map((storageKey, index) => ({
-        storageKey,
-        type: items[index].type,
-        displayOrder: startOrder + index
-      })))
-    );
-  }
-
-  private hydratePosts(posts: readonly SocialPost[]): void {
-    this.hydrateAuthors(posts.map(item => item.authorId));
-    const attachments = posts.flatMap(post => post.attachments);
-    const missing = attachments.filter(item => !this.mediaUrls().has(item.storageKey));
-    if (!missing.length) return;
-
-    forkJoin(missing.map(item => this.storageRepository.getFileUrl(item.storageKey).pipe(
-      map(url => ({ key: item.storageKey, url })),
-      catchError(() => of({ key: item.storageKey, url: '' }))
-    ))).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(items => {
-      const next = new Map(this.mediaUrls());
-      items.forEach(item => next.set(item.key, item.url));
-      this.mediaUrls.set(next);
-    });
-  }
-
-  private hydrateAuthors(userIds: readonly string[]): void {
-    this.directory.resolve(userIds)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(resolved => {
-        const next = new Map(this.authors());
-        resolved.forEach((user, id) => next.set(id, user));
-        this.authors.set(next);
-      });
-  }
-
-  private replacePost(post: SocialPost): void {
     this.posts.update(items => items.map(item => item.postId === post.postId ? post : item));
-    this.hydratePosts([post]);
   }
 
-  private resetComposer(): void {
-    this.resetPendingAttachments();
-    this.composerContent.set('');
-    this.composerVisibility.set('PUBLIC');
-    this.retainedAttachments.set([]);
-    this.editingPostId.set(null);
+  onRemoved(postId: string): void {
+    this.posts.update(items => items.filter(item => item.postId !== postId));
+    this.bumpMyPosts(-1);
   }
 
-  private resetPendingAttachments(): void {
-    this.pendingAttachments().forEach(item => URL.revokeObjectURL(item.previewUrl));
-    this.pendingAttachments.set([]);
+  onAuthorBlocked(authorId: string): void {
+    this.posts.update(items => items.filter(item => item.authorId !== authorId && item.sharedPost?.authorId !== authorId));
+    this.suggestions.update(section => ({ ...section, data: section.data.filter(item => item.authorId !== authorId) }));
+    if (this.authorId() === authorId) this.clearAuthor();
   }
 
-  private attachmentType(file: File): AttachmentType {
-    if (file.type.startsWith('image/')) return 'IMAGE';
-    if (file.type.startsWith('video/')) return 'VIDEO';
-    return 'FILE';
-  }
+  // ---- rails ----------------------------------------------------------------------------------
 
-  private markPostAction(postId: string, active: boolean): void {
-    this.actionPostIds.update(ids => {
-      const next = new Set(ids);
-      active ? next.add(postId) : next.delete(postId);
-      return next;
+  followSuggestion(authorId: string): void {
+    this.store.toggleFollow(authorId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: status => {
+        this.notify.success(status.followed ? `Đang theo dõi ${this.store.authorName(authorId)}.` : 'Đã bỏ theo dõi.');
+        this.adjustFollowing(status.followed ? 1 : -1);
+      },
+      error: error => this.notify.error(errorMessage(error, 'Không thể cập nhật theo dõi.'))
     });
   }
 
-  private requireLogin(): boolean {
-    if (this.authService.currentUser) return true;
-    this.authService.notifyAuthenticationRequired();
-    return false;
+  toggleAuthorFollow(): void {
+    const authorId = this.authorId();
+    if (!authorId) return;
+    this.store.toggleFollow(authorId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: status => {
+        this.authorStats.update(section => section.data
+          ? { ...section, data: { ...section.data, followerCount: status.followerCount } }
+          : section);
+        this.adjustFollowing(status.followed ? 1 : -1);
+      },
+      error: error => this.notify.error(errorMessage(error, 'Không thể cập nhật theo dõi.'))
+    });
   }
 
-  private setMapValue<K, V>(source: ReadonlyMap<K, V>, key: K, value: V): ReadonlyMap<K, V> {
-    const next = new Map(source);
-    next.set(key, value);
-    return next;
+  loadSuggestions(): void {
+    this.suggestions.set({ loading: true, error: false, data: [] });
+    this.repository.getFollowSuggestions(5).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: data => {
+        this.suggestions.set({ loading: false, error: false, data });
+        this.store.hydrateAuthors(data.map(item => item.authorId));
+      },
+      error: () => this.suggestions.set({ loading: false, error: true, data: [] })
+    });
   }
 
-  private errorMessage(error: unknown, fallback: string): string {
-    const response = error as { error?: { message?: unknown; error?: unknown; detail?: unknown } };
-    if (typeof response.error?.message === 'string' && response.error.message.trim()) return response.error.message;
-    if (typeof response.error?.detail === 'string' && response.error.detail.trim()) return response.error.detail;
-    if (typeof response.error?.error === 'string' && response.error.error.trim()) return response.error.error;
-    return fallback;
+  loadRails(): void {
+    const sport = this.sport() ?? undefined;
+    this.openTournaments.set({ loading: true, error: false, data: [] });
+    this.tournaments.searchTournaments({ status: 'REGISTRATION_OPEN', sportType: sport, sort: 'registrationCloseDate,asc' }, 0, 3)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: page => this.openTournaments.set({ loading: false, error: false, data: page.items }),
+        error: () => this.openTournaments.set({ loading: false, error: true, data: [] })
+      });
+
+    this.sportClubs.set({ loading: true, error: false, data: [] });
+    this.clubs.searchClubs(sport).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: clubs => this.sportClubs.set({
+        loading: false,
+        error: false,
+        data: [...clubs].sort((a, b) => b.memberCount - a.memberCount).slice(0, 3)
+      }),
+      error: () => this.sportClubs.set({ loading: false, error: true, data: [] })
+    });
+  }
+
+  loadMyStats(): void {
+    const me = this.me;
+    if (!me) return;
+    this.myStats.set({ loading: true, error: false, data: null });
+    this.profileStats(me).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: data => this.myStats.set({ loading: false, error: false, data }),
+      error: () => this.myStats.set({ loading: false, error: true, data: null })
+    });
+  }
+
+  loadAuthorStats(authorId: string): void {
+    this.store.hydrateAuthors([authorId]);
+    this.authorStats.set({ loading: true, error: false, data: null });
+    this.profileStats(authorId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: data => this.authorStats.set({ loading: false, error: false, data }),
+      error: () => this.authorStats.set({ loading: false, error: true, data: null })
+    });
+  }
+
+  useLogoFallback(event: Event): void {
+    const image = event.target as HTMLImageElement;
+    if (!image.src.endsWith(this.defaultClubLogo)) image.src = this.defaultClubLogo;
+  }
+
+  private profileStats(userId: string): Observable<ProfileStats> {
+    return forkJoin({
+      stats: this.repository.getAuthorStats(userId),
+      follow: this.repository.getFollowStatus(userId).pipe(
+        catchError(() => of<UserFollowStatus>({ userId, followed: false, followerCount: 0, followingCount: 0 })))
+    }).pipe(map(({ stats, follow }) => ({
+      postCount: stats.postCount,
+      followerCount: follow.followerCount,
+      followingCount: follow.followingCount
+    })));
+  }
+
+  private fits(post: SocialPost): boolean {
+    if (this.tab() === 'saved' && !this.authorId()) return false;
+    if (this.authorId() && this.authorId() !== post.authorId) return false;
+    return !this.sport() || this.sport() === post.sport;
+  }
+
+  private bumpMyPosts(delta: number): void {
+    const update = (section: Section<ProfileStats | null>) => section.data
+      ? { ...section, data: { ...section.data, postCount: Math.max(0, section.data.postCount + delta) } }
+      : section;
+    this.myStats.update(update);
+    if (this.isMyAuthorView()) this.authorStats.update(update);
+  }
+
+  private adjustFollowing(delta: number): void {
+    this.myStats.update(section => section.data
+      ? { ...section, data: { ...section.data, followingCount: Math.max(0, section.data.followingCount + delta) } }
+      : section);
   }
 }
