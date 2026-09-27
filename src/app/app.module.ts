@@ -208,6 +208,8 @@ import {
   LucideArrowDownAZ,
   LucideLink,
   LucideRepeat2,
+  LucideSwitchCamera,
+  LucideCameraOff,
 } from '@lucide/angular';
 
 @NgModule({
@@ -252,6 +254,8 @@ import {
     provideLucideIcons(
       LucideLink,
       LucideRepeat2,
+      LucideSwitchCamera,
+      LucideCameraOff,
       LucideQrCode,
       LucideMenu,
       LucideSearch,

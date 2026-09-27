@@ -77,11 +77,19 @@ async function handleChat(route: Route, path: string): Promise<void> {
     return;
   }
   if (path.endsWith('/messages')) {
-    const body = route.request().postDataJSON() as { content: string; clientMessageId?: string };
+    const body = route.request().postDataJSON() as {
+      content: string; clientMessageId?: string; type?: string;
+      attachments?: Array<{ storageKey: string; type: string; fileName?: string; fileSize?: number }>;
+    };
+    storageCalls.messages.push(body);
     await route.fulfill({ json: baseResponse({
       messageId: `m${Date.now()}`, conversationId: DIRECT_ROOM, senderId: currentUser.userId, senderName: currentUser.fullName,
-      clientMessageId: body.clientMessageId, content: body.content, type: 'TEXT', status: 'SENT',
-      attachments: [], receipts: [], sentAt: new Date().toISOString().slice(0, 19)
+      clientMessageId: body.clientMessageId, content: body.content, type: body.type ?? 'TEXT', status: 'SENT',
+      attachments: (body.attachments ?? []).map((item, index) => ({
+        attachmentId: `att-${index}`, storageKey: item.storageKey.replace(/^temp\//, ''), type: item.type,
+        fileName: item.fileName, fileSize: item.fileSize
+      })),
+      receipts: [], sentAt: new Date().toISOString().slice(0, 19)
     }) });
     return;
   }
@@ -89,11 +97,41 @@ async function handleChat(route: Route, path: string): Promise<void> {
   await route.fulfill({ json: baseResponse(room ?? null) });
 }
 
+// 1x1 PNG, du de trinh duyet ve anh that trong luoi anh.
+const PIXEL = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
+
+/** Moi lan xin URL tai len, de test kiem tra ca nhom anh di trong mot lo. */
+export const storageCalls: { presign: Array<Array<{ folder: string; fileName: string }>>; messages: unknown[] } = {
+  presign: [],
+  messages: []
+};
+
+async function handleFakeR2(route: Route): Promise<void> {
+  if (route.request().method() === 'PUT') {
+    await route.fulfill({ status: 200, body: '' });
+    return;
+  }
+  await route.fulfill({ status: 200, contentType: 'image/png', body: PIXEL });
+}
+
 async function handleApi(route: Route): Promise<void> {
   const request = route.request();
   const url = new URL(request.url());
   const path = url.pathname;
 
+  if (path.endsWith('/storage-service/api/v1/files/presigned-url')) {
+    const requests = request.postDataJSON() as Array<{ folder: string; fileName: string }>;
+    storageCalls.presign.push(requests);
+    await route.fulfill({ json: baseResponse(requests.map((item, index) => ({
+      uploadUrl: `https://r2.test/upload/${index}`,
+      objectKey: `temp/${item.folder}/${currentUser.userId}/${index}-${item.fileName}`
+    }))) });
+    return;
+  }
+  if (path.endsWith('/storage-service/api/v1/files')) {
+    await route.fulfill({ contentType: 'text/plain', body: `https://r2.test/object/${url.searchParams.get('key')}` });
+    return;
+  }
   if (path.endsWith('/auth-service/api/v1/auth/me') || path.endsWith('/auth-service/api/v1/auth/refresh')) {
     await route.fulfill({ json: baseResponse(currentUser) });
     return;
@@ -206,6 +244,7 @@ async function handleApi(route: Route): Promise<void> {
 
 export async function mockGoatSportsApi(page: Page): Promise<void> {
   await page.route('https://api.goatsports.click/**', handleApi);
+  await page.route('https://r2.test/**', handleFakeR2);
   await page.route('http://localhost:7070/**', handleApi);
   await page.route('http://127.0.0.1:7070/**', handleApi);
 }

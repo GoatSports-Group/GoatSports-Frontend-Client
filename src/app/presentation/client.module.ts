@@ -50,6 +50,7 @@ import { PostDetailComponent } from '@presentation/pages/client/feed/post-detail
 import { CommunityFriendsComponent } from '@presentation/pages/client/feed/community-friends.component';
 import { MediaLightboxComponent } from '@presentation/pages/client/feed/media-lightbox.component';
 import { MentionMenuComponent } from '@presentation/pages/client/feed/mention-menu.component';
+import { CameraCaptureComponent } from '@presentation/pages/client/chat/camera-capture.component';
 import { AiAssistantModalComponent } from '@presentation/shared/components/ai-assistant-modal/ai-assistant-modal.component';
 
 @NgModule({
@@ -100,6 +101,7 @@ import { AiAssistantModalComponent } from '@presentation/shared/components/ai-as
     CommunityFriendsComponent,
     MediaLightboxComponent,
     MentionMenuComponent,
+    CameraCaptureComponent,
     AiAssistantModalComponent
   ],
   imports: [

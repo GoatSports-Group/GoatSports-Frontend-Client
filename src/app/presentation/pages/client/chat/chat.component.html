@@ -150,7 +150,28 @@
                     @if (!mine && !isPairRoom(room) && isFirstOfGroup(index)) {
                       <span class="msg__sender">{{ getMessageSenderName(message) }}</span>
                     }
-                    <p class="msg__bubble">{{ message.content }}</p>
+                    @if (message.attachments.length) {
+                      <!-- Mot lan gui nhieu anh = mot luoi anh trong mot tin, khong phai N tin rieng. -->
+                      <div class="gallery" [attr.data-count]="message.attachments.length > 4 ? 'many' : message.attachments.length"
+                        role="group" [attr.aria-label]="message.attachments.length + ' ảnh'">
+                        @for (image of message.attachments; track image.attachmentId; let imageIndex = $index) {
+                          @if (imageUrl(image); as url) {
+                            <button type="button" class="gallery__cell" (click)="openLightbox(message, imageIndex)"
+                              [attr.aria-label]="'Xem ảnh ' + (imageIndex + 1) + ' trên ' + message.attachments.length">
+                              <img [src]="url" alt="" loading="lazy" (error)="onImageError(image)" />
+                            </button>
+                          } @else {
+                            <span class="gallery__cell gallery__cell--loading" aria-hidden="true"></span>
+                          }
+                        }
+                        @if (message.deliveryState === 'SENDING' && message.attachments.length) {
+                          <span class="gallery__uploading" role="status"><span class="spinner" aria-hidden="true"></span>Đang gửi ảnh…</span>
+                        }
+                      </div>
+                    }
+                    @if (message.content) {
+                      <p class="msg__bubble">{{ message.content }}</p>
+                    }
                     @if (isLastOfGroup(index) || message.deliveryState === 'FAILED') {
                       <span class="msg__meta">
                         <time [attr.datetime]="message.createdAt">{{ message.createdAt | date:'HH:mm' }}</time>
@@ -183,13 +204,39 @@
           }
         </section>
 
-        <footer class="compose">
+        <footer class="compose" [class.has-draft]="draftImages().length > 0">
+          @if (draftImages().length || preparingImages()) {
+            <div class="draft" aria-label="Ảnh sẽ gửi">
+              @for (item of draftImages(); track item.previewUrl; let index = $index) {
+                <figure class="draft__item">
+                  <img [src]="item.previewUrl" [alt]="'Ảnh ' + (index + 1)" />
+                  <button type="button" class="draft__remove" (click)="removeDraftImage(index)" [attr.aria-label]="'Bỏ ảnh ' + (index + 1)">
+                    <lucide-icon name="x" class="w-4 h-4"></lucide-icon>
+                  </button>
+                </figure>
+              }
+              @if (preparingImages()) {
+                <span class="draft__item draft__item--busy" role="status" aria-label="Đang chuẩn bị ảnh"><span class="spinner" aria-hidden="true"></span></span>
+              }
+              <span class="draft__count">{{ draftImages().length }}/{{ maxImages }}</span>
+            </div>
+          }
+          <div class="compose__tools">
+            <label class="icon-btn compose__tool" [class.is-disabled]="draftImages().length >= maxImages" title="Gửi ảnh">
+              <input type="file" multiple [attr.accept]="imageAccept" (change)="onPickImages($event)"
+                [disabled]="draftImages().length >= maxImages" aria-label="Chọn ảnh để gửi" />
+              <lucide-icon name="image" class="w-5 h-5"></lucide-icon>
+            </label>
+            <button type="button" class="icon-btn compose__tool" (click)="openCamera()" aria-label="Chụp ảnh bằng camera" title="Chụp ảnh">
+              <lucide-icon name="camera" class="w-5 h-5"></lucide-icon>
+            </button>
+          </div>
           <label class="compose__field">
             <span class="sr-only">Nội dung tin nhắn</span>
             <textarea rows="1" maxlength="2000" placeholder="Nhắn tin…" [(ngModel)]="messageInput"
-              (input)="onTyping()" (blur)="onTypingStop()" (keydown)="onInputKeyDown($event)"></textarea>
+              (input)="onTyping()" (blur)="onTypingStop()" (keydown)="onInputKeyDown($event)" (paste)="onPaste($event)"></textarea>
           </label>
-          <button type="button" class="icon-btn icon-btn--send" [disabled]="!messageInput.trim()" (click)="sendMessage()" aria-label="Gửi tin nhắn">
+          <button type="button" class="icon-btn icon-btn--send" [disabled]="!canSend" (click)="sendMessage()" aria-label="Gửi tin nhắn">
             <lucide-icon name="send" class="w-5 h-5"></lucide-icon>
           </button>
           @if (messageInput.length) {
@@ -398,4 +445,12 @@
       </footer>
     </section>
   </div>
+}
+
+@if (cameraOpen()) {
+  <app-camera-capture (captured)="onCaptured($event)" (closed)="cameraOpen.set(false)"></app-camera-capture>
+}
+
+@if (lightbox(); as viewer) {
+  <app-media-lightbox [items]="viewer.items" [start]="viewer.start" (closed)="lightbox.set(null)"></app-media-lightbox>
 }

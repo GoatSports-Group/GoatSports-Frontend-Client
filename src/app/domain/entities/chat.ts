@@ -54,6 +54,8 @@ export interface ChatMessageAttachment {
   type: 'IMAGE' | 'VIDEO' | 'FILE';
   fileName?: string;
   fileSize?: number;
+  /** Chi o client: URL anh cuc bo de hien ngay trong luc dang tai len. */
+  previewUrl?: string;
 }
 
 export interface ChatMessageReceipt {

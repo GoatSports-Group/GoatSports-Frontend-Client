@@ -134,7 +134,8 @@ export class ChatApi {
         senderId: this.requireCurrentUserId(),
         clientMessageId: request.clientMessageId,
         content: request.content,
-        type: request.type || 'TEXT'
+        type: request.type || (request.attachments?.length ? 'IMAGE' : 'TEXT'),
+        attachments: request.attachments ?? []
       }
     ).pipe(map(response => ({ ...response, data: this.toChatMessage(response.data) })));
   }

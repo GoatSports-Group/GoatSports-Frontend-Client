@@ -18,6 +18,8 @@ export interface SendMessageRequest {
   content: string;
   type?: string;
   metadata?: string;
+  /** Ca nhom anh cua mot lan gui; khoa R2 do storage cap khi tai len. */
+  attachments?: Array<{ storageKey: string; type: 'IMAGE'; fileName?: string; fileSize?: number }>;
 }
 
 export interface ChatTypingEvent {

@@ -1,12 +1,13 @@
-import { AfterViewChecked, Component, ElementRef, OnDestroy, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
+import { AfterViewChecked, Component, ElementRef, OnDestroy, OnInit, ViewChild, computed, effect, inject, signal, untracked } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, Subscription, finalize, map, switchMap } from 'rxjs';
+import { Observable, Subscription, finalize, map, of, switchMap } from 'rxjs';
 import { CHAT_REPOSITORY_TOKEN } from '@application/ports/persistence/chat.repository';
 import { FRIEND_REPOSITORY_TOKEN } from '@application/ports/persistence/friend.repository';
 import { WEBSOCKET_SERVICE_TOKEN } from '@application/ports/websocket.service';
 import { CURRENT_USER_PROVIDER_TOKEN } from '@application/ports/current-user.provider';
 import {
   ChatMessage,
+  ChatMessageAttachment,
   ChatParticipant,
   ChatPresenceEvent,
   ChatRoom,
@@ -18,6 +19,9 @@ import { Friendship } from '@application/dto/friend/friend.dto';
 import { User } from '@application/dto/user/user.dto';
 import { PLAYER_SPORT_PROFILE_REPOSITORY_TOKEN } from '@application/ports/persistence/player-sport-profile.repository';
 import { SOCIAL_FEED_REPOSITORY_TOKEN } from '@application/ports/persistence/social-feed.repository';
+import { STORAGE_REPOSITORY_TOKEN } from '@application/ports/persistence/storage.repository';
+import { LightboxItem } from '@presentation/pages/client/feed/media-lightbox.component';
+import { CHAT_MAX_BYTES, CHAT_MAX_IMAGES, CHAT_IMAGE_TYPES, prepareImage } from './image-prep';
 import { NotifyService } from '@shared/components/notify/notify.service';
 import { PlayerDirectoryService } from '@presentation/services/player-directory.service';
 import { REPORT_REASONS } from '@presentation/pages/client/feed/community-view';
@@ -54,6 +58,24 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   private readonly playerDirectory = inject(PlayerDirectoryService);
   private readonly sportProfileRepo = inject(PLAYER_SPORT_PROFILE_REPOSITORY_TOKEN);
   private readonly socialFeedRepo = inject(SOCIAL_FEED_REPOSITORY_TOKEN);
+  private readonly storageRepo = inject(STORAGE_REPOSITORY_TOKEN);
+
+  // ---- anh ------------------------------------------------------------------------------------
+  /** Anh dang cho gui (chon tu may, dan tu clipboard hoac chup tu camera). */
+  readonly draftImages = signal<{ file: File; previewUrl: string }[]>([]);
+  readonly preparingImages = signal(false);
+  readonly cameraOpen = signal(false);
+  /** Khoa R2 → URL doc duoc (URL ky han cho thu muc rieng tu chat-messages). */
+  readonly imageUrls = signal<ReadonlyMap<string, string>>(new Map());
+  readonly lightbox = signal<{ items: LightboxItem[]; start: number } | null>(null);
+  readonly maxImages = CHAT_MAX_IMAGES;
+  readonly imageAccept = CHAT_IMAGE_TYPES.join(',') + ',image/heic,image/heif';
+  /** Tep cua tin dang gui, de "Gui lai" khong phai chon lai anh. */
+  private readonly outgoingFiles = new Map<string, File[]>();
+  /** Khoa da tai len cua tin gui loi, de gui lai khong tai len lan hai. */
+  private readonly uploadedKeys = new Map<string, string[]>();
+  private readonly localPreviewUrls = new Set<string>();
+  private readonly requestedImageKeys = new Set<string>();
 
   readonly rooms = signal<ChatRoom[]>([]);
   readonly activeRoom = signal<ChatRoom | null>(null);
@@ -106,6 +128,14 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   private messageRequestSequence = 0;
   private readonly subscriptions: Subscription[] = [];
 
+  constructor() {
+    // Moi khi danh sach tin doi (tai lich su, tin moi qua WebSocket, tin vua gui), lay URL cho anh moi.
+    effect(() => {
+      const messages = this.messages();
+      untracked(() => this.resolveImageUrls(messages));
+    });
+  }
+
   ngOnInit(): void {
     this.currentUserId = this.userProvider.getCurrentUserId() || '';
     this.restoreMutedRooms();
@@ -136,6 +166,8 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.remoteTypingTimeouts.clear();
     if (this.relativeTimeInterval) clearInterval(this.relativeTimeInterval);
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
+    this.draftImages().forEach(item => URL.revokeObjectURL(item.previewUrl));
+    this.localPreviewUrls.forEach(url => URL.revokeObjectURL(url));
   }
 
   get filteredRooms(): ChatRoom[] {
@@ -268,12 +300,20 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     });
   }
 
+  get canSend(): boolean {
+    return !this.preparingImages() && (!!this.messageInput.trim() || this.draftImages().length > 0);
+  }
+
   sendMessage(): void {
     const content = this.messageInput.trim();
     const room = this.activeRoom();
-    if (!content || !room) return;
+    const images = this.draftImages();
+    if ((!content && !images.length) || !room || this.preparingImages()) return;
 
     const clientMessageId = crypto.randomUUID();
+    // Ca nhom anh di trong MOT tin nhan, nguoi nhan thay mot luoi anh chu khong phai N tin rieng.
+    images.forEach(item => this.localPreviewUrls.add(item.previewUrl));
+    if (images.length) this.outgoingFiles.set(clientMessageId, images.map(item => item.file));
     const optimisticMessage: ChatMessage = {
       messageId: `pending-${clientMessageId}`,
       clientMessageId,
@@ -282,18 +322,127 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       senderName: this.userProvider.getCurrentUserName() || 'Bạn',
       senderAvatar: this.userProvider.getCurrentUserAvatar() || undefined,
       content,
-      type: MessageType.TEXT,
+      type: images.length ? MessageType.IMAGE : MessageType.TEXT,
       deliveryState: 'SENDING',
-      attachments: [],
+      attachments: images.map((item, index) => ({
+        attachmentId: `local-${clientMessageId}-${index}`,
+        storageKey: '',
+        type: 'IMAGE' as const,
+        fileName: item.file.name,
+        fileSize: item.file.size,
+        previewUrl: item.previewUrl
+      })),
       receipts: [],
       createdAt: new Date().toISOString()
     };
 
     this.messageInput = '';
+    this.draftImages.set([]);
     this.onTypingStop();
     this.insertMessage(optimisticMessage);
     this.updateRoomFromMessage(optimisticMessage);
     this.dispatchMessage(optimisticMessage);
+  }
+
+  // ---- chon / chup anh ------------------------------------------------------------------------
+
+  onPickImages(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+    input.value = '';
+    void this.addImages(files);
+  }
+
+  /** Dan anh tu clipboard (chup man hinh, sao chep anh) vao o soan tin. */
+  onPaste(event: ClipboardEvent): void {
+    const files = Array.from(event.clipboardData?.files ?? []).filter(file => file.type.startsWith('image/'));
+    if (!files.length) return;
+    event.preventDefault();
+    void this.addImages(files);
+  }
+
+  openCamera(): void {
+    if (this.draftImages().length >= CHAT_MAX_IMAGES) {
+      this.notifyService.warning(`Mỗi tin nhắn gửi tối đa ${CHAT_MAX_IMAGES} ảnh.`);
+      return;
+    }
+    this.cameraOpen.set(true);
+  }
+
+  onCaptured(file: File): void {
+    this.cameraOpen.set(false);
+    void this.addImages([file]);
+  }
+
+  removeDraftImage(index: number): void {
+    const item = this.draftImages()[index];
+    if (item) URL.revokeObjectURL(item.previewUrl);
+    this.draftImages.update(items => items.filter((_, i) => i !== index));
+  }
+
+  imageUrl(attachment: ChatMessageAttachment): string {
+    return (attachment.storageKey && this.imageUrls().get(attachment.storageKey)) || attachment.previewUrl || '';
+  }
+
+  /** URL ky han het han (tab mo lau) hoac anh chua kip chuyen khoi temp/: xin lai mot lan. */
+  onImageError(attachment: ChatMessageAttachment): void {
+    const key = attachment.storageKey;
+    if (!key || !this.requestedImageKeys.has(key)) return;
+    this.requestedImageKeys.delete(key);
+    setTimeout(() => this.resolveImageUrls(this.messages(), true), 1500);
+  }
+
+  openLightbox(message: ChatMessage, index: number): void {
+    const items = message.attachments
+      .filter(item => item.type === 'IMAGE' && this.imageUrl(item))
+      .map(item => ({ url: this.imageUrl(item), type: 'IMAGE' as const }));
+    if (items.length) this.lightbox.set({ items, start: Math.min(index, items.length - 1) });
+  }
+
+  private async addImages(files: File[]): Promise<void> {
+    const images = files.filter(file => file.type.startsWith('image/'));
+    if (images.length < files.length) this.notifyService.warning('Chỉ gửi được tệp ảnh.');
+    const room = CHAT_MAX_IMAGES - this.draftImages().length;
+    if (!images.length) return;
+    if (room <= 0) {
+      this.notifyService.warning(`Mỗi tin nhắn gửi tối đa ${CHAT_MAX_IMAGES} ảnh.`);
+      return;
+    }
+    if (images.length > room) this.notifyService.warning(`Chỉ thêm ${room} ảnh đầu tiên (tối đa ${CHAT_MAX_IMAGES} ảnh mỗi tin).`);
+
+    this.preparingImages.set(true);
+    try {
+      const prepared: { file: File; previewUrl: string }[] = [];
+      for (const file of images.slice(0, room)) {
+        try {
+          const ready = await prepareImage(file);
+          if (ready.size > CHAT_MAX_BYTES) {
+            this.notifyService.warning(`Ảnh ${file.name} vẫn lớn hơn 10 MB sau khi nén.`);
+            continue;
+          }
+          prepared.push({ file: ready, previewUrl: URL.createObjectURL(ready) });
+        } catch {
+          this.notifyService.warning(`Không đọc được ảnh ${file.name}.`);
+        }
+      }
+      this.draftImages.update(items => [...items, ...prepared]);
+    } finally {
+      this.preparingImages.set(false);
+    }
+  }
+
+  private resolveImageUrls(messages: readonly ChatMessage[], force = false): void {
+    const keys = [...new Set(messages.flatMap(message => message.attachments ?? [])
+      .filter(item => item.type === 'IMAGE' && item.storageKey)
+      .map(item => item.storageKey))]
+      .filter(key => force ? !this.requestedImageKeys.has(key) : !this.requestedImageKeys.has(key) && !this.imageUrls().has(key));
+    keys.forEach(key => {
+      this.requestedImageKeys.add(key);
+      this.storageRepo.getFileUrl(key).subscribe({
+        next: url => this.imageUrls.update(current => new Map(current).set(key, url)),
+        error: () => this.requestedImageKeys.delete(key)
+      });
+    });
   }
 
   retryMessage(message: ChatMessage): void {
@@ -724,20 +873,51 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       'assets/images/default-avatar.svg';
   }
 
+  /** Tin co anh: tai ca nhom anh len R2 (thu muc chat-messages) roi gui mot tin mang du khoa anh. */
   private dispatchMessage(message: ChatMessage): void {
-    this.chatRepo.sendMessage(message.roomId, {
-      clientMessageId: message.clientMessageId,
-      content: message.content,
-      type: message.type
-    }).subscribe({
+    const key = message.clientMessageId ?? message.messageId;
+    const files = this.outgoingFiles.get(key) ?? [];
+    const cached = this.uploadedKeys.get(key);
+    const keys$: Observable<string[]> = !files.length
+      ? of([])
+      : cached ? of(cached) : this.storageRepo.uploadImages(files, 'chat-messages');
+
+    keys$.pipe(
+      switchMap(storageKeys => {
+        if (files.length) this.uploadedKeys.set(key, storageKeys);
+        return this.chatRepo.sendMessage(message.roomId, {
+          clientMessageId: message.clientMessageId,
+          content: message.content,
+          type: message.type,
+          attachments: storageKeys.map((storageKey, index) => ({
+            storageKey,
+            type: 'IMAGE' as const,
+            fileName: files[index]?.name,
+            fileSize: files[index]?.size
+          }))
+        });
+      })
+    ).subscribe({
       next: response => {
         if (!response.data) return;
-        this.reconcileMessage(response.data);
-        this.updateRoomFromMessage(response.data);
+        this.outgoingFiles.delete(key);
+        this.uploadedKeys.delete(key);
+        // Giu anh cuc bo cho den khi URL that tai xong, de luoi anh khong nhay trang.
+        const saved = {
+          ...response.data,
+          attachments: response.data.attachments.map((item, index) => ({
+            ...item,
+            previewUrl: message.attachments[index]?.previewUrl
+          }))
+        };
+        this.reconcileMessage(saved);
+        this.updateRoomFromMessage(saved);
       },
       error: () => {
         this.patchMessage(message, { deliveryState: 'FAILED' });
-        this.notifyService.error('Tin nhắn chưa gửi được. Bạn có thể thử lại ngay trên tin nhắn.');
+        this.notifyService.error(files.length
+          ? 'Ảnh chưa gửi được. Bạn có thể bấm "Gửi lại" ngay trên tin nhắn.'
+          : 'Tin nhắn chưa gửi được. Bạn có thể thử lại ngay trên tin nhắn.');
       }
     });
   }
@@ -855,8 +1035,9 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     }
 
     const isActive = this.activeRoom()?.roomId === message.roomId;
+    const images = message.attachments?.length ?? 0;
     this.updateRoom(message.roomId, {
-      lastMessage: message.content,
+      lastMessage: message.content || (images === 1 ? 'Đã gửi một ảnh' : images > 1 ? `Đã gửi ${images} ảnh` : ''),
       lastMessageAt: message.createdAt,
       lastSenderId: message.senderId,
       unreadCount: !isActive && message.senderId !== this.currentUserId

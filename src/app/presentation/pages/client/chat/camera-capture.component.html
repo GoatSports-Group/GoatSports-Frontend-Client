@@ -1,0 +1,57 @@
+<div class="camera-backdrop" role="presentation">
+  <section class="camera" appAccessibleDialog aria-label="Chụp ảnh" (dialogClosed)="closed.emit()">
+    <header class="camera__bar">
+      <button type="button" class="camera__btn" (click)="closed.emit()" aria-label="Đóng camera">
+        <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+      </button>
+      <strong>{{ state() === 'preview' ? 'Xem lại ảnh' : 'Chụp ảnh' }}</strong>
+      @if (state() === 'live' && canSwitch()) {
+        <button type="button" class="camera__btn" (click)="switchCamera()"
+          [attr.aria-label]="facing() === 'environment' ? 'Chuyển sang camera trước' : 'Chuyển sang camera sau'">
+          <lucide-icon name="switch-camera" class="w-5 h-5"></lucide-icon>
+        </button>
+      } @else {
+        <span class="camera__spacer" aria-hidden="true"></span>
+      }
+    </header>
+
+    <div class="camera__stage">
+      @switch (state()) {
+        @case ('starting') {
+          <p class="camera__status" role="status"><span class="spinner" aria-hidden="true"></span>Đang mở camera…</p>
+        }
+        @case ('error') {
+          <div class="camera__error" role="alert">
+            <lucide-icon name="camera-off" class="w-8 h-8"></lucide-icon>
+            <p>{{ error() }}</p>
+            <div class="camera__error-actions">
+              <label class="camera__pill">
+                <input type="file" accept="image/*" capture="environment" (change)="onNativeCapture($event)" />
+                <lucide-icon name="camera" class="w-5 h-5"></lucide-icon>Chụp bằng ứng dụng máy ảnh
+              </label>
+              <button type="button" class="camera__pill camera__pill--ghost" (click)="start()">Thử lại</button>
+            </div>
+          </div>
+        }
+        @case ('preview') {
+          <img [src]="shotUrl()" alt="Ảnh vừa chụp" />
+        }
+      }
+      <video #video [class.is-hidden]="state() !== 'live'" [class.is-mirrored]="facing() === 'user'"
+        playsinline muted autoplay aria-label="Hình ảnh camera trực tiếp"></video>
+    </div>
+
+    <footer class="camera__controls">
+      @if (state() === 'preview') {
+        <button type="button" class="camera__pill camera__pill--ghost" (click)="retake()">
+          <lucide-icon name="rotate-ccw" class="w-5 h-5"></lucide-icon>Chụp lại
+        </button>
+        <button type="button" class="camera__pill" cdkFocusInitial (click)="use()">
+          <lucide-icon name="check" class="w-5 h-5"></lucide-icon>Dùng ảnh này
+        </button>
+      } @else if (state() === 'live') {
+        <button type="button" class="camera__shutter" cdkFocusInitial (click)="capture()" aria-label="Chụp ảnh"></button>
+      }
+    </footer>
+  </section>
+</div>
