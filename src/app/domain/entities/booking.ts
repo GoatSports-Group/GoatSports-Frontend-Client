@@ -25,6 +25,10 @@ export interface Booking {
   note?: string;
   checkedInAt?: string;
   holdExpiresAt?: string;
+  /** Khoản tiền về khi booking không nhận được nữa (hết giờ giữ sân / trùng khoản) và đang được hoàn toàn bộ. */
+  lateRefundPaymentId?: string;
+  lateRefundAmount?: number;
+  lateRefundAt?: string;
   createdAt: string;
   venueName?: string;
   courtName?: string;

@@ -39,6 +39,11 @@
     color: var(--body);
     line-height: 1.65;
   }
+
+  > .result-note {
+    margin-top: 12px;
+    font-size: 0.875rem;
+  }
 }
 
 .result-icon {
@@ -66,7 +71,8 @@
   }
 
   &--cancelled,
-  &--failed {
+  &--failed,
+  &--refunded {
     background: var(--warning-soft);
     color: var(--warning);
   }

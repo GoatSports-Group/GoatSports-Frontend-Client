@@ -3,7 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { catchError, finalize, forkJoin, of, switchMap, take, takeWhile, timer } from 'rxjs';
-import { Booking, TimeSlot, TimeSlotStatus } from '@application/dto/booking/booking.dto';
+import { Booking, BookingStatus, TimeSlot, TimeSlotStatus } from '@application/dto/booking/booking.dto';
 import { Payment, PaymentAttempt, PaymentStatus } from '@application/dto/payment/payment.dto';
 import { SPORT_TYPE_OPTIONS, Venue, VenueCourt } from '@application/dto/venue/venue.dto';
 import { BOOKING_REPOSITORY_TOKEN } from '@application/ports/persistence/booking.repository';
@@ -13,6 +13,10 @@ import {
 } from '@application/ports/persistence/payment.repository';
 import { VENUE_SEARCH_REPOSITORY_TOKEN } from '@application/ports/persistence/venue-search.repository';
 import { CreateBookingDepositCheckoutUseCase } from '@application/usecase/payment/create-booking-deposit-checkout.usecase';
+import {
+  BookingPaymentOutcome,
+  ResolveBookingPaymentUseCase
+} from '@application/usecase/payment/resolve-booking-payment.usecase';
 import { PendingBookingPaymentService } from '@presentation/services/pending-booking-payment.service';
 import { NotifyService } from '@shared/components/notify/notify.service';
 import { AiRepositoryPort } from '@application/ports/ai.repository.port';
@@ -40,6 +44,7 @@ export class BookingCreateComponent implements OnInit {
   private readonly paymentRepository: PaymentRepository = inject(PAYMENT_REPOSITORY_TOKEN);
   private readonly venueSearchRepository = inject(VENUE_SEARCH_REPOSITORY_TOKEN);
   private readonly createDepositCheckout = inject(CreateBookingDepositCheckoutUseCase);
+  private readonly resolveBookingPayment = inject(ResolveBookingPaymentUseCase);
   private readonly pendingPayment = inject(PendingBookingPaymentService);
   private readonly notifyService = inject(NotifyService);
   private readonly aiRepository = inject(AiRepositoryPort);
@@ -72,6 +77,8 @@ export class BookingCreateComponent implements OnInit {
   cancelling = false;
   showCancelConfirmation = false;
   cancellationCompleted = false;
+  /** Tiền đã về chưa chắc giữ được sân: null = chưa hỏi, 'checking' = đang hỏi booking. */
+  paymentOutcome: BookingPaymentOutcome['kind'] | 'checking' | null = null;
   private paymentExpiresAt = '';
   private countdownStarted = false;
   private pollingPaymentId = '';
@@ -206,6 +213,15 @@ export class BookingCreateComponent implements OnInit {
     return this.createdBooking?.bookingId
       ? `/booking/detail/${this.createdBooking.bookingId}`
       : '/booking/history';
+  }
+
+  /** Hoàn khoản trùng thì sân vẫn giữ; còn lại là tiền về sau khi hết giờ giữ chỗ. */
+  get isDuplicateRefund(): boolean {
+    return this.createdBooking?.status === BookingStatus.CONFIRMED;
+  }
+
+  get lateRefundAmount(): number {
+    return this.createdBooking?.lateRefundAmount ?? this.depositAmount;
   }
 
   get paymentSuccessActionLabel(): string {
@@ -448,13 +464,30 @@ export class BookingCreateComponent implements OnInit {
     if (payment.status === 'SUCCEEDED') {
       this.secondsRemaining = 0;
       this.pendingPayment.clear();
-      this.syncBookedMatchmakingProposal();
+      this.resolvePaymentOutcome(payment.paymentId);
       return;
     }
 
     if (!this.isProcessingPayment(payment.status)) {
       this.secondsRemaining = 0;
     }
+  }
+
+  private resolvePaymentOutcome(paymentId: string): void {
+    if (!this.createdBooking || (this.paymentOutcome && this.paymentOutcome !== 'unresolved')) return;
+    this.paymentOutcome = 'checking';
+    this.resolveBookingPayment.execute(this.createdBooking.bookingId, paymentId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(outcome => {
+        if (outcome.booking) this.createdBooking = outcome.booking;
+        this.paymentOutcome = outcome.kind;
+        if (outcome.kind === 'confirmed') this.syncBookedMatchmakingProposal();
+      });
+  }
+
+  recheckPaymentOutcome(): void {
+    const paymentId = this.checkoutAttempt?.paymentId;
+    if (paymentId && this.paymentOutcome === 'unresolved') this.resolvePaymentOutcome(paymentId);
   }
 
   private startCountdown(expiresAt?: string): void {

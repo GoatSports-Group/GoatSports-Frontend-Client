@@ -12,8 +12,12 @@ import {
   PendingBookingPaymentService
 } from '@presentation/services/pending-booking-payment.service';
 import { AiRepositoryPort } from '@application/ports/ai.repository.port';
+import { Booking, BookingStatus } from '@application/dto/booking/booking.dto';
+import { ResolveBookingPaymentUseCase } from '@application/usecase/payment/resolve-booking-payment.usecase';
 
-type PaymentResultState = 'checking' | 'success' | 'cancelled' | 'failed' | 'pending' | 'missing';
+// confirming: tien da ve, dang hoi booking xem giu duoc san hay bi hoan (refunded) / chua ro (unconfirmed).
+type PaymentResultState = 'checking' | 'confirming' | 'success' | 'refunded' | 'unconfirmed'
+  | 'cancelled' | 'failed' | 'pending' | 'missing';
 
 @Component({
   selector: 'app-payment-result',
@@ -26,10 +30,12 @@ export class PaymentResultComponent implements OnInit {
   private readonly paymentRepository: PaymentRepository = inject(PAYMENT_REPOSITORY_TOKEN);
   private readonly pendingPayment = inject(PendingBookingPaymentService);
   private readonly aiRepository = inject(AiRepositoryPort);
+  private readonly resolveBookingPayment = inject(ResolveBookingPaymentUseCase);
   private readonly destroyRef = inject(DestroyRef);
 
   context: PendingPaymentContext | null = null;
   payment: Payment | null = null;
+  booking: Booking | null = null;
   state: PaymentResultState = 'checking';
   checking = false;
   private proposalSynced = false;
@@ -67,14 +73,36 @@ export class PaymentResultComponent implements OnInit {
       if (!payment) return;
       this.payment = payment;
       if (payment.status === 'SUCCEEDED') {
-        this.state = 'success';
-        this.syncMatchmakingProposal();
+        this.confirmBooking(payment.paymentId);
       } else if (payment.status === 'CANCELLED') {
         this.state = 'cancelled';
       } else if (!this.isProcessing(payment.status)) {
         this.state = 'failed';
       }
     });
+  }
+
+  /** Tiền đã về chưa chắc giữ được sân (về sau khi hết giờ giữ chỗ thì được hoàn), nên hỏi lại booking. */
+  private confirmBooking(paymentId: string): void {
+    if (!this.context || !('bookingId' in this.context)) {
+      this.state = 'success';
+      return;
+    }
+    this.state = 'confirming';
+    this.checking = true;
+    this.resolveBookingPayment.execute(this.context.bookingId, paymentId).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.checking = false)
+    ).subscribe(outcome => {
+      this.booking = outcome.booking;
+      this.state = outcome.kind === 'confirmed' ? 'success' : outcome.kind === 'refunded' ? 'refunded' : 'unconfirmed';
+      if (outcome.kind === 'confirmed') this.syncMatchmakingProposal();
+    });
+  }
+
+  /** Hoàn khoản trùng thì sân vẫn giữ; còn lại là tiền về sau khi hết giờ giữ chỗ. */
+  get isDuplicateRefund(): boolean {
+    return this.booking?.status === BookingStatus.CONFIRMED;
   }
 
   get bookingUrl(): string {

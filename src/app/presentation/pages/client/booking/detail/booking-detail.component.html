@@ -120,6 +120,19 @@
         </section>
 
         <aside class="detail-sidebar">
+          @if (currentBooking.lateRefundPaymentId) {
+            <section class="side-card" role="status">
+              <div class="side-card-heading">
+                <div class="side-icon"><lucide-icon name="rotate-ccw" class="w-5 h-5"></lucide-icon></div>
+                <div><span>Khoản thanh toán về muộn</span><strong>Đang hoàn {{ formatPrice(currentBooking.lateRefundAmount) }}</strong></div>
+              </div>
+              <div class="manual-review-note">
+                <lucide-icon name="info" class="w-5 h-5"></lucide-icon>
+                <span>Tiền về khi lượt đặt không còn nhận được (hết giờ giữ chỗ hoặc trùng khoản) nên được hoàn toàn bộ, tự về tài khoản ngân hàng đã liên kết.</span>
+              </div>
+              <a class="refund-action refund-action--secondary" routerLink="/settings" [queryParams]="{ tab: 'banking' }">Theo dõi khoản hoàn</a>
+            </section>
+          }
           @if (currentBooking.cancellation; as cancellation) {
             <section class="side-card cancellation-card">
               <div class="side-card-heading">

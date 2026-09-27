@@ -4,6 +4,25 @@
       <div class="result-icon result-icon--checking"><mat-progress-spinner mode="indeterminate" diameter="46"></mat-progress-spinner></div>
       <span class="eyebrow">Đang đối soát</span><h1>Đang xác nhận thanh toán</h1>
       <p>GOAT SPORTS đang chờ kết quả cuối cùng từ payOS. Vui lòng giữ trang này trong giây lát.</p>
+    } @else if (state === 'confirming') {
+      <div class="result-icon result-icon--checking"><mat-progress-spinner mode="indeterminate" diameter="46"></mat-progress-spinner></div>
+      <span class="eyebrow">Đã nhận thanh toán</span><h1>Đang xác nhận chỗ của bạn</h1>
+      <p>Tiền đã về, hệ thống đang ghi nhận vào lượt đặt sân. Vui lòng giữ trang này trong giây lát.</p>
+    } @else if (state === 'refunded') {
+      <div class="result-icon result-icon--refunded"><lucide-icon name="rotate-ccw"></lucide-icon></div>
+      @if (isDuplicateRefund) {
+        <span class="eyebrow">Khoản thanh toán trùng</span><h1>Sân vẫn được giữ, khoản trùng đang được hoàn</h1>
+        <p>Lượt đặt đã được đóng cọc bằng giao dịch khác nên khoản vừa chuyển được hoàn toàn bộ.</p>
+      } @else {
+        <span class="eyebrow">Hết giờ giữ sân</span><h1>Chưa giữ được sân, tiền đang được hoàn</h1>
+        <p>Tiền về sau khi hết thời gian giữ chỗ nên khung giờ đã được mở lại. Khoản này được hoàn toàn bộ, không mất phí.</p>
+      }
+      <div class="payment-summary"><span>Số tiền được hoàn</span><strong>{{ formatPrice(booking?.lateRefundAmount ?? payment?.amount) }}</strong></div>
+      <p class="result-note">Tiền tự về tài khoản ngân hàng đã liên kết. Chưa liên kết thì liên kết trong Cài đặt để nhận.</p>
+    } @else if (state === 'unconfirmed') {
+      <div class="result-icon result-icon--pending"><lucide-icon name="hourglass"></lucide-icon></div>
+      <span class="eyebrow">Đã nhận thanh toán</span><h1>Chưa xác nhận xong chỗ</h1>
+      <p>Hệ thống cần thêm chút thời gian. Nếu không giữ được sân, khoản tiền sẽ được hoàn toàn bộ và bạn nhận thông báo.</p>
     } @else if (state === 'success') {
       <div class="result-icon result-icon--success"><lucide-icon name="check-circle-2"></lucide-icon></div>
       <span class="eyebrow">Thanh toán thành công</span>
@@ -28,8 +47,12 @@
       <p>Phiên thanh toán có thể đã được mở ở tab khác hoặc dữ liệu trình duyệt đã bị xóa.</p>
     }
     <div class="result-actions">
-      @if (state === 'pending') { <button mat-stroked-button type="button" [disabled]="checking" (click)="checkPayment()">Kiểm tra lại</button> }
-      <a mat-flat-button color="primary" [routerLink]="bookingUrl">{{ bookingActionLabel }}</a>
+      @if (state === 'pending' || state === 'unconfirmed') { <button mat-stroked-button type="button" [disabled]="checking" (click)="checkPayment()">Kiểm tra lại</button> }
+      @if (state === 'refunded') {
+        <a mat-flat-button color="primary" [routerLink]="['/settings']" [queryParams]="{ tab: 'banking' }">Theo dõi khoản hoàn</a>
+      } @else {
+        <a mat-flat-button color="primary" [routerLink]="bookingUrl">{{ bookingActionLabel }}</a>
+      }
       <a mat-button [routerLink]="isTournamentPayment ? '/tournaments' : '/venues'">{{ isTournamentPayment ? 'Xem giải đấu khác' : 'Tiếp tục tìm sân' }}</a>
     </div>
   </section>

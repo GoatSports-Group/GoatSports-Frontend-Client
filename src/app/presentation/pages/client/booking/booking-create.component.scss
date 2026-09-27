@@ -875,9 +875,27 @@
     color: var(--primary);
   }
 
-  &--failed .payment-result-icon {
+  &--failed .payment-result-icon,
+  &--refunded .payment-result-icon {
     background: var(--warning-soft);
     color: var(--warning);
+  }
+
+  &--checking .payment-result-icon {
+    background: var(--info-soft);
+    color: var(--info);
+  }
+
+  .payment-result-note {
+    max-width: 36ch;
+    margin: 0.7rem auto 0;
+    color: var(--body);
+    font-size: 0.78rem;
+    line-height: 1.6;
+  }
+
+  .payment-result-secondary {
+    margin-top: 0.4rem;
   }
 }
 
