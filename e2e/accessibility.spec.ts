@@ -6,6 +6,7 @@ const pages = [
   { path: '/home', heading: 'Tìm Sân Thể Thao' },
   { path: '/venues', heading: 'Khám Phá Sân Thể Thao' },
   { path: '/feed', heading: 'Cộng đồng' },
+  { path: '/feed?tab=friends', heading: 'Cộng đồng' },
   { path: '/policy/booking-policy', heading: 'Chính sách đặt sân' }
 ];
 

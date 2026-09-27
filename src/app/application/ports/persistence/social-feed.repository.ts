@@ -12,6 +12,7 @@ import {
   AuthorStats,
   FeedFilter,
   FollowSuggestion,
+  TrendingTag,
   UserFollowStatus
 } from '@application/dto/social-feed/social-feed.dto';
 
@@ -22,6 +23,7 @@ export interface SocialFeedRepository {
   getAuthorStats(authorId: string): Observable<AuthorStats>;
   getFollowStatus(userId: string): Observable<UserFollowStatus>;
   getFollowSuggestions(limit: number): Observable<FollowSuggestion[]>;
+  getTrendingTags(limit: number): Observable<TrendingTag[]>;
   getFollowingUserIds(): Observable<string[]>;
   followUser(userId: string): Observable<UserFollowStatus>;
   unfollowUser(userId: string): Observable<UserFollowStatus>;

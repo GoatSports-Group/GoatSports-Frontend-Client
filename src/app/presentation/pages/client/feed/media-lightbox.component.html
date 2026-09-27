@@ -1,0 +1,34 @@
+<div class="lightbox-backdrop" role="presentation" (click)="closed.emit()">
+  <section class="lightbox" appAccessibleDialog aria-label="Xem ảnh và video" (dialogClosed)="closed.emit()"
+    (click)="$event.stopPropagation()" (touchstart)="onTouchStart($event)" (touchend)="onTouchEnd($event)">
+    <header class="lightbox__bar">
+      <span class="lightbox__count" aria-live="polite">{{ index() + 1 }} / {{ list().length }}</span>
+      <button type="button" class="lightbox__btn" cdkFocusInitial (click)="closed.emit()" aria-label="Đóng">
+        <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+      </button>
+    </header>
+
+    <figure class="lightbox__stage">
+      @if (current(); as item) {
+        @if (item.type === 'VIDEO') {
+          <video [src]="item.url" controls autoplay playsinline>Trình duyệt không hỗ trợ video.</video>
+        } @else {
+          <img [src]="item.url" [alt]="'Ảnh ' + (index() + 1) + ' trong bài viết'" />
+        }
+      }
+      @if (caption) { <figcaption>{{ caption }}</figcaption> }
+    </figure>
+
+    @if (list().length > 1) {
+      <button type="button" class="lightbox__btn lightbox__nav lightbox__nav--prev" (click)="step(-1)" aria-label="Ảnh trước">
+        <lucide-icon name="chevron-left" class="w-6 h-6"></lucide-icon>
+      </button>
+      <button type="button" class="lightbox__btn lightbox__nav lightbox__nav--next" (click)="step(1)" aria-label="Ảnh sau">
+        <lucide-icon name="chevron-right" class="w-6 h-6"></lucide-icon>
+      </button>
+      <div class="lightbox__dots" aria-hidden="true">
+        @for (item of list(); track $index) { <span [class.is-active]="$index === index()"></span> }
+      </div>
+    }
+  </section>
+</div>

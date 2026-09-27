@@ -31,16 +31,6 @@ export class HeaderComponent implements OnInit {
   adminUrl = environment.adminApiUrl;
   isNotifOpen = false;
 
-  get isConnectionRoute(): boolean {
-    return this.router.url.startsWith('/friends') || this.router.url.startsWith('/chat');
-  }
-
-  get connectionLabel(): string {
-    if (this.router.url.startsWith('/chat')) return 'Tin Nhắn';
-    if (this.router.url.startsWith('/friends')) return 'Bạn Bè';
-    return 'Kết Nối';
-  }
-
   ngOnInit() {
     this.authService.isAuthenticated$;
   }
@@ -131,7 +121,7 @@ export class HeaderComponent implements OnInit {
         void this.router.navigate(referenceId ? ['/booking/detail', referenceId] : ['/booking/history']);
         break;
       case 'FRIENDSHIP':
-        void this.router.navigate(['/friends']);
+        void this.router.navigate(['/feed'], { queryParams: { tab: 'friends' } });
         break;
       case 'MESSAGE':
         void this.router.navigate(['/chat']);

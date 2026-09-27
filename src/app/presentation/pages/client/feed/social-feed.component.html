@@ -9,7 +9,7 @@
     <aside class="rail rail--left" aria-label="Hồ sơ cộng đồng của bạn">
       <ng-container [ngTemplateOutlet]="profileCard"></ng-container>
       <nav class="card shortcuts" aria-label="Lối tắt">
-        <a routerLink="/friends"><lucide-icon name="users" class="w-5 h-5"></lucide-icon>Bạn bè</a>
+        <a routerLink="/feed" [queryParams]="{ tab: 'friends' }"><lucide-icon name="users" class="w-5 h-5"></lucide-icon>Bạn bè</a>
         <a routerLink="/chat"><lucide-icon name="messages-square" class="w-5 h-5"></lucide-icon>Tin nhắn</a>
         <a routerLink="/clubs/my"><lucide-icon name="shield" class="w-5 h-5"></lucide-icon>Câu lạc bộ của tôi</a>
         <a routerLink="/tournaments"><lucide-icon name="trophy" class="w-5 h-5"></lucide-icon>Giải đấu</a>
@@ -48,9 +48,20 @@
             <button type="button" class="tab" [class.is-active]="tab() === item.value" [attr.aria-current]="tab() === item.value ? 'page' : null"
               (click)="selectTab(item.value)">
               <lucide-icon [name]="item.icon" class="w-4 h-4"></lucide-icon>{{ item.label }}
+              @if (item.value === 'friends' && pendingRequests()) {
+                <span class="tab__count tab__count--alert" [attr.aria-label]="pendingRequests() + ' lời mời kết bạn'">{{ pendingRequests() }}</span>
+              }
             </button>
           }
         </nav>
+      }
+
+      @if (tag(); as activeTag) {
+        <div class="tag-banner">
+          <span class="tag-banner__icon" aria-hidden="true">#</span>
+          <div><strong>#{{ activeTag }}</strong><span>Bài viết có chủ đề này</span></div>
+          <button type="button" class="icon-btn" (click)="clearTag()" aria-label="Bỏ lọc chủ đề"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button>
+        </div>
       }
 
       @if (showSportFilter()) {
@@ -67,7 +78,9 @@
         <app-post-composer [defaultSport]="sport()" (saved)="onPublished($event)"></app-post-composer>
       }
 
-      @if (loading()) {
+      @if (isFriendsTab()) {
+        <app-community-friends></app-community-friends>
+      } @else if (loading()) {
         <app-loading-skeleton variant="cards" [count]="2" minWidth="100%" label="Đang tải bảng tin"></app-loading-skeleton>
       } @else if (loadError()) {
         <div class="state state--error">
@@ -84,6 +97,10 @@
           @if (authorId()) {
             <strong>{{ isMyAuthorView() ? 'Bạn chưa đăng bài nào' : 'Chưa có bài viết để hiển thị' }}</strong>
             <p>{{ isMyAuthorView() ? 'Kể về trận gần nhất của bạn ở ô phía trên.' : 'Người này chưa đăng bài công khai, hoặc bài chỉ dành cho bạn bè của họ.' }}</p>
+          } @else if (tag()) {
+            <strong>Chưa có bài nào gắn #{{ tag() }}</strong>
+            <p>Đăng bài đầu tiên với chủ đề này, hoặc xem các chủ đề đang nổi.</p>
+            <button type="button" class="btn btn--secondary" (click)="clearTag()">Bỏ lọc chủ đề</button>
           } @else if (sport()) {
             <strong>Chưa có bài {{ sportLabel(sport()) }} nào</strong>
             <p>Thử môn khác hoặc bỏ bộ lọc để xem toàn bộ bảng tin.</p>
@@ -112,9 +129,12 @@
         </div>
       } @else {
         <div class="feed__list goat-stagger">
-          @for (post of posts(); track post.postId) {
+          @for (post of posts(); track post.postId; let index = $index) {
             <app-post-card [post]="post" (changed)="onChanged($event)" (removed)="onRemoved($event)"
               (shared)="onPublished($event)" (authorBlocked)="onAuthorBlocked($event)"></app-post-card>
+            @if (index === discoveryAfter - 1 || (index === posts().length - 1 && posts().length < discoveryAfter)) {
+              <ng-container [ngTemplateOutlet]="discovery"></ng-container>
+            }
           }
         </div>
 
@@ -163,6 +183,11 @@
             }
           </ul>
         }
+      </section>
+
+      <section class="card rail-card">
+        <header class="card__head"><h3>Chủ đề nổi bật</h3></header>
+        <ng-container [ngTemplateOutlet]="trendingTags"></ng-container>
       </section>
 
       <section class="card rail-card">
@@ -253,4 +278,63 @@
     <div><dt>Người theo dõi</dt><dd>{{ section.data ? compactCount(section.data.followerCount) : '–' }}</dd></div>
     <div><dt>Đang theo dõi</dt><dd>{{ section.data ? compactCount(section.data.followingCount) : '–' }}</dd></div>
   </dl>
+</ng-template>
+
+<ng-template #trendingTags>
+  @if (trending().loading) {
+    <app-loading-skeleton variant="text" [lines]="2" [flush]="true" label="Đang tải chủ đề"></app-loading-skeleton>
+  } @else if (trending().error) {
+    <div class="rail-card__state">Không tải được chủ đề. <button type="button" class="btn btn--ghost" (click)="loadTrending()">Thử lại</button></div>
+  } @else if (!trending().data.length) {
+    <p class="rail-card__state">Tuần này chưa có chủ đề nào. Gắn <b>#</b> vào bài để mở màn.</p>
+  } @else {
+    <div class="tag-cloud">
+      @for (item of trending().data; track item.tag) {
+        <a class="tag-chip" [class.is-active]="tag() === item.tag" [routerLink]="['/feed']" [queryParams]="{ tag: item.tag }">
+          #{{ item.tag }}<span>{{ item.postCount }}</span>
+        </a>
+      }
+    </div>
+  }
+</ng-template>
+
+<!-- Chi hien duoi 1024px, noi hai cot ben bi an: goi y theo doi, chu de va giai dang mo nam ngay trong bang tin. -->
+<ng-template #discovery>
+  <section class="discovery" aria-label="Khám phá cộng đồng">
+    @if (suggestions().data.length) {
+      <h3>Gợi ý theo dõi</h3>
+      <div class="discovery__row">
+        @for (person of suggestions().data; track person.authorId) {
+          <div class="person-card">
+            <a [routerLink]="['/feed']" [queryParams]="{ author: person.authorId }">
+              <img class="avatar" [src]="store.avatar(person.authorId)" alt="" width="56" height="56" />
+              <strong>{{ store.authorName(person.authorId) }}</strong>
+              <small>{{ person.postCount }} bài / 30 ngày</small>
+            </a>
+            <button type="button" class="btn" [class.btn--primary]="!store.isFollowing(person.authorId)"
+              [class.btn--secondary]="store.isFollowing(person.authorId)" [disabled]="store.pendingFollowIds().has(person.authorId)"
+              (click)="followSuggestion(person.authorId)">
+              {{ store.isFollowing(person.authorId) ? 'Đang theo dõi' : 'Theo dõi' }}
+            </button>
+          </div>
+        }
+      </div>
+    }
+    @if (trending().data.length) {
+      <h3>Chủ đề nổi bật</h3>
+      <ng-container [ngTemplateOutlet]="trendingTags"></ng-container>
+    }
+    @if (openTournaments().data.length) {
+      <h3>Giải đang mở đăng ký</h3>
+      <div class="discovery__row">
+        @for (item of openTournaments().data; track item.tournamentId) {
+          <a class="event-card" [routerLink]="['/tournaments', item.tournamentId]">
+            <span class="badge badge--sport">{{ sportLabel(item.sportType) }}</span>
+            <strong>{{ item.name }}</strong>
+            <small>Hạn {{ item.registrationCloseDate | date:'dd/MM' }} · {{ item.currentParticipants }}/{{ item.maxParticipants }} suất</small>
+          </a>
+        }
+      </div>
+    }
+  </section>
 </ng-template>

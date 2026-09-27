@@ -17,6 +17,8 @@ export interface SaveSocialPostRequest {
   content: string | null;
   visibility: PostVisibility;
   sport: PostSport | null;
+  /** Nguoi duoc nhac ten (@); ten hien thi nam trong noi dung dang "@Ho Ten". */
+  mentions: string[];
   attachments: Array<Pick<SocialPostAttachment, 'storageKey' | 'type' | 'displayOrder'>>;
 }
 
@@ -36,6 +38,9 @@ export interface SocialPost {
   updatedAt: string;
   publishedAt: string;
   attachments: SocialPostAttachment[];
+  /** Hashtag server trich tu noi dung (chu thuong, khong dau #). */
+  tags: string[];
+  mentions: string[];
   likeCount: number;
   commentCount: number;
   shareCount: number;
@@ -63,10 +68,16 @@ export interface FeedFilter {
   followingOnly?: boolean;
   sport?: PostSport | null;
   authorId?: string | null;
+  tag?: string | null;
 }
 
 export interface AuthorStats {
   authorId: string;
+  postCount: number;
+}
+
+export interface TrendingTag {
+  tag: string;
   postCount: number;
 }
 

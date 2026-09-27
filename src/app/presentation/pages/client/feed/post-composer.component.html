@@ -12,7 +12,9 @@
   <label class="sr-only" [attr.for]="isEdit ? 'edit-' + post?.postId : 'composer-content'">
     {{ isShare ? 'Lời dẫn khi chia sẻ' : 'Nội dung bài viết' }}
   </label>
+  <div class="composer__field">
   <textarea
+    #textArea
     class="composer__text"
     [id]="isEdit ? 'edit-' + post?.postId : 'composer-content'"
     [rows]="isEdit ? 4 : 3"
@@ -20,7 +22,33 @@
     [placeholder]="isShare ? 'Viết lời dẫn (không bắt buộc)…' : 'Tối thứ Sáu ai rảnh đá sân 7 ở Thủ Đức không?'"
     [ngModel]="content()"
     (ngModelChange)="content.set($event)"
-    (keydown)="onKeydown($event)"></textarea>
+    (input)="trackMention()"
+    (click)="trackMention()"
+    (keyup.arrowleft)="trackMention()"
+    (keyup.arrowright)="trackMention()"
+    (blur)="mentionQuery.set(null)"
+    (keydown)="onKeydown($event)"
+    role="combobox"
+    aria-autocomplete="list"
+    [attr.aria-expanded]="candidates().length > 0"
+    [attr.aria-controls]="'mentions-' + (post?.postId ?? 'new')"
+    [attr.aria-activedescendant]="candidates().length ? 'mention-' + (post?.postId ?? 'new') + '-' + mentionIndex() : null"></textarea>
+  @if (candidates().length) {
+    <ul class="mention-menu" role="listbox" [id]="'mentions-' + (post?.postId ?? 'new')" aria-label="Nhắc tên">
+      @for (person of candidates(); track person.userId; let index = $index) {
+        <li role="option" [id]="'mention-' + (post?.postId ?? 'new') + '-' + index" [attr.aria-selected]="index === mentionIndex()"
+          [class.is-active]="index === mentionIndex()" (mousedown)="$event.preventDefault(); pickMention(person)"
+          (mouseenter)="mentionIndex.set(index)">
+          <img class="avatar" [src]="person.avatar" alt="" width="28" height="28" />
+          <span>{{ person.name }}</span>
+        </li>
+      }
+    </ul>
+  }
+  </div>
+  @if (!isShare) {
+    <p class="composer__hint">Gõ <b>&#64;</b> để nhắc bạn bè, <b>#</b> để gắn chủ đề.</p>
+  }
 
   @if (retained().length || pending().length) {
     <div class="composer__media" aria-label="Tệp đính kèm">

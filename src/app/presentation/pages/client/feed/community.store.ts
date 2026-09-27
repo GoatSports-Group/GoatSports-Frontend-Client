@@ -1,11 +1,22 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Observable, catchError, forkJoin, map, of, tap } from 'rxjs';
+import { Observable, catchError, finalize, forkJoin, map, of, tap } from 'rxjs';
+import { Friendship, UserBlock } from '@application/dto/friend/friend.dto';
+import { FRIEND_REPOSITORY_TOKEN } from '@application/ports/persistence/friend.repository';
 import { SocialPost, UserFollowStatus } from '@application/dto/social-feed/social-feed.dto';
 import { User } from '@application/dto/user/user.dto';
 import { SOCIAL_FEED_REPOSITORY_TOKEN } from '@application/ports/persistence/social-feed.repository';
 import { STORAGE_REPOSITORY_TOKEN } from '@application/ports/persistence/storage.repository';
 import { AuthService } from '@presentation/services/auth.service';
 import { PlayerDirectoryService } from '@presentation/services/player-directory.service';
+
+export interface Connections {
+  friends: Friendship[];
+  received: Friendship[];
+  sent: Friendship[];
+  blocked: UserBlock[];
+}
+
+const NO_CONNECTIONS: Connections = { friends: [], received: [], sent: [], blocked: [] };
 
 /**
  * Trang thai dung chung giua bang tin, the bai viet va trang chi tiet: ten/anh tac gia,
@@ -18,23 +29,71 @@ export class CommunityStore {
   private readonly storage = inject(STORAGE_REPOSITORY_TOKEN);
   private readonly directory = inject(PlayerDirectoryService);
   private readonly auth = inject(AuthService);
+  private readonly friendRepository = inject(FRIEND_REPOSITORY_TOKEN);
 
   readonly authors = signal<ReadonlyMap<string, User>>(new Map());
   readonly mediaUrls = signal<ReadonlyMap<string, string>>(new Map());
-  readonly followingIds = signal<ReadonlySet<string>>(new Set());
+  readonly followingSet = signal<ReadonlySet<string>>(new Set());
   readonly pendingFollowIds = signal<ReadonlySet<string>>(new Set());
+
+  /** Ban be, loi moi, da chan: tab Ban be, huy hieu so loi moi va goi y @nhac ten cung doc. */
+  readonly connections = signal<Connections>(NO_CONNECTIONS);
+  readonly connectionsLoading = signal(false);
+  readonly connectionsError = signal(false);
 
   /** Nap lai moi lan vao trang: tai khoan co the da doi tu lan truoc. */
   loadFollowing(currentUserId?: string | null): void {
     if (currentUserId) this.hydrateAuthors([currentUserId]);
     this.repository.getFollowingUserIds().subscribe({
-      next: ids => this.followingIds.set(new Set(ids)),
-      error: () => this.followingIds.set(new Set())
+      next: ids => this.followingSet.set(new Set(ids)),
+      error: () => this.followingSet.set(new Set())
     });
   }
 
+  loadConnections(): void {
+    this.connectionsLoading.set(true);
+    this.connectionsError.set(false);
+    forkJoin({
+      friends: this.friendRepository.getFriends(),
+      received: this.friendRepository.getPendingReceived(),
+      sent: this.friendRepository.getPendingSent(),
+      blocked: this.friendRepository.getBlockedUsers()
+    }).pipe(finalize(() => this.connectionsLoading.set(false))).subscribe({
+      next: result => {
+        const blocked = result.blocked.data ?? [];
+        const blockedIds = new Set(blocked.map(item => item.blockedUserId));
+        const me = this.auth.currentUser?.userId ?? '';
+        const connections: Connections = {
+          friends: (result.friends.data ?? []).filter(item => !blockedIds.has(this.otherParty(item, me))),
+          received: result.received.data ?? [],
+          sent: result.sent.data ?? [],
+          blocked
+        };
+        this.connections.set(connections);
+        this.hydrateAuthors([
+          ...[...connections.friends, ...connections.received, ...connections.sent].map(item => this.otherParty(item, me)),
+          ...blocked.map(item => item.blockedUserId)
+        ]);
+      },
+      error: () => this.connectionsError.set(true)
+    });
+  }
+
+  /** Nguoi con lai trong mot quan he ban be. */
+  otherParty(friendship: Friendship, me = this.auth.currentUser?.userId ?? ''): string {
+    return friendship.requesterId === me ? friendship.addresseeId : friendship.requesterId;
+  }
+
+  followingIds(): string[] {
+    return [...this.followingSet()];
+  }
+
+  friendIds(): string[] {
+    return this.connections().friends.map(item => this.otherParty(item));
+  }
+
   isFollowing(userId: string): boolean {
-    return this.followingIds().has(userId);
+    return this.followingSet().has(userId);
   }
 
   toggleFollow(userId: string): Observable<UserFollowStatus> {
@@ -44,7 +103,7 @@ export class CommunityStore {
     this.pendingFollowIds.update(ids => new Set(ids).add(userId));
     return request$.pipe(
       tap({
-        next: status => this.followingIds.update(ids => {
+        next: status => this.followingSet.update(ids => {
           const next = new Set(ids);
           if (status.followed) next.add(userId); else next.delete(userId);
           return next;

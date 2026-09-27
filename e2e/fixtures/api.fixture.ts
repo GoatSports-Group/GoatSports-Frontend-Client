@@ -54,6 +54,30 @@ async function handleApi(route: Route): Promise<void> {
     await route.fulfill({ json: baseResponse({ items: [], total: 0, page: 0, pageSize: 12, totalPages: 0 }) });
     return;
   }
+  if (path.endsWith('/social-service/api/v1/social/posts/tags/trending')) {
+    await route.fulfill({ json: baseResponse([
+      { tag: 'caulong', postCount: 12 }, { tag: 'keocuoituan', postCount: 7 }, { tag: 'bongda', postCount: 5 }
+    ]) });
+    return;
+  }
+  if (path.endsWith('/social-service/api/v1/social/friends')) {
+    await route.fulfill({ json: baseResponse([{
+      friendshipId: '55555555-5555-4555-8555-555555555555', requesterId: currentUser.userId,
+      addresseeId: postAuthor.userId, status: 'ACCEPTED', requestedAt: '2026-08-01T08:00:00', respondedAt: '2026-08-02T08:00:00'
+    }]) });
+    return;
+  }
+  if (path.endsWith('/social-service/api/v1/social/friends/requests/received')) {
+    await route.fulfill({ json: baseResponse([{
+      friendshipId: '66666666-6666-4666-8666-666666666666', requesterId: '77777777-7777-4777-8777-777777777777',
+      addresseeId: currentUser.userId, status: 'PENDING', requestedAt: '2026-09-25T08:00:00'
+    }]) });
+    return;
+  }
+  if (path.endsWith('/social-service/api/v1/social/friends/requests/sent') || path.endsWith('/social-service/api/v1/social/blocks')) {
+    await route.fulfill({ json: baseResponse([]) });
+    return;
+  }
   if (path.endsWith('/social-service/api/v1/social/follows/users/me/following')
     || path.endsWith('/social-service/api/v1/social/follows/users/suggestions')) {
     await route.fulfill({ json: baseResponse([]) });
@@ -78,7 +102,9 @@ async function handleApi(route: Route): Promise<void> {
       content: [{
         postId: '44444444-4444-4444-8444-444444444444',
         authorId: postAuthor.userId,
-        content: 'Cuối tuần này có ai muốn giao lưu cầu lông không?',
+        content: 'Cuối tuần này có ai muốn giao lưu cầu lông không? @Nguyễn Minh Anh vào đội mình nhé #caulong #keocuoituan',
+        tags: ['caulong', 'keocuoituan'],
+        mentions: [currentUser.userId],
         visibility: 'PUBLIC',
         status: 'PUBLISHED',
         sport: 'BADMINTON',

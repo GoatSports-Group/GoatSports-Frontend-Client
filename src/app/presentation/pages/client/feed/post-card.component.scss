@@ -298,11 +298,34 @@
   }
 }
 
-a.media__cell img {
+button.media__cell {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  cursor: zoom-in;
+
+  &:focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: -3px;
+  }
+}
+
+.rich {
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+a.rich:hover {
+  text-decoration: underline;
+}
+
+button.media__cell img {
   transition: scale var(--transition-smooth);
 }
 
-a.media__cell:hover img {
+button.media__cell:hover img {
   scale: 1.02;
 }
 

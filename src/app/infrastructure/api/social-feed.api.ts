@@ -12,6 +12,7 @@ import {
   AuthorStats,
   FeedFilter,
   FollowSuggestion,
+  TrendingTag,
   PostVisibility,
   UserFollowStatus
 } from '@application/dto/social-feed/social-feed.dto';
@@ -28,6 +29,7 @@ export class SocialFeedApi {
     let params = this.pageParams(page, size).set('followingOnly', !!filter.followingOnly);
     if (filter.sport) params = params.set('sport', filter.sport);
     if (filter.authorId) params = params.set('authorId', filter.authorId);
+    if (filter.tag) params = params.set('tag', filter.tag);
     return this.http.get<BaseResponse<SpringPageResponse<SocialPost>>>(this.postUrl, { params });
   }
 
@@ -39,6 +41,12 @@ export class SocialFeedApi {
 
   getPost(postId: string): Observable<BaseResponse<SocialPost>> {
     return this.http.get<BaseResponse<SocialPost>>(`${this.postUrl}/${postId}`);
+  }
+
+  getTrendingTags(limit: number): Observable<BaseResponse<TrendingTag[]>> {
+    return this.http.get<BaseResponse<TrendingTag[]>>(`${this.postUrl}/tags/trending`, {
+      params: new HttpParams().set('limit', limit)
+    });
   }
 
   getAuthorStats(authorId: string): Observable<BaseResponse<AuthorStats>> {

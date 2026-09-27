@@ -5,7 +5,9 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, Subscription, catchError, finalize, forkJoin, map, of } from 'rxjs';
 import { SpringPageResponse } from '@application/dto/base/base-response';
-import { FollowSuggestion, PostSport, SocialPost, UserFollowStatus } from '@application/dto/social-feed/social-feed.dto';
+import {
+  FollowSuggestion, PostSport, SocialPost, TrendingTag, UserFollowStatus
+} from '@application/dto/social-feed/social-feed.dto';
 import { SOCIAL_FEED_REPOSITORY_TOKEN } from '@application/ports/persistence/social-feed.repository';
 import { ClubRepositoryPort } from '@application/ports/club.repository.port';
 import { TournamentRepositoryPort } from '@application/ports/tournament.repository.port';
@@ -59,6 +61,7 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
   readonly tab = signal<FeedTab>('explore');
   readonly sport = signal<PostSport | null>(null);
   readonly authorId = signal<string | null>(null);
+  readonly tag = signal<string | null>(null);
 
   readonly posts = signal<SocialPost[]>([]);
   readonly loading = signal(true);
@@ -75,13 +78,18 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
   readonly suggestions = signal<Section<FollowSuggestion[]>>({ loading: true, error: false, data: [] });
   readonly openTournaments = signal<Section<TournamentModel[]>>({ loading: true, error: false, data: [] });
   readonly sportClubs = signal<Section<ClubModel[]>>({ loading: true, error: false, data: [] });
+  readonly trending = signal<Section<TrendingTag[]>>({ loading: true, error: false, data: [] });
+  /** Duoi 1024px hai cot ben an; khoi kham pha chen vao giua bang tin sau bai thu 3. */
+  readonly discoveryAfter = 3;
 
   readonly isAuthorView = computed(() => !!this.authorId());
   readonly isMyAuthorView = computed(() => this.authorId() === this.me);
   /** Bai moi / bai chia se chi chen vao dau danh sach neu no thuoc bo loc dang xem. */
+  readonly isFriendsTab = computed(() => this.tab() === 'friends' && !this.isAuthorView());
   readonly showComposer = computed(() =>
-    this.tab() !== 'saved' && (!this.isAuthorView() || this.isMyAuthorView()));
-  readonly showSportFilter = computed(() => this.tab() !== 'saved');
+    this.tab() !== 'saved' && !this.isFriendsTab() && (!this.isAuthorView() || this.isMyAuthorView()));
+  readonly showSportFilter = computed(() => this.tab() !== 'saved' && !this.isFriendsTab());
+  readonly pendingRequests = computed(() => this.store.connections().received.length);
 
   @ViewChild('sentinel') set sentinel(element: ElementRef<HTMLElement> | undefined) {
     this.observer?.disconnect();
@@ -99,8 +107,10 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.store.loadFollowing(this.me);
+    this.store.loadConnections();
     this.loadMyStats();
     this.loadSuggestions();
+    this.loadTrending();
 
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       const tab = params.get('tab') as FeedTab | null;
@@ -108,7 +118,8 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
       this.tab.set(FEED_TABS.some(item => item.value === tab) ? tab! : 'explore');
       this.sport.set(sport && POST_SPORTS.includes(sport) ? sport : null);
       this.authorId.set(params.get('author'));
-      this.reload();
+      this.tag.set(params.get('tag')?.replace(/^#/, '').toLowerCase() || null);
+      if (!this.isFriendsTab()) this.reload();
       this.loadRails();
       if (this.authorId()) this.loadAuthorStats(this.authorId()!);
     });
@@ -122,7 +133,14 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
   // ---- navigation (state lives in the URL so back/forward and shared links work) --------------
 
   selectTab(tab: FeedTab): void {
-    void this.router.navigate([], { queryParams: { tab: tab === 'explore' ? null : tab, author: null }, queryParamsHandling: 'merge' });
+    void this.router.navigate([], {
+      queryParams: { tab: tab === 'explore' ? null : tab, author: null, list: null },
+      queryParamsHandling: 'merge'
+    });
+  }
+
+  clearTag(): void {
+    void this.router.navigate([], { queryParams: { tag: null }, queryParamsHandling: 'merge' });
   }
 
   selectSport(sport: PostSport | null): void {
@@ -181,6 +199,7 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
     return this.repository.getFeed(page, PAGE_SIZE, {
       followingOnly: !authorId && this.tab() === 'following',
       sport: this.sport(),
+      tag: this.tag(),
       authorId
     });
   }
@@ -248,6 +267,14 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
     });
   }
 
+  loadTrending(): void {
+    this.trending.set({ loading: true, error: false, data: [] });
+    this.repository.getTrendingTags(8).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: data => this.trending.set({ loading: false, error: false, data }),
+      error: () => this.trending.set({ loading: false, error: true, data: [] })
+    });
+  }
+
   loadRails(): void {
     const sport = this.sport() ?? undefined;
     this.openTournaments.set({ loading: true, error: false, data: [] });
@@ -307,7 +334,9 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
 
   private fits(post: SocialPost): boolean {
     if (this.tab() === 'saved' && !this.authorId()) return false;
+    if (this.isFriendsTab()) return false;
     if (this.authorId() && this.authorId() !== post.authorId) return false;
+    if (this.tag() && !post.tags?.includes(this.tag()!)) return false;
     return !this.sport() || this.sport() === post.sport;
   }
 

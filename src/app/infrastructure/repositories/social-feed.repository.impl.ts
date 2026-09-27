@@ -11,6 +11,7 @@ import {
   AuthorStats,
   FeedFilter,
   FollowSuggestion,
+  TrendingTag,
   PostVisibility,
   UserFollowStatus
 } from '@application/dto/social-feed/social-feed.dto';
@@ -31,6 +32,10 @@ export class SocialFeedRepositoryImpl implements SocialFeedRepository {
 
   getPost(postId: string): Observable<SocialPost> {
     return this.api.getPost(postId).pipe(map(response => response.data));
+  }
+
+  getTrendingTags(limit: number): Observable<TrendingTag[]> {
+    return this.api.getTrendingTags(limit).pipe(map(response => response.data ?? []));
   }
 
   getAuthorStats(authorId: string): Observable<AuthorStats> {

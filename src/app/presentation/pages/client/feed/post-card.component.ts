@@ -4,15 +4,16 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Observable, finalize } from 'rxjs';
 import {
-  PostVisibility, ReportTargetType, SocialComment, SocialPost
+  PostVisibility, ReportTargetType, SocialComment, SocialPost, SocialPostAttachment
 } from '@application/dto/social-feed/social-feed.dto';
 import { FRIEND_REPOSITORY_TOKEN } from '@application/ports/persistence/friend.repository';
 import { SOCIAL_FEED_REPOSITORY_TOKEN } from '@application/ports/persistence/social-feed.repository';
 import { AuthService } from '@presentation/services/auth.service';
 import { NotifyService } from '@shared/components/notify/notify.service';
 import { CommunityStore } from './community.store';
+import { LightboxItem } from './media-lightbox.component';
 import {
-  REPORT_REASONS, VISIBILITY_META, VISIBILITY_OPTIONS, compactCount, errorMessage, relativeTime, sportLabel
+  REPORT_REASONS, VISIBILITY_META, VISIBILITY_OPTIONS, compactCount, errorMessage, relativeTime, richText, sportLabel
 } from './community-view';
 
 interface CommentThread {
@@ -99,6 +100,15 @@ export class PostCardComponent implements OnInit {
       comment,
       replies: all.filter(item => item.parentCommentId === comment.commentId)
     }));
+  });
+
+  readonly lightbox = signal<{ items: LightboxItem[]; start: number } | null>(null);
+
+  /** Doc lai khi ten tac gia duoc nap xong, de "@Ho Ten" thanh link ngay khi co ten. */
+  readonly contentSegments = computed(() => this.segments(this.postState()!));
+  readonly originalSegments = computed(() => {
+    const original = this.postState()!.sharedPost;
+    return original ? this.segments(original) : [];
   });
 
   /** Bai goc khi day la bai chia se, nguoc lai chinh bai do: noi dung, media va nut chia se deu theo no. */
@@ -344,6 +354,20 @@ export class PostCardComponent implements OnInit {
   }
 
   // ---- view helpers ---------------------------------------------------------------------------
+
+  /** Mo trinh xem tai dung anh vua bam; tep (PDF, DOC) khong vao trinh xem. */
+  openLightbox(attachments: readonly SocialPostAttachment[], attachmentId: string): void {
+    const viewable = attachments.filter(item => item.type !== 'FILE' && this.store.mediaUrl(item.storageKey));
+    const start = Math.max(0, viewable.findIndex(item => item.attachmentId === attachmentId));
+    this.lightbox.set({
+      items: viewable.map(item => ({ url: this.store.mediaUrl(item.storageKey), type: item.type })),
+      start
+    });
+  }
+
+  private segments(post: SocialPost) {
+    return richText(post.content, (post.mentions ?? []).map(userId => ({ userId, name: this.store.authorName(userId) })));
+  }
 
   isEdited(item: { createdAt: string; updatedAt: string }): boolean {
     return new Date(item.updatedAt).getTime() - new Date(item.createdAt).getTime() > 60_000;

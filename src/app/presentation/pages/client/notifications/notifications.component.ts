@@ -196,7 +196,8 @@ export class NotificationsComponent implements OnInit {
       case NotificationType.PAYMENT: return 'Thanh toán';
       case NotificationType.REFUND: return 'Hoàn tiền';
       case NotificationType.MATCHMAKING: return 'Ghép trận';
-      case NotificationType.FRIENDSHIP: return 'Kết nối';
+      case NotificationType.FRIENDSHIP: return 'Bạn bè';
+      case NotificationType.COMMUNITY: return 'Cộng đồng';
       case NotificationType.MESSAGE: return 'Tin nhắn';
       case NotificationType.CONTENT_MODERATION: return 'Kiểm duyệt';
       case NotificationType.CLUB: return 'Câu lạc bộ';
@@ -307,6 +308,10 @@ export class NotificationsComponent implements OnInit {
       void this.router.navigate(['/settings'], { queryParams: { tab: 'banking' } });
       return;
     }
+    if ((notification.referenceType || '').toUpperCase() === 'FRIENDSHIP') {
+      void this.router.navigate(['/feed'], { queryParams: { tab: 'friends' } });
+      return;
+    }
     // Nguoi theo doi moi: mo bang tin loc theo bai cua nguoi do.
     if ((notification.referenceType || '').toUpperCase() === 'COMMUNITY_USER') {
       void this.router.navigate(['/feed'], { queryParams: notification.referenceId ? { author: notification.referenceId } : {} });
@@ -320,7 +325,6 @@ export class NotificationsComponent implements OnInit {
     const id = notification.referenceId;
     switch ((notification.referenceType || '').toUpperCase()) {
       case 'BOOKING': return id ? ['/booking/detail', id] : ['/booking/history'];
-      case 'FRIENDSHIP': return ['/friends'];
       case 'MESSAGE': return ['/chat'];
       case 'CLUB': return id ? ['/clubs', id] : ['/clubs'];
       case 'CLUB_DISBANDED': return ['/clubs'];

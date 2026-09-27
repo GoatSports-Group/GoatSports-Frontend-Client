@@ -73,7 +73,7 @@
           } @else if (!candidateOptions().length) {
           <p class="lineup__empty">{{ clubId() ? 'Câu lạc bộ chưa có thành viên nào khác đang hoạt động.'
             : 'Bạn chưa có bạn bè trên GOAT Sports. Kết bạn trước để mời vào đội.' }}
-            @if (!clubId()) { <a routerLink="/friends" (click)="close()">Tìm bạn bè</a> }</p>
+            @if (!clubId()) { <a routerLink="/feed" [queryParams]="{ tab: 'friends' }" (click)="close()">Tìm bạn bè</a> }</p>
           } @else if (rows.length) {
           <ul class="lineup__list">
             @for (row of rows; track $index) {

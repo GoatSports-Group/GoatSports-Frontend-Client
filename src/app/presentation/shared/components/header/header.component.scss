@@ -267,36 +267,12 @@
   align-self: center;
 }
 
+// One collapse point: below 1261px the 7 nav items + search no longer fit on one row, so the nav
+// moves into the drawer (menu button) and the grid becomes menu · logo · search · actions.
 @media (max-width: 1260px) {
   .header-container {
-    grid-template-columns: auto minmax(0, 1fr) 230px auto !important;
+    grid-template-columns: auto auto minmax(0, 1fr) auto !important;
     gap: 14px !important;
-  }
-
-  .desktop-nav {
-    gap: 12px !important;
-  }
-
-  .nav-item {
-    font-size: 9px !important;
-  }
-
-  .connection-nav-item {
-    display: none !important;
-  }
-
-  .user-trigger-copy {
-    display: none;
-  }
-
-  .user-avatar-btn {
-    grid-template-columns: 34px 14px;
-  }
-}
-
-@media (max-width: 1040px) {
-  .header-container {
-    grid-template-columns: auto 1fr auto !important;
   }
 
   .desktop-nav {
@@ -305,6 +281,19 @@
 
   .mobile-menu-btn {
     display: inline-flex !important;
+  }
+
+  .search-container {
+    justify-self: end;
+    width: min(100%, 360px);
+  }
+
+  .user-trigger-copy {
+    display: none;
+  }
+
+  .user-avatar-btn {
+    grid-template-columns: 34px 14px;
   }
 }
 
@@ -472,13 +461,6 @@
   }
 }
 
-.connection-nav-item {
-  gap: 0.25rem;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-}
-
 // Search container
 .search-container {
   flex: 1 1 280px;
@@ -637,22 +619,6 @@
   .search-container {
     max-width: 280px;
     margin: 0 0.5rem;
-  }
-}
-
-@media (max-width: 1280px) {
-  .mobile-menu-btn {
-    display: inline-flex;
-    flex-shrink: 0;
-  }
-
-  .desktop-nav {
-    display: none;
-  }
-
-  .search-container {
-    max-width: none;
-    margin-left: auto;
   }
 }
 
@@ -1156,21 +1122,6 @@
 ::ng-deep .custom-menu {
   border-radius: var(--border-radius) !important;
   box-shadow: var(--shadow-lg) !important;
-}
-
-@media (max-width: 1360px) {
-  .desktop-nav {
-    display: none;
-  }
-
-  .mobile-menu-btn {
-    display: inline-flex;
-  }
-
-  .search-container {
-    max-width: 360px;
-    margin-left: auto;
-  }
 }
 
 @media (max-width: 680px) {

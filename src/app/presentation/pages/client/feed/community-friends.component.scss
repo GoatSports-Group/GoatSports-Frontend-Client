@@ -1,0 +1,260 @@
+@use 'community-ui' as c;
+
+:host {
+  display: block;
+}
+
+@include c.community-ui;
+
+.friends {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+// ---- Player finder ---------------------------------------------------------------------------
+.finder {
+  overflow: hidden;
+}
+
+.finder__field {
+  display: flex;
+  min-height: 56px;
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px 0 20px;
+  color: var(--body);
+
+  &:focus-within > lucide-icon {
+    color: var(--primary);
+  }
+
+  input {
+    min-width: 0;
+    flex: 1;
+    height: 44px;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-size: 15px;
+    font-weight: 600;
+
+    &::placeholder {
+      color: var(--body);
+      font-weight: 500;
+    }
+
+    &::-webkit-search-cancel-button {
+      display: none;
+    }
+  }
+}
+
+.finder__results {
+  border-top: 1px solid var(--hairline);
+}
+
+.finder__note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 16px 20px;
+  color: var(--body);
+  font-size: 14px;
+}
+
+// ---- List switcher (pill chips with counts) ----------------------------------------------------
+.lists {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-right: 24px;
+  mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent);
+}
+
+.chip {
+  display: inline-flex;
+  min-height: 36px;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px 0 14px;
+  border: 1px solid var(--hairline);
+  border-radius: 9999px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color var(--transition-smooth), background-color var(--transition-smooth);
+
+  &:hover {
+    border-color: var(--border-strong);
+  }
+
+  &.is-active {
+    border-color: var(--primary);
+    background: var(--primary-light);
+    color: var(--primary-strong);
+  }
+}
+
+.chip__count {
+  display: inline-grid;
+  min-width: 20px;
+  height: 20px;
+  place-items: center;
+  padding: 0 6px;
+  border-radius: 9999px;
+  background: var(--surface-strong);
+  color: var(--body);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+}
+
+.chip__count--alert {
+  background: var(--danger);
+  color: var(--surface);
+}
+
+// ---- Rows (GOAT-DESIGN §6 List cards with actions) --------------------------------------------
+.list-card {
+  overflow: hidden;
+
+  > .state {
+    margin: 16px;
+  }
+}
+
+.rows {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  min-height: 72px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 12px 12px 20px;
+
+  + .row {
+    border-top: 1px solid var(--hairline);
+  }
+}
+
+.row__who {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: 12px;
+  color: inherit;
+  text-decoration: none;
+
+  img {
+    width: 40px;
+    height: 40px;
+  }
+
+  > span {
+    display: grid;
+    min-width: 0;
+    gap: 2px;
+  }
+
+  strong,
+  small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  strong {
+    color: var(--ink);
+    font-size: 16px;
+    font-weight: 800;
+  }
+
+  small {
+    color: var(--body);
+    font-size: 13px;
+    font-weight: 600;
+  }
+}
+
+a.row__who:hover strong {
+  color: var(--primary);
+}
+
+.confirm {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--danger-soft);
+
+  p {
+    flex: 1;
+    margin: 0;
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+}
+
+.confirm__actions {
+  display: flex;
+  flex: none;
+  gap: 8px;
+}
+
+@media (max-width: 640px) {
+  .row {
+    padding-left: 16px;
+  }
+
+  // Two text buttons (Từ chối / Chấp nhận) go to their own line so the name keeps its width.
+  .row:has(> .btn ~ .btn) {
+    .row__who {
+      flex-basis: 100%;
+    }
+
+    > .btn {
+      flex: 1;
+    }
+  }
+
+  .row__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .row .btn--secondary:has(.row__label) {
+    width: 44px;
+    padding: 0;
+  }
+
+  .confirm {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .confirm__actions {
+    align-self: flex-end;
+  }
+}

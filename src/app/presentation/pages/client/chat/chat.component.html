@@ -2,9 +2,9 @@
   <div class="chat-workspace">
   <aside class="rooms-sidebar" aria-label="Danh sách cuộc trò chuyện">
     <header class="sidebar-header">
-      <nav class="sidebar-tabs" aria-label="Kết nối">
+      <nav class="sidebar-tabs" aria-label="Tin nhắn và bạn bè">
         <a class="active" routerLink="/chat">Tin nhắn</a>
-        <a routerLink="/friends">Bạn bè</a>
+        <a routerLink="/feed" [queryParams]="{ tab: 'friends' }">Bạn bè</a>
       </nav>
 
       <button type="button" class="new-message-btn" (click)="openGroupModal()">
@@ -81,7 +81,7 @@
           <lucide-icon name="message-square" class="w-10 h-10"></lucide-icon>
           <p>{{ searchRoomQuery || roomFilter() !== 'ALL' ? 'Không tìm thấy hội thoại phù hợp.' : 'Bạn chưa có cuộc trò chuyện nào.' }}</p>
           @if (!searchRoomQuery && roomFilter() === 'ALL') {
-            <a routerLink="/friends">Mở danh sách bạn bè</a>
+            <a routerLink="/feed" [queryParams]="{ tab: 'friends' }">Mở danh sách bạn bè</a>
           }
         </div>
       }
@@ -259,7 +259,7 @@
         <p class="eyebrow">GOAT Sports Connect</p>
         <h2>Trò chuyện cùng đồng đội</h2>
         <p>Chọn một hội thoại hoặc mở danh sách bạn bè để bắt đầu.</p>
-        <a routerLink="/friends">Xem bạn bè</a>
+        <a routerLink="/feed" [queryParams]="{ tab: 'friends' }">Xem bạn bè</a>
       </div>
     }
   </main>

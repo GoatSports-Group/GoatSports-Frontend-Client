@@ -1,0 +1,208 @@
+<section class="friends" aria-labelledby="friends-heading">
+  <h2 id="friends-heading" class="sr-only">Bạn bè</h2>
+
+  <div class="card finder">
+    <label class="finder__field">
+      <lucide-icon name="search" class="w-5 h-5"></lucide-icon>
+      <span class="sr-only">Tìm người chơi</span>
+      <input type="search" autocomplete="off" placeholder="Tìm người chơi theo tên hoặc tên đăng nhập…"
+        [ngModel]="query()" (ngModelChange)="onQuery($event)" />
+      @if (query()) {
+        <button type="button" class="icon-btn" (click)="clearSearch()" aria-label="Xóa tìm kiếm"><lucide-icon name="x" class="w-4 h-4"></lucide-icon></button>
+      }
+    </label>
+
+    @if (query().trim().length >= 2) {
+      <div class="finder__results" aria-live="polite">
+        @if (searching()) {
+          <app-loading-skeleton variant="rows" [count]="2" [flush]="true" label="Đang tìm người chơi"></app-loading-skeleton>
+        } @else if (searchError()) {
+          <p class="finder__note"><lucide-icon name="wifi-off" class="w-4 h-4"></lucide-icon>Không tìm được lúc này. Thử lại sau ít phút.</p>
+        } @else if (!results()?.length) {
+          <p class="finder__note">Không có người chơi nào khớp “{{ query().trim() }}”.</p>
+        } @else {
+          <ul class="rows">
+            @for (player of results(); track player.userId) {
+              <li class="row">
+                <a class="row__who" [routerLink]="['/feed']" [queryParams]="{ author: player.userId }">
+                  <img class="avatar" [src]="player.avatarUrl || store.avatar(player.userId)" alt="" width="40" height="40" />
+                  <span><strong>{{ player.fullName }}</strong><small>&#64;{{ player.username }}</small></span>
+                </a>
+                @switch (relation(player.userId)) {
+                  @case ('SELF') { <span class="badge badge--neutral">Bạn</span> }
+                  @case ('FRIEND') { <span class="badge badge--success">Bạn bè</span> }
+                  @case ('SENT') { <span class="badge badge--warning">Đã gửi lời mời</span> }
+                  @case ('RECEIVED') { <button type="button" class="btn btn--secondary" (click)="selectList('received')">Xem lời mời</button> }
+                  @case ('BLOCKED') { <span class="badge badge--danger">Đang chặn</span> }
+                  @default {
+                    <button type="button" class="btn btn--primary" [disabled]="isPending(player.userId)" (click)="sendRequest(player)">
+                      <lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon>Kết bạn
+                    </button>
+                  }
+                }
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="lists" role="group" aria-label="Danh sách">
+    @for (item of lists; track item.value) {
+      <button type="button" class="chip" [class.is-active]="list() === item.value" [attr.aria-pressed]="list() === item.value"
+        (click)="selectList(item.value)">
+        {{ item.label }}
+        <span class="chip__count" [class.chip__count--alert]="item.value === 'received' && counts().received > 0">{{ counts()[item.value] }}</span>
+      </button>
+    }
+  </div>
+
+  <div class="card list-card">
+    @if (store.connectionsLoading() && !store.connections().friends.length && !store.connections().received.length) {
+      <app-loading-skeleton variant="rows" [count]="4" [flush]="true" label="Đang tải bạn bè"></app-loading-skeleton>
+    } @else if (store.connectionsError()) {
+      <div class="state state--error">
+        <span class="state__icon"><lucide-icon name="wifi-off" class="w-6 h-6"></lucide-icon></span>
+        <strong>Không tải được danh sách</strong>
+        <p>Kiểm tra kết nối mạng rồi thử lại.</p>
+        <button type="button" class="btn btn--primary" (click)="store.loadConnections()">Thử lại</button>
+      </div>
+    } @else {
+      @switch (list()) {
+        @case ('friends') {
+          @if (store.connections().friends.length) {
+            <ul class="rows goat-stagger">
+              @for (friendship of store.connections().friends; track friendship.friendshipId) {
+                @let other = store.otherParty(friendship);
+                <li class="row">
+                  <a class="row__who" [routerLink]="['/feed']" [queryParams]="{ author: other }">
+                    <img class="avatar" [src]="store.avatar(other)" alt="" width="40" height="40" />
+                    <span><strong>{{ store.authorName(other) }}</strong><small>Bạn bè từ {{ (friendship.respondedAt || friendship.requestedAt) | date:'MM/yyyy' }}</small></span>
+                  </a>
+                  <button type="button" class="btn btn--secondary" [disabled]="isPending('chat-' + friendship.friendshipId)" (click)="message(friendship)">
+                    <lucide-icon name="message-circle" class="w-4 h-4"></lucide-icon><span class="row__label">Nhắn tin</span>
+                  </button>
+                  <button type="button" class="icon-btn" [matMenuTriggerFor]="friendMenu" [attr.aria-label]="'Tác vụ với ' + store.authorName(other)">
+                    <lucide-icon name="ellipsis" class="w-5 h-5"></lucide-icon>
+                  </button>
+                  <mat-menu #friendMenu="matMenu" xPosition="before" class="goat-action-menu">
+                    <a mat-menu-item [routerLink]="['/feed']" [queryParams]="{ author: other }">
+                      <lucide-icon name="file-text" class="w-4 h-4"></lucide-icon>Xem bài viết
+                    </a>
+                    <button mat-menu-item type="button" (click)="confirm.set({ kind: 'unfriend', friendship })">
+                      <lucide-icon name="user-minus" class="w-4 h-4"></lucide-icon>Hủy kết bạn
+                    </button>
+                    <button mat-menu-item type="button" class="is-danger" (click)="confirm.set({ kind: 'block', friendship })">
+                      <lucide-icon name="ban" class="w-4 h-4"></lucide-icon>Chặn
+                    </button>
+                  </mat-menu>
+                  <ng-container [ngTemplateOutlet]="confirmStrip" [ngTemplateOutletContext]="{ $implicit: friendship }"></ng-container>
+                </li>
+              }
+            </ul>
+          } @else {
+            <div class="state">
+              <span class="state__icon"><lucide-icon name="users" class="w-6 h-6"></lucide-icon></span>
+              <strong>Chưa có bạn bè</strong>
+              <p>Tìm đồng đội ở ô phía trên, hoặc kết bạn với người bạn gặp trong trận gần nhất.</p>
+            </div>
+          }
+        }
+        @case ('received') {
+          @if (store.connections().received.length) {
+            <ul class="rows goat-stagger">
+              @for (friendship of store.connections().received; track friendship.friendshipId) {
+                <li class="row">
+                  <a class="row__who" [routerLink]="['/feed']" [queryParams]="{ author: friendship.requesterId }">
+                    <img class="avatar" [src]="store.avatar(friendship.requesterId)" alt="" width="40" height="40" />
+                    <span><strong>{{ store.authorName(friendship.requesterId) }}</strong><small>Gửi {{ friendship.requestedAt | date:'dd/MM/yyyy' }}</small></span>
+                  </a>
+                  <button type="button" class="btn btn--secondary" [disabled]="isPending(friendship.friendshipId)" (click)="respond(friendship, false)">Từ chối</button>
+                  <button type="button" class="btn btn--primary" [disabled]="isPending(friendship.friendshipId)" (click)="respond(friendship, true)">Chấp nhận</button>
+                </li>
+              }
+            </ul>
+          } @else {
+            <div class="state">
+              <span class="state__icon"><lucide-icon name="user-check" class="w-6 h-6"></lucide-icon></span>
+              <strong>Không có lời mời mới</strong>
+              <p>Lời mời kết bạn bạn nhận được sẽ hiện ở đây, kèm thông báo.</p>
+            </div>
+          }
+        }
+        @case ('sent') {
+          @if (store.connections().sent.length) {
+            <ul class="rows goat-stagger">
+              @for (friendship of store.connections().sent; track friendship.friendshipId) {
+                <li class="row">
+                  <a class="row__who" [routerLink]="['/feed']" [queryParams]="{ author: friendship.addresseeId }">
+                    <img class="avatar" [src]="store.avatar(friendship.addresseeId)" alt="" width="40" height="40" />
+                    <span><strong>{{ store.authorName(friendship.addresseeId) }}</strong><small>Đang chờ phản hồi</small></span>
+                  </a>
+                  <span class="badge badge--warning">Đã gửi</span>
+                  <button type="button" class="icon-btn icon-btn--danger" [disabled]="isPending(friendship.friendshipId)"
+                    (click)="confirm.set({ kind: 'recall', friendship })" [attr.aria-label]="'Thu hồi lời mời gửi ' + store.authorName(friendship.addresseeId)">
+                    <lucide-icon name="undo-2" class="w-5 h-5"></lucide-icon>
+                  </button>
+                  <ng-container [ngTemplateOutlet]="confirmStrip" [ngTemplateOutletContext]="{ $implicit: friendship }"></ng-container>
+                </li>
+              }
+            </ul>
+          } @else {
+            <div class="state">
+              <span class="state__icon"><lucide-icon name="send" class="w-6 h-6"></lucide-icon></span>
+              <strong>Chưa gửi lời mời nào</strong>
+              <p>Lời mời đang chờ phản hồi sẽ nằm ở đây.</p>
+            </div>
+          }
+        }
+        @case ('blocked') {
+          @if (store.connections().blocked.length) {
+            <ul class="rows goat-stagger">
+              @for (block of store.connections().blocked; track block.blockId) {
+                <li class="row">
+                  <span class="row__who">
+                    <img class="avatar" [src]="store.avatar(block.blockedUserId)" alt="" width="40" height="40" />
+                    <span><strong>{{ store.authorName(block.blockedUserId) }}</strong><small>Chặn {{ block.blockedAt | date:'dd/MM/yyyy' }}</small></span>
+                  </span>
+                  <button type="button" class="btn btn--secondary" [disabled]="isPending(block.blockId)" (click)="unblock(block)">
+                    <lucide-icon name="unlock" class="w-4 h-4"></lucide-icon>Bỏ chặn
+                  </button>
+                </li>
+              }
+            </ul>
+          } @else {
+            <div class="state">
+              <span class="state__icon"><lucide-icon name="shield-check" class="w-6 h-6"></lucide-icon></span>
+              <strong>Danh sách chặn trống</strong>
+              <p>Người bạn chặn sẽ không thấy bài, không kết bạn và không nhắn tin được với bạn.</p>
+            </div>
+          }
+        }
+      }
+    }
+  </div>
+</section>
+
+<ng-template #confirmStrip let-friendship>
+  @if (confirm(); as pending) {
+    @if (pending.friendship.friendshipId === friendship.friendshipId) {
+      <div class="confirm" role="alertdialog" aria-label="Xác nhận">
+        <p>
+          @switch (pending.kind) {
+            @case ('block') { Chặn <strong>{{ store.authorName(store.otherParty(friendship)) }}</strong>? Hai bạn sẽ không thấy bài và không nhắn tin được cho nhau. }
+            @case ('recall') { Thu hồi lời mời gửi <strong>{{ store.authorName(friendship.addresseeId) }}</strong>? }
+            @default { Hủy kết bạn với <strong>{{ store.authorName(store.otherParty(friendship)) }}</strong>? }
+          }
+        </p>
+        <div class="confirm__actions">
+          <button type="button" class="btn btn--secondary" (click)="confirm.set(null)">Giữ lại</button>
+          <button type="button" class="btn btn--danger" (click)="confirmAction()">
+            {{ pending.kind === 'block' ? 'Chặn' : pending.kind === 'recall' ? 'Thu hồi' : 'Hủy kết bạn' }}
+          </button>
+        </div>
+      </div>
+    }
+  }
+</ng-template>

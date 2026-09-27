@@ -11,7 +11,6 @@ import { BookingHistoryComponent } from '@presentation/pages/client/booking/hist
 import { BookingDetailComponent } from '@presentation/pages/client/booking/detail/booking-detail.component';
 import { PaymentResultComponent } from '@presentation/pages/client/payment/payment-result.component';
 import { ChatComponent } from '@presentation/pages/client/chat/chat.component';
-import { FriendsComponent } from '@presentation/pages/client/friends/friends.component';
 import { ClubListComponent } from '@presentation/pages/client/clubs/club-list.component';
 import { ClubDetailComponent } from '@presentation/pages/client/clubs/club-detail.component';
 import { ClubFeaturedComponent } from '@presentation/pages/client/clubs/club-featured.component';
@@ -66,7 +65,8 @@ const routes: Routes = [
       { path: 'ai-recommendation', redirectTo: 'matchmaking', pathMatch: 'full' },
       { path: 'chat', component: ChatComponent, canActivate: [AuthGuard], title: 'Tin nhắn | GOAT Sports' },
       { path: 'chat/:roomId', component: ChatComponent, canActivate: [AuthGuard], title: 'Cuộc trò chuyện | GOAT Sports' },
-      { path: 'friends', component: FriendsComponent, canActivate: [AuthGuard], title: 'Bạn bè | GOAT Sports' },
+      // Ban be nam trong tab Cong dong; giu duong dan cu cho lien ket va dau trang da luu.
+      { path: 'friends', redirectTo: '/feed?tab=friends', pathMatch: 'full' },
       { path: 'settings', component: SettingsComponent, canActivate: [AuthGuard], title: 'Cài đặt tài khoản | GOAT Sports' },
       { path: 'notifications', component: NotificationsComponent, canActivate: [AuthGuard], title: 'Thông báo | GOAT Sports' },
       { path: 'profile', redirectTo: 'settings', pathMatch: 'full' },

@@ -21,7 +21,6 @@ import { BookingDetailComponent } from '@presentation/pages/client/booking/detai
 import { QrCheckinComponent } from '@presentation/pages/client/booking/checkin/qr-checkin.component';
 import { PaymentResultComponent } from '@presentation/pages/client/payment/payment-result.component';
 import { ChatComponent } from '@presentation/pages/client/chat/chat.component';
-import { FriendsComponent } from '@presentation/pages/client/friends/friends.component';
 import { ClubListComponent } from '@presentation/pages/client/clubs/club-list.component';
 import { ClubDetailComponent } from '@presentation/pages/client/clubs/club-detail.component';
 import { ClubFeaturedComponent } from '@presentation/pages/client/clubs/club-featured.component';
@@ -48,6 +47,8 @@ import { SocialFeedComponent } from '@presentation/pages/client/feed/social-feed
 import { PostCardComponent } from '@presentation/pages/client/feed/post-card.component';
 import { PostComposerComponent } from '@presentation/pages/client/feed/post-composer.component';
 import { PostDetailComponent } from '@presentation/pages/client/feed/post-detail.component';
+import { CommunityFriendsComponent } from '@presentation/pages/client/feed/community-friends.component';
+import { MediaLightboxComponent } from '@presentation/pages/client/feed/media-lightbox.component';
 import { AiAssistantModalComponent } from '@presentation/shared/components/ai-assistant-modal/ai-assistant-modal.component';
 
 @NgModule({
@@ -69,7 +70,6 @@ import { AiAssistantModalComponent } from '@presentation/shared/components/ai-as
     QrCheckinComponent,
     PaymentResultComponent,
     ChatComponent,
-    FriendsComponent,
     ClubListComponent,
     ClubDetailComponent,
     ClubFeaturedComponent,
@@ -96,6 +96,8 @@ import { AiAssistantModalComponent } from '@presentation/shared/components/ai-as
     PostCardComponent,
     PostComposerComponent,
     PostDetailComponent,
+    CommunityFriendsComponent,
+    MediaLightboxComponent,
     AiAssistantModalComponent
   ],
   imports: [

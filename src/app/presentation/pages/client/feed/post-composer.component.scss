@@ -65,6 +65,68 @@
   }
 }
 
+.composer__field {
+  position: relative;
+}
+
+.composer__hint {
+  margin: -4px 0 0;
+  color: var(--body);
+  font-size: 13px;
+
+  b {
+    color: var(--primary);
+  }
+}
+
+// @-mention suggestions: dropdown under the field (GOAT-DESIGN §6 select panel look).
+.mention-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 30;
+  display: grid;
+  width: min(100%, 320px);
+  margin: 0;
+  padding: 6px;
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  list-style: none;
+  animation: goat-drop 220ms var(--ease-standard, ease-out) backwards;
+
+  li {
+    display: flex;
+    min-height: 44px;
+    align-items: center;
+    gap: 10px;
+    padding: 0 10px;
+    border-radius: 8px;
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+
+    img {
+      width: 28px;
+      height: 28px;
+    }
+
+    span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    &.is-active {
+      background: var(--primary-light);
+      color: var(--primary-strong);
+      font-weight: 700;
+    }
+  }
+}
+
 .composer__text {
   display: block;
   width: 100%;

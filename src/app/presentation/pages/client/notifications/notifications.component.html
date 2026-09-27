@@ -28,8 +28,8 @@
         <a routerLink="/booking/history" class="account-nav__item">
           <lucide-icon name="calendar" class="w-5 h-5"></lucide-icon><span>Lịch đặt sân</span>
         </a>
-        <a routerLink="/friends" class="account-nav__item">
-          <lucide-icon name="users" class="w-5 h-5"></lucide-icon><span>Kết nối</span>
+        <a routerLink="/feed" [queryParams]="{ tab: 'friends' }" class="account-nav__item">
+          <lucide-icon name="users" class="w-5 h-5"></lucide-icon><span>Bạn bè</span>
         </a>
         <a routerLink="/clubs" class="account-nav__item">
           <lucide-icon name="swords" class="w-5 h-5"></lucide-icon><span>Thi đấu nhóm</span>

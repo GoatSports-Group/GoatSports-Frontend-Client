@@ -88,7 +88,7 @@
   } @else {
     @if (post.content) {
       <div class="post__body">
-        <p class="post__text" [class.is-clamped]="isLong && !expanded()">{{ post.content }}</p>
+        <p class="post__text" [class.is-clamped]="isLong && !expanded()"><ng-container [ngTemplateOutlet]="richContent" [ngTemplateOutletContext]="{ $implicit: contentSegments() }"></ng-container></p>
         @if (isLong) {
           <button type="button" class="link-btn" (click)="expanded.set(!expanded())">{{ expanded() ? 'Thu gọn' : 'Xem thêm' }}</button>
         }
@@ -108,7 +108,7 @@
               </span>
             </div>
           </div>
-          @if (original.content) { <p class="embed__text">{{ original.content }}</p> }
+          @if (original.content) { <p class="embed__text"><ng-container [ngTemplateOutlet]="richContent" [ngTemplateOutletContext]="{ $implicit: originalSegments(), plain: true }"></ng-container></p> }
           @if (original.attachments.length) {
             <ng-container [ngTemplateOutlet]="mediaGrid" [ngTemplateOutletContext]="{ $implicit: original.attachments, linked: false }"></ng-container>
           }
@@ -217,10 +217,11 @@
       @if (store.mediaUrl(item.storageKey); as url) {
         @if (item.type === 'IMAGE') {
           @if (linked) {
-            <a class="media__cell" [href]="url" target="_blank" rel="noopener noreferrer" [attr.aria-label]="'Mở ảnh ' + (index + 1)">
+            <button type="button" class="media__cell" (click)="openLightbox(items, item.attachmentId)"
+              [attr.aria-label]="'Xem ảnh ' + (index + 1) + ' trên ' + items.length">
               <img [src]="url" alt="" loading="lazy" />
               @if (index === 3 && items.length > 4) { <span class="media__more">+{{ items.length - 4 }}</span> }
-            </a>
+            </button>
           } @else {
             <span class="media__cell">
               <img [src]="url" alt="" loading="lazy" />
@@ -239,6 +240,23 @@
       }
     }
   </div>
+</ng-template>
+
+<!-- Hashtag / nhac ten: link rieng, tru khi dang nam trong the bai goc (the do da la mot link). -->
+<ng-template #richContent let-segments let-plain="plain">
+  @for (segment of segments; track $index) {
+    @switch (segment.kind) {
+      @case ('tag') {
+        @if (plain) { <span class="rich rich--tag">{{ segment.value }}</span> }
+        @else { <a class="rich rich--tag" [routerLink]="['/feed']" [queryParams]="{ tag: segment.tag }">{{ segment.value }}</a> }
+      }
+      @case ('mention') {
+        @if (plain) { <span class="rich rich--mention">{{ segment.value }}</span> }
+        @else { <a class="rich rich--mention" [routerLink]="['/feed']" [queryParams]="{ author: segment.userId }">{{ segment.value }}</a> }
+      }
+      @default { <ng-container>{{ segment.value }}</ng-container> }
+    }
+  }
 </ng-template>
 
 <ng-template #commentRow let-comment>
@@ -353,4 +371,8 @@
       </footer>
     </section>
   </div>
+}
+
+@if (lightbox(); as viewer) {
+  <app-media-lightbox [items]="viewer.items" [start]="viewer.start" [caption]="post.content || ''" (closed)="lightbox.set(null)"></app-media-lightbox>
 }
