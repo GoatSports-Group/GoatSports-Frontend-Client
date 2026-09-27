@@ -199,7 +199,13 @@
           <img class="avatar" [src]="store.avatar(me.userId)" alt="" width="32" height="32" />
           <label class="sr-only" [attr.for]="'comment-input-' + post.postId">Viết bình luận</label>
           <textarea rows="1" maxlength="1000" [id]="'comment-input-' + post.postId" placeholder="Viết bình luận…"
-            [ngModel]="commentDraft()" (ngModelChange)="commentDraft.set($event)" (keydown)="onCommentKeydown($event)"></textarea>
+            #commentBox [ngModel]="commentDraft()" (ngModelChange)="commentDraft.set($event)"
+            (keydown)="onCommentKeydown($event, commentBox)" (input)="commentMentions.track(commentBox)"
+            (click)="commentMentions.track(commentBox)" (blur)="commentMentions.query.set(null)"
+            role="combobox" aria-autocomplete="list" [attr.aria-expanded]="commentMentions.options().length > 0"
+            [attr.aria-controls]="commentMentions.listId"
+            [attr.aria-activedescendant]="commentMentions.options().length ? commentMentions.optionId(commentMentions.index()) : null"></textarea>
+          <app-mention-menu [picker]="commentMentions" (picked)="pickCommentMention($event, commentBox)"></app-mention-menu>
           <button type="button" class="icon-btn icon-btn--send" [disabled]="!commentDraft().trim() || sendingComment()"
             (click)="submitComment()" aria-label="Gửi bình luận" [attr.aria-busy]="sendingComment()">
             @if (sendingComment()) { <span class="spinner" aria-hidden="true"></span> }
@@ -267,7 +273,12 @@
         <div class="comment__edit">
           <label class="sr-only" [attr.for]="'edit-comment-' + comment.commentId">Sửa bình luận</label>
           <textarea rows="2" maxlength="1000" [id]="'edit-comment-' + comment.commentId"
-            [ngModel]="editDraft()" (ngModelChange)="editDraft.set($event)"></textarea>
+            #editBox [ngModel]="editDraft()" (ngModelChange)="editDraft.set($event)"
+            (keydown)="onEditKeydown($event, editBox)" (input)="editMentions.track(editBox)" (blur)="editMentions.query.set(null)"
+            role="combobox" aria-autocomplete="list" [attr.aria-expanded]="editMentions.options().length > 0"
+            [attr.aria-controls]="editMentions.listId"
+            [attr.aria-activedescendant]="editMentions.options().length ? editMentions.optionId(editMentions.index()) : null"></textarea>
+          <app-mention-menu [picker]="editMentions" (picked)="pickCommentMention($event, editBox, true)"></app-mention-menu>
           <div>
             <button type="button" class="link-btn link-btn--muted" (click)="editingCommentId.set(null)">Hủy</button>
             <button type="button" class="link-btn" (click)="saveComment(comment)">Lưu</button>
@@ -276,7 +287,7 @@
       } @else {
         <div class="comment__bubble">
           <a [routerLink]="['/feed']" [queryParams]="{ author: comment.authorId }">{{ store.authorName(comment.authorId) }}</a>
-          <p>{{ comment.content }}</p>
+          <p><ng-container [ngTemplateOutlet]="richContent" [ngTemplateOutletContext]="{ $implicit: commentSegments(comment) }"></ng-container></p>
         </div>
         @if (confirm(); as pending) {
           @if (pending.kind === 'delete-comment' && pending.commentId === comment.commentId) {

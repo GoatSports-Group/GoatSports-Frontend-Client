@@ -49,6 +49,7 @@ import { PostComposerComponent } from '@presentation/pages/client/feed/post-comp
 import { PostDetailComponent } from '@presentation/pages/client/feed/post-detail.component';
 import { CommunityFriendsComponent } from '@presentation/pages/client/feed/community-friends.component';
 import { MediaLightboxComponent } from '@presentation/pages/client/feed/media-lightbox.component';
+import { MentionMenuComponent } from '@presentation/pages/client/feed/mention-menu.component';
 import { AiAssistantModalComponent } from '@presentation/shared/components/ai-assistant-modal/ai-assistant-modal.component';
 
 @NgModule({
@@ -98,6 +99,7 @@ import { AiAssistantModalComponent } from '@presentation/shared/components/ai-as
     PostDetailComponent,
     CommunityFriendsComponent,
     MediaLightboxComponent,
+    MentionMenuComponent,
     AiAssistantModalComponent
   ],
   imports: [

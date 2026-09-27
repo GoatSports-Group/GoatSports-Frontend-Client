@@ -11,6 +11,7 @@ import {
   AuthorStats,
   FeedFilter,
   FollowSuggestion,
+  Mention,
   TrendingTag,
   PostVisibility,
   UserFollowStatus
@@ -82,8 +83,8 @@ export class SocialFeedRepositoryImpl implements SocialFeedRepository {
     return this.api.createComment(postId, request).pipe(map(response => response.data));
   }
 
-  updateComment(commentId: string, content: string): Observable<SocialComment> {
-    return this.api.updateComment(commentId, content).pipe(map(response => response.data));
+  updateComment(commentId: string, content: string, mentions: Mention[]): Observable<SocialComment> {
+    return this.api.updateComment(commentId, content, mentions).pipe(map(response => response.data));
   }
 
   deleteComment(commentId: string): Observable<void> {

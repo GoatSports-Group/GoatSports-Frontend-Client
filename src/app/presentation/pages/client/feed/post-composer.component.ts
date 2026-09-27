@@ -12,7 +12,8 @@ import { STORAGE_REPOSITORY_TOKEN } from '@application/ports/persistence/storage
 import { AuthService } from '@presentation/services/auth.service';
 import { NotifyService } from '@shared/components/notify/notify.service';
 import { CommunityStore } from './community.store';
-import { SPORT_SELECT_OPTIONS, VISIBILITY_META, VISIBILITY_OPTIONS, errorMessage, foldText } from './community-view';
+import { SPORT_SELECT_OPTIONS, VISIBILITY_META, VISIBILITY_OPTIONS, errorMessage } from './community-view';
+import { MentionOption, MentionPicker } from './mention-picker';
 
 interface PendingAttachment {
   file: File;
@@ -23,9 +24,6 @@ interface PendingAttachment {
 const MAX_ATTACHMENTS = 10;
 const MAX_FILE_BYTES = 20 * 1024 * 1024;
 const MAX_CONTENT = 5000;
-const MAX_MENTIONS = 20;
-/** Doan dang go ngay truoc con tro: "@" o dau dong hoac sau khoang trang, toi da 30 ky tu, chua xuong dong. */
-const MENTION_QUERY = /(^|\s)@([^@\n]{0,30})$/u;
 
 /** Soan bai moi, hoac sua tai cho khi co {@link post}. Bai chia se chi sua loi dan va quyen rieng tu. */
 @Component({
@@ -51,27 +49,9 @@ export class PostComposerComponent implements OnInit, OnDestroy {
   @Output() readonly cancelled = new EventEmitter<void>();
   @ViewChild('textArea') private textArea?: ElementRef<HTMLTextAreaElement>;
 
-  /** userId → ten da chen vao noi dung dang "@Ten". */
-  readonly mentioned = signal<ReadonlyMap<string, string>>(new Map());
-  readonly mentionQuery = signal<string | null>(null);
-  readonly mentionIndex = signal(0);
-  private mentionStart = 0;
-  private candidatesLoaded = false;
-
-  /** Ban be + nguoi dang theo doi, loc khong dau theo doan dang go; toi da 6 goi y. */
-  readonly candidates = computed(() => {
-    const query = this.mentionQuery();
-    if (query === null) return [];
-    const me = this.auth.currentUser?.userId;
-    const folded = foldText(query.trim());
-    const pool = new Set([...this.store.friendIds(), ...this.store.followingIds()]);
-    return [...pool]
-      .filter(id => id !== me)
-      .map(userId => ({ userId, name: this.store.authorName(userId), avatar: this.store.avatar(userId) }))
-      .filter(person => !folded || foldText(person.name).includes(folded))
-      .sort((a, b) => a.name.localeCompare(b.name, 'vi'))
-      .slice(0, 6);
-  });
+  /** Goi y @nhac ten; id listbox rieng cho moi o soan (bai moi / tung bai dang sua). */
+  readonly mentions = new MentionPicker(this.store, () => this.auth.currentUser?.userId ?? null,
+    `mentions-${Math.random().toString(36).slice(2, 8)}`);
 
   readonly content = signal('');
   readonly visibility = signal<PostVisibility>('PUBLIC');
@@ -109,7 +89,7 @@ export class PostComposerComponent implements OnInit, OnDestroy {
       this.visibility.set(this.post.visibility);
       this.sport.set(this.post.sport);
       this.retained.set([...this.post.attachments]);
-      this.mentioned.set(new Map((this.post.mentions ?? []).map(id => [id, this.store.authorName(id)])));
+      this.mentions.reset(this.post.mentions ?? []);
     } else {
       this.sport.set(this.defaultSport);
     }
@@ -171,7 +151,7 @@ export class PostComposerComponent implements OnInit, OnDestroy {
           content: this.content().trim() || null,
           visibility: this.visibility(),
           sport: this.sport(),
-          mentions: this.currentMentions(),
+          mentions: this.mentions.mentionsFor(this.content()),
           attachments: [...retained, ...uploaded]
         };
         return this.post
@@ -191,74 +171,24 @@ export class PostComposerComponent implements OnInit, OnDestroy {
     });
   }
 
-  /** Ban phim cho goi y @: ↑/↓ chon, Enter/Tab chen, Esc dong. Ngoai goi y: Ctrl/Cmd + Enter gui bai. */
+  /** Goi y @ xu ly phim truoc; ngoai goi y, Ctrl/Cmd + Enter gui bai. */
   onKeydown(event: KeyboardEvent): void {
-    const options = this.candidates();
-    if (options.length) {
-      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-        event.preventDefault();
-        const step = event.key === 'ArrowDown' ? 1 : -1;
-        this.mentionIndex.set((this.mentionIndex() + step + options.length) % options.length);
-        return;
-      }
-      if (event.key === 'Enter' || event.key === 'Tab') {
-        event.preventDefault();
-        this.pickMention(options[this.mentionIndex()]);
-        return;
-      }
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        event.stopPropagation();
-        this.mentionQuery.set(null);
-        return;
-      }
-    }
+    const area = this.textArea?.nativeElement;
+    if (area && this.mentions.keydown(event, area, value => this.content.set(value))) return;
     if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
       event.preventDefault();
       this.submit();
     }
   }
 
-  /** Chay sau moi lan go / di chuyen con tro: mo hoac dong goi y @. */
   trackMention(): void {
     const area = this.textArea?.nativeElement;
-    if (!area || this.isShare) return;
-    const before = area.value.slice(0, area.selectionStart ?? area.value.length);
-    const match = before.match(MENTION_QUERY);
-    if (!match || this.mentioned().size >= MAX_MENTIONS) {
-      this.mentionQuery.set(null);
-      return;
-    }
-    if (!this.candidatesLoaded) {
-      // Nap ten ban be / nguoi dang theo doi mot lan, luc lan dau go "@".
-      this.candidatesLoaded = true;
-      this.store.hydrateAuthors([...this.store.friendIds(), ...this.store.followingIds()]);
-    }
-    this.mentionStart = before.length - match[2].length - 1;
-    this.mentionQuery.set(match[2]);
-    this.mentionIndex.set(0);
+    if (area && !this.isShare) this.mentions.track(area);
   }
 
-  pickMention(person: { userId: string; name: string }): void {
+  pickMention(person: MentionOption): void {
     const area = this.textArea?.nativeElement;
-    if (!area) return;
-    const caret = area.selectionStart ?? area.value.length;
-    const inserted = `@${person.name} `;
-    const next = area.value.slice(0, this.mentionStart) + inserted + area.value.slice(caret);
-    this.content.set(next);
-    this.mentioned.update(current => new Map(current).set(person.userId, person.name));
-    this.mentionQuery.set(null);
-    const position = this.mentionStart + inserted.length;
-    queueMicrotask(() => {
-      area.focus();
-      area.setSelectionRange(position, position);
-    });
-  }
-
-  /** Chi gui nguoi con "@Ten" trong noi dung (xoa chu thi bo nhac). */
-  private currentMentions(): string[] {
-    const text = this.content();
-    return [...this.mentioned()].filter(([, name]) => text.includes(`@${name}`)).map(([id]) => id);
+    if (area) this.mentions.pick(person, area, value => this.content.set(value));
   }
 
   private reset(): void {
@@ -266,7 +196,7 @@ export class PostComposerComponent implements OnInit, OnDestroy {
     this.pending.set([]);
     this.retained.set([]);
     this.content.set('');
-    this.mentioned.set(new Map());
+    this.mentions.reset();
     this.visibility.set('PUBLIC');
     this.sport.set(this.defaultSport);
   }

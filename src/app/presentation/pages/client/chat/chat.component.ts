@@ -20,6 +20,7 @@ import { PLAYER_SPORT_PROFILE_REPOSITORY_TOKEN } from '@application/ports/persis
 import { SOCIAL_FEED_REPOSITORY_TOKEN } from '@application/ports/persistence/social-feed.repository';
 import { NotifyService } from '@shared/components/notify/notify.service';
 import { PlayerDirectoryService } from '@presentation/services/player-directory.service';
+import { REPORT_REASONS } from '@presentation/pages/client/feed/community-view';
 
 const SPORT_LABELS: Record<string, string> = {
   FOOTBALL: 'Bóng đá',
@@ -79,6 +80,17 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   readonly counterpartSports = signal<{ label: string; shared: boolean }[]>([]);
   readonly mutedRoomIds = signal<ReadonlySet<string>>(new Set());
   readonly contextActionLoading = signal(false);
+  /** Chan nguoi dung: xac nhan ngay trong khung thong tin thay cho window.confirm. */
+  readonly confirmBlock = signal(false);
+  readonly reportTarget = signal<ChatParticipant | null>(null);
+  readonly reportReason = signal('');
+  readonly reportReasons = REPORT_REASONS;
+  readonly roomFilters: ReadonlyArray<{ value: RoomFilter; label: string }> = [
+    { value: 'ALL', label: 'Tất cả' },
+    { value: 'UNREAD', label: 'Chưa đọc' },
+    { value: 'GROUP', label: 'Nhóm' },
+    { value: 'CLUB', label: 'Câu lạc bộ' }
+  ];
   private mySportTypes: ReadonlySet<string> = new Set();
   currentUserId = '';
   searchRoomQuery = '';
@@ -153,7 +165,9 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
         this.loadPresenceForRooms(rooms);
         if (this.requestedRoomId) {
           this.selectRoomById(this.requestedRoomId);
-        } else if (!this.activeRoom() && this.rooms().length) {
+        } else if (!this.activeRoom() && this.rooms().length && this.showsListAndThread()) {
+          // Chi mo san hoi thoai dau tien khi danh sach va noi dung nam canh nhau; tren dien thoai mo san se
+          // che mat danh sach (va danh dau da doc mot hoi thoai nguoi dung chua he xem).
           this.selectRoom(this.rooms()[0], false);
         }
       },
@@ -192,6 +206,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.onTypingStop();
     this.activeRoom.set(room);
     this.contextPanelOpen.set(false);
+    this.confirmBlock.set(false);
     this.loadCounterpartContext(room);
     this.wsService.subscribeToRoom(room.roomId);
     this.loadMessages(room.roomId);
@@ -201,6 +216,11 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       this.chatRepo.markRoomAsRead(room.roomId).subscribe({ error: () => undefined });
     }
     if (updateRoute) void this.router.navigate(['/chat', room.roomId]);
+  }
+
+  /** Cung diem gay voi chat.component.scss (820px): tren do danh sach va noi dung hien canh nhau. */
+  private showsListAndThread(): boolean {
+    return typeof matchMedia === 'undefined' || matchMedia('(min-width: 821px)').matches;
   }
 
   backToRooms(): void {
@@ -429,7 +449,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   blockCounterpart(person: ChatParticipant): void {
     const name = person.userName || 'người chơi này';
-    if (!confirm(`Chặn ${name}? Hai bạn sẽ không nhắn tin được cho nhau nữa.`)) return;
+    this.confirmBlock.set(false);
     this.contextActionLoading.set(true);
     this.friendRepo.blockUser({ blockedUserId: person.userId }).pipe(
       finalize(() => this.contextActionLoading.set(false))
@@ -443,19 +463,32 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     });
   }
 
-  reportCounterpart(person: ChatParticipant): void {
-    const reason = prompt(`Lý do báo cáo ${person.userName || 'người chơi này'}:`)?.trim();
-    if (!reason) return;
+  openReport(person: ChatParticipant): void {
+    this.reportReason.set('');
+    this.reportTarget.set(person);
+  }
+
+  closeReport(): void {
+    if (!this.contextActionLoading()) this.reportTarget.set(null);
+  }
+
+  pickReason(reason: string): void {
+    const current = this.reportReason().trim();
+    this.reportReason.set(current ? `${current}. ${reason}` : reason);
+  }
+
+  submitReport(): void {
+    const person = this.reportTarget();
+    const reason = this.reportReason().trim();
+    if (!person || reason.length < 10 || this.contextActionLoading()) return;
     this.contextActionLoading.set(true);
-    this.socialFeedRepo.reportContent({
-      targetType: 'USER',
-      targetId: person.userId,
-      reason,
-      evidence: []
-    }).pipe(
+    this.socialFeedRepo.reportContent({ targetType: 'USER', targetId: person.userId, reason, evidence: [] }).pipe(
       finalize(() => this.contextActionLoading.set(false))
     ).subscribe({
-      next: () => this.notifyService.success('Đã gửi báo cáo tới đội ngũ kiểm duyệt.'),
+      next: () => {
+        this.reportTarget.set(null);
+        this.notifyService.success('Đã gửi báo cáo. Đội kiểm duyệt sẽ xem xét sớm.');
+      },
       error: () => this.notifyService.error('Không gửi được báo cáo. Vui lòng thử lại.')
     });
   }

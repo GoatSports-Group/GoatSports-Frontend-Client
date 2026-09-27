@@ -1,6 +1,12 @@
 export type PostVisibility = 'PUBLIC' | 'FRIENDS' | 'PRIVATE';
 export type PostStatus = 'DRAFT' | 'PUBLISHED' | 'HIDDEN' | 'REMOVED';
 export type AttachmentType = 'IMAGE' | 'VIDEO' | 'FILE';
+
+/** Nguoi duoc nhac ten; {@code name} la dung chuoi da chen vao noi dung ("@name"), giu link khi ho doi ten. */
+export interface Mention {
+  userId: string;
+  name: string;
+}
 /** Cung bo gia tri voi SportType cua club-service. */
 export type PostSport = 'FOOTBALL' | 'BADMINTON' | 'TENNIS' | 'PICKLEBALL' | 'BASKETBALL' | 'VOLLEYBALL';
 export type ReportTargetType = 'POST' | 'COMMENT' | 'MESSAGE' | 'USER' | 'VENUE' | 'REVIEW';
@@ -17,8 +23,7 @@ export interface SaveSocialPostRequest {
   content: string | null;
   visibility: PostVisibility;
   sport: PostSport | null;
-  /** Nguoi duoc nhac ten (@); ten hien thi nam trong noi dung dang "@Ho Ten". */
-  mentions: string[];
+  mentions: Mention[];
   attachments: Array<Pick<SocialPostAttachment, 'storageKey' | 'type' | 'displayOrder'>>;
 }
 
@@ -40,7 +45,7 @@ export interface SocialPost {
   attachments: SocialPostAttachment[];
   /** Hashtag server trich tu noi dung (chu thuong, khong dau #). */
   tags: string[];
-  mentions: string[];
+  mentions: Mention[];
   likeCount: number;
   commentCount: number;
   shareCount: number;
@@ -54,6 +59,7 @@ export interface SocialComment {
   authorId: string;
   parentCommentId: string | null;
   content: string;
+  mentions?: Mention[];
   status: PostStatus;
   createdAt: string;
   updatedAt: string;
@@ -62,6 +68,7 @@ export interface SocialComment {
 export interface SaveSocialCommentRequest {
   parentCommentId: string | null;
   content: string;
+  mentions: Mention[];
 }
 
 export interface FeedFilter {

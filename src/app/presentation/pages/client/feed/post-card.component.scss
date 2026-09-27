@@ -585,6 +585,7 @@ button.media__cell:hover img {
 }
 
 .comment__edit {
+  position: relative;
   display: grid;
   width: 100%;
   gap: 4px;
@@ -617,6 +618,7 @@ button.media__cell:hover img {
 }
 
 .comment-box {
+  position: relative;
   display: grid;
   grid-template-columns: 32px minmax(0, 1fr) 44px;
   align-items: end;

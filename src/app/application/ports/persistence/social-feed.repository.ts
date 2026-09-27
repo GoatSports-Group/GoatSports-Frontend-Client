@@ -12,6 +12,7 @@ import {
   AuthorStats,
   FeedFilter,
   FollowSuggestion,
+  Mention,
   TrendingTag,
   UserFollowStatus
 } from '@application/dto/social-feed/social-feed.dto';
@@ -32,7 +33,7 @@ export interface SocialFeedRepository {
   deletePost(postId: string): Observable<void>;
   getComments(postId: string, page: number, size: number): Observable<SpringPageResponse<SocialComment>>;
   createComment(postId: string, request: SaveSocialCommentRequest): Observable<SocialComment>;
-  updateComment(commentId: string, content: string): Observable<SocialComment>;
+  updateComment(commentId: string, content: string, mentions: Mention[]): Observable<SocialComment>;
   deleteComment(commentId: string): Observable<void>;
   likePost(postId: string): Observable<SocialPost>;
   unlikePost(postId: string): Observable<SocialPost>;

@@ -12,6 +12,7 @@ import { AuthService } from '@presentation/services/auth.service';
 import { NotifyService } from '@shared/components/notify/notify.service';
 import { CommunityStore } from './community.store';
 import { LightboxItem } from './media-lightbox.component';
+import { MentionOption, MentionPicker } from './mention-picker';
 import {
   REPORT_REASONS, VISIBILITY_META, VISIBILITY_OPTIONS, compactCount, errorMessage, relativeTime, richText, sportLabel
 } from './community-view';
@@ -104,7 +105,11 @@ export class PostCardComponent implements OnInit {
 
   readonly lightbox = signal<{ items: LightboxItem[]; start: number } | null>(null);
 
-  /** Doc lai khi ten tac gia duoc nap xong, de "@Ho Ten" thanh link ngay khi co ten. */
+  /** Goi y @ cho o binh luan moi va cho o sua binh luan. */
+  readonly commentMentions = this.picker('comment');
+  readonly editMentions = this.picker('edit');
+
+  /** Noi dung da tach thanh chu / #tag / @nhac ten (ten lay tu loi nhac da luu). */
   readonly contentSegments = computed(() => this.segments(this.postState()!));
   readonly originalSegments = computed(() => {
     const original = this.postState()!.sharedPost;
@@ -299,13 +304,15 @@ export class PostCardComponent implements OnInit {
     // Tra loi mot tra loi thi gan vao binh luan goc, giu luong mot cap.
     const parentId = parent ? (parent.parentCommentId ?? parent.commentId) : null;
     this.sendingComment.set(true);
-    this.repository.createComment(this.post.postId, { parentCommentId: parentId, content }).pipe(
+    const mentions = this.commentMentions.mentionsFor(content);
+    this.repository.createComment(this.post.postId, { parentCommentId: parentId, content, mentions }).pipe(
       takeUntilDestroyed(this.destroyRef),
       finalize(() => this.sendingComment.set(false))
     ).subscribe({
       next: comment => {
         this.comments.update(current => [...current, comment]);
         this.commentDraft.set('');
+        this.commentMentions.reset();
         this.replyTo.set(null);
         this.replace({ ...this.post, commentCount: this.post.commentCount + 1 });
         this.store.hydrateAuthors([comment.authorId]);
@@ -314,16 +321,27 @@ export class PostCardComponent implements OnInit {
     });
   }
 
-  onCommentKeydown(event: KeyboardEvent): void {
+  onCommentKeydown(event: KeyboardEvent, area: HTMLTextAreaElement): void {
+    if (this.commentMentions.keydown(event, area, value => this.commentDraft.set(value))) return;
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       this.submitComment();
     }
   }
 
+  onEditKeydown(event: KeyboardEvent, area: HTMLTextAreaElement): void {
+    this.editMentions.keydown(event, area, value => this.editDraft.set(value));
+  }
+
+  pickCommentMention(person: MentionOption, area: HTMLTextAreaElement, editing = false): void {
+    const picker = editing ? this.editMentions : this.commentMentions;
+    picker.pick(person, area, value => (editing ? this.editDraft : this.commentDraft).set(value));
+  }
+
   startEditComment(comment: SocialComment): void {
     this.editingCommentId.set(comment.commentId);
     this.editDraft.set(comment.content);
+    this.editMentions.reset(comment.mentions ?? []);
   }
 
   saveComment(comment: SocialComment): void {
@@ -332,7 +350,7 @@ export class PostCardComponent implements OnInit {
       this.editingCommentId.set(null);
       return;
     }
-    this.repository.updateComment(comment.commentId, content).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    this.repository.updateComment(comment.commentId, content, this.editMentions.mentionsFor(content)).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: updated => {
         this.comments.update(items => items.map(item => item.commentId === updated.commentId ? updated : item));
         this.editingCommentId.set(null);
@@ -365,8 +383,17 @@ export class PostCardComponent implements OnInit {
     });
   }
 
+  /** Ten da luu cung loi nhac, nen link van dung khi nguoi duoc nhac doi ten. */
   private segments(post: SocialPost) {
-    return richText(post.content, (post.mentions ?? []).map(userId => ({ userId, name: this.store.authorName(userId) })));
+    return richText(post.content, post.mentions ?? []);
+  }
+
+  commentSegments(comment: SocialComment) {
+    return richText(comment.content, comment.mentions ?? []);
+  }
+
+  private picker(kind: string): MentionPicker {
+    return new MentionPicker(this.store, () => this.me, `${kind}-mentions-${Math.random().toString(36).slice(2, 8)}`);
   }
 
   isEdited(item: { createdAt: string; updatedAt: string }): boolean {

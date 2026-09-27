@@ -26,25 +26,14 @@
     (click)="trackMention()"
     (keyup.arrowleft)="trackMention()"
     (keyup.arrowright)="trackMention()"
-    (blur)="mentionQuery.set(null)"
+    (blur)="mentions.query.set(null)"
     (keydown)="onKeydown($event)"
     role="combobox"
     aria-autocomplete="list"
-    [attr.aria-expanded]="candidates().length > 0"
-    [attr.aria-controls]="'mentions-' + (post?.postId ?? 'new')"
-    [attr.aria-activedescendant]="candidates().length ? 'mention-' + (post?.postId ?? 'new') + '-' + mentionIndex() : null"></textarea>
-  @if (candidates().length) {
-    <ul class="mention-menu" role="listbox" [id]="'mentions-' + (post?.postId ?? 'new')" aria-label="Nhắc tên">
-      @for (person of candidates(); track person.userId; let index = $index) {
-        <li role="option" [id]="'mention-' + (post?.postId ?? 'new') + '-' + index" [attr.aria-selected]="index === mentionIndex()"
-          [class.is-active]="index === mentionIndex()" (mousedown)="$event.preventDefault(); pickMention(person)"
-          (mouseenter)="mentionIndex.set(index)">
-          <img class="avatar" [src]="person.avatar" alt="" width="28" height="28" />
-          <span>{{ person.name }}</span>
-        </li>
-      }
-    </ul>
-  }
+    [attr.aria-expanded]="mentions.options().length > 0"
+    [attr.aria-controls]="mentions.listId"
+    [attr.aria-activedescendant]="mentions.options().length ? mentions.optionId(mentions.index()) : null"></textarea>
+  <app-mention-menu [picker]="mentions" (picked)="pickMention($event)"></app-mention-menu>
   </div>
   @if (!isShare) {
     <p class="composer__hint">Gõ <b>&#64;</b> để nhắc bạn bè, <b>#</b> để gắn chủ đề.</p>

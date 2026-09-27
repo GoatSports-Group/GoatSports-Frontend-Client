@@ -29,6 +29,66 @@ function baseResponse(data: unknown) {
   return { data, statusCode: 200, message: null, error: null };
 }
 
+const DIRECT_ROOM = '88888888-8888-4888-8888-888888888888';
+const now = Date.now();
+const minutesAgo = (minutes: number) => new Date(now - minutes * 60_000).toISOString().slice(0, 19);
+
+const rooms = [
+  {
+    conversationId: DIRECT_ROOM, type: 'DIRECT', name: postAuthor.fullName, unreadCount: 2,
+    lastMessageContent: 'Tối nay 19h sân Thủ Đức nhé?', lastMessageAt: minutesAgo(3), lastSenderId: postAuthor.userId,
+    members: [
+      { userId: currentUser.userId, userName: currentUser.fullName },
+      { userId: postAuthor.userId, userName: postAuthor.fullName }
+    ],
+    createdAt: minutesAgo(3000), updatedAt: minutesAgo(3)
+  },
+  {
+    conversationId: '99999999-9999-4999-8999-999999999999', type: 'CLUB', name: 'GOAT Badminton Club', unreadCount: 0,
+    lastMessageContent: 'Lịch tập tuần này đã cập nhật', lastMessageAt: minutesAgo(90), lastSenderId: currentUser.userId,
+    members: [{ userId: currentUser.userId, userName: currentUser.fullName }, { userId: postAuthor.userId, userName: postAuthor.fullName }],
+    createdAt: minutesAgo(9000), updatedAt: minutesAgo(90)
+  },
+  {
+    conversationId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', type: 'GROUP', name: 'Kèo cuối tuần', unreadCount: 0,
+    lastMessageContent: 'Chốt 6 người', lastMessageAt: minutesAgo(1500), lastSenderId: postAuthor.userId,
+    members: [{ userId: currentUser.userId, userName: currentUser.fullName }, { userId: postAuthor.userId, userName: postAuthor.fullName }],
+    createdAt: minutesAgo(9000), updatedAt: minutesAgo(1500)
+  }
+];
+
+const messages = [
+  { from: postAuthor, text: 'Chào bạn, cuối tuần rảnh đánh cầu không?', at: 50 },
+  { from: currentUser, text: 'Rảnh nè! Mấy giờ vậy?', at: 45 },
+  { from: postAuthor, text: 'Tối nay 19h sân Thủ Đức nhé?', at: 4 },
+  { from: postAuthor, text: 'Mình đặt sân 2 rồi, bạn chỉ cần mang vợt.', at: 3 }
+].map((item, index) => ({
+  messageId: `m${index}`, conversationId: DIRECT_ROOM, senderId: item.from.userId, senderName: item.from.fullName,
+  content: item.text, type: 'TEXT', status: 'READ', attachments: [], receipts: [], sentAt: minutesAgo(item.at)
+}));
+
+async function handleChat(route: Route, path: string): Promise<void> {
+  if (path.endsWith('/conversations')) {
+    await route.fulfill({ json: baseResponse({ ...emptySpringPage, content: rooms, totalElements: rooms.length, empty: false }) });
+    return;
+  }
+  if (path.endsWith('/messages') && route.request().method() === 'GET') {
+    await route.fulfill({ json: baseResponse({ ...emptySpringPage, content: [...messages].reverse(), totalElements: messages.length, empty: false }) });
+    return;
+  }
+  if (path.endsWith('/messages')) {
+    const body = route.request().postDataJSON() as { content: string; clientMessageId?: string };
+    await route.fulfill({ json: baseResponse({
+      messageId: `m${Date.now()}`, conversationId: DIRECT_ROOM, senderId: currentUser.userId, senderName: currentUser.fullName,
+      clientMessageId: body.clientMessageId, content: body.content, type: 'TEXT', status: 'SENT',
+      attachments: [], receipts: [], sentAt: new Date().toISOString().slice(0, 19)
+    }) });
+    return;
+  }
+  const room = rooms.find(item => path.includes(item.conversationId));
+  await route.fulfill({ json: baseResponse(room ?? null) });
+}
+
 async function handleApi(route: Route): Promise<void> {
   const request = route.request();
   const url = new URL(request.url());
@@ -52,6 +112,10 @@ async function handleApi(route: Route): Promise<void> {
   }
   if (path.endsWith('/venue-service/api/v1/venues')) {
     await route.fulfill({ json: baseResponse({ items: [], total: 0, page: 0, pageSize: 12, totalPages: 0 }) });
+    return;
+  }
+  if (path.includes('/social-service/api/v1/social/conversations')) {
+    await handleChat(route, path);
     return;
   }
   if (path.endsWith('/social-service/api/v1/social/posts/tags/trending')) {
@@ -104,7 +168,7 @@ async function handleApi(route: Route): Promise<void> {
         authorId: postAuthor.userId,
         content: 'Cuối tuần này có ai muốn giao lưu cầu lông không? @Nguyễn Minh Anh vào đội mình nhé #caulong #keocuoituan',
         tags: ['caulong', 'keocuoituan'],
-        mentions: [currentUser.userId],
+        mentions: [{ userId: currentUser.userId, name: 'Nguyễn Minh Anh' }],
         visibility: 'PUBLIC',
         status: 'PUBLISHED',
         sport: 'BADMINTON',

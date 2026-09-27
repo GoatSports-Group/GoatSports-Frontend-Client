@@ -12,6 +12,7 @@ import {
   AuthorStats,
   FeedFilter,
   FollowSuggestion,
+  Mention,
   TrendingTag,
   PostVisibility,
   UserFollowStatus
@@ -97,8 +98,8 @@ export class SocialFeedApi {
     return this.http.post<BaseResponse<SocialComment>>(`${this.postUrl}/${postId}/comments`, request);
   }
 
-  updateComment(commentId: string, content: string): Observable<BaseResponse<SocialComment>> {
-    return this.http.put<BaseResponse<SocialComment>>(`${this.postUrl}/comments/${commentId}`, { content });
+  updateComment(commentId: string, content: string, mentions: Mention[]): Observable<BaseResponse<SocialComment>> {
+    return this.http.put<BaseResponse<SocialComment>>(`${this.postUrl}/comments/${commentId}`, { content, mentions });
   }
 
   deleteComment(commentId: string): Observable<void> {
