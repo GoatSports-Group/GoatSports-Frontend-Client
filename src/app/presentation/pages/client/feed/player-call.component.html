@@ -1,0 +1,36 @@
+@if (call(); as c) {
+<section class="call" [class.call--compact]="compact" [class.call--filled]="c.filled" [attr.aria-label]="'Kèo ' + title()">
+  @if (compact) {
+    <a class="call__who" [routerLink]="['/feed/posts', post.postId]">
+      <img [src]="store.avatar(post.authorId)" alt="" width="36" height="36" />
+      <span>
+        <strong>{{ c.clubName ? 'CLB ' + c.clubName : store.authorName(post.authorId) }}</strong>
+        <small>{{ relativeTime(post.publishedAt || post.createdAt) }}</small>
+      </span>
+    </a>
+  }
+  <header class="call__head">
+    <span class="call__icon" aria-hidden="true"><lucide-icon name="megaphone" class="w-4 h-4"></lucide-icon></span>
+    <strong>{{ title() }}</strong>
+    <span class="call__status" [class.is-filled]="c.filled">{{ c.filled ? 'Đã đủ người' : 'Còn thiếu ' + c.slots + ' người' }}</span>
+  </header>
+  <ul class="call__facts">
+    <li><lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon>{{ when() }}</li>
+    <li><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>{{ c.location }}</li>
+    @if (c.skillNote) { <li><lucide-icon name="gauge" class="w-4 h-4"></lucide-icon>{{ c.skillNote }}</li> }
+    @if (c.clubName && !compact) { <li><lucide-icon name="shield" class="w-4 h-4"></lucide-icon>Kèo của CLB {{ c.clubName }}</li> }
+  </ul>
+  <div class="call__actions">
+    @if (isOwn()) {
+      <button type="button" class="btn btn--secondary" [disabled]="busy()" (click)="toggleFilled()">
+        <lucide-icon [name]="c.filled ? 'rotate-ccw' : 'check'" class="w-4 h-4"></lucide-icon>{{ c.filled ? 'Mở lại kèo' : 'Đã đủ người' }}
+      </button>
+    } @else if (!c.filled) {
+      <button type="button" class="btn btn--primary" [disabled]="busy()" (click)="message()"
+        [attr.aria-label]="'Nhắn tin cho ' + store.authorName(post.authorId)">
+        <lucide-icon name="message-circle" class="w-4 h-4"></lucide-icon>Nhắn tin
+      </button>
+    }
+  </div>
+</section>
+}

@@ -17,7 +17,7 @@ import {
 import { isPlatformBrowser } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { Observable, Subscription, catchError, finalize, forkJoin, map, of, timer } from 'rxjs';
+import { Observable, Subscription, catchError, finalize, forkJoin, map, of, switchMap, timer } from 'rxjs';
 import gsap from 'gsap';
 import { AiRepositoryPort } from '@application/ports/ai.repository.port';
 import {
@@ -41,6 +41,11 @@ import {
   PLAYER_SPORT_PROFILE_REPOSITORY_TOKEN,
   PlayerSportProfileRepository
 } from '@application/ports/persistence/player-sport-profile.repository';
+import { ClubRepositoryPort } from '@application/ports/club.repository.port';
+import { FRIEND_REPOSITORY_TOKEN } from '@application/ports/persistence/friend.repository';
+import { MyClubMembership } from '@application/dto/club/club.dto';
+import { PlayerDirectoryService } from '@presentation/services/player-directory.service';
+import { PLAY_FORMATS } from '@domain/models/matchmaking.model';
 import { AuthService } from '@presentation/services/auth.service';
 import { NotificationService } from '@presentation/services/notification.service';
 import { NotificationType } from '@application/dto/notification/notification.dto';
@@ -48,6 +53,9 @@ import { NotificationType } from '@application/dto/notification/notification.dto
 type MatchmakingPlayStyle = 'BALANCED' | 'FAIR_PLAY' | 'COMPETITIVE';
 type Coordinates = { latitude: number; longitude: number; source: 'profile' | 'browser' };
 type ScheduleConflict = { session: MatchmakingSession; bufferedStart: Date; bufferedEnd: Date };
+
+type PartyMode = 'SOLO' | 'PAIR' | 'CLUB';
+type PartnerOption = { userId: string; fullName: string };
 
 const DAY_INDEX: Record<PlayerDayOfWeek, number> = {
   [PlayerDayOfWeek.SUNDAY]: 0,
@@ -72,6 +80,9 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     PLAYER_SPORT_PROFILE_REPOSITORY_TOKEN
   );
   private readonly authService = inject(AuthService);
+  private readonly clubRepository = inject(ClubRepositoryPort);
+  private readonly friendRepository = inject(FRIEND_REPOSITORY_TOKEN);
+  private readonly directory = inject(PlayerDirectoryService);
   private readonly notificationService = inject(NotificationService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -85,6 +96,23 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   private historyObserver: IntersectionObserver | null = null;
 
   readonly selectedSport = signal<MatchmakingSport>('BADMINTON');
+  readonly playFormat = signal('BADMINTON_SINGLES');
+  readonly partnerId = signal<string | null>(null);
+  readonly clubId = signal<string | null>(null);
+  readonly friends = signal<PartnerOption[] | null>(null);
+  readonly friendsLoading = signal(false);
+  readonly managedClubMemberships = signal<MyClubMembership[] | null>(null);
+  readonly clubsLoading = signal(false);
+  readonly formats = computed(() => PLAY_FORMATS[this.selectedSport()]);
+  readonly partyMode = computed<PartyMode>(() => {
+    const size = this.formats().find(item => item.value === this.playFormat())?.size ?? 1;
+    return size === 1 ? 'SOLO' : size === 2 ? 'PAIR' : 'CLUB';
+  });
+  /** CLB cùng môn mà mình là chủ hoặc quản lý: chỉ họ mới được tìm đối thủ cho CLB. */
+  readonly managedClubs = computed(() => (this.managedClubMemberships() ?? []).filter(item =>
+    item.status === 'ACTIVE' && (item.role === 'OWNER' || item.role === 'ADMIN')
+    && item.club.sportType === this.selectedSport() && item.club.active !== false));
+  readonly isTeamSport = computed(() => this.formats().every(item => item.size > 2));
   readonly selectedSkill = signal<MatchmakingSkill>('INTERMEDIATE');
   readonly selectedPlayStyle = signal<MatchmakingPlayStyle>('BALANCED');
   readonly selectionMode = signal<MatchSelectionMode>('AI');
@@ -165,13 +193,11 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   readonly historyReturnLabel = computed(() =>
     this.session() && !this.hideRestoredSession() ? 'Trở lại trận hiện tại' : 'Đóng chi tiết'
   );
-  readonly currentParticipant = computed(() => {
-    const currentUserId = this.authService.currentUser?.userId;
-    return this.displayedSession()?.participants.find(item => item.participantId === currentUserId) ?? null;
-  });
+  /** Bên của mình: chính mình, cặp có mình, hoặc CLB mình là chủ/quản lý. */
+  readonly currentParticipant = computed(() => this.mySide(this.displayedSession()));
   readonly opponent = computed(() => {
-    const currentUserId = this.authService.currentUser?.userId;
-    return this.displayedSession()?.participants.find(item => item.participantId !== currentUserId) ?? null;
+    const mine = this.currentParticipant();
+    return this.displayedSession()?.participants.find(item => item !== mine) ?? null;
   });
   readonly currentParticipantInitials = computed(() => this.initials(this.currentParticipant()?.name));
   readonly opponentInitials = computed(() => this.initials(this.opponent()?.name));
@@ -452,6 +478,68 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   selectSport(sport: MatchmakingSport): void {
     this.selectedSport.set(sport);
     this.applyProfileForSport(sport);
+    this.selectFormat(PLAY_FORMATS[sport][0].value);
+  }
+
+  selectFormat(format: string): void {
+    this.playFormat.set(format);
+    this.errorMessage.set('');
+    if (this.partyMode() === 'PAIR') this.loadFriends();
+    if (this.partyMode() === 'CLUB') this.loadManagedClubs();
+    const clubs = this.managedClubs();
+    if (!clubs.some(item => item.club.clubId === this.clubId())) this.clubId.set(clubs[0]?.club.clubId ?? null);
+  }
+
+  private loadFriends(): void {
+    if (this.friends() || this.friendsLoading()) return;
+    const me = this.authService.currentUser?.userId ?? '';
+    this.friendsLoading.set(true);
+    this.friendRepository.getFriends().pipe(
+      map(response => [...new Set((response.data ?? [])
+        .filter(item => item.status === 'ACCEPTED')
+        .map(item => item.requesterId === me ? item.addresseeId : item.requesterId)
+        .filter(id => !!id && id !== me))]),
+      switchMap(ids => ids.length ? forkJoin({ ids: of(ids), users: this.directory.resolve(ids) })
+        : of({ ids, users: new Map() })),
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.friendsLoading.set(false))
+    ).subscribe({
+      next: ({ ids, users }) => this.friends.set(ids
+        .map(id => ({ userId: id, fullName: users.get(id)?.fullName || users.get(id)?.username || 'Người chơi' }))
+        .sort((a, b) => a.fullName.localeCompare(b.fullName, 'vi'))),
+      error: () => this.friends.set([])
+    });
+  }
+
+  private loadManagedClubs(): void {
+    if (this.managedClubMemberships() || this.clubsLoading()) return;
+    this.clubsLoading.set(true);
+    this.clubRepository.getMyClubs().pipe(
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.clubsLoading.set(false))
+    ).subscribe({
+      next: memberships => {
+        this.managedClubMemberships.set(Array.isArray(memberships) ? memberships : []);
+        if (!this.clubId()) this.clubId.set(this.managedClubs()[0]?.club.clubId ?? null);
+      },
+      error: () => this.managedClubMemberships.set([])
+    });
+  }
+
+  private sideUserIds(side: MatchmakingPlayer): string[] {
+    if (side.participantType === 'CLUB') return side.managerIds ?? [];
+    return side.members?.length ? side.members.map(item => item.userId) : [side.participantId];
+  }
+
+  private mySide(session: MatchmakingSession | null | undefined): MatchmakingPlayer | null {
+    const userId = this.authService.currentUser?.userId;
+    if (!session || !userId) return null;
+    return session.participants.find(item => this.sideUserIds(item).includes(userId)) ?? null;
+  }
+
+  private onMySide(userId: string | undefined): boolean {
+    const mine = this.currentParticipant();
+    return Boolean(userId && mine && this.sideUserIds(mine).includes(userId));
   }
 
   selectSkill(skill: MatchmakingSkill, suggestedElo: number): void {
@@ -650,20 +738,22 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     });
   }
 
+  /** Bạn cặp hoặc quản lý khác đã nhập thì cũng tính là bên mình đã nhập. */
   hasSubmittedResult(): boolean {
-    const userId = this.authService.currentUser?.userId;
-    return Boolean(userId && this.displayedSession()?.resultClaims?.some(item => item.submittedBy === userId));
+    return Boolean(this.myResultClaim());
   }
 
   hasSubmittedFeedback(): boolean {
-    const userId = this.authService.currentUser?.userId;
-    return Boolean(userId && this.displayedSession()?.feedback?.some(item => item.reviewerId === userId));
+    return Boolean(this.displayedSession()?.feedback?.some(item => this.onMySide(item.reviewerId)));
   }
 
-  eloAfter(participantId?: string): number | null {
-    if (!participantId) return null;
-    return this.displayedSession()?.result?.eloUpdates?.[participantId] ?? null;
+  /** ELO mới: của riêng mình khi chơi đơn/đôi, của CLB khi đấu CLB. */
+  myEloAfter(): number | null {
+    const mine = this.currentParticipant();
+    const key = mine?.participantType === 'CLUB' ? mine.participantId : this.authService.currentUser?.userId;
+    return key ? this.displayedSession()?.result?.eloUpdates?.[key] ?? null : null;
   }
+
 
   findAnotherMatch(): void {
     const previous = this.session();
@@ -677,10 +767,8 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   }
 
   historyOpponent(match: MatchmakingSession): MatchmakingPlayer | null {
-    const currentUserId = this.authService.currentUser?.userId;
-    return match.participants.find(item => item.participantId !== currentUserId)
-      ?? match.participants[0]
-      ?? null;
+    const mine = this.mySide(match);
+    return match.participants.find(item => item !== mine) ?? match.participants[0] ?? null;
   }
 
   historyOpponentInitials(match: MatchmakingSession): string {
@@ -815,7 +903,10 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
       playStyle: this.selectedPlayStyle(),
       matchCount: profile?.matchCount ?? 0,
       winRate: profile?.winRate ?? 0,
-      selectionMode: this.selectionMode()
+      selectionMode: this.selectionMode(),
+      playFormat: this.playFormat(),
+      partnerId: this.partyMode() === 'PAIR' ? this.partnerId() ?? undefined : undefined,
+      clubId: this.partyMode() === 'CLUB' ? this.clubId() ?? undefined : undefined
     };
     this.enqueue(payload);
   }
@@ -889,20 +980,16 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   }
 
   myResultClaim(): MatchResultClaim | null {
-    const userId = this.authService.currentUser?.userId;
-    return this.displayedSession()?.resultClaims?.find(item => item.submittedBy === userId) ?? null;
+    return this.displayedSession()?.resultClaims?.find(item => this.onMySide(item.submittedBy)) ?? null;
   }
 
   opponentResultClaim(): MatchResultClaim | null {
-    const userId = this.authService.currentUser?.userId;
-    return this.displayedSession()?.resultClaims?.find(item => item.submittedBy && item.submittedBy !== userId) ?? null;
+    return this.displayedSession()?.resultClaims?.find(item => item.submittedBy && !this.onMySide(item.submittedBy)) ?? null;
   }
 
   claimScoresFromMyPerspective(claim: MatchResultClaim): { my: number; opponent: number } {
     const session = this.displayedSession();
-    const firstParticipantId = session?.participants[0]?.participantId;
-    const userId = this.authService.currentUser?.userId;
-    return firstParticipantId === userId
+    return session?.participants[0] && session.participants[0] === this.mySide(session)
       ? { my: claim.participantOneScore, opponent: claim.participantTwoScore }
       : { my: claim.participantTwoScore, opponent: claim.participantOneScore };
   }
@@ -1109,6 +1196,14 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   }
 
   private validPreferences(): boolean {
+    if (this.partyMode() === 'PAIR' && !this.partnerId()) {
+      this.errorMessage.set('Đánh đôi cần chọn bạn cặp. Chưa có bạn cặp thì đăng tìm người chơi ở Cộng đồng.');
+      return false;
+    }
+    if (this.partyMode() === 'CLUB' && !this.clubId()) {
+      this.errorMessage.set('Môn đồng đội ghép CLB đấu CLB: hãy chọn CLB mà bạn là chủ hoặc quản lý.');
+      return false;
+    }
     if (!this.playDate() || this.playDate() < this.today) {
       this.errorMessage.set('Ngày chơi không được nằm trong quá khứ.');
       return false;

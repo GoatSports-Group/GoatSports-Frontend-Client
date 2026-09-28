@@ -86,6 +86,9 @@
       <app-post-composer [post]="post" (saved)="onEdited($event)" (cancelled)="editing.set(false)"></app-post-composer>
     </div>
   } @else {
+    @if (post.playerCall) {
+      <div class="post__body"><app-player-call [post]="post" (changed)="changed.emit($event)"></app-player-call></div>
+    }
     @if (post.content) {
       <div class="post__body">
         <p class="post__text" [class.is-clamped]="isLong && !expanded()"><ng-container [ngTemplateOutlet]="richContent" [ngTemplateOutletContext]="{ $implicit: contentSegments() }"></ng-container></p>

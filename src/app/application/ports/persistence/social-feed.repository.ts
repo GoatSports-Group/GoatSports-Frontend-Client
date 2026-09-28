@@ -8,6 +8,7 @@ import {
   SaveSocialPostRequest,
   SocialComment,
   SocialPost,
+  PostSport,
   PostVisibility,
   AuthorStats,
   FeedFilter,
@@ -42,6 +43,9 @@ export interface SocialFeedRepository {
   /** Tra ve bai chia se moi (bai goc nam trong sharedPost). */
   sharePost(postId: string, caption: string, visibility: PostVisibility): Observable<SocialPost>;
   reportContent(request: CreateContentReportRequest): Observable<ContentReport>;
+  /** Keo "Tim nguoi choi" con mo, moi nhat truoc: ca nhan (Trang chu) hoac CLB (trang Cau lac bo). */
+  getOpenPlayerCalls(club: boolean, limit: number, sport?: PostSport | null): Observable<SocialPost[]>;
+  setPlayerCallFilled(postId: string, filled: boolean): Observable<SocialPost>;
 }
 
 export const SOCIAL_FEED_REPOSITORY_TOKEN = new InjectionToken<SocialFeedRepository>('SocialFeedRepository');

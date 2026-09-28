@@ -4,6 +4,9 @@ import { Router } from '@angular/router';
 import { filter, forkJoin } from 'rxjs';
 import { Club, ClubInvitation, CreateClubPayload, MyClubMembership, SportType } from '@application/dto/club/club.dto';
 import { ClubRepositoryPort } from '@application/ports/club.repository.port';
+import { SOCIAL_FEED_REPOSITORY_TOKEN } from '@application/ports/persistence/social-feed.repository';
+import { PostSport, SocialPost } from '@application/dto/social-feed/social-feed.dto';
+import { CommunityStore } from '@presentation/pages/client/feed/community.store';
 import { AuthService } from '@presentation/services/auth.service';
 import { NotificationService } from '@presentation/services/notification.service';
 import { NotifyService } from '@shared/components/notify/notify.service';
@@ -40,6 +43,11 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
   private readonly destroyRef = inject(DestroyRef);
   private readonly locationData = inject(ClubLocationDataService);
   private readonly elementRef = inject(ElementRef<HTMLElement>);
+  private readonly socialFeed = inject(SOCIAL_FEED_REPOSITORY_TOKEN);
+  private readonly communityStore = inject(CommunityStore);
+  /** Keo "Tim nguoi choi" cua cac CLB (chu/quan ly dang); null = dang tai. */
+  readonly clubCalls = signal<SocialPost[] | null>(null);
+  readonly clubCallsError = signal(false);
   private animationContext?: ReturnType<typeof gsap.context>;
 
   readonly defaultClubLogo = DEFAULT_CLUB_LOGO;
@@ -150,6 +158,8 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
       sport === 'ALL' ? undefined : sport,
       undefined,
       city === 'ALL' ? undefined : city);
+
+    if (this.signedIn()) this.loadClubCalls();
 
     // Khách chưa đăng nhập vẫn xem được danh sách CLB; gọi /me lúc này chỉ tổ 401.
     if (!this.signedIn()) {
@@ -401,6 +411,23 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
         this.notify.error(error?.error?.message ?? 'Không gửi được yêu cầu tham gia.');
       }
     });
+  }
+
+  loadClubCalls(): void {
+    const sport = this.selectedSport();
+    this.clubCalls.set(null);
+    this.clubCallsError.set(false);
+    this.socialFeed.getOpenPlayerCalls(true, 6, sport === 'ALL' ? null : sport as PostSport)
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        next: posts => {
+          this.communityStore.hydrate(posts);
+          this.clubCalls.set(posts);
+        },
+        error: () => {
+          this.clubCallsError.set(true);
+          this.clubCalls.set([]);
+        }
+      });
   }
 
   comingSoon(): void {

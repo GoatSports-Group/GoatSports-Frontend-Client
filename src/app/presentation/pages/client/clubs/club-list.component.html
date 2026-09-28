@@ -310,7 +310,32 @@
           <header class="rail-header">
             <h2>Trận đấu mở</h2>
           </header>
-          <p class="rail-empty">Chức năng đang phát triển.</p>
+      @if (!signedIn()) {
+      <div class="open-calls__state">
+        <lucide-icon name="log-in" class="w-6 h-6"></lucide-icon>
+        <p>Đăng nhập để xem kèo của các CLB đang tìm người và nhắn tin cho người đăng.</p>
+      </div>
+      } @else if (clubCalls() === null) {
+      <div class="open-calls__state" aria-busy="true"><span class="open-calls__spinner" aria-hidden="true"></span>Đang tải kèo…</div>
+      } @else if (clubCallsError()) {
+      <div class="open-calls__state">
+        <p>Không tải được kèo.</p>
+        <button type="button" class="open-calls__retry" (click)="loadClubCalls()">Thử lại</button>
+      </div>
+      } @else if (!clubCalls()!.length) {
+      <div class="open-calls__state">
+        <lucide-icon name="megaphone" class="w-6 h-6"></lucide-icon>
+        <p>Chưa có CLB nào đăng kèo tìm người. Chủ CLB hoặc quản lý có thể đăng ở Cộng đồng.</p>
+        <a class="open-calls__cta" routerLink="/feed" [queryParams]="{ tab: 'calls', compose: 'find-players' }">Đăng kèo tìm người</a>
+      </div>
+      } @else {
+      <ul class="open-calls" aria-label="Kèo CLB đang tìm người">
+        @for (post of clubCalls()!; track post.postId) {
+        <li><app-player-call [post]="post" [compact]="true"></app-player-call></li>
+        }
+      </ul>
+      <a class="open-calls__more" routerLink="/feed" [queryParams]="{ tab: 'calls' }">Xem tất cả ở Cộng đồng</a>
+      }
         </section>
       </div>
     </aside>

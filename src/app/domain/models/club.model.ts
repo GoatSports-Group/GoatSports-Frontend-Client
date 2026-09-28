@@ -31,6 +31,8 @@ export interface ClubModel {
   /** Number of tournaments the club has joined; older API responses may omit it. */
   tournamentCount?: number;
   winRate: number;
+  /** ELO của CLB từ các trận giao hữu CLB đấu CLB do AI ghép. */
+  eloRating?: number;
   memberCount: number;
   createdAt?: string;
   updatedAt?: string;
@@ -107,13 +109,16 @@ export interface ClubPhotoModel {
 
 export interface ClubRecentMatchModel {
   matchId: string;
-  tournamentId: string;
+  /** Trống với trận giao hữu CLB đấu CLB do AI ghép. */
+  tournamentId?: string;
   tournamentName: string;
   opponentName: string;
   playedAt: string;
   clubScore: number;
   opponentScore: number;
   result: 'WIN' | 'DRAW' | 'LOSS';
+  friendly?: boolean;
+  eloChange?: number;
 }
 
 /** Một giải câu lạc bộ đã tham gia (đội CLB đã được xác nhận) và thành tích của đội CLB ở giải đó. */

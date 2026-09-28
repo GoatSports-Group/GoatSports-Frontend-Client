@@ -18,6 +18,7 @@ import { NotifyService } from '@shared/components/notify/notify.service';
 import { DEFAULT_CLUB_LOGO } from '@presentation/pages/client/clubs/club-view.model';
 import { CommunityStore } from './community.store';
 import { FEED_TABS, FeedTab, POST_SPORTS, compactCount, errorMessage, sportLabel } from './community-view';
+import { PlayerCallPrefill } from './post-composer.component';
 
 const PAGE_SIZE = 10;
 
@@ -62,6 +63,8 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
   readonly sport = signal<PostSport | null>(null);
   readonly authorId = signal<string | null>(null);
   readonly tag = signal<string | null>(null);
+  /** Tu trang ghep tran ("Chua co ban cap? Dang tim nguoi choi"): mo o soan o che do keo, dien san mon/hinh thuc. */
+  readonly callPrefill = signal<PlayerCallPrefill | null>(null);
 
   readonly posts = signal<SocialPost[]>([]);
   readonly loading = signal(true);
@@ -119,6 +122,9 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
       this.sport.set(sport && POST_SPORTS.includes(sport) ? sport : null);
       this.authorId.set(params.get('author'));
       this.tag.set(params.get('tag')?.replace(/^#/, '').toLowerCase() || null);
+      if (params.get('compose') === 'find-players') {
+        this.callPrefill.set({ sport: this.sport(), format: params.get('format') });
+      }
       if (!this.isFriendsTab()) this.reload();
       this.loadRails();
       if (this.authorId()) this.loadAuthorStats(this.authorId()!);
@@ -198,6 +204,7 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
     const authorId = this.authorId() ?? (this.tab() === 'mine' ? this.me : null);
     return this.repository.getFeed(page, PAGE_SIZE, {
       followingOnly: !authorId && this.tab() === 'following',
+      playerCallsOnly: !authorId && this.tab() === 'calls',
       sport: this.sport(),
       tag: this.tag(),
       authorId
@@ -337,6 +344,7 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
     if (this.isFriendsTab()) return false;
     if (this.authorId() && this.authorId() !== post.authorId) return false;
     if (this.tag() && !post.tags?.includes(this.tag()!)) return false;
+    if (this.tab() === 'calls' && !post.playerCall) return false;
     return !this.sport() || this.sport() === post.sport;
   }
 

@@ -5,8 +5,11 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize, map, of, switchMap } from 'rxjs';
 import {
-  AttachmentType, PostSport, PostVisibility, SaveSocialPostRequest, SocialPost, SocialPostAttachment
+  AttachmentType, PostSport, PostVisibility, SavePlayerCallRequest, SaveSocialPostRequest, SocialPost, SocialPostAttachment
 } from '@application/dto/social-feed/social-feed.dto';
+import { MyClubMembership } from '@application/dto/club/club.dto';
+import { ClubRepositoryPort } from '@application/ports/club.repository.port';
+import { PLAY_FORMATS } from '@domain/models/matchmaking.model';
 import { SOCIAL_FEED_REPOSITORY_TOKEN } from '@application/ports/persistence/social-feed.repository';
 import { STORAGE_REPOSITORY_TOKEN } from '@application/ports/persistence/storage.repository';
 import { AuthService } from '@presentation/services/auth.service';
@@ -25,6 +28,17 @@ const MAX_ATTACHMENTS = 10;
 const MAX_FILE_BYTES = 20 * 1024 * 1024;
 const MAX_CONTENT = 5000;
 
+/** Mo o soan o che do "Tim nguoi choi" voi mon/hinh thuc dien san (vd tu trang ghep tran). */
+export interface PlayerCallPrefill {
+  sport: PostSport | null;
+  format: string | null;
+}
+
+function localDate(offsetDays = 0): string {
+  const value = new Date(Date.now() + offsetDays * 86_400_000);
+  return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`;
+}
+
 /** Soan bai moi, hoac sua tai cho khi co {@link post}. Bai chia se chi sua loi dan va quyen rieng tu. */
 @Component({
   selector: 'app-post-composer',
@@ -38,6 +52,7 @@ export class PostComposerComponent implements OnInit, OnDestroy {
   private readonly storage = inject(STORAGE_REPOSITORY_TOKEN);
   private readonly notify = inject(NotifyService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly clubRepository = inject(ClubRepositoryPort);
   readonly auth = inject(AuthService);
   readonly store = inject(CommunityStore);
 
@@ -45,6 +60,12 @@ export class PostComposerComponent implements OnInit, OnDestroy {
   @Input() post: SocialPost | null = null;
   /** Mon mac dinh cho bai moi (bo loc dang chon tren bang tin). */
   @Input() defaultSport: PostSport | null = null;
+  @Input() set prefill(value: PlayerCallPrefill | null) {
+    if (!value || this.post) return;
+    this.kind.set('CALL');
+    if (value.sport) this.selectCallSport(value.sport);
+    if (value.format && this.callFormats().some(item => item.value === value.format)) this.callFormat.set(value.format);
+  }
   @Output() readonly saved = new EventEmitter<SocialPost>();
   @Output() readonly cancelled = new EventEmitter<void>();
   @ViewChild('textArea') private textArea?: ElementRef<HTMLTextAreaElement>;
@@ -60,6 +81,28 @@ export class PostComposerComponent implements OnInit, OnDestroy {
   readonly retained = signal<SocialPostAttachment[]>([]);
   readonly publishing = signal(false);
 
+  /** Cong dong la noi tim nguoi choi, nen bai moi mac dinh la keo "Tim nguoi choi". */
+  readonly kind = signal<'CALL' | 'POST'>('CALL');
+  readonly callSport = signal<PostSport | null>(null);
+  readonly callFormat = signal<string | null>(null);
+  readonly callDate = signal(localDate(1));
+  readonly callStart = signal('18:00');
+  readonly callEnd = signal('20:00');
+  readonly callLocation = signal('');
+  readonly callSlots = signal(1);
+  readonly callSkill = signal('');
+  readonly callClubId = signal<string | null>(null);
+  readonly memberships = signal<MyClubMembership[] | null>(null);
+  readonly today = localDate();
+  readonly callFormats = computed(() => this.callSport() ? PLAY_FORMATS[this.callSport()!] : []);
+  /** Chi chu hoac quan ly moi dang keo thay CLB (server kiem tra lai). */
+  readonly callClubs = computed(() => (this.memberships() ?? []).filter(item =>
+    item.status === 'ACTIVE' && (item.role === 'OWNER' || item.role === 'ADMIN')
+    && item.club.sportType === this.callSport() && item.club.active !== false));
+  readonly callValid = computed(() =>
+    !!this.callSport() && this.callDate() >= this.today && !!this.callStart() && this.callEnd() > this.callStart()
+    && this.callLocation().trim().length > 0 && this.callSlots() >= 1 && this.callSlots() <= 30);
+
   readonly maxContent = MAX_CONTENT;
   readonly sportOptions = SPORT_SELECT_OPTIONS;
   readonly visibilityOptions = VISIBILITY_OPTIONS;
@@ -68,8 +111,13 @@ export class PostComposerComponent implements OnInit, OnDestroy {
   readonly canPublish = computed(() =>
     !this.publishing()
     && this.content().length <= MAX_CONTENT
-    && (this.isShare || this.content().trim().length > 0 || this.attachmentCount() > 0)
+    && (this.isCall ? this.callValid()
+      : this.isShare || this.content().trim().length > 0 || this.attachmentCount() > 0)
   );
+
+  get isCall(): boolean {
+    return this.kind() === 'CALL' && !this.isShare;
+  }
 
   get isEdit(): boolean {
     return this.post !== null;
@@ -90,9 +138,60 @@ export class PostComposerComponent implements OnInit, OnDestroy {
       this.sport.set(this.post.sport);
       this.retained.set([...this.post.attachments]);
       this.mentions.reset(this.post.mentions ?? []);
+      const call = this.post.playerCall;
+      this.kind.set(call ? 'CALL' : 'POST');
+      if (call) {
+        this.selectCallSport(call.sport);
+        this.callFormat.set(call.playFormat);
+        this.callDate.set(call.playDate);
+        this.callStart.set(call.startTime.slice(0, 5));
+        this.callEnd.set(call.endTime.slice(0, 5));
+        this.callLocation.set(call.location);
+        this.callSlots.set(call.slots);
+        this.callSkill.set(call.skillNote ?? '');
+        this.callClubId.set(call.clubId);
+      }
     } else {
       this.sport.set(this.defaultSport);
+      if (!this.callSport()) this.selectCallSport(this.defaultSport);
     }
+  }
+
+  setKind(kind: 'CALL' | 'POST'): void {
+    this.kind.set(kind);
+    if (kind === 'CALL') this.loadClubs();
+  }
+
+  selectCallSport(sport: PostSport | null): void {
+    this.callSport.set(sport);
+    const formats = sport ? PLAY_FORMATS[sport] : [];
+    if (!formats.some(item => item.value === this.callFormat())) this.callFormat.set(null);
+    if (!this.callClubs().some(item => item.club.clubId === this.callClubId())) this.callClubId.set(null);
+    this.loadClubs();
+  }
+
+  private loadClubs(): void {
+    if (this.memberships() || !this.auth.currentUser) return;
+    this.memberships.set([]);
+    this.clubRepository.getMyClubs().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: memberships => this.memberships.set(Array.isArray(memberships) ? memberships : []),
+      error: () => this.memberships.set([])
+    });
+  }
+
+  private playerCallRequest(): SavePlayerCallRequest | null {
+    if (!this.isCall) return null;
+    return {
+      sport: this.callSport()!,
+      playFormat: this.callFormat(),
+      playDate: this.callDate(),
+      startTime: this.callStart(),
+      endTime: this.callEnd(),
+      location: this.callLocation().trim(),
+      slots: this.callSlots(),
+      skillNote: this.callSkill().trim() || null,
+      clubId: this.callClubId()
+    };
   }
 
   ngOnDestroy(): void {
@@ -147,12 +246,14 @@ export class PostComposerComponent implements OnInit, OnDestroy {
 
     uploads$.pipe(
       switchMap(uploaded => {
+        const playerCall = this.playerCallRequest();
         const request: SaveSocialPostRequest = {
           content: this.content().trim() || null,
-          visibility: this.visibility(),
-          sport: this.sport(),
+          visibility: playerCall ? 'PUBLIC' : this.visibility(),
+          sport: playerCall ? playerCall.sport : this.sport(),
           mentions: this.mentions.mentionsFor(this.content()),
-          attachments: [...retained, ...uploaded]
+          attachments: [...retained, ...uploaded],
+          playerCall
         };
         return this.post
           ? this.repository.updatePost(this.post.postId, request)
@@ -162,7 +263,8 @@ export class PostComposerComponent implements OnInit, OnDestroy {
       finalize(() => this.publishing.set(false))
     ).subscribe({
       next: saved => {
-        this.notify.success(this.isEdit ? 'Đã cập nhật bài viết.' : 'Đã đăng bài viết.');
+        this.notify.success(this.isEdit ? 'Đã cập nhật bài viết.'
+          : saved.playerCall ? 'Đã đăng kèo tìm người chơi.' : 'Đã đăng bài viết.');
         this.store.hydrate([saved]);
         if (!this.isEdit) this.reset();
         this.saved.emit(saved);
@@ -199,6 +301,9 @@ export class PostComposerComponent implements OnInit, OnDestroy {
     this.mentions.reset();
     this.visibility.set('PUBLIC');
     this.sport.set(this.defaultSport);
+    this.callLocation.set('');
+    this.callSkill.set('');
+    this.callSlots.set(1);
   }
 
   private typeOf(file: File): AttachmentType {

@@ -8,6 +8,41 @@ export type VenueSearchStatus = 'PENDING' | 'READY' | 'NO_AVAILABILITY' | 'SERVI
 export type MatchmakingQueueStatus = 'MATCHED' | 'QUEUED' | 'CANCELLED' | 'EXPIRED' | 'NOT_IN_QUEUE';
 export type MatchSelectionMode = 'AI' | 'MANUAL';
 
+export type PlayFormatOption = { value: string; label: string; helper: string; size: number };
+
+/** Khớp mã với SportParticipationPolicy (club-service) và PLAY_FORMATS (ai-service). */
+export const PLAY_FORMATS: Record<MatchmakingSport, PlayFormatOption[]> = {
+  BADMINTON: [
+    { value: 'BADMINTON_SINGLES', label: 'Đánh đơn', helper: 'Một đấu một', size: 1 },
+    { value: 'BADMINTON_DOUBLES', label: 'Đánh đôi', helper: 'Đi cùng một người bạn', size: 2 }
+  ],
+  TENNIS: [
+    { value: 'TENNIS_SINGLES', label: 'Đánh đơn', helper: 'Một đấu một', size: 1 },
+    { value: 'TENNIS_DOUBLES', label: 'Đánh đôi', helper: 'Đi cùng một người bạn', size: 2 }
+  ],
+  PICKLEBALL: [
+    { value: 'PICKLEBALL_SINGLES', label: 'Đánh đơn', helper: 'Một đấu một', size: 1 },
+    { value: 'PICKLEBALL_DOUBLES', label: 'Đánh đôi', helper: 'Đi cùng một người bạn', size: 2 }
+  ],
+  FOOTBALL: [
+    { value: 'FOOTBALL_5', label: 'Sân 5', helper: '5 người mỗi đội', size: 5 },
+    { value: 'FOOTBALL_7', label: 'Sân 7', helper: '7 người mỗi đội', size: 7 },
+    { value: 'FOOTBALL_11', label: 'Sân 11', helper: '11 người mỗi đội', size: 11 }
+  ],
+  BASKETBALL: [
+    { value: 'BASKETBALL_3X3', label: '3x3', helper: '3 người mỗi đội', size: 3 },
+    { value: 'BASKETBALL_5X5', label: '5x5', helper: '5 người mỗi đội', size: 5 }
+  ],
+  VOLLEYBALL: [
+    { value: 'VOLLEYBALL_6', label: '6 người', helper: '6 người mỗi đội', size: 6 }
+  ]
+};
+
+export function playFormatLabel(format: string | null | undefined): string {
+  if (!format) return '';
+  return Object.values(PLAY_FORMATS).flat().find(item => item.value === format)?.label ?? format;
+}
+
 export interface MatchScoreBreakdown {
   eloScore: number;
   skillScore: number;
@@ -53,6 +88,20 @@ export interface MatchmakingPlayer {
   winRate?: number;
   activeMemberCount?: number;
   preferredFormat?: string;
+  playFormat?: string;
+  /** Người đưa bên này vào hàng chờ (người đặt sân nếu ghép thành kèo). */
+  queuedBy?: string;
+  /** Người chơi của bên này: đánh đơn 1 người, cặp đôi 2 người; CLB để trống. */
+  members?: MatchSideMember[];
+  /** CLB: chủ và quản lý, ai trong số này cũng thay mặt cả CLB. */
+  managerIds?: string[];
+}
+
+export interface MatchSideMember {
+  userId: string;
+  name: string;
+  eloRating: number;
+  matchCount?: number;
 }
 
 export interface MatchAcceptance {
@@ -166,6 +215,9 @@ export interface JoinMatchmakingQueueRequest {
   matchCount: number;
   winRate: number;
   selectionMode: MatchSelectionMode;
+  playFormat?: string;
+  partnerId?: string;
+  clubId?: string;
 }
 
 export interface MatchmakingQueueResponse {

@@ -19,12 +19,36 @@ export interface SocialPostAttachment {
   displayOrder: number | null;
 }
 
+/**
+ * Bai "Tim nguoi choi": keo dang thieu nguoi. Khong co dang ky hay duyet — nguoi quan tam nhan tin
+ * cho nguoi dang roi hai ben tu chot san. clubId/clubName khi chu hoac quan ly CLB dang thay CLB.
+ */
+export interface PlayerCall {
+  sport: PostSport;
+  playFormat: string | null;
+  /** yyyy-MM-dd */
+  playDate: string;
+  /** HH:mm[:ss] */
+  startTime: string;
+  endTime: string;
+  location: string;
+  /** So nguoi con thieu. */
+  slots: number;
+  skillNote: string | null;
+  clubId: string | null;
+  clubName: string | null;
+  filled: boolean;
+}
+
+export type SavePlayerCallRequest = Omit<PlayerCall, 'clubName' | 'filled'>;
+
 export interface SaveSocialPostRequest {
   content: string | null;
   visibility: PostVisibility;
   sport: PostSport | null;
   mentions: Mention[];
   attachments: Array<Pick<SocialPostAttachment, 'storageKey' | 'type' | 'displayOrder'>>;
+  playerCall?: SavePlayerCallRequest | null;
 }
 
 export interface SocialPost {
@@ -39,6 +63,7 @@ export interface SocialPost {
   /** Chi co khi nguoi xem van duoc xem bai goc. */
   sharedPost: SocialPost | null;
   sharedPostUnavailable: boolean;
+  playerCall?: PlayerCall | null;
   createdAt: string;
   updatedAt: string;
   publishedAt: string;
@@ -76,6 +101,7 @@ export interface FeedFilter {
   sport?: PostSport | null;
   authorId?: string | null;
   tag?: string | null;
+  playerCallsOnly?: boolean;
 }
 
 export interface AuthorStats {

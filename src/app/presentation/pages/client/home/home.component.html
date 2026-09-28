@@ -195,21 +195,36 @@
       <header>
         <div>
           <h2 id="open-match-title">Trận đấu đang mở</h2>
-          <p><span aria-hidden="true"></span>Tính năng đang được hoàn thiện</p>
+          <p><span aria-hidden="true"></span>Kèo cá nhân đang thiếu người</p>
         </div>
       </header>
 
-      <div class="development-state">
-        <span class="development-state__icon" aria-hidden="true">
-          <lucide-icon name="settings" class="w-12 h-12"></lucide-icon>
-        </span>
-        <strong>Đang phát triển</strong>
-        <p>Tính năng Trận đấu đang mở sẽ sớm ra mắt, giúp bạn tìm và tham gia các trận đấu phù hợp trong khu vực.</p>
-        <button type="button" disabled>
-          <lucide-icon name="bell" class="w-5 h-5"></lucide-icon>
-          Sắp ra mắt
-        </button>
+      @if (!signedIn) {
+      <div class="open-calls__state">
+        <lucide-icon name="log-in" class="w-6 h-6"></lucide-icon>
+        <p>Đăng nhập để xem kèo đang tìm người và nhắn tin cho người đăng.</p>
       </div>
+      } @else if (openCalls() === null) {
+      <div class="open-calls__state" aria-busy="true"><span class="open-calls__spinner" aria-hidden="true"></span>Đang tải kèo…</div>
+      } @else if (openCallsError()) {
+      <div class="open-calls__state">
+        <p>Không tải được kèo.</p>
+        <button type="button" class="open-calls__retry" (click)="loadOpenCalls()">Thử lại</button>
+      </div>
+      } @else if (!openCalls()!.length) {
+      <div class="open-calls__state">
+        <lucide-icon name="megaphone" class="w-6 h-6"></lucide-icon>
+        <p>Chưa có kèo nào đang thiếu người. Thiếu bạn đánh đôi hay thiếu người đá? Đăng lên Cộng đồng.</p>
+        <a class="open-calls__cta" routerLink="/feed" [queryParams]="{ tab: 'calls', compose: 'find-players' }">Đăng kèo tìm người</a>
+      </div>
+      } @else {
+      <ul class="open-calls" aria-label="Kèo đang tìm người">
+        @for (post of openCalls()!; track post.postId) {
+        <li><app-player-call [post]="post" [compact]="true"></app-player-call></li>
+        }
+      </ul>
+      <a class="open-calls__more" routerLink="/feed" [queryParams]="{ tab: 'calls' }">Xem tất cả ở Cộng đồng</a>
+      }
     </aside>
   </section>
 

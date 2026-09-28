@@ -8,6 +8,7 @@ import {
   SaveSocialCommentRequest,
   SaveSocialPostRequest,
   SocialComment,
+  PostSport,
   SocialPost,
   AuthorStats,
   FeedFilter,
@@ -31,6 +32,7 @@ export class SocialFeedApi {
     if (filter.sport) params = params.set('sport', filter.sport);
     if (filter.authorId) params = params.set('authorId', filter.authorId);
     if (filter.tag) params = params.set('tag', filter.tag);
+    if (filter.playerCallsOnly) params = params.set('playerCallsOnly', true);
     return this.http.get<BaseResponse<SpringPageResponse<SocialPost>>>(this.postUrl, { params });
   }
 
@@ -124,6 +126,16 @@ export class SocialFeedApi {
 
   sharePost(postId: string, caption: string, visibility: PostVisibility): Observable<BaseResponse<SocialPost>> {
     return this.http.post<BaseResponse<SocialPost>>(`${this.postUrl}/${postId}/shares`, { caption, visibility });
+  }
+
+  getOpenPlayerCalls(club: boolean, limit: number, sport?: PostSport | null): Observable<BaseResponse<SocialPost[]>> {
+    let params = new HttpParams().set('club', club).set('limit', limit);
+    if (sport) params = params.set('sport', sport);
+    return this.http.get<BaseResponse<SocialPost[]>>(`${this.postUrl}/player-calls`, { params });
+  }
+
+  setPlayerCallFilled(postId: string, filled: boolean): Observable<BaseResponse<SocialPost>> {
+    return this.http.put<BaseResponse<SocialPost>>(`${this.postUrl}/${postId}/player-call`, { filled });
   }
 
   reportContent(request: CreateContentReportRequest): Observable<BaseResponse<ContentReport>> {

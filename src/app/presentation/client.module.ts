@@ -45,6 +45,7 @@ import { FeePaymentDialogComponent } from '@presentation/pages/client/tournament
 import { MatchmakingComponent } from '@presentation/pages/client/matchmaking/matchmaking.component';
 import { SocialFeedComponent } from '@presentation/pages/client/feed/social-feed.component';
 import { PostCardComponent } from '@presentation/pages/client/feed/post-card.component';
+import { PlayerCallComponent } from '@presentation/pages/client/feed/player-call.component';
 import { PostComposerComponent } from '@presentation/pages/client/feed/post-composer.component';
 import { PostDetailComponent } from '@presentation/pages/client/feed/post-detail.component';
 import { CommunityFriendsComponent } from '@presentation/pages/client/feed/community-friends.component';
@@ -96,6 +97,7 @@ import { AiAssistantModalComponent } from '@presentation/shared/components/ai-as
     MatchmakingComponent,
     SocialFeedComponent,
     PostCardComponent,
+    PlayerCallComponent,
     PostComposerComponent,
     PostDetailComponent,
     CommunityFriendsComponent,

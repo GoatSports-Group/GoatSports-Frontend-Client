@@ -4,13 +4,73 @@
       <img [src]="store.avatar(me.userId)" alt="" />
       <div>
         <strong>{{ me.fullName }}</strong>
-        <span>Chia sẻ trận đấu, tìm đồng đội hay rủ kèo cuối tuần</span>
+        <span>{{ isCall ? 'Kèo đang thiếu người? Đăng lên để người chơi nhắn tin cho bạn' : 'Chia sẻ trận đấu, khoảnh khắc hay kinh nghiệm' }}</span>
       </div>
     </header>
+    <div class="kind-switch" role="tablist" aria-label="Loại bài">
+      <button type="button" role="tab" [attr.aria-selected]="kind() === 'CALL'" [class.is-active]="kind() === 'CALL'" (click)="setKind('CALL')">
+        <lucide-icon name="megaphone" class="w-4 h-4"></lucide-icon>Tìm người chơi
+      </button>
+      <button type="button" role="tab" [attr.aria-selected]="kind() === 'POST'" [class.is-active]="kind() === 'POST'" (click)="setKind('POST')">
+        <lucide-icon name="pencil" class="w-4 h-4"></lucide-icon>Bài viết
+      </button>
+    </div>
+  }
+
+  @if (isCall) {
+    <div class="call-form">
+      <label class="call-field">
+        <span>Môn</span>
+        <select [ngModel]="callSport()" (ngModelChange)="selectCallSport($event)" aria-label="Môn">
+          <option [ngValue]="null" disabled>Chọn môn</option>
+          @for (option of sportOptions; track option.value) {
+            @if (option.value) { <option [ngValue]="option.value">{{ option.label }}</option> }
+          }
+        </select>
+      </label>
+      <label class="call-field">
+        <span>Hình thức</span>
+        <select [ngModel]="callFormat()" (ngModelChange)="callFormat.set($event)" [disabled]="!callFormats().length" aria-label="Hình thức">
+          <option [ngValue]="null">Không nêu</option>
+          @for (format of callFormats(); track format.value) { <option [ngValue]="format.value">{{ format.label }}</option> }
+        </select>
+      </label>
+      <label class="call-field">
+        <span>Ngày chơi</span>
+        <input type="date" [min]="today" [ngModel]="callDate()" (ngModelChange)="callDate.set($event)" />
+      </label>
+      <div class="call-field call-field--time">
+        <label><span>Từ</span><input type="time" [ngModel]="callStart()" (ngModelChange)="callStart.set($event)" aria-label="Giờ bắt đầu" /></label>
+        <label><span>Đến</span><input type="time" [ngModel]="callEnd()" (ngModelChange)="callEnd.set($event)" aria-label="Giờ kết thúc" /></label>
+      </div>
+      <label class="call-field call-field--wide">
+        <span>Khu vực / sân</span>
+        <input type="text" maxlength="200" placeholder="Sân Chảo Lửa, Tân Bình" [ngModel]="callLocation()" (ngModelChange)="callLocation.set($event)" />
+      </label>
+      <label class="call-field">
+        <span>Còn thiếu (người)</span>
+        <input type="number" min="1" max="30" [ngModel]="callSlots()" (ngModelChange)="callSlots.set(+$event || 0)" />
+      </label>
+      <label class="call-field">
+        <span>Trình độ mong muốn</span>
+        <input type="text" maxlength="100" placeholder="Trung bình khá" [ngModel]="callSkill()" (ngModelChange)="callSkill.set($event)" />
+      </label>
+      @if (callClubs().length) {
+        <label class="call-field call-field--wide">
+          <span>Đăng với tư cách</span>
+          <select [ngModel]="callClubId()" (ngModelChange)="callClubId.set($event)" aria-label="Đăng với tư cách">
+            <option [ngValue]="null">Cá nhân — hiện ở Trang chủ</option>
+            @for (item of callClubs(); track item.club.clubId) {
+              <option [ngValue]="item.club.clubId">CLB {{ item.club.name }} — hiện ở trang Câu lạc bộ</option>
+            }
+          </select>
+        </label>
+      }
+    </div>
   }
 
   <label class="sr-only" [attr.for]="isEdit ? 'edit-' + post?.postId : 'composer-content'">
-    {{ isShare ? 'Lời dẫn khi chia sẻ' : 'Nội dung bài viết' }}
+    {{ isShare ? 'Lời dẫn khi chia sẻ' : isCall ? 'Lời nhắn thêm' : 'Nội dung bài viết' }}
   </label>
   <div class="composer__field">
   <textarea
@@ -19,7 +79,7 @@
     [id]="isEdit ? 'edit-' + post?.postId : 'composer-content'"
     [rows]="isEdit ? 4 : 3"
     [attr.maxlength]="isShare ? 1000 : maxContent"
-    [placeholder]="isShare ? 'Viết lời dẫn (không bắt buộc)…' : 'Tối thứ Sáu ai rảnh đá sân 7 ở Thủ Đức không?'"
+    [placeholder]="isShare ? 'Viết lời dẫn (không bắt buộc)…' : isCall ? 'Lời nhắn thêm (không bắt buộc): chia tiền sân, mang bóng…' : 'Kể về trận đấu gần nhất của bạn…'"
     [ngModel]="content()"
     (ngModelChange)="content.set($event)"
     (input)="trackMention()"
@@ -35,7 +95,9 @@
     [attr.aria-activedescendant]="mentions.options().length ? mentions.optionId(mentions.index()) : null"></textarea>
   <app-mention-menu [picker]="mentions" (picked)="pickMention($event)"></app-mention-menu>
   </div>
-  @if (!isShare) {
+  @if (isCall) {
+    <p class="composer__hint">Kèo luôn công khai. Không cần duyệt: ai quan tâm sẽ nhắn tin cho bạn để chốt sân.</p>
+  } @else if (!isShare) {
     <p class="composer__hint">Gõ <b>&#64;</b> để nhắc bạn bè, <b>#</b> để gắn chủ đề.</p>
   }
 
@@ -74,7 +136,7 @@
 
   <footer class="composer__bar">
     <div class="composer__tools">
-      @if (!isShare) {
+      @if (!isShare && !isCall) {
         <label class="tool" [class.is-disabled]="attachmentCount() >= 10">
           <input type="file" multiple accept="image/*,video/*,.pdf,.doc,.docx" (change)="onFilesSelected($event)"
             [disabled]="attachmentCount() >= 10" aria-label="Thêm ảnh, video hoặc tệp" />
@@ -87,10 +149,12 @@
             [ngModel]="sport()" (ngModelChange)="sport.set($event)"></app-select>
         </div>
       }
+      @if (!isCall) {
       <div class="tool-select">
         <app-select size="sm" [leadingIcon]="visibilityIcon" ariaLabel="Ai có thể xem" [options]="visibilityOptions"
           [ngModel]="visibility()" (ngModelChange)="visibility.set($event)"></app-select>
       </div>
+      }
     </div>
 
     <div class="composer__submit">
@@ -103,7 +167,7 @@
       <button type="button" class="btn btn--primary" [disabled]="!canPublish()" [attr.aria-busy]="publishing()" (click)="submit()">
         @if (publishing()) { <span class="spinner" aria-hidden="true"></span> }
         @else { <lucide-icon [name]="isEdit ? 'check' : 'send'" class="w-4 h-4"></lucide-icon> }
-        {{ isEdit ? 'Lưu thay đổi' : 'Đăng bài' }}
+        {{ isEdit ? 'Lưu thay đổi' : isCall ? 'Đăng kèo' : 'Đăng bài' }}
       </button>
     </div>
   </footer>

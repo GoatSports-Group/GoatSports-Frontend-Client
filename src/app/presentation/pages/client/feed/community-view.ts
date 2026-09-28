@@ -3,9 +3,10 @@ import { PostSport, PostVisibility } from '@application/dto/social-feed/social-f
 import { SPORT_LABEL } from '@presentation/pages/client/tournaments/tournament-view';
 
 /** Nhan va bo loc dung chung cho bang tin, the bai viet va trang chi tiet bai viet. */
-export type FeedTab = 'explore' | 'following' | 'saved' | 'mine' | 'friends';
+export type FeedTab = 'calls' | 'explore' | 'following' | 'saved' | 'mine' | 'friends';
 
 export const FEED_TABS: ReadonlyArray<{ value: FeedTab; label: string; icon: string }> = [
+  { value: 'calls', label: 'Tìm người chơi', icon: 'megaphone' },
   { value: 'explore', label: 'Khám phá', icon: 'compass' },
   { value: 'following', label: 'Đang theo dõi', icon: 'user-check' },
   { value: 'saved', label: 'Đã lưu', icon: 'bookmark' },

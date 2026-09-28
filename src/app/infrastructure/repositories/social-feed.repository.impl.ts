@@ -7,6 +7,7 @@ import {
   SaveSocialCommentRequest,
   SaveSocialPostRequest,
   SocialComment,
+  PostSport,
   SocialPost,
   AuthorStats,
   FeedFilter,
@@ -61,6 +62,14 @@ export class SocialFeedRepositoryImpl implements SocialFeedRepository {
 
   unfollowUser(userId: string): Observable<UserFollowStatus> {
     return this.api.unfollowUser(userId).pipe(map(response => response.data));
+  }
+
+  getOpenPlayerCalls(club: boolean, limit: number, sport?: PostSport | null): Observable<SocialPost[]> {
+    return this.api.getOpenPlayerCalls(club, limit, sport).pipe(map(response => response.data ?? []));
+  }
+
+  setPlayerCallFilled(postId: string, filled: boolean): Observable<SocialPost> {
+    return this.api.setPlayerCallFilled(postId, filled).pipe(map(response => response.data));
   }
 
   createPost(request: SaveSocialPostRequest): Observable<SocialPost> {

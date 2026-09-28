@@ -49,7 +49,75 @@
       </fieldset>
 
       <fieldset class="form-section" [disabled]="isSearching() || restoring()">
-        <legend><span>2</span>Trình độ của bạn</legend>
+        <legend><span>2</span>Hình thức & đi cùng ai</legend>
+        <p class="section-helper">
+          @switch (partyMode()) {
+          @case ('PAIR') { Cặp đôi chỉ gặp cặp đôi }
+          @case ('CLUB') { Môn đồng đội ghép CLB đấu CLB }
+          @default { Đơn chỉ gặp đơn }
+          }
+        </p>
+        <div class="format-grid" role="radiogroup" aria-label="Hình thức thi đấu">
+          @for (format of formats(); track format.value) {
+          <button type="button" role="radio" class="choice-button style-choice" [class.selected]="playFormat() === format.value"
+            [attr.aria-checked]="playFormat() === format.value" (click)="selectFormat(format.value)">
+            <strong>{{ format.label }}</strong>
+            <small>{{ format.helper }}</small>
+          </button>
+          }
+        </div>
+        @switch (partyMode()) {
+        @case ('PAIR') {
+        <div class="party-picker">
+          <label for="match-partner">
+            <span>Bạn cặp</span>
+            <select id="match-partner" [ngModel]="partnerId()" (ngModelChange)="partnerId.set($event)"
+              [disabled]="friendsLoading() || !friends()?.length">
+              <option [ngValue]="null">{{ friendsLoading() ? 'Đang tải bạn bè...' : friends()?.length ? 'Chọn một người bạn' : 'Chưa có bạn bè' }}</option>
+              @for (friend of friends() ?? []; track friend.userId) {
+              <option [ngValue]="friend.userId">{{ friend.fullName }}</option>
+              }
+            </select>
+          </label>
+          <p class="party-note">
+            <lucide-icon name="users" class="w-4 h-4"></lucide-icon>
+            AI chỉ ghép cặp đã đủ hai người. Mỗi người được cộng hoặc trừ ELO riêng, so với ELO trung bình của cặp đối thủ.
+          </p>
+          <a class="party-link" routerLink="/feed" [queryParams]="{ compose: 'find-players', sport: selectedSport(), format: playFormat() }">
+            <lucide-icon name="megaphone" class="w-4 h-4"></lucide-icon>
+            Chưa có bạn cặp? Đăng tìm người chơi ở Cộng đồng
+          </a>
+        </div>
+        }
+        @case ('CLUB') {
+        <div class="party-picker">
+          <label for="match-club">
+            <span>Câu lạc bộ thi đấu</span>
+            <select id="match-club" [ngModel]="clubId()" (ngModelChange)="clubId.set($event)"
+              [disabled]="clubsLoading() || !managedClubs().length">
+              <option [ngValue]="null">{{ clubsLoading() ? 'Đang tải CLB...' : managedClubs().length ? 'Chọn CLB' : 'Bạn chưa quản lý CLB ' + selectedSportLabel().toLowerCase() + ' nào' }}</option>
+              @for (membership of managedClubs(); track membership.club.clubId) {
+              <option [ngValue]="membership.club.clubId">{{ membership.club.name }}</option>
+              }
+            </select>
+          </label>
+          <p class="party-note">
+            <lucide-icon name="shield" class="w-4 h-4"></lucide-icon>
+            Chủ CLB hoặc một quản lý thay mặt cả đội: xác nhận kèo, đặt sân và nhập tỷ số. Kết quả cộng vào ELO và thành tích của CLB.
+          </p>
+          @if (!clubsLoading() && !managedClubs().length) {
+          <a class="party-link" routerLink="/clubs">
+            <lucide-icon name="users-round" class="w-4 h-4"></lucide-icon>
+            Tạo hoặc tham gia một CLB
+          </a>
+          }
+        </div>
+        }
+        }
+      </fieldset>
+
+      <fieldset class="form-section" [disabled]="isSearching() || restoring()">
+        <legend><span>3</span>Trình độ của bạn</legend>
         <p class="section-helper">Chọn mức gần nhất để AI tìm đúng trình</p>
         <div class="skill-grid">
           @for (skill of skills; track skill.value) {
@@ -75,7 +143,7 @@
       </fieldset>
 
       <fieldset class="form-section" [disabled]="isSearching() || restoring()">
-        <legend><span>3</span>Thời gian rảnh</legend>
+        <legend><span>4</span>Thời gian rảnh</legend>
         <p class="section-helper">Trận chỉ được tạo khi hai lịch có phần giao nhau</p>
         <div class="schedule-grid">
           <label for="match-date">
@@ -95,7 +163,7 @@
       </fieldset>
 
       <fieldset class="form-section" [disabled]="isSearching() || restoring()">
-        <legend><span>4</span>Phong cách chơi</legend>
+        <legend><span>5</span>Phong cách chơi</legend>
         <p class="section-helper">Giúp GOAT AI ưu tiên người cùng tinh thần thi đấu</p>
         <div class="style-grid">
           @for (style of playStyles; track style.value) {
@@ -110,7 +178,7 @@
       </fieldset>
 
       <fieldset class="form-section location-section" [disabled]="isSearching() || restoring()">
-        <legend><span>5</span>Địa điểm & phạm vi</legend>
+        <legend><span>6</span>Địa điểm & phạm vi</legend>
         <p class="section-helper">Vị trí chỉ được dùng để ghép trận và tính khoảng cách</p>
         <div class="location-grid">
           <div class="location-source" [class.location-source--ready]="coordinates()">
@@ -143,7 +211,7 @@
       </fieldset>
 
       <fieldset class="form-section" [disabled]="isSearching() || restoring()">
-        <legend><span>6</span>Cách chọn đối thủ</legend>
+        <legend><span>7</span>Cách chọn đối thủ</legend>
         <p class="section-helper">Để AI chọn ngay hoặc tự chọn trong danh sách được xếp hạng</p>
         <div class="style-grid selection-mode-grid">
           <button type="button" class="choice-button style-choice" [class.selected]="selectionMode() === 'AI'"
@@ -488,8 +556,8 @@
         } @else if (match.status === 'COMPLETED') {
         <section class="completed-result">
           <strong>Kết quả: {{ match.result?.participantOneScore }}–{{ match.result?.participantTwoScore }}</strong>
-          @if (eloAfter(currentParticipant()?.participantId); as newElo) {
-          <p>ELO mới của bạn: <strong>{{ newElo }}</strong></p>
+          @if (myEloAfter(); as newElo) {
+          <p>{{ currentParticipant()?.participantType === 'CLUB' ? 'ELO mới của CLB' : 'ELO mới của bạn' }}: <strong>{{ newElo }}</strong></p>
           }
           @if (match.result && match.result.eloApplied === false) {
           <p class="result-deadline-note" data-state="OPEN">

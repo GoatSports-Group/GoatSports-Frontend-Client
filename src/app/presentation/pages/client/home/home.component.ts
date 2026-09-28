@@ -9,7 +9,8 @@ import {
   OnInit,
   PLATFORM_ID,
   ViewChild,
-  inject
+  inject,
+  signal
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
@@ -18,6 +19,10 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import * as L from 'leaflet';
 import { VENUE_SEARCH_REPOSITORY_TOKEN } from '@application/ports/persistence/venue-search.repository';
+import { SOCIAL_FEED_REPOSITORY_TOKEN } from '@application/ports/persistence/social-feed.repository';
+import { SocialPost } from '@application/dto/social-feed/social-feed.dto';
+import { AuthService } from '@presentation/services/auth.service';
+import { CommunityStore } from '@presentation/pages/client/feed/community.store';
 import { SportType, SPORT_TYPE_OPTIONS, Venue } from '@application/dto/venue/venue.dto';
 
 type LocationState = 'locating' | 'ready' | 'error' | 'unsupported';
@@ -47,6 +52,13 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private zone = inject(NgZone);
   private platformId = inject(PLATFORM_ID);
   private destroyRef = inject(DestroyRef);
+  private socialFeed = inject(SOCIAL_FEED_REPOSITORY_TOKEN);
+  private communityStore = inject(CommunityStore);
+  private auth = inject(AuthService);
+  /** Keo ca nhan "Tim nguoi choi" con mo; null = dang tai. Khach chua dang nhap khong goi API (gateway yeu cau dang nhap). */
+  readonly openCalls = signal<SocialPost[] | null>(null);
+  readonly openCallsError = signal(false);
+  readonly signedIn = this.auth.isAuthenticated;
   private animationContext?: ReturnType<typeof gsap.context>;
   private locationSearchVersion = 0;
   private pickerReverseGeocodeVersion = 0;
@@ -96,6 +108,22 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     this.requestCurrentLocation();
+    if (this.signedIn) this.loadOpenCalls();
+  }
+
+  loadOpenCalls(): void {
+    this.openCalls.set(null);
+    this.openCallsError.set(false);
+    this.socialFeed.getOpenPlayerCalls(false, 4).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: posts => {
+        this.communityStore.hydrate(posts);
+        this.openCalls.set(posts);
+      },
+      error: () => {
+        this.openCallsError.set(true);
+        this.openCalls.set([]);
+      }
+    });
   }
 
   ngAfterViewInit(): void {

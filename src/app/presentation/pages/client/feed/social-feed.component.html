@@ -75,7 +75,7 @@
       }
 
       @if (showComposer()) {
-        <app-post-composer [defaultSport]="sport()" (saved)="onPublished($event)"></app-post-composer>
+        <app-post-composer [defaultSport]="sport()" [prefill]="callPrefill()" (saved)="onPublished($event)"></app-post-composer>
       }
 
       @if (isFriendsTab()) {
@@ -107,6 +107,10 @@
             <button type="button" class="btn btn--secondary" (click)="selectSport(null)">Xóa bộ lọc</button>
           } @else {
             @switch (tab()) {
+              @case ('calls') {
+                <strong>Chưa có kèo nào đang tìm người</strong>
+                <p>Kèo đang thiếu người? Điền môn, giờ và khu vực ở ô phía trên. Ai quan tâm sẽ nhắn tin cho bạn.</p>
+              }
               @case ('following') {
                 <strong>Bảng tin theo dõi đang trống</strong>
                 <p>Theo dõi vài người chơi ở mục gợi ý, bài của họ và bạn bè sẽ xuất hiện ở đây.</p>

@@ -257,3 +257,93 @@ test('không polling trạng thái khi đang chờ đối thủ', async ({ page 
   await page.waitForTimeout(3_500);
   expect(statusRequests).toBe(1);
 });
+
+test.describe('hình thức thi đấu', () => {
+  const ok = (data: unknown) => ({ json: { statusCode: 200, message: 'OK', data } });
+  const partnerId = '12121212-1212-4212-8212-121212121212';
+  const leaderId = '34343434-3434-4343-8343-343434343434';
+
+  test.beforeEach(async ({ page }) => {
+    await page.route('**/ai-service/api/v1/ai/matchmaking/status', route =>
+      route.fulfill({ json: { status: 'NOT_IN_QUEUE' } }));
+    await page.route('**/ai-service/api/v1/ai/matchmaking/sessions?**', route => route.fulfill({ json: [] }));
+  });
+
+  test('đánh đôi: chọn bạn cặp từ bạn bè; bạn cặp là thành viên của bên mình', async ({ page }) => {
+    await page.route(/\/social-service\/api\/v1\/social\/friends(\?.*)?$/, route => route.fulfill(ok([
+      { friendshipId: 'f-1', requesterId: currentUserId, addresseeId: partnerId, status: 'ACCEPTED', requestedAt: '2026-09-01T08:00:00' },
+      { friendshipId: 'f-2', requesterId: currentUserId, addresseeId: opponentId, status: 'PENDING', requestedAt: '2026-09-02T08:00:00' }
+    ])));
+    await page.route(`**/auth-service/api/v1/users/${partnerId}`, route => route.fulfill(ok({
+      userId: partnerId, username: 'le_thu', fullName: 'Lê Thu', email: 'thu@goatsports.test', status: 'ACTIVE'
+    })));
+    // Bạn cặp của mình đứng tên cặp (participantId = người rủ), mình nằm trong members.
+    const pairSession = session();
+    pairSession.participants[0] = {
+      ...pairSession.participants[0], participantId: leaderId, name: 'Lê Thu & Nguyễn Minh Anh',
+      members: [
+        { userId: leaderId, name: 'Lê Thu', eloRating: 1180 },
+        { userId: currentUserId, name: 'Nguyễn Minh Anh', eloRating: 1220 }
+      ]
+    } as typeof pairSession.participants[0];
+    let payload: Record<string, unknown> | null = null;
+    await page.route('**/ai-service/api/v1/ai/matchmaking/queue', async route => {
+      payload = route.request().postDataJSON();
+      await route.fulfill({ json: { status: 'MATCHED', message: 'Đã tìm thấy đối thủ.', session: pairSession } });
+    });
+
+    await page.goto('/matchmaking');
+    const closeAssistant = page.getByRole('button', { name: 'Đóng trợ lý' });
+    if (await closeAssistant.isVisible()) await closeAssistant.click();
+    await page.getByRole('radio', { name: /Đánh đôi/ }).click();
+    const partner = page.getByLabel('Bạn cặp');
+    // Chỉ bạn đã kết bạn mới chọn được.
+    await expect(partner.locator('option')).toHaveText(['Chọn một người bạn', 'Lê Thu']);
+    await expect(page.getByRole('link', { name: /Đăng tìm người chơi/ })).toHaveAttribute('href', /compose=find-players/);
+
+    await page.getByRole('button', { name: 'Tìm đối thủ', exact: true }).click();
+    await expect(page.getByText('Đánh đôi cần chọn bạn cặp')).toBeVisible();
+    expect(payload).toBeNull();
+
+    await partner.selectOption({ label: 'Lê Thu' });
+    await page.getByRole('button', { name: 'Tìm đối thủ', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Trần Hoàng Minh' })).toBeVisible();
+    expect(payload).toMatchObject({ playFormat: 'BADMINTON_DOUBLES', partnerId });
+    await expect(page.getByRole('heading', { name: 'Lê Thu & Nguyễn Minh Anh' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Chấp nhận kèo' })).toBeVisible();
+  });
+
+  test('bóng đá chỉ ghép CLB: chỉ liệt kê CLB bóng đá mình là chủ hoặc quản lý', async ({ page }) => {
+    const club = (clubId: string, name: string, sportType: string) => ({
+      clubId, name, sportType, ownerId: currentUserId, privacy: 'PUBLIC', approvalMode: 'MANUAL', active: true,
+      winCount: 0, lossCount: 0, drawCount: 0, matchCount: 0, winRate: 0, memberCount: 9, tags: []
+    });
+    await page.route('**/club-service/api/v1/clubs/me', route => route.fulfill(ok([
+      { membershipId: 'm-1', role: 'OWNER', status: 'ACTIVE', club: club('c1c1c1c1-c1c1-4c1c-8c1c-c1c1c1c1c1c1', 'FC Bến Nghé', 'FOOTBALL') },
+      { membershipId: 'm-2', role: 'MEMBER', status: 'ACTIVE', club: club('c2c2c2c2-c2c2-4c2c-8c2c-c2c2c2c2c2c2', 'FC Thảo Điền', 'FOOTBALL') },
+      { membershipId: 'm-3', role: 'ADMIN', status: 'ACTIVE', club: club('c3c3c3c3-c3c3-4c3c-8c3c-c3c3c3c3c3c3', 'Cầu lông Q1', 'BADMINTON') }
+    ])));
+    let payload: Record<string, unknown> | null = null;
+    await page.route('**/ai-service/api/v1/ai/matchmaking/queue', async route => {
+      payload = route.request().postDataJSON();
+      await route.fulfill({ json: { status: 'QUEUED', message: 'Đang chờ đối thủ phù hợp.', queueSize: 1 } });
+    });
+
+    // Chưa có hồ sơ bóng đá nên trang lấy vị trí từ trình duyệt.
+    await page.context().grantPermissions(['geolocation']);
+    await page.context().setGeolocation({ latitude: 10.77, longitude: 106.67 });
+    await page.goto('/matchmaking');
+    const closeAssistant = page.getByRole('button', { name: 'Đóng trợ lý' });
+    if (await closeAssistant.isVisible()) await closeAssistant.click();
+    await page.getByRole('button', { name: 'Bóng đá' }).click();
+
+    await expect(page.getByRole('radio')).toHaveText([/Sân 5/, /Sân 7/, /Sân 11/]);
+    await expect(page.getByLabel('Câu lạc bộ thi đấu').locator('option')).toHaveText(['Chọn CLB', 'FC Bến Nghé']);
+    await page.getByRole('radio', { name: /Sân 7/ }).click();
+    await page.getByRole('button', { name: 'Tìm đối thủ', exact: true }).click();
+
+    await expect(page.getByRole('heading', { name: 'GOAT AI đang quét đối thủ phù hợp' })).toBeVisible();
+    expect(payload).toMatchObject({ sportType: 'FOOTBALL', playFormat: 'FOOTBALL_7', clubId: 'c1c1c1c1-c1c1-4c1c-8c1c-c1c1c1c1c1c1' });
+    expect(payload).not.toHaveProperty('partnerId');
+  });
+});

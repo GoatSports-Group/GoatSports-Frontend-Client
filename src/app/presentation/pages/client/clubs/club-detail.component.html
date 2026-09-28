@@ -823,7 +823,8 @@
       <div><span class="panel__eyebrow">Thi đấu câu lạc bộ</span>
         <h2>{{ clubTournaments().length }} giải đã tham gia</h2>
         <p>{{ currentClub.matchCount }} trận · {{ currentClub.winCount }} thắng · {{ currentClub.drawCount }}
-          hòa · {{ currentClub.lossCount }} thua. Chọn một giải để xem bảng xếp hạng và các trận.</p>
+          hòa · {{ currentClub.lossCount }} thua@if (currentClub.eloRating) { · ELO CLB {{ currentClub.eloRating }}}. Chọn
+          một giải để xem bảng xếp hạng và các trận.</p>
       </div>
     </header>
     <div class="club-tournament-list" role="tablist" aria-label="Các giải đã tham gia">
@@ -1080,9 +1081,15 @@
       </div>
       <dl class="activity-detail-modal__facts">
         <div>
-          <dt><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon>Giải đấu</dt>
+          <dt><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon>{{ match.friendly ? 'Loại trận' : 'Giải đấu' }}</dt>
           <dd>{{ match.tournamentName }}</dd>
         </div>
+        @if (match.friendly && match.eloChange != null) {
+        <div>
+          <dt><lucide-icon name="trending-up" class="w-4 h-4"></lucide-icon>ELO của CLB</dt>
+          <dd>{{ match.eloChange >= 0 ? '+' : '−' }}{{ match.eloChange >= 0 ? match.eloChange : -match.eloChange }}</dd>
+        </div>
+        }
         <div>
           <dt><lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon>Ngày thi đấu</dt>
           <dd>{{ match.playedAt | date:'dd/MM/yyyy' }}</dd>
@@ -1093,8 +1100,8 @@
         </div>
       </dl>
       <footer class="modal-footer"><button type="button" class="button button--secondary"
-          (click)="closeMatchDetails()">Đóng</button><a [routerLink]="['/tournaments', match.tournamentId]"
-          class="button button--primary" (click)="closeMatchDetails()">Xem giải đấu</a></footer>
+          (click)="closeMatchDetails()">Đóng</button>@if (match.tournamentId) {<a [routerLink]="['/tournaments', match.tournamentId]"
+          class="button button--primary" (click)="closeMatchDetails()">Xem giải đấu</a>}</footer>
     </section>
   </div>
   }
