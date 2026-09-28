@@ -353,6 +353,11 @@ a:focus-visible,
   grid-column: span 3;
 }
 
+// Tab Mời bạn bè chỉ có ô tìm tên, trải hết chiều ngang.
+.filters--friends .filters__name {
+  grid-column: 1 / -1;
+}
+
 // ---- List card ----------------------------------------------------------------------------------
 .list-card {
   overflow: hidden;
@@ -417,6 +422,12 @@ a:focus-visible,
     background: var(--surface-subtle);
     box-shadow: inset 3px 0 0 var(--primary);
   }
+}
+
+// Dòng bạn bè: ảnh · tên + tài khoản · nút Mời hoặc trạng thái. Không bấm chọn như dòng scouting.
+.row--friend {
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  cursor: default;
 }
 
 .row--shortlist,

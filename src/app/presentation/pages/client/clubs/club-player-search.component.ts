@@ -1,12 +1,14 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, WritableSignal, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
-import { Subject, debounceTime, distinctUntilChanged, filter, forkJoin, take } from 'rxjs';
+import { Subject, debounceTime, distinctUntilChanged, filter, forkJoin, map, of, switchMap, take } from 'rxjs';
 import {
   Club, ClubInvitationStatus, MyClubMembership, PlayerClubRelation, ScoutedPlayerModel, ScoutingWeekDay,
   SentInvitationModel, ShortlistEntryModel, SkillLevel, SportType
 } from '@application/dto/club/club.dto';
 import { ClubRepositoryPort } from '@application/ports/club.repository.port';
+import { FRIEND_REPOSITORY_TOKEN } from '@application/ports/persistence/friend.repository';
+import { PlayerDirectoryService } from '@presentation/services/player-directory.service';
 import { PLAYER_DAY_OPTIONS } from '@domain/enums/player-day-of-week.enum';
 import { SKILL_LEVEL_OPTIONS } from '@domain/enums/skill-level.enum';
 import { AuthService } from '@presentation/services/auth.service';
@@ -14,7 +16,22 @@ import { NotifyService } from '@shared/components/notify/notify.service';
 import { DEFAULT_CLUB_LOGO, sportLabel } from './club-view.model';
 import { initialsOf, skillLabel } from './scouting-view.model';
 
-type ScoutingTab = 'discover' | 'shortlist' | 'invited';
+type ScoutingTab = 'discover' | 'shortlist' | 'invited' | 'friends';
+
+/** Một người bạn của người quản lý, kèm quan hệ hiện tại với CLB. */
+interface FriendInvitee {
+  userId: string;
+  fullName: string;
+  username?: string;
+  avatarUrl?: string;
+  relation: PlayerClubRelation;
+}
+
+/** Người được mời trong hộp thoại: người chơi scouting hoặc một người bạn. */
+interface InviteTarget {
+  userId: string;
+  fullName: string;
+}
 type SortMode = 'fit' | 'distance' | 'elo' | 'matches';
 type InvitationFilter = 'ALL' | ClubInvitationStatus;
 
@@ -35,6 +52,8 @@ export class ClubPlayerSearchComponent {
   private readonly auth = inject(AuthService);
   private readonly notify = inject(NotifyService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly friendRepository = inject(FRIEND_REPOSITORY_TOKEN);
+  private readonly directory = inject(PlayerDirectoryService);
 
   readonly clubId = this.route.snapshot.paramMap.get('clubId') ?? '';
   readonly defaultClubLogo = DEFAULT_CLUB_LOGO;
@@ -146,6 +165,24 @@ export class ClubPlayerSearchComponent {
   /** Nguoi vua duoc moi trong phien nay: van hien o danh sach nhung khoa nut moi. */
   readonly invitedIds = signal<ReadonlySet<string>>(new Set());
 
+  // ---- Friends ("cửa sau": mời thẳng bạn bè, không lọc khoảng cách / trình độ) ------------------------
+  readonly friends = signal<ReadonlyArray<FriendInvitee>>([]);
+  readonly friendsLoading = signal(false);
+  readonly friendsError = signal<string | null>(null);
+  readonly friendKeyword = signal('');
+  readonly friendPage = signal(0);
+  private friendsLoaded = false;
+  readonly visibleFriends = computed(() => {
+    const query = this.friendKeyword().trim().toLocaleLowerCase('vi');
+    return query
+      ? this.friends().filter(friend => [friend.fullName, friend.username]
+        .some(value => value?.toLocaleLowerCase('vi').includes(query)))
+      : this.friends();
+  });
+  readonly pagedFriends = computed(() =>
+    this.visibleFriends().slice(this.friendPage() * PAGE_SIZE, (this.friendPage() + 1) * PAGE_SIZE));
+  readonly invitableFriends = computed(() => this.friends().filter(friend => this.friendRelation(friend) === 'NONE').length);
+
   // ---- Selection & invite dialog ---------------------------------------------------------------
   readonly selectedId = signal<string | null>(null);
   /** Tab Da moi chon theo tung loi moi: mot nguoi co the duoc moi nhieu lan. */
@@ -169,7 +206,7 @@ export class ClubPlayerSearchComponent {
       ?? 'NONE';
   });
 
-  readonly inviteTarget = signal<ScoutedPlayerModel | null>(null);
+  readonly inviteTarget = signal<InviteTarget | null>(null);
   readonly inviteMessage = signal('');
   readonly inviting = signal(false);
 
@@ -263,6 +300,13 @@ export class ClubPlayerSearchComponent {
   setTab(tab: ScoutingTab): void {
     this.tab.set(tab);
     this.confirmCancelId.set(null);
+    if (tab === 'friends') {
+      // Bạn bè không có hồ sơ scouting để so sánh: khung bên phải hiện hướng dẫn thay vì hồ sơ.
+      this.selectedId.set(null);
+      this.selectedInvitationId.set(null);
+      if (!this.friendsLoaded) this.loadFriends();
+      return;
+    }
     const firstInvitation = this.filteredInvitations()[0];
     const first = tab === 'discover' ? this.visibleCandidates()[0]?.userId
       : tab === 'shortlist' ? this.shortlist()[0]?.userId
@@ -292,6 +336,12 @@ export class ClubPlayerSearchComponent {
   changeDiscoverPage(page: number): void { this.discoverPage.set(page); }
   changeShortlistPage(page: number): void { this.shortlistPage.set(page); }
   changeInvitationPage(page: number): void { this.invitationPage.set(page); }
+  changeFriendPage(page: number): void { this.friendPage.set(page); }
+
+  updateFriendKeyword(value: string): void {
+    this.friendKeyword.set(value);
+    this.friendPage.set(0);
+  }
 
   // ---- Shortlist -----------------------------------------------------------------------------
   loadShortlist(): void {
@@ -425,6 +475,49 @@ export class ClubPlayerSearchComponent {
     });
   }
 
+  // ---- Friends -------------------------------------------------------------------------------
+  /** Bạn bè của người đang quản lý, trạng thái với CLB lấy từ club-service (thành viên, đã mời, đang xin vào...). */
+  loadFriends(): void {
+    const me = this.auth.currentUser?.userId ?? '';
+    this.friendsLoading.set(true);
+    this.friendsError.set(null);
+    this.friendRepository.getFriends().pipe(
+      map(response => [...new Set((response.data ?? [])
+        .filter(item => item.status === 'ACCEPTED')
+        .map(item => item.requesterId === me ? item.addresseeId : item.requesterId)
+        .filter(id => !!id && id !== me))]),
+      switchMap(ids => ids.length
+        ? forkJoin({ ids: of(ids), users: this.directory.resolve(ids), relations: this.repository.getClubRelations(this.clubId, ids) })
+        : of({ ids, users: new Map(), relations: {} as Record<string, PlayerClubRelation> }))
+    ).subscribe({
+      next: ({ ids, users, relations }) => {
+        const order: Record<PlayerClubRelation, number> = { NONE: 0, INVITED: 1, REQUESTED: 2, MEMBER: 3, BANNED: 4 };
+        this.friends.set(ids.map(id => {
+          const user = users.get(id);
+          return {
+            userId: id,
+            fullName: user?.fullName || user?.email || 'Người chơi',
+            username: user?.username,
+            avatarUrl: user?.avatarUrl,
+            relation: relations[id] ?? 'NONE'
+          };
+        }).sort((a, b) => order[a.relation] - order[b.relation] || a.fullName.localeCompare(b.fullName, 'vi')));
+        this.friendsLoaded = true;
+        this.friendPage.set(0);
+        this.friendsLoading.set(false);
+      },
+      error: error => {
+        this.friendsLoading.set(false);
+        this.friendsError.set(error?.error?.message ?? 'Không tải được danh sách bạn bè.');
+      }
+    });
+  }
+
+  /** Vừa mời trong phiên này thì coi như "Đã mời" ngay, không đợi tải lại. */
+  friendRelation(friend: FriendInvitee): PlayerClubRelation {
+    return this.invitedIds().has(friend.userId) ? 'INVITED' : friend.relation;
+  }
+
   // ---- Invite dialog -------------------------------------------------------------------------
   canInvite(player: ScoutedPlayerModel | null | undefined, relation: PlayerClubRelation = 'NONE'): boolean {
     return !!player?.profileVisible && relation === 'NONE' && !this.invitedIds().has(player.userId);
@@ -435,7 +528,7 @@ export class ClubPlayerSearchComponent {
     return this.shortlist().find(entry => entry.userId === userId)?.relation ?? 'NONE';
   }
 
-  openInvite(player: ScoutedPlayerModel): void {
+  openInvite(player: InviteTarget): void {
     this.inviteTarget.set(player);
     this.inviteMessage.set('');
   }

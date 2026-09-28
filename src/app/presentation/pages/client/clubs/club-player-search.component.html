@@ -76,6 +76,9 @@
         <lucide-icon name="send" class="w-4 h-4"></lucide-icon> Đã mời
         @if (pendingInvitations()) { <span class="count count--alert">{{ pendingInvitations() }}</span> }
       </button>
+      <button type="button" role="tab" [attr.aria-selected]="tab() === 'friends'" [class.is-active]="tab() === 'friends'" (click)="setTab('friends')">
+        <lucide-icon name="users" class="w-4 h-4"></lucide-icon> Mời bạn bè
+      </button>
     </div>
 
     <div class="scout-layout">
@@ -346,11 +349,91 @@
                 itemLabel="lời mời" (pageChange)="changeInvitationPage($event)"></app-pagination>
             }
           }
+
+          @case ('friends') {
+            <div class="filters filters--friends" aria-label="Lọc bạn bè">
+              <label class="search-field filters__name">
+                <lucide-icon name="search" class="w-5 h-5"></lucide-icon>
+                <input type="search" [ngModel]="friendKeyword()" (ngModelChange)="updateFriendKeyword($event)"
+                  placeholder="Tìm bạn theo tên hoặc tài khoản" aria-label="Tìm bạn theo tên hoặc tài khoản" />
+              </label>
+            </div>
+            <div class="list-card">
+              <header class="list-card__head">
+                <p>
+                  @if (friendsLoading()) { Đang tải danh sách bạn bè... }
+                  @else { <b>{{ friends().length }}</b> bạn bè · <b>{{ invitableFriends() }}</b> người mời được }
+                </p>
+              </header>
+              @if (friendsLoading()) {
+                <app-loading-skeleton variant="rows" [count]="5" [flush]="true" label="Đang tải danh sách bạn bè"></app-loading-skeleton>
+              } @else if (friendsError()) {
+                <div class="inline-state inline-state--error" role="alert">
+                  <lucide-icon name="wifi-off" class="w-6 h-6"></lucide-icon>
+                  <h2>Không tải được danh sách bạn bè</h2>
+                  <p>{{ friendsError() }}</p>
+                  <button type="button" class="btn btn--secondary" (click)="loadFriends()">Thử lại</button>
+                </div>
+              } @else if (pagedFriends().length) {
+                <div class="rows">
+                  @for (friend of pagedFriends(); track friend.userId) {
+                    <article class="row row--friend">
+                      <span class="avatar">
+                        @if (friend.avatarUrl) { <img [src]="friend.avatarUrl" alt="" /> } @else { {{ initials(friend.fullName) }} }
+                      </span>
+                      <div class="row__identity">
+                        <h3>{{ friend.fullName }}</h3>
+                        <p>@if (friend.username) { {{ '@' + friend.username }} } @else { Bạn bè }</p>
+                      </div>
+                      <div class="row__actions">
+                        @if (friendRelation(friend) === 'NONE') {
+                          <button type="button" class="btn btn--secondary btn--sm" [attr.aria-label]="'Mời ' + friend.fullName"
+                            (click)="openInvite(friend)">
+                            <lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon> Mời
+                          </button>
+                        } @else {
+                          <span class="status" [class.status--warning]="friendRelation(friend) === 'INVITED' || friendRelation(friend) === 'REQUESTED'"
+                            [class.status--success]="friendRelation(friend) === 'MEMBER'" [class.status--danger]="friendRelation(friend) === 'BANNED'">
+                            {{ relationLabel(friendRelation(friend)) }}
+                          </span>
+                        }
+                      </div>
+                    </article>
+                  }
+                </div>
+              } @else if (friends().length) {
+                <div class="inline-state">
+                  <lucide-icon name="search-x" class="w-6 h-6"></lucide-icon>
+                  <h2>Không có bạn nào khớp</h2>
+                  <p>Thử tên khác, hoặc xóa ô tìm kiếm để xem tất cả bạn bè.</p>
+                  <button type="button" class="btn btn--secondary" (click)="updateFriendKeyword('')">Xem tất cả</button>
+                </div>
+              } @else {
+                <div class="inline-state">
+                  <lucide-icon name="users" class="w-6 h-6"></lucide-icon>
+                  <h2>Bạn chưa có bạn bè nào</h2>
+                  <p>Kết bạn ở Cộng đồng, rồi quay lại đây để mời họ vào câu lạc bộ.</p>
+                  <a class="btn btn--secondary" routerLink="/feed" [queryParams]="{ tab: 'friends' }">Tìm bạn bè</a>
+                </div>
+              }
+            </div>
+            @if (!friendsLoading() && !friendsError()) {
+              <app-pagination [pageIndex]="friendPage()" [pageSize]="pageSize" [totalItems]="visibleFriends().length"
+                itemLabel="bạn bè" (pageChange)="changeFriendPage($event)"></app-pagination>
+            }
+          }
         }
       </section>
 
       <aside class="scout-rail" [class.is-open]="!!selectedPlayer()" aria-label="Hồ sơ người chơi">
-        @if (selectedPlayer(); as player) {
+        @if (tab() === 'friends') {
+          <div class="rail-empty rail-empty--friends">
+            <lucide-icon name="door-open" class="w-6 h-6"></lucide-icon>
+            <h2>Mời thẳng bạn bè</h2>
+            <p>Bạn bè được mời không cần qua lọc khoảng cách, trình độ hay môn thể thao. Họ nhận thông báo và vào
+              {{ club()?.name }} ngay khi nhận lời, không phải chờ duyệt.</p>
+          </div>
+        } @else if (selectedPlayer(); as player) {
           <div class="scout-rail__backdrop" (click)="closePanel()"></div>
           <app-scouting-player-panel class="scout-rail__panel" [player]="player" [relation]="selectedRelation()"
             [shortlisted]="isShortlisted(player.userId)" [shortlistBusy]="shortlistBusyIds().has(player.userId)"

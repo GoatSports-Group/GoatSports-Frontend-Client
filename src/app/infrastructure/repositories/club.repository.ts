@@ -1,10 +1,10 @@
 import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { map, Observable } from 'rxjs';
+import { map, Observable, of } from 'rxjs';
 import { ClubRepositoryPort } from '@application/ports/club.repository.port';
 import { BaseResponse, PageResult, PagedModelResponse } from '@application/dto/base/base-response';
 import {
-  ClubActivityModel, ClubPhotoModel, ClubRecentMatchModel, ClubTournamentModel, ClubMemberModel, ClubModel, ClubRole, ScoutedPlayerModel,
+  ClubActivityModel, ClubPhotoModel, ClubRecentMatchModel, ClubTournamentModel, PlayerClubRelation, ClubMemberModel, ClubModel, ClubRole, ScoutedPlayerModel,
   MyClubMembership, ClubInvitationModel, ScoutingFilters, ShortlistEntryModel, SentInvitationModel,
   CreateClubActivityPayload, CreateClubPayload, SportType, UpdateClubPayload
 } from '@domain/models/club.model';
@@ -159,6 +159,12 @@ export class ClubRepository extends ClubRepositoryPort {
   ): Observable<PageResult<ClubRecentMatchModel>> {
     return this.getPage<ClubRecentMatchModel>(`${this.baseUrl}/${clubId}/matches/page`, page, size,
       tournamentId ? { tournamentId } : undefined);
+  }
+  override getClubRelations(clubId: string, userIds: string[]): Observable<Record<string, PlayerClubRelation>> {
+    if (!userIds.length) return of({});
+    return this.http.post<BaseResponse<Record<string, PlayerClubRelation>>>(
+      `${this.baseUrl}/${clubId}/scouting/relations`, { userIds }
+    ).pipe(map(response => response.data ?? {}));
   }
   override getClubTournaments(clubId: string): Observable<ClubTournamentModel[]> {
     return this.http.get<BaseResponse<ClubTournamentModel[]>>(`${this.baseUrl}/${clubId}/tournaments`)
