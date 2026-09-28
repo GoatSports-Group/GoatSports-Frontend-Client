@@ -76,6 +76,11 @@
         </div>
       </dl>
 
+      <button type="button" class="btn btn--ghost sport-card__history" (click)="openHistory(profile)">
+        <lucide-icon name="history" class="w-4 h-4"></lucide-icon>Lịch sử thi đấu
+        <span class="is-muted">· {{ profile.matchCount }} trận</span>
+      </button>
+
       <div class="sport-card__line">
         <lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>
         @if (profile.city) {
@@ -132,6 +137,66 @@
   </div>
   }
 </section>
+
+@if (historyProfile; as profile) {
+<div class="modal-backdrop" (click)="closeHistory()">
+  <section class="modal modal--wide" appAccessibleDialog aria-labelledby="sport-history-title"
+    (dialogClosed)="closeHistory()" (click)="$event.stopPropagation()">
+    <header class="modal__header">
+      <div>
+        <h2 id="sport-history-title">Lịch sử thi đấu · {{ sportLabel(profile.sportType) }}</h2>
+        <p>ELO hiện tại <b>{{ profile.eloRating }}</b> · {{ profile.winCount }} thắng · {{ profile.drawCount }} hòa ·
+          {{ profile.lossCount }} thua. Mỗi trận ghép và trận giải đều được tính.</p>
+      </div>
+      <button type="button" class="icon-btn" aria-label="Đóng" (click)="closeHistory()">
+        <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+      </button>
+    </header>
+    <div class="modal__body">
+      @if (historyLoading) {
+      <app-loading-skeleton variant="rows" [count]="4" label="Đang tải lịch sử thi đấu"></app-loading-skeleton>
+      } @else if (historyFailed) {
+      <div class="state state--error state--inline" role="alert">
+        <span class="state__icon"><lucide-icon name="wifi-off" class="w-6 h-6"></lucide-icon></span>
+        <strong>Chưa tải được lịch sử thi đấu</strong>
+        <button type="button" class="btn btn--secondary" (click)="loadHistory()">Thử lại</button>
+      </div>
+      } @else if (!history.length) {
+      <div class="state state--inline">
+        <span class="state__icon"><lucide-icon name="history" class="w-6 h-6"></lucide-icon></span>
+        <strong>Chưa có trận nào được tính ELO</strong>
+        <p>Trận ghép đã xác nhận tỷ số và trận giải đấu có kết quả sẽ hiện ở đây.</p>
+      </div>
+      } @else {
+      <ol class="history-list">
+        @for (item of history; track item.resultId) {
+        <li class="history-row" [class]="'history-row history-row--' + item.outcome.toLowerCase()">
+          <span class="badge" [class.badge--success]="item.outcome === 'WIN'" [class.badge--danger]="item.outcome === 'LOSS'">
+            {{ outcomeLabel(item.outcome) }}
+          </span>
+          <div class="history-row__main">
+            <strong>{{ historyTitle(item) }}</strong>
+            <span>
+              <lucide-icon [name]="item.source === 'TOURNAMENT' ? 'trophy' : 'swords'" class="w-4 h-4"></lucide-icon>
+              @if (item.opponentName) { gặp {{ item.opponentName }}@if (item.opponentElo) { ({{ item.opponentElo }})} · }
+              {{ item.playedAt | date:'HH:mm dd/MM/yyyy' }}
+            </span>
+          </div>
+          @if (item.myScore !== null && item.myScore !== undefined) {
+          <b class="history-row__score">{{ item.myScore }}–{{ item.opponentScore }}</b>
+          }
+          <div class="history-row__elo">
+            <b [class.is-up]="item.delta > 0" [class.is-down]="item.delta < 0">{{ formatDelta(item.delta) }}</b>
+            <span>{{ item.oldElo }} → {{ item.newElo }}</span>
+          </div>
+        </li>
+        }
+      </ol>
+      }
+    </div>
+  </section>
+</div>
+}
 
 @if (isEditorOpen) {
 <div class="modal-backdrop" (click)="closeEditor()">

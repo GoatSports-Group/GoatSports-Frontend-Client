@@ -2,7 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import {
   PlayerSportProfile,
-  SavePlayerSportProfileRequest
+  SavePlayerSportProfileRequest,
+  SportMatchHistoryItem
 } from '@application/dto/player-sport-profile/player-sport-profile.dto';
 import { PlayerSportProfileRepository } from '@application/ports/persistence/player-sport-profile.repository';
 import { PlayerSportProfileApi } from '@infrastructure/api/player-sport-profile.api';
@@ -28,6 +29,10 @@ export class PlayerSportProfileRepositoryImpl implements PlayerSportProfileRepos
     payload: SavePlayerSportProfileRequest
   ): Observable<PlayerSportProfile> {
     return this.api.updateProfile(profileId, payload).pipe(map(response => response.data));
+  }
+
+  getMyHistory(sportType: string): Observable<SportMatchHistoryItem[]> {
+    return this.api.getMyHistory(sportType).pipe(map(response => response.data || []));
   }
 
   deleteProfile(profileId: string): Observable<void> {

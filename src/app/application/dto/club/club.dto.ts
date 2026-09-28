@@ -6,6 +6,7 @@ export {
   ClubActivityModel as ClubActivity,
   ClubPhotoModel as ClubPhoto,
   ClubRecentMatchModel as ClubRecentMatch,
+  ClubTournamentModel,
   CreateClubPayload,
   CreateClubActivityPayload,
   UpdateClubPayload,

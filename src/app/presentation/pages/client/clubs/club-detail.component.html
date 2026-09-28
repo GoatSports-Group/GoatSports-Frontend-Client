@@ -137,25 +137,25 @@
   </section>
 
   <nav class="detail-tabs" [class.detail-tabs--manager]="isManager()" role="tablist" aria-label="Nội dung câu lạc bộ">
-    <button type="button" role="tab" [class.active]="activeTab() === 'OVERVIEW'" (click)="setTab('OVERVIEW')">
+    <button type="button" role="tab" [class.active]="activeTab() === 'OVERVIEW'" [attr.aria-selected]="activeTab() === 'OVERVIEW'" (click)="setTab('OVERVIEW')">
       <lucide-icon name="layout-grid" class="w-4 h-4"></lucide-icon> Tổng quan
     </button>
-    <button type="button" role="tab" [class.active]="activeTab() === 'MEMBERS'" (click)="setTab('MEMBERS')">
+    <button type="button" role="tab" [class.active]="activeTab() === 'MEMBERS'" [attr.aria-selected]="activeTab() === 'MEMBERS'" (click)="setTab('MEMBERS')">
       <lucide-icon name="users" class="w-4 h-4"></lucide-icon> Thành viên
     </button>
     @if (isManager()) {
-    <button type="button" role="tab" [class.active]="activeTab() === 'REQUESTS'" (click)="setTab('REQUESTS')">
+    <button type="button" role="tab" [class.active]="activeTab() === 'REQUESTS'" [attr.aria-selected]="activeTab() === 'REQUESTS'" (click)="setTab('REQUESTS')">
       <lucide-icon name="user-round-check" class="w-4 h-4"></lucide-icon> Yêu cầu tham gia
       @if (pendingMembers().length) { <span class="tab-count">{{ pendingMembers().length }}</span> }
     </button>
     }
-    <button type="button" role="tab" [class.active]="activeTab() === 'ACTIVITIES'" (click)="setTab('ACTIVITIES')">
+    <button type="button" role="tab" [class.active]="activeTab() === 'ACTIVITIES'" [attr.aria-selected]="activeTab() === 'ACTIVITIES'" (click)="setTab('ACTIVITIES')">
       <lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon> Lịch hoạt động
     </button>
-    <button type="button" role="tab" [class.active]="activeTab() === 'TOURNAMENTS'" (click)="setTab('TOURNAMENTS')">
+    <button type="button" role="tab" [class.active]="activeTab() === 'TOURNAMENTS'" [attr.aria-selected]="activeTab() === 'TOURNAMENTS'" (click)="setTab('TOURNAMENTS')">
       <lucide-icon name="trophy" class="w-4 h-4"></lucide-icon> Giải đấu
     </button>
-    <button type="button" role="tab" [class.active]="activeTab() === 'GALLERY'" (click)="setTab('GALLERY')">
+    <button type="button" role="tab" [class.active]="activeTab() === 'GALLERY'" [attr.aria-selected]="activeTab() === 'GALLERY'" (click)="setTab('GALLERY')">
       <lucide-icon name="image" class="w-4 h-4"></lucide-icon> Thư viện
     </button>
   </nav>
@@ -810,9 +810,38 @@
   </section>
   } @else if (activeTab() === 'TOURNAMENTS') {
   <section class="content-panel tournament-workspace">
-    @if (tournament(); as activeTournament) {
+    @if (clubTournamentsLoading() && !clubTournaments().length) {
+    <app-loading-skeleton variant="rows" [count]="3" label="Đang tải các giải đã tham gia"></app-loading-skeleton>
+    } @else if (clubTournamentsError()) {
+    <div class="detail-empty detail-empty--inline" role="alert"><lucide-icon name="wifi-off" class="w-9 h-9"></lucide-icon>
+      <h2>Chưa tải được các giải đã tham gia</h2>
+      <p>Kiểm tra kết nối rồi thử lại.</p>
+      <button type="button" class="button button--secondary" (click)="loadClubTournaments()">Thử lại</button>
+    </div>
+    } @else if (clubTournaments().length) {
     <header class="content-heading tournament-heading">
       <div><span class="panel__eyebrow">Thi đấu câu lạc bộ</span>
+        <h2>{{ clubTournaments().length }} giải đã tham gia</h2>
+        <p>{{ currentClub.matchCount }} trận · {{ currentClub.winCount }} thắng · {{ currentClub.drawCount }}
+          hòa · {{ currentClub.lossCount }} thua. Chọn một giải để xem bảng xếp hạng và các trận.</p>
+      </div>
+    </header>
+    <div class="club-tournament-list" role="tablist" aria-label="Các giải đã tham gia">
+      @for (item of clubTournaments(); track item.tournamentId) {
+      <button type="button" role="tab" class="club-tournament-card" [class.is-active]="item.tournamentId === selectedTournamentId()"
+        [attr.aria-selected]="item.tournamentId === selectedTournamentId()" (click)="selectTournament(item.tournamentId)">
+        <span class="club-tournament-card__status">{{ clubTournamentStatus(item.status) }}</span>
+        <strong>{{ item.name }}</strong>
+        <span class="club-tournament-card__date">{{ item.startDate | date:'dd/MM' }} – {{ item.endDate | date:'dd/MM/yyyy' }}</span>
+        <span class="club-tournament-card__standing" [class.is-champion]="item.champion">
+          @if (item.champion) { <lucide-icon name="trophy" class="w-4 h-4"></lucide-icon> }{{ clubTournamentStanding(item) }}
+        </span>
+      </button>
+      }
+    </div>
+    @if (tournament(); as activeTournament) {
+    <header class="content-heading tournament-heading">
+      <div><span class="panel__eyebrow">{{ selectedClubTournament()?.teamName || currentClub.name }}</span>
         <h2>{{ activeTournament.name }}</h2>
         <p>{{ activeTournament.description || 'Hành trình thi đấu và thành tích của câu lạc bộ.' }}</p>
       </div>
@@ -823,7 +852,7 @@
       <div><span>Thể thức</span><strong>{{ activeTournament.format === 'ROUND_ROBIN' ? 'Vòng tròn' : 'Loại trực tiếp'
           }}</strong></div>
       <div><span>Số đội</span><strong>{{ tournamentTeams().length }}</strong></div>
-      <div><span>Trận đã đá</span><strong>{{ matchTotal() }}</strong></div>
+      <div><span>Trận của CLB</span><strong>{{ selectedClubTournament()?.played ?? tournamentMatchTotal() }}</strong></div>
       <div><span>Thời gian</span><strong>{{ activeTournament.startDate | date:'dd/MM' }} – {{ activeTournament.endDate |
           date:'dd/MM/yyyy' }}</strong></div>
     </div>
@@ -850,11 +879,11 @@
       <article class="tournament-matches">
         <header>
           <div><span class="panel__eyebrow">Lịch sử thi đấu</span>
-            <h3>{{ matchTotal() }} trận của {{ currentClub.name }}</h3>
+            <h3>{{ tournamentMatchTotal() }} trận của {{ currentClub.name }}</h3>
           </div>
         </header>
-        <div class="recent-match-list recent-match-list--tournament" (scroll)="onMatchScroll($event)">
-          @for (match of recentMatches(); track match.matchId) {
+        <div class="recent-match-list recent-match-list--tournament" (scroll)="onTournamentMatchScroll($event)">
+          @for (match of tournamentMatches(); track match.matchId) {
           <button type="button" class="recent-match-row" (click)="openMatchDetails(match)">
             <span class="recent-match-mark"><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon></span>
             <div><strong>{{ currentClub.name }} vs {{ match.opponentName }}</strong><span>{{ match.playedAt |
@@ -864,15 +893,18 @@
               [class.recent-match-result--loss]="match.result === 'LOSS'">{{ match.result === 'WIN' ? 'Thắng' :
               match.result === 'LOSS' ? 'Thua' : 'Hòa' }}</em>
           </button>
+          } @empty {
+          @if (!tournamentMatchLoading()) { <p class="tournament-matches__empty">Đội chưa đá trận nào ở giải này.</p> }
           }
-          <div #matchLoadSentinel class="match-load-sentinel" aria-live="polite">
-            @if (matchPageLoading()) { <app-loading-skeleton variant="rows" [count]="2" label="Đang tải thêm trận đấu" style="flex: 1 1 100%"></app-loading-skeleton> }
-            @else if (matchPageError()) { <button type="button" (click)="loadNextMatchPage()">Thử lại</button> }
-            @else if (!matchHasMore()) { <span>Đã hiển thị toàn bộ {{ matchTotal() }} trận.</span> }
+          <div class="match-load-sentinel" aria-live="polite">
+            @if (tournamentMatchLoading()) { <app-loading-skeleton variant="rows" [count]="2" label="Đang tải thêm trận đấu" style="flex: 1 1 100%"></app-loading-skeleton> }
+            @else if (tournamentMatchError()) { <button type="button" (click)="loadNextTournamentMatchPage()">Thử lại</button> }
+            @else if (!tournamentMatchHasMore() && tournamentMatchTotal()) { <span>Đã hiển thị toàn bộ {{ tournamentMatchTotal() }} trận.</span> }
           </div>
         </div>
       </article>
     </div>
+    }
     } @else {
     <div class="detail-empty detail-empty--inline"><lucide-icon name="trophy" class="w-9 h-9"></lucide-icon>
       <h2>Chưa tham gia giải đấu nào</h2>

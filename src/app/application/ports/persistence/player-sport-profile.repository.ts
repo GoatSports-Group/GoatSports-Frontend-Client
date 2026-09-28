@@ -2,7 +2,8 @@ import { InjectionToken } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
   PlayerSportProfile,
-  SavePlayerSportProfileRequest
+  SavePlayerSportProfileRequest,
+  SportMatchHistoryItem
 } from '@application/dto/player-sport-profile/player-sport-profile.dto';
 
 export interface PlayerSportProfileRepository {
@@ -11,6 +12,8 @@ export interface PlayerSportProfileRepository {
   createProfile(payload: SavePlayerSportProfileRequest): Observable<PlayerSportProfile>;
   updateProfile(profileId: string, payload: SavePlayerSportProfileRequest): Observable<PlayerSportProfile>;
   deleteProfile(profileId: string): Observable<void>;
+  /** Lịch sử thi đấu (ghép trận + giải đấu) của hồ sơ một môn. */
+  getMyHistory(sportType: string): Observable<SportMatchHistoryItem[]>;
 }
 
 export const PLAYER_SPORT_PROFILE_REPOSITORY_TOKEN =

@@ -65,3 +65,21 @@ export {
   SPORT_TYPE_OPTIONS,
   SportType
 };
+
+/** Một trận đã tính ELO của hồ sơ thể thao (ghép trận hoặc trận giải đấu), mới nhất trước. */
+export interface SportMatchHistoryItem {
+  resultId: string;
+  source: 'MATCHMAKING' | 'TOURNAMENT';
+  /** Giải đấu của trận (null với ghép trận). */
+  referenceId?: string | null;
+  title?: string | null;
+  opponentName?: string | null;
+  myScore?: number | null;
+  opponentScore?: number | null;
+  opponentElo?: number | null;
+  outcome: 'WIN' | 'LOSS' | 'DRAW';
+  oldElo: number;
+  newElo: number;
+  delta: number;
+  playedAt: string;
+}

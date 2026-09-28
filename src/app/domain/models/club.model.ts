@@ -116,6 +116,27 @@ export interface ClubRecentMatchModel {
   result: 'WIN' | 'DRAW' | 'LOSS';
 }
 
+/** Một giải câu lạc bộ đã tham gia (đội CLB đã được xác nhận) và thành tích của đội CLB ở giải đó. */
+export interface ClubTournamentModel {
+  tournamentId: string;
+  name: string;
+  sportType: string;
+  format: 'SINGLE_ELIMINATION' | 'ROUND_ROBIN';
+  status: string;
+  startDate: string;
+  endDate: string;
+  registrationId: string;
+  teamName?: string | null;
+  teamCount: number;
+  played: number;
+  won: number;
+  drawn: number;
+  lost: number;
+  /** Hạng của đội CLB (vòng tròn, khi đã có kết quả). */
+  rank?: number | null;
+  champion: boolean;
+}
+
 export interface CreateClubActivityPayload {
   title: string;
   description?: string;

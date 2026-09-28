@@ -4,7 +4,8 @@ import { Observable } from 'rxjs';
 import { BaseResponse } from '@application/dto/base/base-response';
 import {
   PlayerSportProfile,
-  SavePlayerSportProfileRequest
+  SavePlayerSportProfileRequest,
+  SportMatchHistoryItem
 } from '@application/dto/player-sport-profile/player-sport-profile.dto';
 import { API_ENDPOINTS } from '@infrastructure/config/api-endpoints';
 
@@ -32,6 +33,10 @@ export class PlayerSportProfileApi {
     payload: SavePlayerSportProfileRequest
   ): Observable<BaseResponse<PlayerSportProfile>> {
     return this.http.put<BaseResponse<PlayerSportProfile>>(`${this.endpoint}/${profileId}`, payload);
+  }
+
+  getMyHistory(sportType: string): Observable<BaseResponse<SportMatchHistoryItem[]>> {
+    return this.http.get<BaseResponse<SportMatchHistoryItem[]>>(`${this.endpoint}/${sportType}/history`);
   }
 
   deleteProfile(profileId: string): Observable<void> {

@@ -1231,6 +1231,87 @@ a {
   margin-bottom: 0;
 }
 
+// Các giải CLB đã tham gia: một hàng thẻ cuộn ngang, thẻ đang chọn viền primary.
+.club-tournament-list {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 2px 2px 6px;
+  scroll-snap-type: x proximity;
+}
+
+.club-tournament-card {
+  display: grid;
+  flex: 0 0 240px;
+  align-content: start;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text-dark);
+  text-align: left;
+  cursor: pointer;
+  scroll-snap-align: start;
+  transition: border-color .2s ease, box-shadow .2s ease;
+
+  // Tên giải dài được 2 dòng rồi mới cắt.
+  strong {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 15px;
+    font-weight: 800;
+    line-height: 1.3;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  &:hover { border-color: var(--primary); }
+
+  &:focus-visible {
+    outline: 3px solid var(--focus-ring, var(--primary-light));
+    outline-offset: 2px;
+  }
+
+  &.is-active {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
+  }
+}
+
+.club-tournament-card__status {
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.club-tournament-card__date {
+  color: var(--text-muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.club-tournament-card__standing {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  color: var(--text-dark);
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+
+  &.is-champion { color: #b7791f; }
+}
+
+.tournament-matches__empty {
+  margin: 8px 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
 .tournament-summary {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

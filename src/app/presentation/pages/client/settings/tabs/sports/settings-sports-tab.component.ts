@@ -3,6 +3,7 @@ import { finalize } from 'rxjs';
 import {
   PLAYER_DAY_OPTIONS,
   PlayerSportProfile,
+  SportMatchHistoryItem,
   PlayerDayOfWeek,
   SKILL_LEVEL_OPTIONS,
   SavePlayerAvailabilityRequest,
@@ -76,6 +77,11 @@ export class SettingsSportsTabComponent implements OnInit {
   pendingDeleteId: string | null = null;
   deletingProfileId: string | null = null;
   draft = this.createEmptyDraft();
+  /** Hồ sơ đang mở "Lịch sử thi đấu". */
+  historyProfile: PlayerSportProfile | null = null;
+  history: SportMatchHistoryItem[] = [];
+  historyLoading = false;
+  historyFailed = false;
 
   ngOnInit(): void {
     this.loadProfiles();
@@ -114,6 +120,42 @@ export class SettingsSportsTabComponent implements OnInit {
       },
       error: () => this.loadFailed = true
     });
+  }
+
+  openHistory(profile: PlayerSportProfile): void {
+    this.historyProfile = profile;
+    this.loadHistory();
+  }
+
+  loadHistory(): void {
+    const profile = this.historyProfile;
+    if (!profile) return;
+    this.historyLoading = true;
+    this.historyFailed = false;
+    this.history = [];
+    this.repository.getMyHistory(profile.sportType).pipe(
+      finalize(() => this.historyLoading = false)
+    ).subscribe({
+      next: items => this.history = items,
+      error: () => this.historyFailed = true
+    });
+  }
+
+  closeHistory(): void {
+    this.historyProfile = null;
+  }
+
+  historyTitle(item: SportMatchHistoryItem): string {
+    return item.title || (item.source === 'TOURNAMENT' ? 'Trận giải đấu' : 'Ghép trận');
+  }
+
+  outcomeLabel(outcome: SportMatchHistoryItem['outcome']): string {
+    return outcome === 'WIN' ? 'Thắng' : outcome === 'LOSS' ? 'Thua' : 'Hòa';
+  }
+
+  /** "+18" / "−12" / "±0" — dấu trừ thật để đọc rõ hơn gạch nối. */
+  formatDelta(delta: number): string {
+    return delta > 0 ? `+${delta}` : delta < 0 ? `−${Math.abs(delta)}` : '±0';
   }
 
   openCreate(): void {

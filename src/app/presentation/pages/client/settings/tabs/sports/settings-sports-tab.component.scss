@@ -66,6 +66,123 @@
   }
 }
 
+// Nút mở lịch sử thi đấu, ngay dưới 3 ô thống kê của thẻ hồ sơ.
+.sport-card__history {
+  justify-self: start;
+  gap: 6px;
+  padding-inline: 8px;
+
+  .is-muted { font-weight: 600; }
+}
+
+// Lịch sử thi đấu: mỗi trận một dòng — kết quả · tên trận / đối thủ · tỷ số · ELO cộng/trừ.
+.history-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.history-row {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto 88px;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--surface);
+
+  .badge { justify-content: center; }
+}
+
+.history-row__main {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+
+  strong {
+    overflow: hidden;
+    color: var(--text-dark);
+    font-size: 14px;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  span {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 4px;
+    overflow: hidden;
+    color: var(--text-muted);
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    lucide-icon { flex: none; }
+  }
+}
+
+.history-row__score {
+  color: var(--text-dark);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+.history-row__elo {
+  display: grid;
+  justify-items: end;
+  gap: 1px;
+  font-variant-numeric: tabular-nums;
+
+  b {
+    color: var(--text-muted);
+    font-size: 16px;
+    font-weight: 900;
+
+    &.is-up { color: var(--success); }
+    &.is-down { color: var(--danger); }
+  }
+
+  span {
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+  }
+}
+
+// Mobile: tỷ số xuống dưới nhãn kết quả, dòng đối thủ/ngày được xuống hàng thay vì bị cắt.
+@media (max-width: 639px) {
+  .history-row {
+    grid-template-columns: 56px minmax(0, 1fr) 80px;
+    row-gap: 4px;
+
+    .badge { grid-column: 1; grid-row: 1; }
+  }
+
+  .history-row__score {
+    grid-column: 1;
+    grid-row: 2;
+    font-size: 13px;
+    text-align: center;
+  }
+
+  .history-row__main {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+
+    span { flex-wrap: wrap; white-space: normal; }
+  }
+
+  .history-row__elo {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+  }
+}
+
 .elo {
   color: var(--text-muted);
   font-size: 13px;

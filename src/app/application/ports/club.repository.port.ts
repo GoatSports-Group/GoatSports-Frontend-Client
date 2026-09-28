@@ -6,6 +6,7 @@ import {
   ClubPhotoModel,
   ClubActivityModel,
   ClubRecentMatchModel,
+  ClubTournamentModel,
   ClubMemberModel,
   ScoutedPlayerModel,
   ScoutingFilters,
@@ -70,7 +71,12 @@ export abstract class ClubRepositoryPort {
   abstract deleteClubPhoto(clubId: string, photoId: string): Observable<void>;
   abstract getClubActivitiesPage(clubId: string, page: number, size: number): Observable<PageResult<ClubActivityModel>>;
   abstract getClubRecentMatches(clubId: string, limit?: number): Observable<ClubRecentMatchModel[]>;
-  abstract getClubMatchesPage(clubId: string, page: number, size: number): Observable<PageResult<ClubRecentMatchModel>>;
+  /** {@code tournamentId}: chỉ lấy trận của giải đó. */
+  abstract getClubMatchesPage(
+    clubId: string, page: number, size: number, tournamentId?: string
+  ): Observable<PageResult<ClubRecentMatchModel>>;
+  /** Mọi giải câu lạc bộ đã tham gia, mới nhất trước. */
+  abstract getClubTournaments(clubId: string): Observable<ClubTournamentModel[]>;
   abstract createClubActivity(clubId: string, payload: CreateClubActivityPayload): Observable<ClubActivityModel>;
   abstract updateClub(clubId: string, payload: UpdateClubPayload): Observable<ClubModel>;
   abstract changeMemberRole(clubId: string, membershipId: string, role: ClubRole): Observable<ClubMemberModel>;

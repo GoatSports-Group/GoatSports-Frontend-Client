@@ -4,7 +4,7 @@ import { map, Observable } from 'rxjs';
 import { ClubRepositoryPort } from '@application/ports/club.repository.port';
 import { BaseResponse, PageResult, PagedModelResponse } from '@application/dto/base/base-response';
 import {
-  ClubActivityModel, ClubPhotoModel, ClubRecentMatchModel, ClubMemberModel, ClubModel, ClubRole, ScoutedPlayerModel,
+  ClubActivityModel, ClubPhotoModel, ClubRecentMatchModel, ClubTournamentModel, ClubMemberModel, ClubModel, ClubRole, ScoutedPlayerModel,
   MyClubMembership, ClubInvitationModel, ScoutingFilters, ShortlistEntryModel, SentInvitationModel,
   CreateClubActivityPayload, CreateClubPayload, SportType, UpdateClubPayload
 } from '@domain/models/club.model';
@@ -154,8 +154,15 @@ export class ClubRepository extends ClubRepositoryPort {
       params: new HttpParams().set('limit', limit)
     }).pipe(map(response => response.data ?? []));
   }
-  override getClubMatchesPage(clubId: string, page: number, size: number): Observable<PageResult<ClubRecentMatchModel>> {
-    return this.getPage<ClubRecentMatchModel>(`${this.baseUrl}/${clubId}/matches/page`, page, size);
+  override getClubMatchesPage(
+    clubId: string, page: number, size: number, tournamentId?: string
+  ): Observable<PageResult<ClubRecentMatchModel>> {
+    return this.getPage<ClubRecentMatchModel>(`${this.baseUrl}/${clubId}/matches/page`, page, size,
+      tournamentId ? { tournamentId } : undefined);
+  }
+  override getClubTournaments(clubId: string): Observable<ClubTournamentModel[]> {
+    return this.http.get<BaseResponse<ClubTournamentModel[]>>(`${this.baseUrl}/${clubId}/tournaments`)
+      .pipe(map(response => response.data ?? []));
   }
   override createClubActivity(clubId: string, payload: CreateClubActivityPayload): Observable<ClubActivityModel> {
     return this.http.post<BaseResponse<ClubActivityModel>>(`${this.baseUrl}/${clubId}/activities`, payload)
@@ -184,8 +191,9 @@ export class ClubRepository extends ClubRepositoryPort {
     return this.http.delete(`${this.baseUrl}/${clubId}/activities/${activityId}`).pipe(map(() => void 0));
   }
 
-  private getPage<T>(url: string, page: number, size: number): Observable<PageResult<T>> {
-    const params = new HttpParams().set('page', page).set('size', size);
+  private getPage<T>(url: string, page: number, size: number, extra?: Record<string, string>): Observable<PageResult<T>> {
+    let params = new HttpParams().set('page', page).set('size', size);
+    Object.entries(extra ?? {}).forEach(([key, value]) => params = params.set(key, value));
     return this.http.get<BaseResponse<PagedModelResponse<T>>>(url, { params }).pipe(map(response => {
       const data = response.data;
       return {

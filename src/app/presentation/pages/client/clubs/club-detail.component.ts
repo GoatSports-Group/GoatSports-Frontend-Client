@@ -8,7 +8,7 @@ import { User } from '@application/dto/user/user.dto';
 import {
   Club as ClubModel, ClubActivity as ClubActivityModel, ClubMember as ClubMemberModel,
   ClubPhoto as ClubPhotoModel,
-  ClubRecentMatch as ClubRecentMatchModel,
+  ClubRecentMatch as ClubRecentMatchModel, ClubTournamentModel,
   CreateClubActivityPayload, ClubRole,
   UpdateClubPayload, ClubPrivacy, ClubApprovalMode
 } from '@application/dto/club/club.dto';
@@ -150,6 +150,20 @@ export class ClubDetailComponent implements OnDestroy {
   readonly tournament = signal<TournamentModel | null>(null);
   readonly tournamentTeams = signal<TournamentRegistrationModel[]>([]);
   readonly tournamentStandings = signal<TournamentStandingModel[]>([]);
+  /** Tab Giải đấu: mọi giải CLB đã tham gia, giải đang xem và các trận của CLB trong giải đó. */
+  readonly clubTournaments = signal<ClubTournamentModel[]>([]);
+  readonly clubTournamentsLoading = signal(false);
+  readonly clubTournamentsError = signal(false);
+  readonly selectedTournamentId = signal<string | null>(null);
+  readonly selectedClubTournament = computed(() =>
+    this.clubTournaments().find(item => item.tournamentId === this.selectedTournamentId()) ?? null);
+  readonly tournamentMatches = signal<ReadonlyArray<ClubRecentMatchModel>>([]);
+  readonly tournamentMatchLoading = signal(false);
+  readonly tournamentMatchError = signal(false);
+  readonly tournamentMatchHasMore = signal(true);
+  readonly tournamentMatchTotal = signal(0);
+  private tournamentMatchPage = 0;
+  private clubTournamentsLoaded = false;
   readonly clubTournamentRegistrationId = computed(() =>
     this.tournamentTeams().find(team => team.clubId === this.clubId)?.registrationId ?? null);
   readonly joinRequestClub = computed<ClubCardView | null>(() => {
@@ -300,8 +314,8 @@ export class ClubDetailComponent implements OnDestroy {
     if (tab === 'ACTIVITIES' && !this.activities().length && !this.activityPageLoading()) {
       this.loadNextActivityPage();
     }
-    if (tab === 'TOURNAMENTS' && this.recentMatches().length <= this.matchPageSize && this.matchHasMore()) {
-      this.loadNextMatchPage();
+    if (tab === 'TOURNAMENTS' && !this.clubTournamentsLoaded) {
+      this.loadClubTournaments();
     }
     if (tab === 'GALLERY' && !this.clubPhotos().length && !this.photoPageLoading()) {
       this.loadNextPhotoPage();
@@ -570,6 +584,82 @@ export class ClubDetailComponent implements OnDestroy {
         this.matchPageError.set(true);
       }
     });
+  }
+
+  loadClubTournaments(): void {
+    this.clubTournamentsLoading.set(true);
+    this.clubTournamentsError.set(false);
+    this.repository.getClubTournaments(this.clubId).subscribe({
+      next: items => {
+        this.clubTournamentsLoaded = true;
+        this.clubTournaments.set(items);
+        this.clubTournamentsLoading.set(false);
+        const keep = items.some(item => item.tournamentId === this.selectedTournamentId());
+        if (!keep && items.length) this.selectTournament(items[0].tournamentId);
+      },
+      error: () => {
+        this.clubTournamentsLoading.set(false);
+        this.clubTournamentsError.set(true);
+      }
+    });
+  }
+
+  selectTournament(tournamentId: string): void {
+    if (this.selectedTournamentId() === tournamentId && this.tournamentMatches().length) return;
+    this.selectedTournamentId.set(tournamentId);
+    this.loadTournamentContext(tournamentId);
+    this.tournamentMatches.set([]);
+    this.tournamentMatchTotal.set(0);
+    this.tournamentMatchPage = 0;
+    this.tournamentMatchHasMore.set(true);
+    this.loadNextTournamentMatchPage();
+  }
+
+  onTournamentMatchScroll(event: Event): void {
+    const container = event.currentTarget as HTMLElement | null;
+    if (!container) return;
+    if (container.scrollHeight - container.scrollTop - container.clientHeight <= 72) this.loadNextTournamentMatchPage();
+  }
+
+  loadNextTournamentMatchPage(): void {
+    const tournamentId = this.selectedTournamentId();
+    if (!tournamentId || this.tournamentMatchLoading() || !this.tournamentMatchHasMore()) return;
+    this.tournamentMatchLoading.set(true);
+    this.tournamentMatchError.set(false);
+    const requestedPage = this.tournamentMatchPage;
+    this.repository.getClubMatchesPage(this.clubId, requestedPage, this.matchPageSize, tournamentId).subscribe({
+      next: page => {
+        // Người dùng đã chọn giải khác trong lúc tải: bỏ kết quả cũ.
+        if (this.selectedTournamentId() !== tournamentId) return;
+        this.tournamentMatches.update(items => {
+          const known = new Set(items.map(item => item.matchId));
+          return [...items, ...page.items.filter(item => !known.has(item.matchId))];
+        });
+        this.tournamentMatchTotal.set(page.total);
+        this.tournamentMatchPage = requestedPage + 1;
+        this.tournamentMatchHasMore.set(this.tournamentMatchPage < page.totalPages);
+        this.tournamentMatchLoading.set(false);
+      },
+      error: () => {
+        this.tournamentMatchLoading.set(false);
+        this.tournamentMatchError.set(true);
+      }
+    });
+  }
+
+  /** "Vô địch" / "Hạng 2/5" / "3T · 1H · 2B" / "Chưa thi đấu" cho thẻ giải. */
+  clubTournamentStanding(item: ClubTournamentModel): string {
+    if (item.champion) return 'Vô địch';
+    if (item.rank) return `Hạng ${item.rank}/${item.teamCount}`;
+    if (!item.played) return 'Chưa thi đấu';
+    return `${item.won}T · ${item.drawn}H · ${item.lost}B`;
+  }
+
+  clubTournamentStatus(status: string): string {
+    return ({
+      PUBLISHED: 'Sắp diễn ra', REGISTRATION_OPEN: 'Đang mở đăng ký', REGISTRATION_CLOSED: 'Đã đóng đăng ký',
+      IN_PROGRESS: 'Đang diễn ra', COMPLETED: 'Đã kết thúc', CANCELLED: 'Đã hủy'
+    } as Record<string, string>)[status] ?? status;
   }
 
   sportName(): string { return this.club() ? sportLabel(this.club()!.sportType) : ''; }
@@ -1079,6 +1169,8 @@ export class ClubDetailComponent implements OnDestroy {
 
   private loadTournamentContext(tournamentId?: string): void {
     if (!tournamentId || this.tournament()?.tournamentId === tournamentId) return;
+    // Tab Giải đấu đang xem một giải cụ thể: trận mới tải ở tab khác không được kéo ngữ cảnh sang giải khác.
+    if (this.selectedTournamentId() && this.selectedTournamentId() !== tournamentId) return;
     forkJoin({
       tournament: this.tournamentRepository.getTournamentDetails(tournamentId),
       teams: this.tournamentRepository.getTournamentTeams(tournamentId),
