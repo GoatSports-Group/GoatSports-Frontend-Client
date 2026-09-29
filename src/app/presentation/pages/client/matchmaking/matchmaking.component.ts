@@ -346,9 +346,9 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
       : 'Đối thủ đã đồng ý, đến lượt bạn';
     if (status === 'REJECTED') return 'Kèo đã bị từ chối';
     if (status === 'EXPIRED') {
-      return m.proposal?.cancelReason === 'NO_CHECK_IN'
-        ? 'Không ai check-in nhận sân nên trận không được ghi nhận'
-        : 'Kèo đã hết thời gian xác nhận';
+      if (m.proposal?.cancelReason === 'NO_CHECK_IN') return 'Không ai check-in nhận sân nên trận không được ghi nhận';
+      if (m.proposal?.cancelReason === 'NOT_BOOKED') return 'Đã qua giờ chơi mà chưa đặt được sân nên kèo đã đóng';
+      return 'Kèo đã hết thời gian xác nhận';
     }
     if (status === 'CANCELLED') return this.cancelReasonMessage(m);
     return 'Đã tìm thấy đối thủ';
