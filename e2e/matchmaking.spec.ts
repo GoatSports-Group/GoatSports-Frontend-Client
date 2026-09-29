@@ -79,6 +79,12 @@ function session(status: TestSessionStatus = 'PROPOSED', sportType = 'BADMINTON'
   };
 }
 
+/** Chọn một giá trị trong app-select (nút mang aria-label của select). */
+async function pick(page: Page, select: string, option: string | RegExp): Promise<void> {
+  await page.getByRole('button', { name: select }).click();
+  await page.getByRole('option', { name: option }).click();
+}
+
 /** Nhảy thẳng tới bước cuối (Tiêu chí ghép), nơi có nút tìm đối thủ. */
 async function openLastStep(page: Page): Promise<void> {
   await page.getByRole('button', { name: /Tiêu chí ghép/ }).click();
@@ -317,7 +323,7 @@ test.describe('hình thức thi đấu', () => {
     await page.goto('/matchmaking');
     const closeAssistant = page.getByRole('button', { name: 'Đóng trợ lý' });
     if (await closeAssistant.isVisible()) await closeAssistant.click();
-    await page.getByRole('radio', { name: /Đánh đôi/ }).click();
+    await pick(page, 'Hình thức thi đấu', /Đánh đôi/);
     await expect(page.locator('.stepper li')).toHaveCount(4);
     await page.getByRole('button', { name: 'Tiếp tục' }).click();
     // Chưa chọn bạn cặp thì không qua được bước Đồng đội, cũng không nhảy cóc được.
@@ -365,14 +371,17 @@ test.describe('hình thức thi đấu', () => {
     await page.goto('/matchmaking');
     const closeAssistant = page.getByRole('button', { name: 'Đóng trợ lý' });
     if (await closeAssistant.isVisible()) await closeAssistant.click();
-    await page.getByRole('button', { name: 'Bóng đá' }).click();
+    await pick(page, 'Môn thể thao', 'Bóng đá');
 
-    await expect(page.getByRole('radio')).toHaveText([/Sân 5/, /Sân 7/, /Sân 11/]);
-    // Bước 1 cho thấy CLB bóng đá mình đang ở (cả CLB chỉ là thành viên).
-    await expect(page.locator('.club-hint')).toContainText('FC Bến Nghé');
-    await expect(page.locator('.club-hint')).toContainText('FC Thảo Điền');
-    await page.getByRole('radio', { name: /Sân 7/ }).click();
+    await page.getByRole('button', { name: 'Hình thức thi đấu' }).click();
+    await expect(page.getByRole('option')).toHaveText([/Sân 5/, /Sân 7/, /Sân 11/]);
+    await page.getByRole('option', { name: /Sân 7/ }).click();
     await page.getByRole('button', { name: 'Tiếp tục' }).click();
+
+    // Bước Đồng đội liệt kê mọi CLB bóng đá mình đang ở (cả CLB chỉ là thành viên).
+    await page.getByRole('button', { name: 'CLB của đồng đội' }).click();
+    await expect(page.getByRole('option')).toHaveText(['FC Bến Nghé', 'FC Thảo Điền']);
+    await page.keyboard.press('Escape');
 
     // Đại diện CLB: chỉ CLB mình là chủ hoặc quản lý, chọn sẵn khi chỉ có một.
     await page.getByRole('tab', { name: 'Đại diện CLB' }).click();
@@ -423,7 +432,7 @@ test.describe('hình thức thi đấu', () => {
     await page.goto('/matchmaking');
     const closeAssistant = page.getByRole('button', { name: 'Đóng trợ lý' });
     if (await closeAssistant.isVisible()) await closeAssistant.click();
-    await page.getByRole('button', { name: 'Bóng rổ' }).click();
+    await pick(page, 'Môn thể thao', 'Bóng rổ');
     await page.getByRole('button', { name: 'Tiếp tục' }).click();
 
     // Đang ở CLB bóng rổ nên mặc định chọn trong CLB; thành viên chưa duyệt và chính mình không có trong danh sách.

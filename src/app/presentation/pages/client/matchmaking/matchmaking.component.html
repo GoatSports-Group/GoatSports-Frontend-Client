@@ -111,47 +111,15 @@
           @case ('SPORT') {
           <legend class="sr-only">Môn &amp; hình thức</legend>
           <div class="sport-step">
-            <div class="step-block">
-              <span class="block-label">Môn thể thao</span>
-              <div class="sport-grid" role="group" aria-label="Môn thể thao">
-                @for (sport of sports; track sport.value) {
-                <button type="button" class="sport-tile" [class.selected]="selectedSport() === sport.value"
-                  [attr.aria-pressed]="selectedSport() === sport.value" (click)="selectSport(sport.value)">
-                  <span class="sport-tile__icon"><lucide-icon [name]="sport.icon" class="w-5 h-5"></lucide-icon></span>
-                  <span>{{ sport.label }}</span>
-                </button>
-                }
-              </div>
+            <div class="select-field">
+              <span class="block-label" id="sport-label">Môn thể thao</span>
+              <app-select ariaLabel="Môn thể thao" [leadingIcon]="sportIcon()" [options]="sportOptions"
+                [ngModel]="selectedSport()" (ngModelChange)="selectSport($event)"></app-select>
             </div>
-            <div class="format-line">
-              <div class="step-block">
-                <span class="block-label">Hình thức</span>
-                <div class="format-row" role="radiogroup" aria-label="Hình thức thi đấu">
-                  @for (format of formats(); track format.value) {
-                  <button type="button" role="radio" class="format-choice" [class.selected]="playFormat() === format.value"
-                    [attr.aria-checked]="playFormat() === format.value" (click)="selectFormat(format.value)">
-                    <strong>{{ format.label }}</strong><small>{{ format.helper }}</small>
-                  </button>
-                  }
-                </div>
-              </div>
-              <div class="step-block">
-                <span class="block-label">CLB {{ selectedSportLabel().toLowerCase() }} của bạn</span>
-                <div class="club-hint">
-                  @if (clubsLoading()) {
-                  <span>Đang tải CLB của bạn…</span>
-                  } @else if (sportClubs().length) {
-                  <div class="club-chips">
-                    @for (item of sportClubs(); track item.club.clubId) {
-                    <span class="club-chip"><lucide-icon name="users-round" class="w-4 h-4"></lucide-icon>{{ item.club.name }}</span>
-                    }
-                  </div>
-                  <small>{{ teamSize() > 1 ? 'Chọn đồng đội trong CLB ở bước sau.' : 'Chọn Đánh đôi hoặc đội để rủ người trong CLB.' }}</small>
-                  } @else {
-                  <span>Bạn chưa ở CLB {{ selectedSportLabel().toLowerCase() }} nào. <a routerLink="/clubs">Tìm CLB</a></span>
-                  }
-                </div>
-              </div>
+            <div class="select-field">
+              <span class="block-label">Hình thức</span>
+              <app-select ariaLabel="Hình thức thi đấu" leadingIcon="users" [options]="formatOptions()"
+                [ngModel]="playFormat()" (ngModelChange)="selectFormat($event)"></app-select>
             </div>
           </div>
           }
@@ -501,6 +469,61 @@
       }
     </section>
   </div>
+  @if (feedbackTarget(); as target) {
+  <div class="modal-backdrop" (click)="closeFeedback()">
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="feedback-title"
+      (click)="$event.stopPropagation()" (keydown.escape)="closeFeedback()">
+      <header class="modal__header">
+        <div>
+          <h2 id="feedback-title">Đánh giá {{ opponent(target)?.name }}</h2>
+          <p>{{ sportLabel(target.sportType) }} · {{ historyDate(target) }} · {{ hhmm(target.startTime) }}–{{ hhmm(target.endTime) }}</p>
+        </div>
+        <button type="button" class="card-close" aria-label="Đóng" (click)="closeFeedback()">
+          <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+        </button>
+      </header>
+      <div class="modal__body">
+        <fieldset class="feedback-fields" [disabled]="actionLoading()">
+          <div class="rating-field">
+            <span id="rating-label">Mức độ hài lòng</span>
+            <div class="stars" role="radiogroup" aria-labelledby="rating-label">
+              @for (value of ratingScale; track value) {
+              <button type="button" role="radio" [attr.aria-checked]="feedbackRating() === value"
+                [attr.aria-label]="value + ' sao'" [class.is-on]="value <= feedbackRating()" (click)="feedbackRating.set(value)">
+                <lucide-icon name="star" class="w-6 h-6"></lucide-icon>
+              </button>
+              }
+            </div>
+          </div>
+          <div class="rating-field">
+            <span id="fairplay-label">Tinh thần fair-play</span>
+            <div class="stars" role="radiogroup" aria-labelledby="fairplay-label">
+              @for (value of ratingScale; track value) {
+              <button type="button" role="radio" [attr.aria-checked]="fairPlayRating() === value"
+                [attr.aria-label]="value + ' sao'" [class.is-on]="value <= fairPlayRating()" (click)="fairPlayRating.set(value)">
+                <lucide-icon name="star" class="w-6 h-6"></lucide-icon>
+              </button>
+              }
+            </div>
+          </div>
+          <label class="comment-field" for="feedback-comment">
+            <span>Nhận xét <small>(không bắt buộc)</small></span>
+            <textarea id="feedback-comment" rows="3" maxlength="500" placeholder="Đối thủ chơi thế nào?"
+              [ngModel]="feedbackComment()" (ngModelChange)="feedbackComment.set($event)"></textarea>
+            <small class="comment-count">{{ feedbackComment().length }}/500</small>
+          </label>
+        </fieldset>
+      </div>
+      <footer class="modal__footer">
+        <button type="button" class="button button-secondary" [disabled]="actionLoading()" (click)="closeFeedback()">Hủy</button>
+        <button type="button" class="button button-primary" [disabled]="actionLoading()" (click)="submitFeedback()">
+          @if (actionLoading()) { <span class="spinner spinner--small spinner--light"></span> }
+          Gửi đánh giá
+        </button>
+      </footer>
+    </section>
+  </div>
+  }
 </main>
 
 <!-- Thẻ một kèo. side = false: kèo vừa tìm thấy ở hàng trên; side = true: kèo chọn từ lịch sử ở cột trái. -->
@@ -769,20 +792,25 @@
             Kết quả đã được ghi nhận. ELO chưa đồng bộ được, hệ thống sẽ tự thử lại mỗi lần bạn mở lại trang này.
           </p>
           }
-          @if (!hasSubmittedFeedback(match)) {
-          <header><strong>Đánh giá đối thủ</strong><span>Giúp AI ghép những người chơi đẹp với nhau.</span></header>
-          <div class="feedback-form">
-            <label>Đánh giá<input type="number" min="1" max="5" [ngModel]="feedbackRating()"
-                (ngModelChange)="feedbackRating.set($event)" /></label>
-            <label>Fair-play<input type="number" min="1" max="5" [ngModel]="fairPlayRating()"
-                (ngModelChange)="fairPlayRating.set($event)" /></label>
-            <label class="feedback-comment">Nhận xét<input type="text" maxlength="500" [ngModel]="feedbackComment()"
-                (ngModelChange)="feedbackComment.set($event)" placeholder="Đối thủ chơi thế nào?" /></label>
-            <button type="button" class="button button-primary" [disabled]="actionLoading()"
-              (click)="submitFeedback(match)">Gửi đánh giá</button>
+          @if (myFeedback(match); as given) {
+          <div class="feedback-row">
+            <span>
+              <strong>Bạn đã đánh giá đối thủ</strong>
+              <small>Hài lòng {{ given.rating }}/5 · Fair-play {{ given.fairPlayRating }}/5@if (given.comment) { · “{{ given.comment }}” }</small>
+            </span>
+            <lucide-icon name="check-circle-2" class="w-5 h-5 feedback-row__done"></lucide-icon>
           </div>
           } @else {
-          <p class="feedback-done"><lucide-icon name="check-circle-2" class="w-4 h-4"></lucide-icon>Bạn đã đánh giá đối thủ trận này.</p>
+          <div class="feedback-row">
+            <span>
+              <strong>Đánh giá đối thủ</strong>
+              <small>Giúp AI ghép những người chơi đẹp với nhau.</small>
+            </span>
+            <button type="button" class="button button-primary" (click)="openFeedback(match)">
+              <lucide-icon name="star" class="w-4 h-4"></lucide-icon>
+              Đánh giá
+            </button>
+          </div>
           }
         </section>
         } @else if (isTerminalMatchStatus(match)) {

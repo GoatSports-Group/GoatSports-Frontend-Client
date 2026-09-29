@@ -236,6 +236,15 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     { label: 'Bóng rổ', value: 'BASKETBALL', icon: 'circle-dot-dashed' },
     { label: 'Bóng chuyền', value: 'VOLLEYBALL', icon: 'circle-dot' }
   ];
+  readonly sportOptions: readonly SelectOption[] = this.sports.map(item => ({
+    value: item.value, label: item.label, icon: item.icon
+  }));
+  readonly formatOptions = computed<SelectOption[]>(() =>
+    this.formats().map(item => ({ value: item.value, label: `${item.label} · ${item.helper}` })));
+  readonly sportIcon = computed(() => this.sports.find(item => item.value === this.selectedSport())?.icon ?? 'trophy');
+  /** Kèo đang mở hộp thoại đánh giá đối thủ (chỉ mở khi bấm nút). */
+  readonly feedbackTarget = signal<MatchmakingSession | null>(null);
+  readonly ratingScale = [1, 2, 3, 4, 5] as const;
   readonly skills: ReadonlyArray<{
     label: string;
     helper: string;
@@ -963,9 +972,22 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     });
   }
 
+  openFeedback(match: MatchmakingSession): void {
+    this.feedbackRating.set(5);
+    this.fairPlayRating.set(5);
+    this.feedbackComment.set('');
+    this.errorMessage.set('');
+    this.feedbackTarget.set(match);
+  }
+
+  closeFeedback(): void {
+    if (!this.actionLoading()) this.feedbackTarget.set(null);
+  }
+
   /** Đánh giá được mọi trận đã hoàn tất của mình, kể cả mở từ lịch sử. */
-  submitFeedback(match: MatchmakingSession): void {
-    if (this.actionLoading()) return;
+  submitFeedback(): void {
+    const match = this.feedbackTarget();
+    if (!match || this.actionLoading()) return;
     this.actionLoading.set(true);
     this.errorMessage.set('');
     this.aiRepository.submitOpponentFeedback(
@@ -981,7 +1003,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
         if (updated.sessionId === this.session()?.sessionId) this.applySession(updated);
         if (this.selectedHistorySession()?.sessionId === updated.sessionId) this.selectedHistorySession.set(updated);
         this.history.update(items => items.map(item => item.sessionId === updated.sessionId ? updated : item));
-        this.feedbackComment.set('');
+        this.feedbackTarget.set(null);
       },
       error: error => this.errorMessage.set(this.userMessage(error, 'Không thể gửi đánh giá.'))
     });
@@ -993,7 +1015,12 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   }
 
   hasSubmittedFeedback(m: MatchmakingSession): boolean {
-    return Boolean(m.feedback?.some(item => this.onMySide(m, item.reviewerId)));
+    return Boolean(this.myFeedback(m));
+  }
+
+  /** Đánh giá bên mình đã gửi cho trận này (một bên chỉ đánh giá một lần). */
+  myFeedback(m: MatchmakingSession) {
+    return m.feedback?.find(item => this.onMySide(m, item.reviewerId)) ?? null;
   }
 
   /** "18:00:00" → "18:00". */
