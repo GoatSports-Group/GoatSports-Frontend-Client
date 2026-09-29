@@ -186,11 +186,13 @@ test('hiển thị cấu hình từ hồ sơ và lịch sử ghép kèo thật',
   await expect(page.getByText('Trần Hoàng Minh')).toBeVisible();
   await expect(page.getByText('Đã xác nhận')).toBeVisible();
 
-  // Chọn một kèo trong lịch sử: chi tiết thay chỗ form ở hàng trên, đóng lại thì form quay về đúng bước.
+  // Chọn một kèo trong lịch sử: chi tiết thay chỗ tiêu chí AI ở cột trái, form ở hàng trên giữ nguyên bước đang làm.
   await page.locator('.history-row').click();
-  await expect(page.locator('.result-state--matched .match-header')).toContainText('Cầu lông');
-  await page.getByRole('button', { name: /Đóng chi tiết/ }).click();
+  await expect(page.locator('.insights .result-state--matched .match-header')).toContainText('Cầu lông');
+  await expect(page.locator('.criteria-card')).toHaveCount(0);
   await expect(page.getByRole('button', { name: /^Fair-play/ })).toBeVisible();
+  await page.getByRole('button', { name: /Đóng chi tiết/ }).click();
+  await expect(page.locator('.criteria-card')).toBeVisible();
 });
 
 test('chặn khung giờ trùng trận sắp tới và mở lại khi hết khoảng đệm', async ({ page }) => {
@@ -471,8 +473,8 @@ test('khung giờ là khoảng rảnh: mỗi sân gợi ý hiện giờ thi đ�
   await expect(page.getByText('Khung rảnh chung')).toBeVisible();
   await expect(page.getByText('18:00–20:00').first()).toBeVisible();
   await expect(page.getByText('Thi đấu 19:00–20:00')).toBeVisible();
-  // Kèo đang chạy: quay về form bằng "Tạo kèo mới", kèo vẫn nằm trong lịch sử.
-  await page.getByRole('button', { name: 'Tạo kèo mới' }).click();
+  // Kèo hiện tại mở từ lịch sử cũng nằm ở cột trái; form ở hàng trên không đổi.
   await expect(page.locator('.setup-card')).toBeVisible();
-  await expect(page.locator('.history-row')).toHaveCount(1);
+  await page.getByRole('button', { name: /Đóng chi tiết/ }).click();
+  await expect(page.locator('.criteria-card')).toBeVisible();
 });

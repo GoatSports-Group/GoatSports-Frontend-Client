@@ -258,95 +258,97 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   ];
 
   readonly hideRestoredSession = signal(false);
-  readonly displayedSession = computed(() => {
-    const selected = this.selectedHistorySession();
-    if (selected) return selected;
-    return this.hideRestoredSession() ? null : this.session();
-  });
-  readonly isViewingHistory = computed(() => {
-    const selected = this.selectedHistorySession();
-    if (!selected) return false;
-    return selected.sessionId !== this.session()?.sessionId;
-  });
-  readonly historyReturnLabel = computed(() =>
-    this.session() && !this.hideRestoredSession() ? 'Trở lại trận hiện tại' : 'Đóng chi tiết'
-  );
-  /** Bên của mình: chính mình, cặp có mình, hoặc CLB mình là chủ/quản lý. */
-  readonly currentParticipant = computed(() => this.mySide(this.displayedSession()));
-  readonly opponent = computed(() => {
-    const mine = this.currentParticipant();
-    return this.displayedSession()?.participants.find(item => item !== mine) ?? null;
-  });
-  readonly currentParticipantInitials = computed(() => this.initials(this.currentParticipant()?.name));
-  readonly opponentInitials = computed(() => this.initials(this.opponent()?.name));
+  /** Hàng trên: chỉ kèo vừa tìm thấy (hoặc được cập nhật realtime). Kèo khôi phục khi mở trang chỉ nằm trong lịch sử. */
+  readonly liveSession = computed(() => this.hideRestoredSession() ? null : this.session());
   readonly selectedSportLabel = computed(() =>
     this.sports.find(item => item.value === this.selectedSport())?.label ?? this.selectedSport()
   );
   readonly selectedPlayDateLabel = computed(() => this.formatLocalDate(this.playDate()));
-  readonly matchDateLabel = computed(() => {
-    const value = this.displayedSession()?.playDate;
-    return value ? this.formatLocalDate(value) : '';
-  });
   readonly activeProfile = computed(() =>
     this.profiles().find(item => item.sportType === this.selectedSport()) ?? null
   );
-  readonly responseRemainingSeconds = computed(() => {
-    const expiry = this.displayedSession()?.expiresAt;
-    if (!expiry) return 0;
-    return Math.max(0, Math.ceil((new Date(expiry).getTime() - this.nowMs()) / 1000));
-  });
-  readonly myDecision = computed(() => {
-    const profileId = this.currentParticipant()?.participantProfileId;
-    return this.displayedSession()?.acceptances.find(item => item.participantProfileId === profileId)?.decision ?? null;
-  });
-  readonly canRespond = computed(() => {
-    if (this.isViewingHistory()) return false;
-    const status = this.displayedSession()?.status;
-    return !this.myDecision() && (status === 'PROPOSED' || status === 'ACCEPTED_BY_ONE')
-      && this.responseRemainingSeconds() > 0;
-  });
-  readonly canOpenChat = computed(() =>
-    Boolean(this.displayedSession()?.proposal?.conversationId)
-  );
-  readonly isDesignatedBooker = computed(() =>
-    this.displayedSession()?.proposal?.designatedBookerId === this.authService.currentUser?.userId
-  );
-  readonly isTerminalMatchStatus = computed(() => {
-    const status = this.displayedSession()?.status;
-    return status === 'REJECTED' || status === 'EXPIRED' || status === 'CANCELLED';
-  });
-  readonly statusMessage = computed(() => {
-    const status = this.displayedSession()?.status;
+
+  // ---- Thông tin của một phiên. Nhận phiên làm tham số vì hàng trên (kèo đang tìm thấy) và cột trái
+  // (kèo chọn từ lịch sử) có thể cùng hiện hai phiên khác nhau. ----
+
+  /** Phiên không phải kèo hiện tại: chỉ xem, không thao tác. */
+  isHistory(m: MatchmakingSession): boolean {
+    return m.sessionId !== this.session()?.sessionId;
+  }
+
+  /** Bên của mình: chính mình, cặp / đội có mình, hoặc CLB mình là chủ/quản lý. */
+  currentParticipant(m: MatchmakingSession): MatchmakingPlayer | null {
+    return this.mySide(m);
+  }
+
+  opponent(m: MatchmakingSession): MatchmakingPlayer | null {
+    const mine = this.currentParticipant(m);
+    return m.participants.find(item => item !== mine) ?? null;
+  }
+
+  matchDateLabel(m: MatchmakingSession): string {
+    return m.playDate ? this.formatLocalDate(m.playDate) : '';
+  }
+
+  responseRemainingSeconds(m: MatchmakingSession): number {
+    if (!m.expiresAt) return 0;
+    return Math.max(0, Math.ceil((new Date(m.expiresAt).getTime() - this.nowMs()) / 1000));
+  }
+
+  myDecision(m: MatchmakingSession): AcceptanceDecision | null {
+    const profileId = this.currentParticipant(m)?.participantProfileId;
+    return m.acceptances.find(item => item.participantProfileId === profileId)?.decision ?? null;
+  }
+
+  canRespond(m: MatchmakingSession): boolean {
+    if (this.isHistory(m)) return false;
+    return !this.myDecision(m) && (m.status === 'PROPOSED' || m.status === 'ACCEPTED_BY_ONE')
+      && this.responseRemainingSeconds(m) > 0;
+  }
+
+  canOpenChat(m: MatchmakingSession): boolean {
+    return Boolean(m.proposal?.conversationId);
+  }
+
+  isDesignatedBooker(m: MatchmakingSession): boolean {
+    return m.proposal?.designatedBookerId === this.authService.currentUser?.userId;
+  }
+
+  isTerminalMatchStatus(m: MatchmakingSession): boolean {
+    return m.status === 'REJECTED' || m.status === 'EXPIRED' || m.status === 'CANCELLED';
+  }
+
+  statusMessage(m: MatchmakingSession): string {
+    const status = m.status;
     if (status === 'ACCEPTED') return 'Hai bên đã xác nhận kèo';
     if (status === 'VENUE_SELECTED') return 'Đã chọn sân, chờ người đặt cọc';
     if (status === 'BOOKING_PENDING') return 'Đang chờ thanh toán tiền cọc';
     if (status === 'CONFIRMED') return 'Trận đấu đã được xác nhận';
     if (status === 'CHECKED_IN') {
-      return this.canEnterResult()
+      return this.canEnterResult(m)
         ? 'Hai người chơi có thể nhập kết quả'
         : 'Đã check-in · trận đấu đang diễn ra';
     }
     if (status === 'RESULT_PENDING') return 'Đang chờ đối thủ xác nhận kết quả';
     if (status === 'DISPUTED') return 'Kết quả chưa trùng khớp';
     if (status === 'COMPLETED') return 'Trận đấu đã hoàn tất';
-    if (status === 'ACCEPTED_BY_ONE') return this.myDecision() === 'ACCEPTED'
+    if (status === 'ACCEPTED_BY_ONE') return this.myDecision(m) === 'ACCEPTED'
       ? 'Đang chờ đối thủ xác nhận'
       : 'Đối thủ đã đồng ý, đến lượt bạn';
     if (status === 'REJECTED') return 'Kèo đã bị từ chối';
     if (status === 'EXPIRED') {
-      return this.displayedSession()?.proposal?.cancelReason === 'NO_CHECK_IN'
+      return m.proposal?.cancelReason === 'NO_CHECK_IN'
         ? 'Không ai check-in nhận sân nên trận không được ghi nhận'
         : 'Kèo đã hết thời gian xác nhận';
     }
-    if (status === 'CANCELLED') return this.cancelReasonMessage();
+    if (status === 'CANCELLED') return this.cancelReasonMessage(m);
     return 'Đã tìm thấy đối thủ';
-  });
-  readonly cancelReasonMessage = computed(() => {
-    const match = this.displayedSession();
-    const reason = match?.proposal?.cancelReason;
-    switch (reason) {
+  }
+
+  cancelReasonMessage(m: MatchmakingSession): string {
+    switch (m.proposal?.cancelReason) {
       case 'PLAYER_CANCELLED':
-        return this.isDesignatedBooker()
+        return this.isDesignatedBooker(m)
           ? 'Bạn đã hủy đặt sân cho kèo này'
           : 'Người đặt cọc đã hủy đặt sân cho kèo này';
       case 'PAYMENT_EXPIRED':
@@ -358,24 +360,27 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
       default:
         return 'Kèo đã bị hủy';
     }
-  });
-  readonly statusLabel = computed(() => this.sessionStatusLabel(this.displayedSession()?.status));
-  readonly checkInWindowState = computed<'BEFORE' | 'ACTIVE' | 'MISSED' | null>(() => {
-    const match = this.displayedSession();
-    if (!match || match.status !== 'CONFIRMED') return null;
-    const start = this.localDateTime(match.playDate, match.startTime);
-    const end = this.localDateTime(match.playDate, match.endTime);
+  }
+
+  statusLabel(m: MatchmakingSession): string {
+    return this.sessionStatusLabel(m.status);
+  }
+
+  checkInWindowState(m: MatchmakingSession): 'BEFORE' | 'ACTIVE' | 'MISSED' | null {
+    if (m.status !== 'CONFIRMED') return null;
+    const start = this.localDateTime(m.playDate, m.startTime);
+    const end = this.localDateTime(m.playDate, m.endTime);
     if (!start || !end) return null;
     const now = this.nowMs();
     if (now < start.getTime()) return 'BEFORE';
     if (now <= end.getTime()) return 'ACTIVE';
     return 'MISSED';
-  });
-  readonly checkInWindowLabel = computed(() => {
-    const state = this.checkInWindowState();
-    const match = this.displayedSession();
-    if (state === 'BEFORE' && match) {
-      const start = this.localDateTime(match.playDate, match.startTime);
+  }
+
+  checkInWindowLabel(m: MatchmakingSession): string {
+    const state = this.checkInWindowState(m);
+    if (state === 'BEFORE') {
+      const start = this.localDateTime(m.playDate, m.startTime);
       if (start) {
         const hoursLeft = Math.ceil((start.getTime() - this.nowMs()) / 3_600_000);
         return hoursLeft > 0
@@ -386,35 +391,31 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     if (state === 'ACTIVE') return 'Đang trong khung giờ chơi · chưa check-in tại sân';
     if (state === 'MISSED') return 'Chưa check-in tại sân · trận sẽ không được ghi nhận kết quả';
     return '';
-  });
-  readonly canEnterResult = computed(() => {
-    const match = this.displayedSession();
-    if (!match) return false;
-    const end = this.localDateTime(match.playDate, match.endTime);
+  }
+
+  canEnterResult(m: MatchmakingSession): boolean {
+    const end = this.localDateTime(m.playDate, m.endTime);
     return Boolean(end && this.nowMs() >= end.getTime());
-  });
-  readonly matchInProgressLabel = computed(() => {
-    const match = this.displayedSession();
-    if (!match) return '';
-    const start = this.localDateTime(match.playDate, match.startTime);
-    const endLabel = (match.endTime ?? '').slice(0, 5);
+  }
+
+  matchInProgressLabel(m: MatchmakingSession): string {
+    const start = this.localDateTime(m.playDate, m.startTime);
+    const endLabel = (m.endTime ?? '').slice(0, 5);
     return start && this.nowMs() < start.getTime()
       ? `Trận chưa bắt đầu · chỉ nhập được kết quả sau ${endLabel}`
       : `Trận đang diễn ra · chỉ nhập được kết quả sau ${endLabel}`;
-  });
-  readonly resultDeadlineState = computed<'OPEN' | 'WAITING_OPPONENT' | null>(() => {
-    const match = this.displayedSession();
-    if (!match || !match.resultDeadlineAt) return null;
-    if (match.status !== 'CHECKED_IN' && match.status !== 'RESULT_PENDING' && match.status !== 'DISPUTED') {
-      return null;
-    }
-    return this.hasSubmittedResult() ? 'WAITING_OPPONENT' : 'OPEN';
-  });
-  readonly resultDeadlineLabel = computed(() => {
-    const state = this.resultDeadlineState();
-    const deadline = this.displayedSession()?.resultDeadlineAt;
-    if (!state || !deadline) return '';
-    const remaining = new Date(deadline).getTime() - this.nowMs();
+  }
+
+  resultDeadlineState(m: MatchmakingSession): 'OPEN' | 'WAITING_OPPONENT' | null {
+    if (!m.resultDeadlineAt) return null;
+    if (m.status !== 'CHECKED_IN' && m.status !== 'RESULT_PENDING' && m.status !== 'DISPUTED') return null;
+    return this.hasSubmittedResult(m) ? 'WAITING_OPPONENT' : 'OPEN';
+  }
+
+  resultDeadlineLabel(m: MatchmakingSession): string {
+    const state = this.resultDeadlineState(m);
+    if (!state || !m.resultDeadlineAt) return '';
+    const remaining = new Date(m.resultDeadlineAt).getTime() - this.nowMs();
     const countdown = remaining <= 0
       ? 'Đã hết hạn nhập kết quả'
       : remaining < 3_600_000
@@ -423,7 +424,11 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     return state === 'WAITING_OPPONENT'
       ? `${countdown} · đang chờ đối thủ nhập. Quá hạn, bạn được xử thắng`
       : `${countdown}. Quá hạn mà bạn không nhập, đối thủ được xử thắng; cả hai không nhập thì tính hòa`;
-  });
+  }
+
+  progressPercent(m: MatchmakingSession): string {
+    return `${this.matchProgressStep(m.status) * 20}%`;
+  }
   readonly scheduleConflict = computed<ScheduleConflict | null>(() => {
     const requestStart = this.localDateTime(this.playDate(), this.startTime());
     const requestEnd = this.localDateTime(this.playDate(), this.endTime());
@@ -451,8 +456,6 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     return Boolean(end && end.getTime() + 60 * 60 * 1000 > this.nowMs());
   }));
   readonly searchButtonLabel = computed(() => this.hasUpcomingMatch() ? 'Tìm đối thủ khác' : 'Tìm đối thủ');
-  readonly progressStep = computed(() => this.matchProgressStep(this.displayedSession()?.status));
-  readonly progressPercent = computed(() => `${this.progressStep() * 20}%`);
 
   private elapsedTimer?: Subscription;
   private sessionExpiryRefresh?: Subscription;
@@ -779,8 +782,8 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     return session.participants.find(item => this.sideUserIds(item).includes(userId)) ?? null;
   }
 
-  private onMySide(userId: string | undefined): boolean {
-    const mine = this.currentParticipant();
+  private onMySide(m: MatchmakingSession, userId: string | undefined): boolean {
+    const mine = this.currentParticipant(m);
     return Boolean(userId && mine && this.sideUserIds(mine).includes(userId));
   }
 
@@ -835,7 +838,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
 
   respond(decision: AcceptanceDecision): void {
     const session = this.session();
-    if (!session || !this.canRespond() || this.responding()) return;
+    if (!session || !this.canRespond(session) || this.responding()) return;
     this.responding.set(true);
     this.errorMessage.set('');
     this.aiRepository.decideMatch(session.sessionId, decision).pipe(
@@ -850,16 +853,15 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     });
   }
 
-  openChat(): void {
-    const conversationId = this.displayedSession()?.proposal?.conversationId;
+  openChat(m: MatchmakingSession): void {
+    const conversationId = m.proposal?.conversationId;
     if (conversationId) void this.router.navigate(['/chat', conversationId]);
   }
 
-  openVenue(): void {
-    const detail = this.displayedSession();
-    const status = detail?.status ?? '';
-    const bookingId = detail?.proposal?.bookingId;
-    if (bookingId && this.isDesignatedBooker()
+  openVenue(detail: MatchmakingSession): void {
+    const status = detail.status;
+    const bookingId = detail.proposal?.bookingId;
+    if (bookingId && this.isDesignatedBooker(detail)
       && ['BOOKING_PENDING', 'CONFIRMED', 'CHECKED_IN', 'RESULT_PENDING', 'DISPUTED', 'COMPLETED'].includes(status)) {
       void this.router.navigate(['/booking/detail', bookingId]);
       return;
@@ -867,7 +869,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     const venueId = detail?.proposal?.venueId;
     if (!venueId) return;
     const venueCourtId = detail?.proposal?.venueCourtId;
-    if (venueCourtId && this.isDesignatedBooker() && status === 'VENUE_SELECTED') {
+    if (venueCourtId && this.isDesignatedBooker(detail) && status === 'VENUE_SELECTED') {
       void this.router.navigate(['/booking/create'], {
         queryParams: {
           venueId,
@@ -904,7 +906,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
 
   chooseVenue(venueId: string, venueCourtId?: string): void {
     const match = this.session();
-    if (!match || !venueCourtId || !this.isDesignatedBooker() || this.actionLoading()) return;
+    if (!match || !venueCourtId || !this.isDesignatedBooker(match) || this.actionLoading()) return;
     this.actionLoading.set(true);
     this.errorMessage.set('');
     this.aiRepository.selectMatchVenue(match.sessionId, venueId, venueCourtId).pipe(
@@ -981,12 +983,12 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   }
 
   /** Bạn cặp hoặc quản lý khác đã nhập thì cũng tính là bên mình đã nhập. */
-  hasSubmittedResult(): boolean {
-    return Boolean(this.myResultClaim());
+  hasSubmittedResult(m: MatchmakingSession): boolean {
+    return Boolean(this.myResultClaim(m));
   }
 
-  hasSubmittedFeedback(): boolean {
-    return Boolean(this.displayedSession()?.feedback?.some(item => this.onMySide(item.reviewerId)));
+  hasSubmittedFeedback(m: MatchmakingSession): boolean {
+    return Boolean(m.feedback?.some(item => this.onMySide(m, item.reviewerId)));
   }
 
   /** "18:00:00" → "18:00". */
@@ -1000,10 +1002,10 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   }
 
   /** ELO mới: của riêng mình khi chơi đơn/đôi, của CLB khi đấu CLB. */
-  myEloAfter(): number | null {
-    const mine = this.currentParticipant();
+  myEloAfter(m: MatchmakingSession): number | null {
+    const mine = this.currentParticipant(m);
     const key = mine?.participantType === 'CLUB' ? mine.participantId : this.authService.currentUser?.userId;
-    return key ? this.displayedSession()?.result?.eloUpdates?.[key] ?? null : null;
+    return key ? m.result?.eloUpdates?.[key] ?? null : null;
   }
 
 
@@ -1020,7 +1022,6 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
 
   /** Về form thiết lập mà vẫn theo dõi kèo đang chạy (xem lại ở Ghép kèo gần đây). */
   backToSetup(): void {
-    this.selectedHistorySession.set(null);
     this.hideRestoredSession.set(true);
     this.errorMessage.set('');
   }
@@ -1034,13 +1035,19 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     return this.initials(this.historyOpponent(match)?.name);
   }
 
+  /**
+   * Chi tiết một kèo trong lịch sử hiện ở cột trái hàng dưới, hàng trên giữ nguyên. Kèo đang hiện ở hàng trên thì
+   * chỉ cuộn lên đó, không hiện hai lần.
+   */
   selectHistorySession(match: MatchmakingSession): void {
-    this.selectedHistorySession.set(match);
-    this.animateMatchDetail();
-    if (isPlatformBrowser(this.platformId)) {
-      const stage = this.host.nativeElement.querySelector('.stage') as HTMLElement | null;
-      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (stage && stage.getBoundingClientRect().top < 0) stage.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    const target = this.liveSession()?.sessionId === match.sessionId ? '.stage' : '.insights';
+    if (target === '.insights') this.selectedHistorySession.set(match);
+    if (!isPlatformBrowser(this.platformId)) return;
+    const element = this.host.nativeElement.querySelector(target) as HTMLElement | null;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const top = element?.getBoundingClientRect().top ?? 0;
+    if (element && (top < 0 || top > window.innerHeight * 0.6)) {
+      element.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
     }
   }
 
@@ -1066,20 +1073,15 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
 
   clearHistorySelection(): void {
     this.selectedHistorySession.set(null);
-    if (!this.session()) {
-      this.isSearching.set(false);
-      this.queueSize.set(null);
-    }
-    this.animateMatchDetail();
   }
 
   isSelectedHistory(match: MatchmakingSession): boolean {
     return this.selectedHistorySession()?.sessionId === match.sessionId;
   }
 
-  progressItemState(index: number): { done: boolean; current: boolean } {
-    const current = this.progressStep();
-    if (this.displayedSession()?.status === 'CONFIRMED') {
+  progressItemState(m: MatchmakingSession, index: number): { done: boolean; current: boolean } {
+    const current = this.matchProgressStep(m.status);
+    if (m.status === 'CONFIRMED') {
       // Deposit step is fully done; the pulsing "current" indicator moves
       // ahead to Check-in so CONFIRMED doesn't look identical to BOOKING_PENDING.
       return { done: index <= current, current: index === current + 1 };
@@ -1237,24 +1239,23 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   private seedResultFormFromOwnClaim(session: MatchmakingSession): void {
     if (!['CHECKED_IN', 'RESULT_PENDING', 'DISPUTED'].includes(session.status)) return;
     if (this.resultMyScore() !== 0 || this.resultOpponentScore() !== 0) return;
-    const claim = this.myResultClaim();
+    const claim = this.myResultClaim(session);
     if (!claim) return;
-    const { my, opponent } = this.claimScoresFromMyPerspective(claim);
+    const { my, opponent } = this.claimScoresFromMyPerspective(session, claim);
     this.resultMyScore.set(my);
     this.resultOpponentScore.set(opponent);
   }
 
-  myResultClaim(): MatchResultClaim | null {
-    return this.displayedSession()?.resultClaims?.find(item => this.onMySide(item.submittedBy)) ?? null;
+  myResultClaim(m: MatchmakingSession): MatchResultClaim | null {
+    return m.resultClaims?.find(item => this.onMySide(m, item.submittedBy)) ?? null;
   }
 
-  opponentResultClaim(): MatchResultClaim | null {
-    return this.displayedSession()?.resultClaims?.find(item => item.submittedBy && !this.onMySide(item.submittedBy)) ?? null;
+  opponentResultClaim(m: MatchmakingSession): MatchResultClaim | null {
+    return m.resultClaims?.find(item => item.submittedBy && !this.onMySide(m, item.submittedBy)) ?? null;
   }
 
-  claimScoresFromMyPerspective(claim: MatchResultClaim): { my: number; opponent: number } {
-    const session = this.displayedSession();
-    return session?.participants[0] && session.participants[0] === this.mySide(session)
+  claimScoresFromMyPerspective(session: MatchmakingSession, claim: MatchResultClaim): { my: number; opponent: number } {
+    return session.participants[0] && session.participants[0] === this.mySide(session)
       ? { my: claim.participantOneScore, opponent: claim.participantTwoScore }
       : { my: claim.participantTwoScore, opponent: claim.participantOneScore };
   }
@@ -1306,7 +1307,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
         if (response.session && becomesCurrent) {
           this.queueSize.set(response.queueSize ?? null);
           this.applySession(response.session);
-          this.hideRestoredSession.set(false);
+          if (this.selectedHistorySession()?.sessionId !== response.session.sessionId) this.hideRestoredSession.set(false);
           this.upsertHistory(response.session);
         } else if (response.session) {
           this.upsertHistory(response.session);

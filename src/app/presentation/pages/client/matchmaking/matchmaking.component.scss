@@ -325,13 +325,20 @@
   scroll-margin-top: 88px;
 }
 
-// Hàng 2: cách AI chấm điểm và lịch sử, hai cột bằng nhau, không kéo giãn theo nhau.
+// Hàng 2: cột trái (tiêu chí AI hoặc chi tiết kèo chọn từ lịch sử) quyết định chiều cao;
+// lịch sử bên phải cao đúng bằng và cuộn bên trong.
 .insights {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 24px;
   margin-top: 24px;
-  align-items: start;
+  align-items: stretch;
+}
+
+.insights__detail {
+  min-width: 0;
+
+  .result-state { height: 100%; box-sizing: border-box; }
 }
 
 .setup-card,
@@ -540,26 +547,6 @@
   background: var(--primary-light);
   color: var(--primary);
   box-shadow: inset 0 0 0 1px rgb(0 138 99 / 8%);
-}
-
-.sport-choice {
-  min-width: 0;
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0 8px;
-  font-size: 13px;
-  font-weight: 750;
-
-  lucide-icon { flex: none; }
-
-  span {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
 }
 
 .skill-choice,
@@ -1199,8 +1186,9 @@
 .result-skeleton span:nth-child(4) { width: 100%; height: 48px; }
 
 .match-history {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  display: flex;
+  min-height: 360px;
+  flex-direction: column;
   overflow: hidden;
 }
 
@@ -1213,10 +1201,13 @@
   font-size: 0.72rem;
 }
 
+// contain: size: danh sách không tự đẩy chiều cao hàng lên, chỉ lấp phần còn lại của thẻ rồi cuộn.
 .history-list {
+  flex: 1 1 0;
+  min-height: 0;
   padding: 0 18px;
-  max-height: 420px;
   overflow-y: auto;
+  contain: size;
 }
 
 .history-sentinel {
@@ -1533,37 +1524,21 @@ button:focus-visible {
   display: grid;
   grid-auto-columns: minmax(0, 1fr);
   grid-auto-flow: column;
+  gap: 12px;
   margin: 0;
-  padding: 0 22px 18px;
+  padding: 0 22px 20px;
   border-bottom: 1px solid var(--hairline);
   list-style: none;
 
-  li { position: relative; min-width: 0; }
-
-  // Đường nối giữa hai bước: xanh khi bước trước đã xong.
-  li:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    top: 17px;
-    left: 44px;
-    right: 8px;
-    height: 2px;
-    border-radius: 9999px;
-    background: var(--hairline);
-  }
-
-  li.is-done::after { background: var(--primary-fill); }
+  li { min-width: 0; }
 
   button {
-    position: relative;
-    z-index: 1;
     display: grid;
-    grid-template-columns: 36px minmax(0, 1fr);
-    grid-template-rows: 36px auto;
-    column-gap: 10px;
+    gap: 8px;
     width: 100%;
-    padding: 0 12px 0 0;
+    padding: 0;
     border: 0;
+    border-radius: 8px;
     background: transparent;
     color: inherit;
     font: inherit;
@@ -1571,40 +1546,65 @@ button:focus-visible {
     cursor: pointer;
 
     &:disabled { cursor: not-allowed; }
-    &:focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; border-radius: 10px; }
+    &:hover:not(:disabled) .stepper__label { color: var(--primary); }
+    &:focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; }
   }
+}
+
+// Thanh 4px: xong = đầy, đang làm = nửa, chưa tới = xám.
+.stepper__bar {
+  height: 4px;
+  border-radius: 9999px;
+  background: var(--surface-strong);
+  transition: background 240ms ease;
+
+  .is-current & { background: linear-gradient(90deg, var(--primary-fill) 50%, var(--surface-strong) 50%); }
+  .is-done & { background: var(--primary-fill); }
+}
+
+.stepper__title {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
 }
 
 .stepper__dot {
   display: grid;
-  width: 36px;
-  height: 36px;
+  width: 22px;
+  height: 22px;
+  flex: none;
   place-items: center;
-  border: 2px solid var(--hairline);
   border-radius: 9999px;
-  background: var(--surface);
+  background: var(--surface-strong);
   color: var(--body);
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
-  transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease;
 
-  .is-current & { border-color: var(--primary); color: var(--primary); box-shadow: 0 0 0 4px var(--primary-light); }
-  .is-done & { border-color: var(--primary-fill); background: var(--primary-fill); color: #fff; }
+  .is-current & { background: var(--primary-light); color: var(--primary); }
+  .is-done & { background: var(--primary-fill); color: #fff; }
 }
 
-// Chữ nằm dưới chấm; nền trắng che đường nối phía sau.
-.stepper__text {
-  grid-column: 1 / -1;
-  display: grid;
-  gap: 2px;
-  min-width: 0;
-  margin-top: 8px;
+.stepper__label {
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 
-  strong { color: var(--ink); font-size: 14px; font-weight: 800; }
-  small { overflow: hidden; color: var(--body); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
-  .is-current & strong { color: var(--primary); }
-  button:disabled & strong { color: var(--body); }
+  .is-current & { color: var(--primary); }
+  button:disabled & { color: var(--body); }
+}
+
+.stepper__summary {
+  overflow: hidden;
+  padding-left: 30px;
+  color: var(--body);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .step-body {
@@ -1619,7 +1619,6 @@ button:focus-visible {
   gap: 24px;
 }
 
-.step-grid--sport { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
 .step-grid--time { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 .step-grid--prefs { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
 
@@ -1636,21 +1635,97 @@ button:focus-visible {
   font-weight: 800;
 }
 
-.club-hint {
+.sport-step {
+  display: grid;
+  gap: 20px;
+}
+
+.sport-step .sport-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.sport-tile {
   display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  margin-top: 4px;
-  padding: 10px 12px;
+  min-width: 0;
+  min-height: 56px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: border-color 180ms ease, background-color 180ms ease, color 180ms ease;
+
+  > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  &:hover:not(.selected) { border-color: #79bba5; }
+  &:active { transform: translateY(1px); }
+  &.selected { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
+  &:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+}
+
+.sport-tile__icon {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex: none;
+  place-items: center;
   border-radius: 10px;
+  background: var(--surface-subtle);
+  color: var(--primary);
+
+  .selected & { background: var(--surface); }
+}
+
+// Hình thức bên trái, CLB của môn bên phải, cùng một hàng.
+.format-line {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.club-hint {
+  display: grid;
+  min-height: 56px;
+  align-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 12px;
   background: var(--surface-subtle);
   color: var(--body);
   font-size: 13px;
   line-height: 1.5;
+  box-sizing: border-box;
 
-  lucide-icon { flex: none; margin-top: 2px; color: var(--primary); }
-  strong { color: var(--ink); font-weight: 800; }
+  small { font-size: 12px; }
   a { color: var(--primary); font-weight: 800; }
+}
+
+.club-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.club-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--hairline);
+  border-radius: 9999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+
+  lucide-icon { color: var(--primary); }
 }
 
 // ---- Bước Đồng đội: nguồn + danh sách bên trái, đội của mình bên phải -------------------------
@@ -1878,14 +1953,22 @@ button:focus-visible {
 .step-actions {
   display: grid;
   gap: 12px;
-  padding: 16px 22px 20px;
-  border-top: 1px solid var(--hairline);
+  padding: 0 22px 20px;
 }
 
 .step-actions__row {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
   gap: 10px;
+}
+
+.step-actions__next-hint {
+  margin-right: auto;
+  color: var(--body);
+  font-size: 13px;
+
+  strong { color: var(--ink); font-weight: 800; }
 }
 
 .step-actions__next { min-width: 200px; }
@@ -1897,11 +1980,13 @@ button:focus-visible {
   header { display: grid; gap: 4px; }
   h2 { margin: 4px 0 0; font-size: 1.125rem; letter-spacing: -0.025em; }
   header > p:last-child { margin: 0; color: var(--body); font-size: 14px; }
-  .criteria-list { grid-template-columns: 1fr; gap: 0; }
+  .criteria-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; }
 }
 
 @media (max-width: 1023px) {
-  .step-grid--sport,
+  .sport-step .sport-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .format-line { grid-template-columns: 1fr; }
+  .history-list { min-height: 360px; }
   .step-grid--time,
   .step-grid--prefs,
   .team-step {
@@ -1909,16 +1994,19 @@ button:focus-visible {
   }
 }
 
-// Điện thoại: chỉ còn các chấm số; tên bước hiện ở tiêu đề thẻ ("Bước 2/4 · Đồng đội").
+// Điện thoại: stepper chỉ còn thanh + số; tên bước hiện ở tiêu đề thẻ ("Bước 2/4 · Đồng đội").
 @media (max-width: 720px) {
-  .stepper {
-    padding-inline: 16px;
-
-    li:not(:last-child)::after { left: 40px; right: 4px; }
-  }
+  .stepper { gap: 8px; padding-inline: 16px; }
+  .sport-step .sport-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sport-tile { gap: 8px; padding: 8px 10px; font-size: 13px; }
+  .sport-tile__icon { width: 28px; height: 28px; border-radius: 8px; }
+  .criteria-card .criteria-list { grid-template-columns: 1fr; }
+  .step-actions { padding-inline: 16px; }
+  .step-actions__next-hint { display: none; }
 
   // Ẩn bằng mắt nhưng vẫn là tên của nút cho trình đọc màn hình.
-  .stepper__text {
+  .stepper__label,
+  .stepper__summary {
     position: absolute;
     width: 1px;
     height: 1px;
