@@ -219,7 +219,10 @@ export interface JoinMatchmakingQueueRequest {
   winRate: number;
   selectionMode: MatchSelectionMode;
   playFormat?: string;
-  partnerId?: string;
+  /** Đồng đội đi cùng: đúng (số người mỗi bên - 1) người, là bạn bè hoặc cùng CLB teammateClubId. */
+  partnerIds?: string[];
+  teammateClubId?: string;
+  /** Đại diện CLB đấu CLB (chủ / quản lý, môn đồng đội); khi đó không gửi partnerIds. */
   clubId?: string;
 }
 

@@ -14,223 +14,9 @@
   </div>
   }
 
-  <div class="matchmaking-workspace">
-    <section class="setup-panel" aria-labelledby="match-setup-title">
-      <header class="panel-heading">
-        <h2 id="match-setup-title">Thiết lập kèo</h2>
-        @if (activeProfile()) {
-        <span class="profile-state">
-          <lucide-icon name="badge-check" class="w-4 h-4"></lucide-icon>
-          Đã dùng hồ sơ
-        </span>
-        }
-      </header>
 
-      <fieldset class="form-section" [disabled]="isSearching() || restoring()">
-        <legend>Môn &amp; hình thức</legend>
-        <div class="sport-grid" role="group" aria-label="Môn thể thao">
-          @for (sport of sports; track sport.value) {
-          <button type="button" class="choice-button sport-choice" [class.selected]="selectedSport() === sport.value"
-            [attr.aria-pressed]="selectedSport() === sport.value" (click)="selectSport(sport.value)">
-            <lucide-icon [name]="sport.icon" class="w-5 h-5"></lucide-icon>
-            <span>{{ sport.label }}</span>
-          </button>
-          }
-        </div>
-        <div class="format-row" role="radiogroup" aria-label="Hình thức thi đấu">
-          @for (format of formats(); track format.value) {
-          <button type="button" role="radio" class="format-choice" [class.selected]="playFormat() === format.value"
-            [attr.aria-checked]="playFormat() === format.value" (click)="selectFormat(format.value)">
-            {{ format.label }}
-          </button>
-          }
-        </div>
-        @switch (partyMode()) {
-        @case ('PAIR') {
-        <div class="party-picker">
-          <app-select ariaLabel="Bạn cặp" leadingIcon="user-plus" [searchable]="(friends()?.length ?? 0) > 6"
-            searchPlaceholder="Tìm bạn..." [options]="partnerOptions()"
-            [placeholder]="friendsLoading() ? 'Đang tải bạn bè...' : friends()?.length ? 'Chọn bạn cặp' : 'Chưa có bạn bè'"
-            [disabled]="friendsLoading() || !friends()?.length" [ngModel]="partnerId()"
-            (ngModelChange)="partnerId.set($event)"></app-select>
-          <p class="party-note">
-            <lucide-icon name="users" class="w-4 h-4"></lucide-icon>
-            AI chỉ ghép cặp đủ hai người. Mỗi người được tính ELO riêng.
-          </p>
-          <a class="party-link" routerLink="/feed" [queryParams]="{ tab: 'calls', compose: 'find-players', sport: selectedSport(), format: playFormat() }">
-            <lucide-icon name="megaphone" class="w-4 h-4"></lucide-icon>
-            Chưa có bạn cặp? Đăng tìm người chơi
-          </a>
-        </div>
-        }
-        @case ('CLUB') {
-        <div class="party-picker">
-          <app-select ariaLabel="Câu lạc bộ thi đấu" leadingIcon="shield" [options]="clubOptions()"
-            [placeholder]="clubsLoading() ? 'Đang tải CLB...' : managedClubs().length ? 'Chọn CLB' : 'Bạn chưa quản lý CLB ' + selectedSportLabel().toLowerCase() + ' nào'"
-            [disabled]="clubsLoading() || !managedClubs().length" [ngModel]="clubId()"
-            (ngModelChange)="clubId.set($event)"></app-select>
-          <p class="party-note">
-            <lucide-icon name="shield" class="w-4 h-4"></lucide-icon>
-            Môn đồng đội ghép CLB đấu CLB. Chủ CLB hoặc một quản lý xác nhận, đặt sân và nhập tỷ số thay cả đội.
-          </p>
-          @if (!clubsLoading() && !managedClubs().length) {
-          <a class="party-link" routerLink="/clubs">
-            <lucide-icon name="users-round" class="w-4 h-4"></lucide-icon>
-            Tạo hoặc tham gia một CLB
-          </a>
-          }
-        </div>
-        }
-        }
-      </fieldset>
-
-      <fieldset class="form-section" [disabled]="isSearching() || restoring()">
-        <legend>Khung giờ rảnh &amp; nơi chơi</legend>
-        <div class="schedule-grid">
-          <label for="match-date">
-            <span>Ngày chơi</span>
-            <input id="match-date" type="date" [min]="today" [ngModel]="playDate()"
-              (ngModelChange)="playDate.set($event)" />
-          </label>
-          <label for="match-start">
-            <span>Rảnh từ</span>
-            <input id="match-start" type="time" [ngModel]="startTime()" (ngModelChange)="startTime.set($event)" />
-          </label>
-          <label for="match-end">
-            <span>Rảnh đến</span>
-            <input id="match-end" type="time" [ngModel]="endTime()" (ngModelChange)="endTime.set($event)" />
-          </label>
-        </div>
-        <p class="field-hint">Trận đấu là một khung giờ của sân nằm trong phần rảnh chung của hai bên.</p>
-        <div class="location-grid">
-          <div class="location-source" [class.location-source--ready]="coordinates()">
-            <lucide-icon [name]="coordinates() ? 'map-pin' : 'map-pin-off'" class="w-5 h-5"></lucide-icon>
-            <span>
-              <strong>{{ coordinates() ? 'Đã có vị trí' : 'Chưa có vị trí' }}</strong>
-              <small>
-                @if (coordinates()?.source === 'profile') { Từ hồ sơ thể thao }
-                @else if (coordinates()?.source === 'browser') { Vị trí thiết bị }
-                @else { Xin quyền khi bắt đầu }
-              </small>
-            </span>
-            <button type="button" class="text-action" [disabled]="locating()" (click)="refreshLocation()"
-              aria-label="Cập nhật vị trí">
-              @if (locating()) { <span class="spinner spinner--small"></span> }
-              @else { <lucide-icon name="locate-fixed" class="w-4 h-4"></lucide-icon> }
-            </button>
-          </div>
-          <label class="range-field" for="match-distance">
-            <span>Phạm vi <strong>{{ maxDistance() }} km</strong></span>
-            <input id="match-distance" type="range" min="2" max="50" step="1" [ngModel]="maxDistance()"
-              (ngModelChange)="maxDistance.set($event)" />
-          </label>
-        </div>
-      </fieldset>
-
-      <fieldset class="form-section form-section--prefs" [disabled]="isSearching() || restoring()">
-        <legend class="sr-only">Tiêu chí ghép</legend>
-        <button type="button" class="prefs-toggle" [attr.aria-expanded]="prefsOpen()" aria-controls="match-prefs"
-          (click)="prefsOpen.set(!prefsOpen())">
-          <span>
-            <strong>Tiêu chí ghép</strong>
-            <small>{{ prefsSummary() }}</small>
-          </span>
-          <lucide-icon [name]="prefsOpen() ? 'chevron-up' : 'chevron-down'" class="w-5 h-5"></lucide-icon>
-        </button>
-        @if (prefsOpen()) {
-        <div class="prefs-body" id="match-prefs">
-          <div class="prefs-group">
-            <span class="prefs-label">Trình độ {{ activeProfile() ? '(theo hồ sơ)' : '' }}</span>
-            <div class="skill-grid">
-              @for (skill of skills; track skill.value) {
-              <button type="button" class="choice-button skill-choice" [class.selected]="selectedSkill() === skill.value"
-                [attr.aria-pressed]="selectedSkill() === skill.value" [disabled]="!!activeProfile()"
-                (click)="selectSkill(skill.value, skill.suggestedElo)">
-                <strong>{{ skill.label }}</strong>
-                <small>{{ skill.helper }}</small>
-              </button>
-              }
-            </div>
-          </div>
-          <div class="field-grid">
-            <label for="match-elo">
-              <span>ELO hiện tại</span>
-              <input id="match-elo" type="number" min="0" max="5000" [ngModel]="eloRating()" readonly />
-            </label>
-            <label for="match-elo-difference">
-              <span>Chênh lệch ELO tối đa</span>
-              <input id="match-elo-difference" type="number" min="0" max="2000" step="50" [ngModel]="maxEloDifference()"
-                (ngModelChange)="maxEloDifference.set($event)" />
-            </label>
-          </div>
-          <div class="prefs-group">
-            <span class="prefs-label">Phong cách chơi</span>
-            <div class="style-grid">
-              @for (style of playStyles; track style.value) {
-              <button type="button" class="choice-button style-choice"
-                [class.selected]="selectedPlayStyle() === style.value"
-                [attr.aria-pressed]="selectedPlayStyle() === style.value" (click)="selectPlayStyle(style.value)">
-                <strong>{{ style.label }}</strong>
-                <small>{{ style.helper }}</small>
-              </button>
-              }
-            </div>
-          </div>
-          <div class="prefs-group">
-            <span class="prefs-label">Cách chọn đối thủ</span>
-            <div class="style-grid selection-mode-grid">
-              <button type="button" class="choice-button style-choice" [class.selected]="selectionMode() === 'AI'"
-                [attr.aria-pressed]="selectionMode() === 'AI'" (click)="selectMode('AI')">
-                <strong>AI tự chọn</strong><small>Tự động ghép người</small>
-              </button>
-              <button type="button" class="choice-button style-choice" [class.selected]="selectionMode() === 'MANUAL'"
-                [attr.aria-pressed]="selectionMode() === 'MANUAL'" (click)="selectMode('MANUAL')">
-                <strong>Tôi sẽ chọn</strong><small>Xem Top đối thủ và lý do</small>
-              </button>
-            </div>
-          </div>
-        </div>
-        }
-      </fieldset>
-
-      <div class="setup-actions">
-        @if (scheduleConflict(); as conflict) {
-        <div class="schedule-conflict" role="status">
-          <lucide-icon name="calendar-x-2" class="w-5 h-5"></lucide-icon>
-          <div>
-            <strong>Khung giờ này đang bị giữ</strong>
-            <p>Bạn đã có trận {{ sportLabel(conflict.session.sportType) }} lúc
-              {{ conflict.session.startTime }}–{{ conflict.session.endTime }} ngày
-              {{ historyDate(conflict.session) }}. Hãy chọn giờ bắt đầu từ {{ conflictAllowedAfter(conflict) }}
-              hoặc một khung không giao nhau.</p>
-          </div>
-        </div>
-        }
-        @if (isSearching()) {
-        <button type="button" class="button button-danger button-full" (click)="cancelSearch()">
-          <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
-          Hủy tìm kiếm
-        </button>
-        } @else {
-        <button type="button" class="button button-primary button-full"
-          [disabled]="locating() || restoring() || !!scheduleConflict()"
-          (click)="startMatchmaking()">
-          @if (locating()) {
-          <span class="spinner spinner--small spinner--light"></span>
-          Đang lấy vị trí...
-          } @else if (restoring()) {
-          <span class="spinner spinner--small spinner--light"></span>
-          Đang khôi phục...
-          } @else {
-          <lucide-icon name="search" class="w-5 h-5"></lucide-icon>
-          {{ searchButtonLabel() }}
-          }
-        </button>
-        }
-      </div>
-    </section>
-
-    <section class="result-panel" [attr.aria-busy]="restoring() || isSearching()">
+  <!-- Hàng 1: thiết lập kèo theo từng bước; khi đang tìm hoặc xem một kèo thì chỗ này hiện trạng thái đó. -->
+  <section class="stage" [attr.aria-busy]="restoring() || isSearching()">
       @if (restoring()) {
       <div class="result-state result-state--restoring">
         <div class="status-line"><span class="status-dot"></span>Đang khôi phục phiên ghép kèo</div>
@@ -277,7 +63,13 @@
           }
         </section>
         }
-        <p class="search-note">Bạn có thể rời trang. Trạng thái tìm kiếm sẽ tự động được khôi phục.</p>
+        <div class="search-footer">
+          <p class="search-note">Bạn có thể rời trang. Trạng thái tìm kiếm sẽ tự động được khôi phục.</p>
+          <button type="button" class="button button-danger" (click)="cancelSearch()">
+            <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+            Hủy tìm kiếm
+          </button>
+        </div>
       </div>
       } @else if (displayedSession(); as match) {
       <div class="result-state result-state--matched">
@@ -300,7 +92,15 @@
             <strong>{{ formatCountdown(responseRemainingSeconds()) }}</strong>
           </div>
           } @else {
-          <span class="match-status">{{ statusLabel() }}</span>
+          <div class="match-header__aside">
+            <span class="match-status">{{ statusLabel() }}</span>
+            @if (!isTerminalMatchStatus()) {
+            <button type="button" class="history-return" (click)="backToSetup()">
+              <lucide-icon name="plus" class="w-4 h-4"></lucide-icon>
+              Tạo kèo mới
+            </button>
+            }
+          </div>
           }
         </header>
 
@@ -556,75 +356,416 @@
         }
       </div>
       } @else {
-      <div class="result-state result-state--ready">
-        <header class="result-heading">
-          <p class="live-status"><span class="status-dot"></span>Sẵn sàng</p>
-          <h2>AI chọn đối thủ thế nào?</h2>
-          <p>Mỗi ứng viên được chấm trên bảy tiêu chí, cộng theo trọng số dưới đây.</p>
+      <section class="setup-card" aria-labelledby="match-setup-title">
+        <header class="setup-card__head">
+          <div>
+            <h2 id="match-setup-title">Thiết lập kèo</h2>
+            <p>Bước {{ stepIndex() + 1 }}/{{ steps().length }} · {{ steps()[stepIndex()].label }}</p>
+          </div>
+          @if (activeProfile()) {
+          <span class="profile-state">
+            <lucide-icon name="badge-check" class="w-4 h-4"></lucide-icon>
+            Đã dùng hồ sơ
+          </span>
+          }
         </header>
-        <ol class="criteria-list">
-          @for (item of criteria; track item.label) {
-          <li>
-            <lucide-icon [name]="item.icon" class="w-5 h-5"></lucide-icon>
-            <span><strong>{{ item.label }}</strong><small>{{ item.helper }}</small></span>
-            <em>{{ item.weight }}%</em>
-            <i aria-hidden="true"><b [style.width.%]="item.weight * 100 / 30"></b></i>
+
+        <ol class="stepper" aria-label="Các bước thiết lập kèo">
+          @for (item of steps(); track item.key; let i = $index) {
+          <li [class.is-current]="i === stepIndex()" [class.is-done]="i < stepIndex()">
+            <button type="button" [disabled]="!canVisit(i) || restoring()" [attr.aria-current]="i === stepIndex() ? 'step' : null"
+              (click)="goToStep(item.key)">
+              <span class="stepper__dot" aria-hidden="true">
+                @if (i < stepIndex()) { <lucide-icon name="check" class="w-4 h-4"></lucide-icon> } @else { {{ i + 1 }} }
+              </span>
+              <span class="stepper__text">
+                <strong>{{ item.label }}</strong>
+                <small>{{ item.summary }}</small>
+              </span>
+            </button>
           </li>
           }
         </ol>
+
+        <fieldset class="step-body" [disabled]="restoring()">
+          @switch (step()) {
+          @case ('SPORT') {
+          <legend class="sr-only">Môn &amp; hình thức</legend>
+          <div class="step-grid step-grid--sport">
+            <div class="step-block">
+              <span class="block-label">Môn thể thao</span>
+              <div class="sport-grid" role="group" aria-label="Môn thể thao">
+                @for (sport of sports; track sport.value) {
+                <button type="button" class="choice-button sport-choice" [class.selected]="selectedSport() === sport.value"
+                  [attr.aria-pressed]="selectedSport() === sport.value" (click)="selectSport(sport.value)">
+                  <lucide-icon [name]="sport.icon" class="w-5 h-5"></lucide-icon>
+                  <span>{{ sport.label }}</span>
+                </button>
+                }
+              </div>
+            </div>
+            <div class="step-block">
+              <span class="block-label">Hình thức</span>
+              <div class="format-row" role="radiogroup" aria-label="Hình thức thi đấu">
+                @for (format of formats(); track format.value) {
+                <button type="button" role="radio" class="format-choice" [class.selected]="playFormat() === format.value"
+                  [attr.aria-checked]="playFormat() === format.value" (click)="selectFormat(format.value)">
+                  <strong>{{ format.label }}</strong><small>{{ format.helper }}</small>
+                </button>
+                }
+              </div>
+              <div class="club-hint">
+                <lucide-icon name="users-round" class="w-4 h-4"></lucide-icon>
+                @if (clubsLoading()) {
+                <span>Đang tải CLB của bạn…</span>
+                } @else if (sportClubs().length) {
+                <span>CLB {{ selectedSportLabel().toLowerCase() }} của bạn:
+                  @for (item of sportClubs(); track item.club.clubId; let last = $last) {
+                  <strong>{{ item.club.name }}</strong>@if (!last) {, }
+                  }
+                  @if (teamSize() > 1) { · chọn đồng đội ở bước sau }
+                </span>
+                } @else {
+                <span>Bạn chưa ở CLB {{ selectedSportLabel().toLowerCase() }} nào.
+                  <a routerLink="/clubs">Tìm CLB</a></span>
+                }
+              </div>
+            </div>
+          </div>
+          }
+
+          @case ('TEAM') {
+          <legend class="sr-only">Đồng đội</legend>
+          <div class="team-step">
+            <div class="team-picker">
+              <div class="source-tabs" role="tablist" aria-label="Chọn đồng đội từ">
+                @for (source of teamSources(); track source.value) {
+                <button type="button" role="tab" [class.selected]="teamSource() === source.value"
+                  [attr.aria-selected]="teamSource() === source.value" (click)="setTeamSource(source.value)">
+                  <lucide-icon [name]="source.icon" class="w-4 h-4"></lucide-icon>{{ source.label }}
+                </button>
+                }
+              </div>
+
+              @switch (teamSource()) {
+              @case ('CLUB_MEMBERS') {
+              @if (sportClubs().length) {
+              <app-select ariaLabel="CLB của đồng đội" leadingIcon="users-round" [options]="memberClubOptions()"
+                [ngModel]="memberClubId()" (ngModelChange)="selectMemberClub($event)"></app-select>
+              } @else if (!clubsLoading()) {
+              <div class="picker-empty">
+                <lucide-icon name="users-round" class="w-6 h-6"></lucide-icon>
+                <div>
+                  <strong>Bạn chưa ở CLB {{ selectedSportLabel().toLowerCase() }} nào</strong>
+                  <p>Chọn đồng đội từ bạn bè, hoặc tham gia một CLB để rủ người trong CLB.</p>
+                  <a class="party-link" routerLink="/clubs"><lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon>Tìm CLB</a>
+                </div>
+              </div>
+              }
+              }
+              @case ('CLUB_SIDE') {
+              <app-select ariaLabel="Câu lạc bộ thi đấu" leadingIcon="shield" [options]="clubOptions()"
+                [ngModel]="clubId()" (ngModelChange)="clubId.set($event)"></app-select>
+              <p class="party-note">
+                <lucide-icon name="shield" class="w-4 h-4"></lucide-icon>
+                Ghép CLB đấu CLB, tính ELO của CLB. Bạn hoặc một quản lý khác xác nhận, đặt sân và nhập tỷ số thay cả đội.
+              </p>
+              }
+              @case ('CALL') {
+              <div class="picker-empty picker-empty--call">
+                <lucide-icon name="megaphone" class="w-6 h-6"></lucide-icon>
+                <div>
+                  <strong>Thiếu người? Đăng tìm người chơi</strong>
+                  <p>Bài "Tìm người chơi" hiện ở Trận đấu đang mở trên trang chủ, đã điền sẵn {{ selectedSportLabel().toLowerCase() }}
+                    · {{ formatLabel() }}. Ai muốn chơi sẽ nhắn tin cho bạn; kết bạn xong thì quay lại chọn họ ở tab Bạn bè.</p>
+                  <a class="button button-primary" routerLink="/feed"
+                    [queryParams]="{ tab: 'calls', compose: 'find-players', sport: selectedSport(), format: playFormat() }">
+                    <lucide-icon name="megaphone" class="w-4 h-4"></lucide-icon>Đăng tìm người chơi
+                  </a>
+                </div>
+              </div>
+              }
+              }
+
+              @if (teamSource() === 'FRIENDS' || (teamSource() === 'CLUB_MEMBERS' && sportClubs().length)) {
+              <label class="people-search">
+                <lucide-icon name="search" class="w-4 h-4"></lucide-icon>
+                <input type="search" [ngModel]="teammateQuery()" (ngModelChange)="teammateQuery.set($event)"
+                  [placeholder]="teamSource() === 'FRIENDS' ? 'Tìm bạn bè...' : 'Tìm thành viên...'" aria-label="Tìm người" />
+              </label>
+              @if ((teamSource() === 'FRIENDS' && friendsLoading()) || (teamSource() === 'CLUB_MEMBERS' && membersLoading())) {
+              <app-loading-skeleton variant="rows" [count]="3" label="Đang tải danh sách"></app-loading-skeleton>
+              } @else if (pool().length) {
+              <ul class="people-list" [attr.aria-label]="teamSource() === 'FRIENDS' ? 'Bạn bè' : 'Thành viên CLB'">
+                @for (person of pool(); track person.userId) {
+                <li>
+                  <button type="button" class="person" [class.selected]="teammateIds().has(person.userId)"
+                    [attr.aria-pressed]="teammateIds().has(person.userId)"
+                    [disabled]="teamFull() && !teammateIds().has(person.userId)" (click)="toggleTeammate(person)">
+                    <span class="person__avatar" aria-hidden="true">{{ initials(person.fullName) }}</span>
+                    <span class="person__name">{{ person.fullName }}</span>
+                    <span class="person__check" aria-hidden="true">
+                      <lucide-icon [name]="teammateIds().has(person.userId) ? 'check' : 'plus'" class="w-4 h-4"></lucide-icon>
+                    </span>
+                  </button>
+                </li>
+                }
+              </ul>
+              } @else {
+              <p class="picker-note">
+                @if (teammateQuery()) { Không có ai khớp "{{ teammateQuery() }}". }
+                @else if (teamSource() === 'FRIENDS') { Bạn chưa có bạn bè trên GOAT SPORTS. Hãy thử tab Đăng tìm người. }
+                @else { CLB này chưa có thành viên nào khác. }
+              </p>
+              }
+              }
+            </div>
+
+            <aside class="team-roster" aria-label="Đội của bạn">
+              <header>
+                <strong>{{ representsClub() ? 'Đại diện CLB' : teamSize() === 2 ? 'Cặp của bạn' : 'Đội của bạn' }}</strong>
+                @if (!representsClub()) { <span>{{ teammates().length + 1 }}/{{ teamSize() }}</span> }
+              </header>
+              @if (representsClub()) {
+              <p class="roster-note">Cả CLB {{ representedClubName() }} là một bên; thành viên thi đấu do CLB tự sắp xếp.</p>
+              } @else {
+              <ul class="roster">
+                <li class="roster__me">
+                  <span class="person__avatar" aria-hidden="true">{{ initials(currentUserName()) }}</span>
+                  <span><strong>{{ currentUserName() }}</strong><small>Bạn</small></span>
+                </li>
+                @for (mate of teammates(); track mate.userId) {
+                <li>
+                  <span class="person__avatar" aria-hidden="true">{{ initials(mate.fullName) }}</span>
+                  <span><strong>{{ mate.fullName }}</strong><small>{{ mate.clubId ? 'Cùng CLB' : 'Bạn bè' }}</small></span>
+                  <button type="button" class="icon-button" [attr.aria-label]="'Bỏ ' + mate.fullName" (click)="removeTeammate(mate.userId)">
+                    <lucide-icon name="x" class="w-4 h-4"></lucide-icon>
+                  </button>
+                </li>
+                }
+                @for (slot of openSlots(); track slot) {
+                <li class="roster__open"><span class="person__avatar" aria-hidden="true"><lucide-icon name="plus" class="w-4 h-4"></lucide-icon></span><span>Còn trống</span></li>
+                }
+              </ul>
+              <p class="roster-note">AI chỉ ghép {{ teamSize() === 2 ? 'cặp' : 'đội' }} đủ người với {{ teamSize() === 2 ? 'cặp' : 'đội' }} cùng hình thức. Mỗi người được tính ELO riêng.</p>
+              }
+            </aside>
+          </div>
+          }
+
+          @case ('TIME') {
+          <legend class="sr-only">Khung giờ rảnh &amp; nơi chơi</legend>
+          <div class="step-grid step-grid--time">
+            <div class="step-block">
+              <span class="block-label">Khung giờ rảnh</span>
+              <div class="schedule-grid">
+                <label for="match-date">
+                  <span>Ngày chơi</span>
+                  <input id="match-date" type="date" [min]="today" [ngModel]="playDate()" (ngModelChange)="playDate.set($event)" />
+                </label>
+                <label for="match-start">
+                  <span>Rảnh từ</span>
+                  <input id="match-start" type="time" [ngModel]="startTime()" (ngModelChange)="startTime.set($event)" />
+                </label>
+                <label for="match-end">
+                  <span>Rảnh đến</span>
+                  <input id="match-end" type="time" [ngModel]="endTime()" (ngModelChange)="endTime.set($event)" />
+                </label>
+              </div>
+              <p class="field-hint">Trận đấu là một khung giờ của sân nằm trong phần rảnh chung của hai bên.</p>
+            </div>
+            <div class="step-block">
+              <span class="block-label">Nơi chơi</span>
+              <div class="location-grid">
+                <div class="location-source" [class.location-source--ready]="coordinates()">
+                  <lucide-icon [name]="coordinates() ? 'map-pin' : 'map-pin-off'" class="w-5 h-5"></lucide-icon>
+                  <span>
+                    <strong>{{ coordinates() ? 'Đã có vị trí' : 'Chưa có vị trí' }}</strong>
+                    <small>
+                      @if (coordinates()?.source === 'profile') { Từ hồ sơ thể thao }
+                      @else if (coordinates()?.source === 'browser') { Vị trí thiết bị }
+                      @else { Xin quyền khi bắt đầu }
+                    </small>
+                  </span>
+                  <button type="button" class="text-action" [disabled]="locating()" (click)="refreshLocation()" aria-label="Cập nhật vị trí">
+                    @if (locating()) { <span class="spinner spinner--small"></span> }
+                    @else { <lucide-icon name="locate-fixed" class="w-4 h-4"></lucide-icon> }
+                  </button>
+                </div>
+                <label class="range-field" for="match-distance">
+                  <span>Phạm vi <strong>{{ maxDistance() }} km</strong></span>
+                  <input id="match-distance" type="range" min="2" max="50" step="1" [ngModel]="maxDistance()"
+                    (ngModelChange)="maxDistance.set($event)" />
+                </label>
+              </div>
+            </div>
+          </div>
+          }
+
+          @case ('PREFS') {
+          <legend class="sr-only">Tiêu chí ghép</legend>
+          <div class="step-grid step-grid--prefs">
+            <div class="step-block">
+              <span class="block-label">Trình độ {{ activeProfile() ? '(theo hồ sơ)' : '' }}</span>
+              <div class="skill-grid">
+                @for (skill of skills; track skill.value) {
+                <button type="button" class="choice-button skill-choice" [class.selected]="selectedSkill() === skill.value"
+                  [attr.aria-pressed]="selectedSkill() === skill.value" [disabled]="!!activeProfile()"
+                  (click)="selectSkill(skill.value, skill.suggestedElo)">
+                  <strong>{{ skill.label }}</strong>
+                  <small>{{ skill.helper }}</small>
+                </button>
+                }
+              </div>
+              <div class="field-grid">
+                <label for="match-elo">
+                  <span>ELO hiện tại</span>
+                  <input id="match-elo" type="number" min="0" max="5000" [ngModel]="eloRating()" readonly />
+                </label>
+                <label for="match-elo-difference">
+                  <span>Chênh lệch ELO tối đa</span>
+                  <input id="match-elo-difference" type="number" min="0" max="2000" step="50" [ngModel]="maxEloDifference()"
+                    (ngModelChange)="maxEloDifference.set($event)" />
+                </label>
+              </div>
+            </div>
+            <div class="step-block">
+              <span class="block-label">Phong cách chơi</span>
+              <div class="style-grid">
+                @for (style of playStyles; track style.value) {
+                <button type="button" class="choice-button style-choice" [class.selected]="selectedPlayStyle() === style.value"
+                  [attr.aria-pressed]="selectedPlayStyle() === style.value" (click)="selectPlayStyle(style.value)">
+                  <strong>{{ style.label }}</strong>
+                  <small>{{ style.helper }}</small>
+                </button>
+                }
+              </div>
+              <span class="block-label">Cách chọn đối thủ</span>
+              <div class="style-grid selection-mode-grid">
+                <button type="button" class="choice-button style-choice" [class.selected]="selectionMode() === 'AI'"
+                  [attr.aria-pressed]="selectionMode() === 'AI'" (click)="selectMode('AI')">
+                  <strong>AI tự chọn</strong><small>Tự động ghép người</small>
+                </button>
+                <button type="button" class="choice-button style-choice" [class.selected]="selectionMode() === 'MANUAL'"
+                  [attr.aria-pressed]="selectionMode() === 'MANUAL'" (click)="selectMode('MANUAL')">
+                  <strong>Tôi sẽ chọn</strong><small>Xem Top đối thủ và lý do</small>
+                </button>
+              </div>
+            </div>
+          </div>
+          }
+          }
+        </fieldset>
+
+        <footer class="step-actions">
+          @if (scheduleConflict(); as conflict) {
+          <div class="schedule-conflict" role="status">
+            <lucide-icon name="calendar-x-2" class="w-5 h-5"></lucide-icon>
+            <div>
+              <strong>Khung giờ này đang bị giữ</strong>
+              <p>Bạn đã có trận {{ sportLabel(conflict.session.sportType) }} lúc
+                {{ hhmm(conflict.session.startTime) }}–{{ hhmm(conflict.session.endTime) }} ngày
+                {{ historyDate(conflict.session) }}. Hãy chọn giờ bắt đầu từ {{ conflictAllowedAfter(conflict) }}
+                hoặc một khung không giao nhau.</p>
+            </div>
+          </div>
+          }
+          <div class="step-actions__row">
+            @if (stepIndex() > 0) {
+            <button type="button" class="button button-secondary" (click)="prevStep()">
+              <lucide-icon name="arrow-left" class="w-4 h-4"></lucide-icon>Quay lại
+            </button>
+            }
+            @if (isLastStep()) {
+            <button type="button" class="button button-primary step-actions__next"
+              [disabled]="locating() || restoring() || !!scheduleConflict()" (click)="startMatchmaking()">
+              @if (locating()) {
+              <span class="spinner spinner--small spinner--light"></span> Đang lấy vị trí...
+              } @else if (restoring()) {
+              <span class="spinner spinner--small spinner--light"></span> Đang khôi phục...
+              } @else {
+              <lucide-icon name="search" class="w-5 h-5"></lucide-icon> {{ searchButtonLabel() }}
+              }
+            </button>
+            } @else {
+            <button type="button" class="button button-primary step-actions__next" [disabled]="restoring()" (click)="nextStep()">
+              Tiếp tục<lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon>
+            </button>
+            }
+          </div>
+        </footer>
+      </section>
+      }
+  </section>
+
+  <!-- Hàng 2: cách AI chấm điểm và lịch sử ghép kèo. -->
+  <div class="insights">
+    <section class="criteria-card" aria-labelledby="criteria-title">
+      <header>
+        <p class="live-status"><span class="status-dot"></span>{{ isSearching() ? 'Đang chấm điểm' : 'Cách AI chấm' }}</p>
+        <h2 id="criteria-title">AI chọn đối thủ thế nào?</h2>
+        <p>Mỗi ứng viên được chấm trên bảy tiêu chí, cộng theo trọng số dưới đây.</p>
+      </header>
+      <ol class="criteria-list">
+        @for (item of criteria; track item.label) {
+        <li>
+          <lucide-icon [name]="item.icon" class="w-5 h-5"></lucide-icon>
+          <span><strong>{{ item.label }}</strong><small>{{ item.helper }}</small></span>
+          <em>{{ item.weight }}%</em>
+          <i aria-hidden="true"><b [style.width.%]="item.weight * 100 / 30"></b></i>
+        </li>
+        }
+      </ol>
+    </section>
+    <section class="match-history" aria-labelledby="match-history-title">
+      <header>
+        <h2 id="match-history-title">Ghép kèo gần đây</h2>
+        @if (history().length) { <span>{{ history().length }} phiên gần nhất</span> }
+      </header>
+
+      @if (historyLoading()) {
+      <app-loading-skeleton variant="rows" [count]="3" label="Đang tải lịch sử ghép trận"></app-loading-skeleton>
+      } @else if (historyError()) {
+      <div class="history-empty history-empty--error">
+        <lucide-icon name="wifi-off" class="w-5 h-5"></lucide-icon>
+        <p>{{ historyError() }}</p>
+      </div>
+      } @else if (history().length) {
+      <div class="history-list" #historyScrollContainer>
+        @for (match of history(); track match.sessionId) {
+        @if (historyOpponent(match); as rival) {
+        <button type="button" class="history-row" [class.selected]="isSelectedHistory(match)"
+          [attr.aria-pressed]="isSelectedHistory(match)" (click)="selectHistorySession(match)">
+          @if (rival.avatarUrl) {
+          <img [src]="rival.avatarUrl" [alt]="'Ảnh đại diện của ' + rival.name" loading="lazy" />
+          } @else {
+          <span class="history-avatar">{{ historyOpponentInitials(match) }}</span>
+          }
+          <div class="history-player">
+            <strong>{{ rival.name }}</strong>
+            <small>{{ sportLabel(match.sportType) }} · ELO {{ rival.eloRating }} · {{ match.distanceKm |
+              number:'1.0-1' }} km</small>
+          </div>
+          <time>{{ historyDate(match) }}<small>{{ match.startTime }}–{{ match.endTime }}</small></time>
+          <span class="history-status" [attr.data-status]="match.status">{{ historyStatus(match) }}</span>
+        </button>
+        }
+        }
+        @if (historyHasMore()) {
+        <div #historySentinel class="history-sentinel" aria-hidden="true"></div>
+        }
+        @if (historyLoadingMore()) {
+        <app-loading-skeleton variant="rows" [count]="2" label="Đang tải thêm lịch sử"></app-loading-skeleton>
+        }
+      </div>
+      } @else {
+      <div class="history-empty">
+        <lucide-icon name="history" class="w-6 h-6"></lucide-icon>
+        <div><strong>Chưa có lịch sử ghép kèo</strong>
+          <p>Kèo đầu tiên của bạn sẽ xuất hiện tại đây.</p>
+        </div>
       </div>
       }
-
-      <section class="match-history" aria-labelledby="match-history-title">
-        <header>
-          <h2 id="match-history-title">Ghép kèo gần đây</h2>
-          @if (history().length) { <span>{{ history().length }} phiên gần nhất</span> }
-        </header>
-
-        @if (historyLoading()) {
-        <app-loading-skeleton variant="rows" [count]="3" label="Đang tải lịch sử ghép trận"></app-loading-skeleton>
-        } @else if (historyError()) {
-        <div class="history-empty history-empty--error">
-          <lucide-icon name="wifi-off" class="w-5 h-5"></lucide-icon>
-          <p>{{ historyError() }}</p>
-        </div>
-        } @else if (history().length) {
-        <div class="history-list" #historyScrollContainer>
-          @for (match of history(); track match.sessionId) {
-          @if (historyOpponent(match); as rival) {
-          <button type="button" class="history-row" [class.selected]="isSelectedHistory(match)"
-            [attr.aria-pressed]="isSelectedHistory(match)" (click)="selectHistorySession(match)">
-            @if (rival.avatarUrl) {
-            <img [src]="rival.avatarUrl" [alt]="'Ảnh đại diện của ' + rival.name" loading="lazy" />
-            } @else {
-            <span class="history-avatar">{{ historyOpponentInitials(match) }}</span>
-            }
-            <div class="history-player">
-              <strong>{{ rival.name }}</strong>
-              <small>{{ sportLabel(match.sportType) }} · ELO {{ rival.eloRating }} · {{ match.distanceKm |
-                number:'1.0-1' }} km</small>
-            </div>
-            <time>{{ historyDate(match) }}<small>{{ match.startTime }}–{{ match.endTime }}</small></time>
-            <span class="history-status" [attr.data-status]="match.status">{{ historyStatus(match) }}</span>
-          </button>
-          }
-          }
-          @if (historyHasMore()) {
-          <div #historySentinel class="history-sentinel" aria-hidden="true"></div>
-          }
-          @if (historyLoadingMore()) {
-          <app-loading-skeleton variant="rows" [count]="2" label="Đang tải thêm lịch sử"></app-loading-skeleton>
-          }
-        </div>
-        } @else {
-        <div class="history-empty">
-          <lucide-icon name="history" class="w-6 h-6"></lucide-icon>
-          <div><strong>Chưa có lịch sử ghép kèo</strong>
-            <p>Kèo đầu tiên của bạn sẽ xuất hiện tại đây.</p>
-          </div>
-        </div>
-        }
-      </section>
     </section>
   </div>
 </main>

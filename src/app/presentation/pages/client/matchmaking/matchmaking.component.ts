@@ -55,8 +55,19 @@ type MatchmakingPlayStyle = 'BALANCED' | 'FAIR_PLAY' | 'COMPETITIVE';
 type Coordinates = { latitude: number; longitude: number; source: 'profile' | 'browser' };
 type ScheduleConflict = { session: MatchmakingSession; bufferedStart: Date; bufferedEnd: Date };
 
-type PartyMode = 'SOLO' | 'PAIR' | 'CLUB';
+/** Nguồn đồng đội: thành viên một CLB mình đang ở, bạn bè, đại diện cả CLB (chủ/quản lý), hoặc đăng tìm người. */
+type TeamSource = 'CLUB_MEMBERS' | 'FRIENDS' | 'CLUB_SIDE' | 'CALL';
+type SetupStep = 'SPORT' | 'TEAM' | 'TIME' | 'PREFS';
 type PartnerOption = { userId: string; fullName: string };
+/** clubId: chọn từ danh sách thành viên CLB đó (server kiểm tra cùng CLB); null: chọn từ bạn bè. */
+type Teammate = PartnerOption & { clubId: string | null };
+
+const STEP_LABELS: Record<SetupStep, string> = {
+  SPORT: 'Môn & hình thức',
+  TEAM: 'Đồng đội',
+  TIME: 'Thời gian & nơi chơi',
+  PREFS: 'Tiêu chí ghép'
+};
 
 const DAY_INDEX: Record<PlayerDayOfWeek, number> = {
   [PlayerDayOfWeek.SUNDAY]: 0,
@@ -98,26 +109,71 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
 
   readonly selectedSport = signal<MatchmakingSport>('BADMINTON');
   readonly playFormat = signal('BADMINTON_SINGLES');
-  readonly partnerId = signal<string | null>(null);
+  /** CLB mình đại diện khi đấu CLB đấu CLB. */
   readonly clubId = signal<string | null>(null);
   readonly friends = signal<PartnerOption[] | null>(null);
   readonly friendsLoading = signal(false);
-  readonly managedClubMemberships = signal<MyClubMembership[] | null>(null);
+  readonly clubMemberships = signal<MyClubMembership[] | null>(null);
   readonly clubsLoading = signal(false);
+  readonly teamSource = signal<TeamSource>('FRIENDS');
+  /** Đã tự chọn nguồn đồng đội thì không tự đổi sang "Thành viên CLB" khi danh sách CLB tải xong. */
+  private teamSourceTouched = false;
+  readonly memberClubId = signal<string | null>(null);
+  readonly clubMembers = signal<Record<string, PartnerOption[]>>({});
+  readonly membersLoading = signal(false);
+  readonly teammates = signal<Teammate[]>([]);
+  readonly teammateQuery = signal('');
+  readonly step = signal<SetupStep>('SPORT');
   readonly formats = computed(() => PLAY_FORMATS[this.selectedSport()]);
-  readonly partyMode = computed<PartyMode>(() => {
-    const size = this.formats().find(item => item.value === this.playFormat())?.size ?? 1;
-    return size === 1 ? 'SOLO' : size === 2 ? 'PAIR' : 'CLUB';
-  });
-  /** CLB cùng môn mà mình là chủ hoặc quản lý: chỉ họ mới được tìm đối thủ cho CLB. */
-  readonly managedClubs = computed(() => (this.managedClubMemberships() ?? []).filter(item =>
-    item.status === 'ACTIVE' && (item.role === 'OWNER' || item.role === 'ADMIN')
-    && item.club.sportType === this.selectedSport() && item.club.active !== false));
-  readonly isTeamSport = computed(() => this.formats().every(item => item.size > 2));
-  readonly partnerOptions = computed<SelectOption[]>(() =>
-    (this.friends() ?? []).map(friend => ({ value: friend.userId, label: friend.fullName })));
+  readonly formatLabel = computed(() => this.formats().find(item => item.value === this.playFormat())?.label ?? '');
+  /** Số người mỗi bên của hình thức đang chọn (đơn: 1, đôi: 2, sân 5: 5...). */
+  readonly teamSize = computed(() => this.formats().find(item => item.value === this.playFormat())?.size ?? 1);
+  readonly neededTeammates = computed(() => this.teamSize() - 1);
+  /** CLB cùng môn mình đang là thành viên: nguồn đồng đội cho mọi môn, kể cả đánh đôi. */
+  readonly sportClubs = computed(() => (this.clubMemberships() ?? []).filter(item =>
+    item.status === 'ACTIVE' && item.club.sportType === this.selectedSport() && item.club.active !== false));
+  /** Chỉ môn đồng đội: CLB mình là chủ hoặc quản lý thì được đại diện cả CLB đấu CLB. */
+  readonly managedClubs = computed(() => this.teamSize() > 2
+    ? this.sportClubs().filter(item => item.role === 'OWNER' || item.role === 'ADMIN')
+    : []);
+  readonly representsClub = computed(() => this.teamSize() > 2 && this.teamSource() === 'CLUB_SIDE');
+  readonly memberClubOptions = computed<SelectOption[]>(() =>
+    this.sportClubs().map(item => ({ value: item.club.clubId, label: item.club.name })));
   readonly clubOptions = computed<SelectOption[]>(() =>
     this.managedClubs().map(item => ({ value: item.club.clubId, label: item.club.name })));
+  readonly teamSources = computed<ReadonlyArray<{ value: TeamSource; label: string; icon: string }>>(() => [
+    { value: 'CLUB_MEMBERS', label: 'Thành viên CLB', icon: 'users-round' },
+    { value: 'FRIENDS', label: 'Bạn bè', icon: 'user-plus' },
+    ...(this.managedClubs().length ? [{ value: 'CLUB_SIDE' as const, label: 'Đại diện CLB', icon: 'shield' }] : []),
+    { value: 'CALL', label: 'Đăng tìm người', icon: 'megaphone' }
+  ]);
+  readonly representedClubName = computed(() => this.clubOptions().find(item => item.value === this.clubId())?.label ?? '');
+  readonly currentUserName = computed(() => {
+    const user = this.authService.currentUser;
+    return user?.fullName || user?.username || 'Bạn';
+  });
+  readonly teammateIds = computed(() => new Set(this.teammates().map(item => item.userId)));
+  readonly teamFull = computed(() => this.teammates().length >= this.neededTeammates());
+  /** Người có thể chọn ở nguồn hiện tại, lọc theo ô tìm; không có chính mình. */
+  readonly pool = computed<PartnerOption[]>(() => {
+    const me = this.authService.currentUser?.userId;
+    const source = this.teamSource();
+    const list = source === 'FRIENDS' ? this.friends() ?? []
+      : source === 'CLUB_MEMBERS' ? this.clubMembers()[this.memberClubId() ?? ''] ?? [] : [];
+    const query = this.fold(this.teammateQuery());
+    return list.filter(item => item.userId !== me && (!query || this.fold(item.fullName).includes(query)));
+  });
+  /** Chỗ trống còn lại trong đội (chỉ để vẽ ô trống). */
+  readonly openSlots = computed(() =>
+    Array.from({ length: Math.max(0, this.neededTeammates() - this.teammates().length) }, (_, index) => index));
+  readonly teamReady = computed(() => this.teamSize() === 1
+    || (this.representsClub() ? !!this.clubId() : this.teammates().length === this.neededTeammates()));
+  readonly steps = computed(() => {
+    const keys: SetupStep[] = this.teamSize() > 1 ? ['SPORT', 'TEAM', 'TIME', 'PREFS'] : ['SPORT', 'TIME', 'PREFS'];
+    return keys.map(key => ({ key, label: STEP_LABELS[key], summary: this.stepSummary(key) }));
+  });
+  readonly stepIndex = computed(() => Math.max(0, this.steps().findIndex(item => item.key === this.step())));
+  readonly isLastStep = computed(() => this.stepIndex() === this.steps().length - 1);
   /** Trình độ, ELO, phong cách, cách chọn: đã có mặc định từ hồ sơ nên thu gọn, chỉ hiện một dòng tóm tắt. */
   readonly prefsOpen = signal(false);
   readonly prefsSummary = computed(() => [
@@ -446,6 +502,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
       }
     });
     this.restoreState();
+    this.loadClubs();
   }
 
   ngAfterViewInit(): void {
@@ -463,7 +520,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
           duration: 0.55,
           ease: 'power3.out'
         });
-        gsap.from('.matchmaking-workspace > *', {
+        gsap.from('.stage, .insights > *', {
           autoAlpha: 0,
           y: 22,
           duration: 0.62,
@@ -498,6 +555,11 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   }
 
   selectSport(sport: MatchmakingSport): void {
+    if (sport !== this.selectedSport()) {
+      this.teammates.set([]);
+      this.memberClubId.set(null);
+      this.teamSourceTouched = false;
+    }
     this.selectedSport.set(sport);
     this.applyProfileForSport(sport);
     this.selectFormat(PLAY_FORMATS[sport][0].value);
@@ -506,10 +568,147 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   selectFormat(format: string): void {
     this.playFormat.set(format);
     this.errorMessage.set('');
-    if (this.partyMode() === 'PAIR') this.loadFriends();
-    if (this.partyMode() === 'CLUB') this.loadManagedClubs();
-    const clubs = this.managedClubs();
-    if (!clubs.some(item => item.club.clubId === this.clubId())) this.clubId.set(clubs[0]?.club.clubId ?? null);
+    // Đổi sang hình thức ít người hơn: giữ những người chọn trước, bỏ phần thừa.
+    this.teammates.update(items => items.slice(0, this.neededTeammates()));
+    if (this.teamSize() > 1) {
+      this.loadFriends();
+      this.loadClubs();
+    }
+    this.syncTeamDefaults();
+  }
+
+  /** Mặc định: đang ở CLB cùng môn thì chọn đồng đội trong CLB trước, không thì bạn bè. */
+  private syncTeamDefaults(): void {
+    const clubs = this.sportClubs();
+    if (!clubs.some(item => item.club.clubId === this.memberClubId())) {
+      this.memberClubId.set(clubs[0]?.club.clubId ?? null);
+    }
+    const managed = this.managedClubs();
+    if (!managed.some(item => item.club.clubId === this.clubId())) this.clubId.set(managed[0]?.club.clubId ?? null);
+    if (this.teamSource() === 'CLUB_SIDE' && !managed.length) this.teamSource.set('FRIENDS');
+    if (!this.teamSourceTouched) this.teamSource.set(clubs.length ? 'CLUB_MEMBERS' : 'FRIENDS');
+    if (this.teamSource() === 'CLUB_MEMBERS' && this.memberClubId()) this.loadClubMembers(this.memberClubId()!);
+  }
+
+  setTeamSource(source: TeamSource): void {
+    this.teamSourceTouched = true;
+    this.teamSource.set(source);
+    this.teammateQuery.set('');
+    this.errorMessage.set('');
+    if (source === 'CLUB_MEMBERS' && this.memberClubId()) this.loadClubMembers(this.memberClubId()!);
+  }
+
+  /** Đổi CLB nguồn: bỏ những người đã chọn từ CLB khác (server chỉ kiểm tra một CLB mỗi lượt). */
+  selectMemberClub(clubId: string | null): void {
+    this.memberClubId.set(clubId);
+    this.teammateQuery.set('');
+    this.teammates.update(items => items.filter(item => !item.clubId || item.clubId === clubId));
+    if (clubId) this.loadClubMembers(clubId);
+  }
+
+  toggleTeammate(person: PartnerOption): void {
+    if (this.teammateIds().has(person.userId)) {
+      this.removeTeammate(person.userId);
+      return;
+    }
+    if (this.teamFull()) return;
+    const clubId = this.teamSource() === 'CLUB_MEMBERS' ? this.memberClubId() : null;
+    this.teammates.update(items => [...items, { ...person, clubId }]);
+    this.errorMessage.set('');
+  }
+
+  removeTeammate(userId: string): void {
+    this.teammates.update(items => items.filter(item => item.userId !== userId));
+  }
+
+  goToStep(key: SetupStep): void {
+    const target = this.steps().findIndex(item => item.key === key);
+    // Tiến lên phải qua từng bước hợp lệ; lùi thì luôn được.
+    if (target < 0 || (target > this.stepIndex() && !this.stepsValidUpTo(target))) return;
+    this.errorMessage.set('');
+    this.step.set(key);
+  }
+
+  nextStep(): void {
+    if (!this.validateStep(this.step())) return;
+    const next = this.steps()[this.stepIndex() + 1];
+    if (next) {
+      this.errorMessage.set('');
+      this.step.set(next.key);
+    }
+  }
+
+  prevStep(): void {
+    const previous = this.steps()[this.stepIndex() - 1];
+    if (previous) this.step.set(previous.key);
+  }
+
+  canVisit(index: number): boolean {
+    return index <= this.stepIndex() || this.stepsValidUpTo(index);
+  }
+
+  private stepsValidUpTo(index: number): boolean {
+    return this.steps().slice(0, index).every(item => this.stepValid(item.key));
+  }
+
+  private stepValid(key: SetupStep): boolean {
+    if (key === 'TEAM') return this.teamReady();
+    if (key === 'TIME') return this.timeValid();
+    return true;
+  }
+
+  private validateStep(key: SetupStep): boolean {
+    if (key === 'TEAM' && !this.teamReady()) {
+      this.errorMessage.set(this.teamProblem());
+      return false;
+    }
+    if (key === 'TIME' && !this.timeValid()) {
+      this.errorMessage.set(this.timeProblem());
+      return false;
+    }
+    return true;
+  }
+
+  private teamProblem(): string {
+    if (this.representsClub()) return 'Hãy chọn CLB mà bạn đại diện thi đấu.';
+    const missing = this.neededTeammates() - this.teammates().length;
+    return this.teamSize() === 2
+      ? 'Đánh đôi cần chọn bạn cặp. Chưa có ai thì đăng tìm người chơi ở Cộng đồng.'
+      : `Đội ${this.formatLabel()} cần thêm ${missing} đồng đội. Thiếu người thì đăng tìm người chơi ở Cộng đồng.`;
+  }
+
+  private timeValid(): boolean {
+    return !!this.playDate() && this.playDate() >= this.today
+      && !!this.startTime() && !!this.endTime() && this.endTime() > this.startTime();
+  }
+
+  private timeProblem(): string {
+    return !this.playDate() || this.playDate() < this.today
+      ? 'Ngày chơi không được nằm trong quá khứ.'
+      : 'Giờ kết thúc phải sau giờ bắt đầu.';
+  }
+
+  private stepSummary(key: SetupStep): string {
+    switch (key) {
+      case 'SPORT': return `${this.selectedSportLabel()} · ${this.formatLabel()}`;
+      case 'TEAM': {
+        if (this.representsClub()) return this.representedClubName() || 'Chọn CLB đại diện';
+        return this.teamSize() === 2
+          ? this.teammates()[0]?.fullName ?? 'Chưa chọn bạn cặp'
+          : `${this.teammates().length + 1}/${this.teamSize()} người`;
+      }
+      case 'TIME': return `${this.shortDate(this.playDate())} · ${this.startTime()}–${this.endTime()}`;
+      case 'PREFS': return `${this.skills.find(item => item.value === this.selectedSkill())?.label} · ELO ${this.eloRating()}`;
+    }
+  }
+
+  private shortDate(value: string): string {
+    return value ? new Intl.DateTimeFormat('vi-VN', { weekday: 'short', day: '2-digit', month: '2-digit' })
+      .format(new Date(`${value}T00:00:00`)) : '—';
+  }
+
+  private fold(value: string): string {
+    return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/gi, 'd').toLowerCase().trim();
   }
 
   private loadFriends(): void {
@@ -533,18 +732,39 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     });
   }
 
-  private loadManagedClubs(): void {
-    if (this.managedClubMemberships() || this.clubsLoading()) return;
+  private loadClubs(): void {
+    if (this.clubMemberships() || this.clubsLoading() || !this.authService.currentUser) return;
     this.clubsLoading.set(true);
     this.clubRepository.getMyClubs().pipe(
       takeUntilDestroyed(this.destroyRef),
       finalize(() => this.clubsLoading.set(false))
     ).subscribe({
       next: memberships => {
-        this.managedClubMemberships.set(Array.isArray(memberships) ? memberships : []);
-        if (!this.clubId()) this.clubId.set(this.managedClubs()[0]?.club.clubId ?? null);
+        this.clubMemberships.set(Array.isArray(memberships) ? memberships : []);
+        this.syncTeamDefaults();
       },
-      error: () => this.managedClubMemberships.set([])
+      error: () => this.clubMemberships.set([])
+    });
+  }
+
+  /** Thành viên đang hoạt động của một CLB, kèm tên; tải một lần mỗi CLB. */
+  private loadClubMembers(clubId: string): void {
+    if (this.clubMembers()[clubId] || this.membersLoading()) return;
+    this.membersLoading.set(true);
+    this.clubRepository.getClubMembers(clubId).pipe(
+      map(members => [...new Set((members ?? []).filter(item => item.status === 'ACTIVE').map(item => item.userId))]),
+      switchMap(ids => ids.length ? forkJoin({ ids: of(ids), users: this.directory.resolve(ids) })
+        : of({ ids, users: new Map() })),
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.membersLoading.set(false))
+    ).subscribe({
+      next: ({ ids, users }) => this.clubMembers.update(cache => ({
+        ...cache,
+        [clubId]: ids
+          .map(id => ({ userId: id, fullName: users.get(id)?.fullName || users.get(id)?.username || 'Thành viên' }))
+          .sort((a, b) => a.fullName.localeCompare(b.fullName, 'vi'))
+      })),
+      error: () => this.clubMembers.update(cache => ({ ...cache, [clubId]: [] }))
     });
   }
 
@@ -798,6 +1018,13 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     this.errorMessage.set('');
   }
 
+  /** Về form thiết lập mà vẫn theo dõi kèo đang chạy (xem lại ở Ghép kèo gần đây). */
+  backToSetup(): void {
+    this.selectedHistorySession.set(null);
+    this.hideRestoredSession.set(true);
+    this.errorMessage.set('');
+  }
+
   historyOpponent(match: MatchmakingSession): MatchmakingPlayer | null {
     const mine = this.mySide(match);
     return match.participants.find(item => item !== mine) ?? match.participants[0] ?? null;
@@ -810,6 +1037,11 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   selectHistorySession(match: MatchmakingSession): void {
     this.selectedHistorySession.set(match);
     this.animateMatchDetail();
+    if (isPlatformBrowser(this.platformId)) {
+      const stage = this.host.nativeElement.querySelector('.stage') as HTMLElement | null;
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (stage && stage.getBoundingClientRect().top < 0) stage.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    }
   }
 
   loadMoreHistory(): void {
@@ -937,8 +1169,9 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
       winRate: profile?.winRate ?? 0,
       selectionMode: this.selectionMode(),
       playFormat: this.playFormat(),
-      partnerId: this.partyMode() === 'PAIR' ? this.partnerId() ?? undefined : undefined,
-      clubId: this.partyMode() === 'CLUB' ? this.clubId() ?? undefined : undefined
+      partnerIds: this.teamSize() > 1 && !this.representsClub() ? this.teammates().map(item => item.userId) : undefined,
+      teammateClubId: this.representsClub() ? undefined : this.teammates().find(item => item.clubId)?.clubId ?? undefined,
+      clubId: this.representsClub() ? this.clubId() ?? undefined : undefined
     };
     this.enqueue(payload);
   }
@@ -1228,21 +1461,12 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   }
 
   private validPreferences(): boolean {
-    if (this.partyMode() === 'PAIR' && !this.partnerId()) {
-      this.errorMessage.set('Đánh đôi cần chọn bạn cặp. Chưa có bạn cặp thì đăng tìm người chơi ở Cộng đồng.');
-      return false;
-    }
-    if (this.partyMode() === 'CLUB' && !this.clubId()) {
-      this.errorMessage.set('Môn đồng đội ghép CLB đấu CLB: hãy chọn CLB mà bạn là chủ hoặc quản lý.');
-      return false;
-    }
-    if (!this.playDate() || this.playDate() < this.today) {
-      this.errorMessage.set('Ngày chơi không được nằm trong quá khứ.');
-      return false;
-    }
-    if (!this.startTime() || !this.endTime() || this.endTime() <= this.startTime()) {
-      this.errorMessage.set('Giờ kết thúc phải sau giờ bắt đầu.');
-      return false;
+    // Sai ở bước nào thì đưa về đúng bước đó cùng thông báo.
+    for (const key of ['TEAM', 'TIME'] as const) {
+      if (this.steps().some(item => item.key === key) && !this.validateStep(key)) {
+        this.step.set(key);
+        return false;
+      }
     }
     if (this.eloRating() < 0 || this.eloRating() > 5000) {
       this.errorMessage.set('ELO phải nằm trong khoảng từ 0 đến 5.000.');

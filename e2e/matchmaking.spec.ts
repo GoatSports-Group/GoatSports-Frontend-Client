@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { Page, expect, test } from '@playwright/test';
 import { mockGoatSportsApi } from './fixtures/api.fixture';
 
 const currentUserId = '11111111-1111-4111-8111-111111111111';
@@ -79,6 +79,11 @@ function session(status: TestSessionStatus = 'PROPOSED', sportType = 'BADMINTON'
   };
 }
 
+/** Nhảy thẳng tới bước cuối (Tiêu chí ghép), nơi có nút tìm đối thủ. */
+async function openLastStep(page: Page): Promise<void> {
+  await page.getByRole('button', { name: /Tiêu chí ghép/ }).click();
+}
+
 test.beforeEach(async ({ page }) => {
   await mockGoatSportsApi(page);
   await page.route('**/auth-service/api/v1/users/me/sport-profiles', route => route.fulfill({
@@ -142,7 +147,8 @@ test('main dùng toàn bộ container và trợ lý nổi không chiếm cột l
   await expect(assistant).toBeVisible();
   const assistantBox = await assistant.boundingBox();
   const headBox = await page.locator('.page-head').boundingBox();
-  const workspaceColumns = await page.locator('.matchmaking-workspace').evaluate(element =>
+  const stageBox = await page.locator('.stage').boundingBox();
+  const insightColumns = await page.locator('.insights').evaluate(element =>
     getComputedStyle(element).gridTemplateColumns.split(' ').filter(Boolean).length
   );
 
@@ -150,7 +156,9 @@ test('main dùng toàn bộ container và trợ lý nổi không chiếm cột l
   expect(headBox).not.toBeNull();
   expect(Math.round(assistantBox!.x + assistantBox!.width)).toBe(1898);
   expect(headBox!.width).toBeGreaterThan(1490);
-  expect(workspaceColumns).toBe(2);
+  // Hàng 1: thiết lập kèo rộng cả trang; hàng 2: tiêu chí AI và lịch sử chia đôi.
+  expect(stageBox!.width).toBeGreaterThan(1490);
+  expect(insightColumns).toBe(2);
 });
 
 test('hiển thị cấu hình từ hồ sơ và lịch sử ghép kèo thật', async ({ page }) => {
@@ -165,24 +173,24 @@ test('hiển thị cấu hình từ hồ sơ và lịch sử ghép kèo thật',
 
   await expect(page.locator('main h1')).toContainText('AI ghép trận', { timeout: 15_000 });
   await expect(page.getByText('Đã dùng hồ sơ')).toBeVisible();
+  // Đánh đơn: ba bước, mỗi bước tóm tắt lựa chọn ngay dưới tên bước.
+  await expect(page.locator('.stepper li')).toHaveCount(3);
+  await page.getByRole('button', { name: 'Tiếp tục' }).click();
   await expect(page.locator('#match-date')).toHaveValue(futureDate(2));
   await expect(page.locator('#match-start')).toHaveValue('06:30');
   await expect(page.locator('#match-end')).toHaveValue('08:00');
-  // Tiêu chí lấy từ hồ sơ được thu gọn thành một dòng tóm tắt; mở ra mới thấy từng lựa chọn.
-  const prefs = page.getByRole('button', { name: /Tiêu chí ghép/ });
-  await expect(prefs).toContainText('Fair-play');
-  await expect(prefs).toHaveAttribute('aria-expanded', 'false');
-  await prefs.click();
+  await expect(page.getByRole('button', { name: /Thời gian & nơi chơi/ })).toContainText('06:30–08:00');
+  await page.getByRole('button', { name: 'Tiếp tục' }).click();
   await expect(page.getByRole('button', { name: /^Fair-play/ })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('#match-elo')).toHaveAttribute('readonly', '');
   await expect(page.getByText('Trần Hoàng Minh')).toBeVisible();
   await expect(page.getByText('Đã xác nhận')).toBeVisible();
 
+  // Chọn một kèo trong lịch sử: chi tiết thay chỗ form ở hàng trên, đóng lại thì form quay về đúng bước.
   await page.locator('.history-row').click();
   await expect(page.locator('.result-state--matched .match-header')).toContainText('Cầu lông');
-  await page.getByRole('button', { name: /Tennis/ }).click();
-  await expect(page.locator('.result-state--matched .match-header')).toContainText('Cầu lông');
-  await expect(page.getByRole('button', { name: /Đóng chi tiết/ })).toBeVisible();
+  await page.getByRole('button', { name: /Đóng chi tiết/ }).click();
+  await expect(page.getByRole('button', { name: /^Fair-play/ })).toBeVisible();
 });
 
 test('chặn khung giờ trùng trận sắp tới và mở lại khi hết khoảng đệm', async ({ page }) => {
@@ -201,10 +209,14 @@ test('chặn khung giờ trùng trận sắp tới và mở lại khi hết kho�
   await page.goto('/matchmaking');
   const searchButton = page.getByRole('button', { name: 'Tìm đối thủ khác', exact: true });
   await expect(page.getByText('Khung giờ này đang bị giữ')).toBeVisible({ timeout: 15_000 });
+  await openLastStep(page);
   await expect(searchButton).toBeDisabled();
 
+  await page.getByRole('button', { name: /Thời gian & nơi chơi/ }).click();
   await page.locator('#match-start').fill('09:00');
   await page.locator('#match-end').fill('10:30');
+  await expect(page.getByText('Khung giờ này đang bị giữ')).toBeHidden();
+  await page.getByRole('button', { name: 'Tiếp tục' }).click();
   await expect(searchButton).toBeEnabled();
 
   await page.locator('.history-row').click();
@@ -233,6 +245,7 @@ test('tìm, nhận đề xuất và chấp nhận kèo end-to-end', async ({ pag
   await page.goto('/matchmaking');
   const closeAssistant = page.getByRole('button', { name: 'Đóng trợ lý' });
   if (await closeAssistant.isVisible()) await closeAssistant.click();
+  await openLastStep(page);
   await page.getByRole('button', { name: 'Tìm đối thủ', exact: true }).click();
   await expect(page.getByRole('heading', { name: '92% phù hợp' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Trần Hoàng Minh' })).toBeVisible();
@@ -256,8 +269,10 @@ test('không polling trạng thái khi đang chờ đối thủ', async ({ page 
   );
 
   await page.goto('/matchmaking');
+  await openLastStep(page);
   await page.getByRole('button', { name: 'Tìm đối thủ', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'GOAT AI đang quét đối thủ phù hợp' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Hủy tìm kiếm' })).toBeVisible();
 
   await page.waitForTimeout(3_500);
   expect(statusRequests).toBe(1);
@@ -301,26 +316,32 @@ test.describe('hình thức thi đấu', () => {
     const closeAssistant = page.getByRole('button', { name: 'Đóng trợ lý' });
     if (await closeAssistant.isVisible()) await closeAssistant.click();
     await page.getByRole('radio', { name: /Đánh đôi/ }).click();
-    const partner = page.getByRole('button', { name: 'Bạn cặp' });
-    await expect(partner).toContainText('Chọn bạn cặp');
+    await expect(page.locator('.stepper li')).toHaveCount(4);
+    await page.getByRole('button', { name: 'Tiếp tục' }).click();
+    // Chưa chọn bạn cặp thì không qua được bước Đồng đội, cũng không nhảy cóc được.
+    await page.getByRole('button', { name: 'Tiếp tục' }).click();
+    await expect(page.getByText('Đánh đôi cần chọn bạn cặp')).toBeVisible();
+    await expect(page.getByRole('button', { name: /Tiêu chí ghép/ })).toBeDisabled();
+
+    await page.getByRole('tab', { name: 'Đăng tìm người' }).click();
     await expect(page.getByRole('link', { name: /Đăng tìm người chơi/ })).toHaveAttribute('href', /compose=find-players/);
 
-    await page.getByRole('button', { name: 'Tìm đối thủ', exact: true }).click();
-    await expect(page.getByText('Đánh đôi cần chọn bạn cặp')).toBeVisible();
-    expect(payload).toBeNull();
-
     // Chỉ bạn đã kết bạn mới chọn được (lời mời đang chờ không có trong danh sách).
-    await partner.click();
-    await expect(page.getByRole('option')).toHaveText(['Lê Thu']);
-    await page.getByRole('option', { name: 'Lê Thu' }).click();
+    await page.getByRole('tab', { name: 'Bạn bè' }).click();
+    const people = page.locator('.people-list .person');
+    await expect(people).toHaveText([/Lê Thu/]);
+    await people.first().click();
+    await expect(page.locator('.team-roster')).toContainText('Lê Thu');
+    await expect(page.locator('.team-roster header')).toContainText('2/2');
+    await openLastStep(page);
     await page.getByRole('button', { name: 'Tìm đối thủ', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Trần Hoàng Minh' })).toBeVisible();
-    expect(payload).toMatchObject({ playFormat: 'BADMINTON_DOUBLES', partnerId });
+    expect(payload).toMatchObject({ playFormat: 'BADMINTON_DOUBLES', partnerIds: [partnerId] });
     await expect(page.getByRole('heading', { name: 'Lê Thu & Nguyễn Minh Anh' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Chấp nhận kèo' })).toBeVisible();
   });
 
-  test('bóng đá chỉ ghép CLB: chỉ liệt kê CLB bóng đá mình là chủ hoặc quản lý', async ({ page }) => {
+  test('bóng đá: đại diện CLB chỉ liệt kê CLB bóng đá mình là chủ hoặc quản lý', async ({ page }) => {
     const club = (clubId: string, name: string, sportType: string) => ({
       clubId, name, sportType, ownerId: currentUserId, privacy: 'PUBLIC', approvalMode: 'MANUAL', active: true,
       winCount: 0, lossCount: 0, drawCount: 0, matchCount: 0, winRate: 0, memberCount: 9, tags: []
@@ -345,18 +366,79 @@ test.describe('hình thức thi đấu', () => {
     await page.getByRole('button', { name: 'Bóng đá' }).click();
 
     await expect(page.getByRole('radio')).toHaveText([/Sân 5/, /Sân 7/, /Sân 11/]);
-    // CLB duy nhất mình quản lý được chọn sẵn; danh sách chỉ có CLB bóng đá mình là chủ hoặc quản lý.
+    // Bước 1 cho thấy CLB bóng đá mình đang ở (cả CLB chỉ là thành viên).
+    await expect(page.locator('.club-hint')).toContainText('FC Bến Nghé');
+    await expect(page.locator('.club-hint')).toContainText('FC Thảo Điền');
+    await page.getByRole('radio', { name: /Sân 7/ }).click();
+    await page.getByRole('button', { name: 'Tiếp tục' }).click();
+
+    // Đại diện CLB: chỉ CLB mình là chủ hoặc quản lý, chọn sẵn khi chỉ có một.
+    await page.getByRole('tab', { name: 'Đại diện CLB' }).click();
     const clubPicker = page.getByRole('button', { name: 'Câu lạc bộ thi đấu' });
     await expect(clubPicker).toContainText('FC Bến Nghé');
     await clubPicker.click();
     await expect(page.getByRole('option')).toHaveText(['FC Bến Nghé']);
     await page.keyboard.press('Escape');
-    await page.getByRole('radio', { name: /Sân 7/ }).click();
+    await openLastStep(page);
     await page.getByRole('button', { name: 'Tìm đối thủ', exact: true }).click();
 
     await expect(page.getByRole('heading', { name: 'GOAT AI đang quét đối thủ phù hợp' })).toBeVisible();
     expect(payload).toMatchObject({ sportType: 'FOOTBALL', playFormat: 'FOOTBALL_7', clubId: 'c1c1c1c1-c1c1-4c1c-8c1c-c1c1c1c1c1c1' });
-    expect(payload).not.toHaveProperty('partnerId');
+    expect(payload).not.toHaveProperty('partnerIds');
+  });
+
+  test('bóng rổ 3x3 không đại diện CLB: ghép đội từ thành viên CLB và bạn bè', async ({ page }) => {
+    const clubId = 'c4c4c4c4-c4c4-4c4c-8c4c-c4c4c4c4c4c4';
+    const clubmateId = '56565656-5656-4565-8565-565656565656';
+    await page.route('**/club-service/api/v1/clubs/me', route => route.fulfill(ok([{
+      membershipId: 'm-4', role: 'MEMBER', status: 'ACTIVE',
+      club: { clubId, name: 'Rổ Quận 3', sportType: 'BASKETBALL', ownerId: leaderId, privacy: 'PUBLIC', approvalMode: 'MANUAL',
+        active: true, winCount: 0, lossCount: 0, drawCount: 0, matchCount: 0, winRate: 0, memberCount: 6, tags: [] }
+    }])));
+    await page.route(`**/club-service/api/v1/clubs/${clubId}/members`, route => route.fulfill(ok([
+      { membershipId: 'x-1', clubId, userId: currentUserId, role: 'MEMBER', status: 'ACTIVE' },
+      { membershipId: 'x-2', clubId, userId: clubmateId, role: 'MEMBER', status: 'ACTIVE' },
+      { membershipId: 'x-3', clubId, userId: opponentId, role: 'MEMBER', status: 'PENDING' }
+    ])));
+    await page.route(/\/social-service\/api\/v1\/social\/friends(\?.*)?$/, route => route.fulfill(ok([
+      { friendshipId: 'f-1', requesterId: currentUserId, addresseeId: partnerId, status: 'ACCEPTED', requestedAt: '2026-09-01T08:00:00' }
+    ])));
+    for (const [userId, fullName] of [[clubmateId, 'Phan Quốc Bảo'], [partnerId, 'Lê Thu']]) {
+      await page.route(`**/auth-service/api/v1/users/${userId}`, route => route.fulfill(ok({
+        userId, username: userId.slice(0, 6), fullName, email: `${userId.slice(0, 6)}@goatsports.test`, status: 'ACTIVE'
+      })));
+    }
+    let payload: Record<string, unknown> | null = null;
+    await page.route('**/ai-service/api/v1/ai/matchmaking/queue', async route => {
+      payload = route.request().postDataJSON();
+      await route.fulfill({ json: { status: 'QUEUED', message: 'Đang chờ đối thủ phù hợp.', queueSize: 1 } });
+    });
+    await page.context().grantPermissions(['geolocation']);
+    await page.context().setGeolocation({ latitude: 10.77, longitude: 106.67 });
+
+    await page.goto('/matchmaking');
+    const closeAssistant = page.getByRole('button', { name: 'Đóng trợ lý' });
+    if (await closeAssistant.isVisible()) await closeAssistant.click();
+    await page.getByRole('button', { name: 'Bóng rổ' }).click();
+    await page.getByRole('button', { name: 'Tiếp tục' }).click();
+
+    // Đang ở CLB bóng rổ nên mặc định chọn trong CLB; thành viên chưa duyệt và chính mình không có trong danh sách.
+    await expect(page.getByRole('tab', { name: 'Thành viên CLB' })).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByRole('tab', { name: 'Đại diện CLB' })).toHaveCount(0);
+    const people = page.locator('.people-list .person');
+    await expect(people).toHaveText([/Phan Quốc Bảo/]);
+    await people.first().click();
+    await page.getByRole('tab', { name: 'Bạn bè' }).click();
+    await people.first().click();
+    await expect(page.locator('.team-roster header')).toContainText('3/3');
+    await openLastStep(page);
+    await page.getByRole('button', { name: 'Tìm đối thủ', exact: true }).click();
+
+    await expect(page.getByRole('heading', { name: 'GOAT AI đang quét đối thủ phù hợp' })).toBeVisible();
+    expect(payload).toMatchObject({
+      sportType: 'BASKETBALL', playFormat: 'BASKETBALL_3X3', partnerIds: [clubmateId, partnerId], teammateClubId: clubId
+    });
+    expect(payload).not.toHaveProperty('clubId');
   });
 });
 
@@ -389,5 +471,8 @@ test('khung giờ là khoảng rảnh: mỗi sân gợi ý hiện giờ thi đ�
   await expect(page.getByText('Khung rảnh chung')).toBeVisible();
   await expect(page.getByText('18:00–20:00').first()).toBeVisible();
   await expect(page.getByText('Thi đấu 19:00–20:00')).toBeVisible();
-  await expect(page.getByLabel('Rảnh từ')).toBeVisible();
+  // Kèo đang chạy: quay về form bằng "Tạo kèo mới", kèo vẫn nằm trong lịch sử.
+  await page.getByRole('button', { name: 'Tạo kèo mới' }).click();
+  await expect(page.locator('.setup-card')).toBeVisible();
+  await expect(page.locator('.history-row')).toHaveCount(1);
 });
