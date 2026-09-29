@@ -87,8 +87,8 @@ test.describe('Tìm người chơi', () => {
 
     await page.goto('/feed?tab=calls&compose=find-players&sport=BADMINTON&format=BADMINTON_DOUBLES');
     await expect(page.getByRole('tab', { name: 'Tìm người chơi' })).toHaveAttribute('aria-selected', 'true');
-    await expect(page.getByLabel('Môn', { exact: true })).toHaveValue(/BADMINTON/);
-    await expect(page.getByLabel('Hình thức')).toHaveValue(/BADMINTON_DOUBLES/);
+    await expect(page.getByRole('button', { name: 'Môn', exact: true })).toContainText('Cầu lông');
+    await expect(page.getByRole('button', { name: 'Hình thức', exact: true })).toContainText('Đánh đôi');
     const publish = page.getByRole('button', { name: 'Đăng kèo' });
     await expect(publish).toBeDisabled();
 

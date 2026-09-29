@@ -21,19 +21,13 @@
     <div class="call-form">
       <label class="call-field">
         <span>Môn</span>
-        <select [ngModel]="callSport()" (ngModelChange)="selectCallSport($event)" aria-label="Môn">
-          <option [ngValue]="null" disabled>Chọn môn</option>
-          @for (option of sportOptions; track option.value) {
-            @if (option.value) { <option [ngValue]="option.value">{{ option.label }}</option> }
-          }
-        </select>
+        <app-select ariaLabel="Môn" leadingIcon="trophy" placeholder="Chọn môn" [options]="callSportOptions"
+          [ngModel]="callSport()" (ngModelChange)="selectCallSport($event)"></app-select>
       </label>
       <label class="call-field">
         <span>Hình thức</span>
-        <select [ngModel]="callFormat()" (ngModelChange)="callFormat.set($event)" [disabled]="!callFormats().length" aria-label="Hình thức">
-          <option [ngValue]="null">Không nêu</option>
-          @for (format of callFormats(); track format.value) { <option [ngValue]="format.value">{{ format.label }}</option> }
-        </select>
+        <app-select ariaLabel="Hình thức" placeholder="Không nêu" [options]="callFormatOptions()"
+          [disabled]="!callFormats().length" [ngModel]="callFormat()" (ngModelChange)="callFormat.set($event)"></app-select>
       </label>
       <label class="call-field">
         <span>Ngày chơi</span>
@@ -58,12 +52,8 @@
       @if (callClubs().length) {
         <label class="call-field call-field--wide">
           <span>Đăng với tư cách</span>
-          <select [ngModel]="callClubId()" (ngModelChange)="callClubId.set($event)" aria-label="Đăng với tư cách">
-            <option [ngValue]="null">Cá nhân — hiện ở Trang chủ</option>
-            @for (item of callClubs(); track item.club.clubId) {
-              <option [ngValue]="item.club.clubId">CLB {{ item.club.name }} — hiện ở trang Câu lạc bộ</option>
-            }
-          </select>
+          <app-select ariaLabel="Đăng với tư cách" leadingIcon="user" [options]="callClubOptions()"
+            [ngModel]="callClubId()" (ngModelChange)="callClubId.set($event)"></app-select>
         </label>
       }
     </div>

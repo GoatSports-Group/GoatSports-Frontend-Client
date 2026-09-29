@@ -141,15 +141,15 @@ test('main dùng toàn bộ container và trợ lý nổi không chiếm cột l
   await launcher.click();
   await expect(assistant).toBeVisible();
   const assistantBox = await assistant.boundingBox();
-  const heroBox = await page.locator('.matchmaking-hero').boundingBox();
+  const headBox = await page.locator('.page-head').boundingBox();
   const workspaceColumns = await page.locator('.matchmaking-workspace').evaluate(element =>
     getComputedStyle(element).gridTemplateColumns.split(' ').filter(Boolean).length
   );
 
   expect(assistantBox).not.toBeNull();
-  expect(heroBox).not.toBeNull();
+  expect(headBox).not.toBeNull();
   expect(Math.round(assistantBox!.x + assistantBox!.width)).toBe(1898);
-  expect(heroBox!.width).toBeGreaterThan(1490);
+  expect(headBox!.width).toBeGreaterThan(1490);
   expect(workspaceColumns).toBe(2);
 });
 
@@ -163,12 +163,17 @@ test('hiển thị cấu hình từ hồ sơ và lịch sử ghép kèo thật',
 
   await page.goto('/matchmaking');
 
-  await expect(page.locator('main h1')).toContainText('Ghép đúng kèo', { timeout: 15_000 });
+  await expect(page.locator('main h1')).toContainText('AI ghép trận', { timeout: 15_000 });
   await expect(page.getByText('Đã dùng hồ sơ')).toBeVisible();
-  await expect(page.getByRole('button', { name: /Fair-play/ })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('#match-date')).toHaveValue(futureDate(2));
   await expect(page.locator('#match-start')).toHaveValue('06:30');
   await expect(page.locator('#match-end')).toHaveValue('08:00');
+  // Tiêu chí lấy từ hồ sơ được thu gọn thành một dòng tóm tắt; mở ra mới thấy từng lựa chọn.
+  const prefs = page.getByRole('button', { name: /Tiêu chí ghép/ });
+  await expect(prefs).toContainText('Fair-play');
+  await expect(prefs).toHaveAttribute('aria-expanded', 'false');
+  await prefs.click();
+  await expect(page.getByRole('button', { name: /^Fair-play/ })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('#match-elo')).toHaveAttribute('readonly', '');
   await expect(page.getByText('Trần Hoàng Minh')).toBeVisible();
   await expect(page.getByText('Đã xác nhận')).toBeVisible();
@@ -296,16 +301,18 @@ test.describe('hình thức thi đấu', () => {
     const closeAssistant = page.getByRole('button', { name: 'Đóng trợ lý' });
     if (await closeAssistant.isVisible()) await closeAssistant.click();
     await page.getByRole('radio', { name: /Đánh đôi/ }).click();
-    const partner = page.getByLabel('Bạn cặp');
-    // Chỉ bạn đã kết bạn mới chọn được.
-    await expect(partner.locator('option')).toHaveText(['Chọn một người bạn', 'Lê Thu']);
+    const partner = page.getByRole('button', { name: 'Bạn cặp' });
+    await expect(partner).toContainText('Chọn bạn cặp');
     await expect(page.getByRole('link', { name: /Đăng tìm người chơi/ })).toHaveAttribute('href', /compose=find-players/);
 
     await page.getByRole('button', { name: 'Tìm đối thủ', exact: true }).click();
     await expect(page.getByText('Đánh đôi cần chọn bạn cặp')).toBeVisible();
     expect(payload).toBeNull();
 
-    await partner.selectOption({ label: 'Lê Thu' });
+    // Chỉ bạn đã kết bạn mới chọn được (lời mời đang chờ không có trong danh sách).
+    await partner.click();
+    await expect(page.getByRole('option')).toHaveText(['Lê Thu']);
+    await page.getByRole('option', { name: 'Lê Thu' }).click();
     await page.getByRole('button', { name: 'Tìm đối thủ', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Trần Hoàng Minh' })).toBeVisible();
     expect(payload).toMatchObject({ playFormat: 'BADMINTON_DOUBLES', partnerId });
@@ -338,7 +345,12 @@ test.describe('hình thức thi đấu', () => {
     await page.getByRole('button', { name: 'Bóng đá' }).click();
 
     await expect(page.getByRole('radio')).toHaveText([/Sân 5/, /Sân 7/, /Sân 11/]);
-    await expect(page.getByLabel('Câu lạc bộ thi đấu').locator('option')).toHaveText(['Chọn CLB', 'FC Bến Nghé']);
+    // CLB duy nhất mình quản lý được chọn sẵn; danh sách chỉ có CLB bóng đá mình là chủ hoặc quản lý.
+    const clubPicker = page.getByRole('button', { name: 'Câu lạc bộ thi đấu' });
+    await expect(clubPicker).toContainText('FC Bến Nghé');
+    await clubPicker.click();
+    await expect(page.getByRole('option')).toHaveText(['FC Bến Nghé']);
+    await page.keyboard.press('Escape');
     await page.getByRole('radio', { name: /Sân 7/ }).click();
     await page.getByRole('button', { name: 'Tìm đối thủ', exact: true }).click();
 

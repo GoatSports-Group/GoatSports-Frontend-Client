@@ -10,6 +10,7 @@ import {
 import { MyClubMembership } from '@application/dto/club/club.dto';
 import { ClubRepositoryPort } from '@application/ports/club.repository.port';
 import { PLAY_FORMATS } from '@domain/models/matchmaking.model';
+import { SelectOption } from '@shared/components/ui/select/select.component';
 import { SOCIAL_FEED_REPOSITORY_TOKEN } from '@application/ports/persistence/social-feed.repository';
 import { STORAGE_REPOSITORY_TOKEN } from '@application/ports/persistence/storage.repository';
 import { AuthService } from '@presentation/services/auth.service';
@@ -99,6 +100,15 @@ export class PostComposerComponent implements OnInit, OnDestroy {
   readonly callClubs = computed(() => (this.memberships() ?? []).filter(item =>
     item.status === 'ACTIVE' && (item.role === 'OWNER' || item.role === 'ADMIN')
     && item.club.sportType === this.callSport() && item.club.active !== false));
+  readonly callSportOptions = SPORT_SELECT_OPTIONS.filter(option => option.value);
+  readonly callFormatOptions = computed<SelectOption[]>(() => [
+    { value: null, label: 'Không nêu' },
+    ...this.callFormats().map(format => ({ value: format.value, label: format.label }))
+  ]);
+  readonly callClubOptions = computed<SelectOption[]>(() => [
+    { value: null, label: 'Cá nhân · hiện ở Trang chủ' },
+    ...this.callClubs().map(item => ({ value: item.club.clubId, label: `CLB ${item.club.name}` }))
+  ]);
   readonly callValid = computed(() =>
     !!this.callSport() && this.callDate() >= this.today && !!this.callStart() && this.callEnd() > this.callStart()
     && this.callLocation().trim().length > 0 && this.callSlots() >= 1 && this.callSlots() <= 30);

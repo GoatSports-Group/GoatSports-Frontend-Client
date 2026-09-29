@@ -1,12 +1,7 @@
 <main class="matchmaking-page">
-  <header class="matchmaking-hero">
-    <div class="hero-copy">
-      <h1>Ghép đúng kèo.<br />Chơi đúng trình.</h1>
-      <p>Tìm đối thủ phù hợp về trình độ, thời gian, khoảng cách và phong cách chơi.</p>
-    </div>
-    <div class="hero-art" aria-hidden="true">
-      <span>Thể thao kết nối<br />những con người<br />tuyệt vời hơn</span>
-    </div>
+  <header class="page-head">
+    <h1 class="page-title">AI ghép trận</h1>
+    <p>Chọn môn, khung giờ rảnh và nơi chơi. GOAT AI tìm đối thủ cùng trình, rồi gợi ý sân còn trống cho hai bên.</p>
   </header>
 
   @if (errorMessage()) {
@@ -22,10 +17,7 @@
   <div class="matchmaking-workspace">
     <section class="setup-panel" aria-labelledby="match-setup-title">
       <header class="panel-heading">
-        <div>
-          <p>Thiết lập trận</p>
-          <h2 id="match-setup-title">Bạn muốn chơi thế nào?</h2>
-        </div>
+        <h2 id="match-setup-title">Thiết lập kèo</h2>
         @if (activeProfile()) {
         <span class="profile-state">
           <lucide-icon name="badge-check" class="w-4 h-4"></lucide-icon>
@@ -35,75 +27,51 @@
       </header>
 
       <fieldset class="form-section" [disabled]="isSearching() || restoring()">
-        <legend><span>1</span>Môn thể thao</legend>
-        <p class="section-helper">Chọn môn bạn muốn tìm đối thủ</p>
-        <div class="sport-grid">
+        <legend>Môn &amp; hình thức</legend>
+        <div class="sport-grid" role="group" aria-label="Môn thể thao">
           @for (sport of sports; track sport.value) {
           <button type="button" class="choice-button sport-choice" [class.selected]="selectedSport() === sport.value"
             [attr.aria-pressed]="selectedSport() === sport.value" (click)="selectSport(sport.value)">
-            <lucide-icon [name]="sport.icon" class="w-6 h-6"></lucide-icon>
+            <lucide-icon [name]="sport.icon" class="w-5 h-5"></lucide-icon>
             <span>{{ sport.label }}</span>
           </button>
           }
         </div>
-      </fieldset>
-
-      <fieldset class="form-section" [disabled]="isSearching() || restoring()">
-        <legend><span>2</span>Hình thức & đi cùng ai</legend>
-        <p class="section-helper">
-          @switch (partyMode()) {
-          @case ('PAIR') { Cặp đôi chỉ gặp cặp đôi }
-          @case ('CLUB') { Môn đồng đội ghép CLB đấu CLB }
-          @default { Đơn chỉ gặp đơn }
-          }
-        </p>
-        <div class="format-grid" role="radiogroup" aria-label="Hình thức thi đấu">
+        <div class="format-row" role="radiogroup" aria-label="Hình thức thi đấu">
           @for (format of formats(); track format.value) {
-          <button type="button" role="radio" class="choice-button style-choice" [class.selected]="playFormat() === format.value"
+          <button type="button" role="radio" class="format-choice" [class.selected]="playFormat() === format.value"
             [attr.aria-checked]="playFormat() === format.value" (click)="selectFormat(format.value)">
-            <strong>{{ format.label }}</strong>
-            <small>{{ format.helper }}</small>
+            {{ format.label }}
           </button>
           }
         </div>
         @switch (partyMode()) {
         @case ('PAIR') {
         <div class="party-picker">
-          <label for="match-partner">
-            <span>Bạn cặp</span>
-            <select id="match-partner" [ngModel]="partnerId()" (ngModelChange)="partnerId.set($event)"
-              [disabled]="friendsLoading() || !friends()?.length">
-              <option [ngValue]="null">{{ friendsLoading() ? 'Đang tải bạn bè...' : friends()?.length ? 'Chọn một người bạn' : 'Chưa có bạn bè' }}</option>
-              @for (friend of friends() ?? []; track friend.userId) {
-              <option [ngValue]="friend.userId">{{ friend.fullName }}</option>
-              }
-            </select>
-          </label>
+          <app-select ariaLabel="Bạn cặp" leadingIcon="user-plus" [searchable]="(friends()?.length ?? 0) > 6"
+            searchPlaceholder="Tìm bạn..." [options]="partnerOptions()"
+            [placeholder]="friendsLoading() ? 'Đang tải bạn bè...' : friends()?.length ? 'Chọn bạn cặp' : 'Chưa có bạn bè'"
+            [disabled]="friendsLoading() || !friends()?.length" [ngModel]="partnerId()"
+            (ngModelChange)="partnerId.set($event)"></app-select>
           <p class="party-note">
             <lucide-icon name="users" class="w-4 h-4"></lucide-icon>
-            AI chỉ ghép cặp đã đủ hai người. Mỗi người được cộng hoặc trừ ELO riêng, so với ELO trung bình của cặp đối thủ.
+            AI chỉ ghép cặp đủ hai người. Mỗi người được tính ELO riêng.
           </p>
-          <a class="party-link" routerLink="/feed" [queryParams]="{ compose: 'find-players', sport: selectedSport(), format: playFormat() }">
+          <a class="party-link" routerLink="/feed" [queryParams]="{ tab: 'calls', compose: 'find-players', sport: selectedSport(), format: playFormat() }">
             <lucide-icon name="megaphone" class="w-4 h-4"></lucide-icon>
-            Chưa có bạn cặp? Đăng tìm người chơi ở Cộng đồng
+            Chưa có bạn cặp? Đăng tìm người chơi
           </a>
         </div>
         }
         @case ('CLUB') {
         <div class="party-picker">
-          <label for="match-club">
-            <span>Câu lạc bộ thi đấu</span>
-            <select id="match-club" [ngModel]="clubId()" (ngModelChange)="clubId.set($event)"
-              [disabled]="clubsLoading() || !managedClubs().length">
-              <option [ngValue]="null">{{ clubsLoading() ? 'Đang tải CLB...' : managedClubs().length ? 'Chọn CLB' : 'Bạn chưa quản lý CLB ' + selectedSportLabel().toLowerCase() + ' nào' }}</option>
-              @for (membership of managedClubs(); track membership.club.clubId) {
-              <option [ngValue]="membership.club.clubId">{{ membership.club.name }}</option>
-              }
-            </select>
-          </label>
+          <app-select ariaLabel="Câu lạc bộ thi đấu" leadingIcon="shield" [options]="clubOptions()"
+            [placeholder]="clubsLoading() ? 'Đang tải CLB...' : managedClubs().length ? 'Chọn CLB' : 'Bạn chưa quản lý CLB ' + selectedSportLabel().toLowerCase() + ' nào'"
+            [disabled]="clubsLoading() || !managedClubs().length" [ngModel]="clubId()"
+            (ngModelChange)="clubId.set($event)"></app-select>
           <p class="party-note">
             <lucide-icon name="shield" class="w-4 h-4"></lucide-icon>
-            Chủ CLB hoặc một quản lý thay mặt cả đội: xác nhận kèo, đặt sân và nhập tỷ số. Kết quả cộng vào ELO và thành tích của CLB.
+            Môn đồng đội ghép CLB đấu CLB. Chủ CLB hoặc một quản lý xác nhận, đặt sân và nhập tỷ số thay cả đội.
           </p>
           @if (!clubsLoading() && !managedClubs().length) {
           <a class="party-link" routerLink="/clubs">
@@ -117,34 +85,7 @@
       </fieldset>
 
       <fieldset class="form-section" [disabled]="isSearching() || restoring()">
-        <legend><span>3</span>Trình độ của bạn</legend>
-        <p class="section-helper">Chọn mức gần nhất để AI tìm đúng trình</p>
-        <div class="skill-grid">
-          @for (skill of skills; track skill.value) {
-          <button type="button" class="choice-button skill-choice" [class.selected]="selectedSkill() === skill.value"
-            [attr.aria-pressed]="selectedSkill() === skill.value" [disabled]="!!activeProfile()"
-            (click)="selectSkill(skill.value, skill.suggestedElo)">
-            <strong>{{ skill.label }}</strong>
-            <small>{{ skill.helper }}</small>
-          </button>
-          }
-        </div>
-        <div class="field-grid">
-          <label for="match-elo">
-            <span>ELO hiện tại</span>
-            <input id="match-elo" type="number" min="0" max="5000" [ngModel]="eloRating()" readonly />
-          </label>
-          <label for="match-elo-difference">
-            <span>Chênh lệch ELO tối đa</span>
-            <input id="match-elo-difference" type="number" min="0" max="2000" step="50" [ngModel]="maxEloDifference()"
-              (ngModelChange)="maxEloDifference.set($event)" />
-          </label>
-        </div>
-      </fieldset>
-
-      <fieldset class="form-section" [disabled]="isSearching() || restoring()">
-        <legend><span>4</span>Thời gian rảnh</legend>
-        <p class="section-helper">Khung bạn rảnh. Trận đấu là một khung giờ của sân nằm trong phần rảnh chung</p>
+        <legend>Khung giờ rảnh &amp; nơi chơi</legend>
         <div class="schedule-grid">
           <label for="match-date">
             <span>Ngày chơi</span>
@@ -160,69 +101,96 @@
             <input id="match-end" type="time" [ngModel]="endTime()" (ngModelChange)="endTime.set($event)" />
           </label>
         </div>
-      </fieldset>
-
-      <fieldset class="form-section" [disabled]="isSearching() || restoring()">
-        <legend><span>5</span>Phong cách chơi</legend>
-        <p class="section-helper">Giúp GOAT AI ưu tiên người cùng tinh thần thi đấu</p>
-        <div class="style-grid">
-          @for (style of playStyles; track style.value) {
-          <button type="button" class="choice-button style-choice"
-            [class.selected]="selectedPlayStyle() === style.value"
-            [attr.aria-pressed]="selectedPlayStyle() === style.value" (click)="selectPlayStyle(style.value)">
-            <strong>{{ style.label }}</strong>
-            <small>{{ style.helper }}</small>
-          </button>
-          }
-        </div>
-      </fieldset>
-
-      <fieldset class="form-section location-section" [disabled]="isSearching() || restoring()">
-        <legend><span>6</span>Địa điểm & phạm vi</legend>
-        <p class="section-helper">Vị trí chỉ được dùng để ghép trận và tính khoảng cách</p>
+        <p class="field-hint">Trận đấu là một khung giờ của sân nằm trong phần rảnh chung của hai bên.</p>
         <div class="location-grid">
           <div class="location-source" [class.location-source--ready]="coordinates()">
-            <lucide-icon [name]="coordinates() ? 'map-pin' : 'map-pin-off'" class="w-6 h-6"></lucide-icon>
+            <lucide-icon [name]="coordinates() ? 'map-pin' : 'map-pin-off'" class="w-5 h-5"></lucide-icon>
             <span>
-              <strong>{{ coordinates() ? 'Đã có vị trí tìm kèo' : 'Chưa có vị trí' }}</strong>
+              <strong>{{ coordinates() ? 'Đã có vị trí' : 'Chưa có vị trí' }}</strong>
               <small>
-                @if (coordinates()?.source === 'profile') { Lấy từ hồ sơ thể thao }
-                @else if (coordinates()?.source === 'browser') { Vị trí hiện tại của thiết bị }
-                @else { GOAT sẽ xin quyền định vị khi bắt đầu }
+                @if (coordinates()?.source === 'profile') { Từ hồ sơ thể thao }
+                @else if (coordinates()?.source === 'browser') { Vị trí thiết bị }
+                @else { Xin quyền khi bắt đầu }
               </small>
             </span>
-            <button type="button" class="text-action" [disabled]="locating()" (click)="refreshLocation()">
-              @if (locating()) {
-              <span class="spinner spinner--small"></span>
-              Đang định vị
-              } @else {
-              <lucide-icon name="locate-fixed" class="w-4 h-4"></lucide-icon>
-              Cập nhật
-              }
+            <button type="button" class="text-action" [disabled]="locating()" (click)="refreshLocation()"
+              aria-label="Cập nhật vị trí">
+              @if (locating()) { <span class="spinner spinner--small"></span> }
+              @else { <lucide-icon name="locate-fixed" class="w-4 h-4"></lucide-icon> }
             </button>
           </div>
           <label class="range-field" for="match-distance">
-            <span>Phạm vi tìm kiếm <strong>{{ maxDistance() }} km</strong></span>
+            <span>Phạm vi <strong>{{ maxDistance() }} km</strong></span>
             <input id="match-distance" type="range" min="2" max="50" step="1" [ngModel]="maxDistance()"
               (ngModelChange)="maxDistance.set($event)" />
-            <small><span>2 km</span><span>50 km</span></small>
           </label>
         </div>
       </fieldset>
 
-      <fieldset class="form-section" [disabled]="isSearching() || restoring()">
-        <legend><span>7</span>Cách chọn đối thủ</legend>
-        <p class="section-helper">Để AI chọn ngay hoặc tự chọn trong danh sách được xếp hạng</p>
-        <div class="style-grid selection-mode-grid">
-          <button type="button" class="choice-button style-choice" [class.selected]="selectionMode() === 'AI'"
-            (click)="selectMode('AI')">
-            <strong>AI tự chọn</strong><small>Tự động ghép người</small>
-          </button>
-          <button type="button" class="choice-button style-choice" [class.selected]="selectionMode() === 'MANUAL'"
-            (click)="selectMode('MANUAL')">
-            <strong>Tôi sẽ chọn</strong><small>Xem Top đối thủ và lý do</small>
-          </button>
+      <fieldset class="form-section form-section--prefs" [disabled]="isSearching() || restoring()">
+        <legend class="sr-only">Tiêu chí ghép</legend>
+        <button type="button" class="prefs-toggle" [attr.aria-expanded]="prefsOpen()" aria-controls="match-prefs"
+          (click)="prefsOpen.set(!prefsOpen())">
+          <span>
+            <strong>Tiêu chí ghép</strong>
+            <small>{{ prefsSummary() }}</small>
+          </span>
+          <lucide-icon [name]="prefsOpen() ? 'chevron-up' : 'chevron-down'" class="w-5 h-5"></lucide-icon>
+        </button>
+        @if (prefsOpen()) {
+        <div class="prefs-body" id="match-prefs">
+          <div class="prefs-group">
+            <span class="prefs-label">Trình độ {{ activeProfile() ? '(theo hồ sơ)' : '' }}</span>
+            <div class="skill-grid">
+              @for (skill of skills; track skill.value) {
+              <button type="button" class="choice-button skill-choice" [class.selected]="selectedSkill() === skill.value"
+                [attr.aria-pressed]="selectedSkill() === skill.value" [disabled]="!!activeProfile()"
+                (click)="selectSkill(skill.value, skill.suggestedElo)">
+                <strong>{{ skill.label }}</strong>
+                <small>{{ skill.helper }}</small>
+              </button>
+              }
+            </div>
+          </div>
+          <div class="field-grid">
+            <label for="match-elo">
+              <span>ELO hiện tại</span>
+              <input id="match-elo" type="number" min="0" max="5000" [ngModel]="eloRating()" readonly />
+            </label>
+            <label for="match-elo-difference">
+              <span>Chênh lệch ELO tối đa</span>
+              <input id="match-elo-difference" type="number" min="0" max="2000" step="50" [ngModel]="maxEloDifference()"
+                (ngModelChange)="maxEloDifference.set($event)" />
+            </label>
+          </div>
+          <div class="prefs-group">
+            <span class="prefs-label">Phong cách chơi</span>
+            <div class="style-grid">
+              @for (style of playStyles; track style.value) {
+              <button type="button" class="choice-button style-choice"
+                [class.selected]="selectedPlayStyle() === style.value"
+                [attr.aria-pressed]="selectedPlayStyle() === style.value" (click)="selectPlayStyle(style.value)">
+                <strong>{{ style.label }}</strong>
+                <small>{{ style.helper }}</small>
+              </button>
+              }
+            </div>
+          </div>
+          <div class="prefs-group">
+            <span class="prefs-label">Cách chọn đối thủ</span>
+            <div class="style-grid selection-mode-grid">
+              <button type="button" class="choice-button style-choice" [class.selected]="selectionMode() === 'AI'"
+                [attr.aria-pressed]="selectionMode() === 'AI'" (click)="selectMode('AI')">
+                <strong>AI tự chọn</strong><small>Tự động ghép người</small>
+              </button>
+              <button type="button" class="choice-button style-choice" [class.selected]="selectionMode() === 'MANUAL'"
+                [attr.aria-pressed]="selectionMode() === 'MANUAL'" (click)="selectMode('MANUAL')">
+                <strong>Tôi sẽ chọn</strong><small>Xem Top đối thủ và lý do</small>
+              </button>
+            </div>
+          </div>
         </div>
+        }
       </fieldset>
 
       <div class="setup-actions">
@@ -590,70 +558,26 @@
       } @else {
       <div class="result-state result-state--ready">
         <header class="result-heading">
-          <div>
-            <p class="live-status"><span class="status-dot"></span>Sẵn sàng</p>
-            <h2>Sẵn sàng tìm trận phù hợp</h2>
-            <p>AI so sánh người chơi theo bảy tiêu chí minh bạch.</p>
-          </div>
-          <span class="result-motto">Cùng chơi. Cùng tiến bộ.</span>
+          <p class="live-status"><span class="status-dot"></span>Sẵn sàng</p>
+          <h2>AI chọn đối thủ thế nào?</h2>
+          <p>Mỗi ứng viên được chấm trên bảy tiêu chí, cộng theo trọng số dưới đây.</p>
         </header>
-        <div class="ready-layout">
-          <ol class="criteria-list">
-            <li>
-              <lucide-icon name="trending-up" class="w-6 h-6"></lucide-icon>
-              <span><strong>ELO theo môn</strong><small>Điểm thi đấu hiện tại trong đúng môn</small></span>
-              <i><b></b></i><em>30%</em>
-            </li>
-            <li>
-              <lucide-icon name="badge-check" class="w-6 h-6"></lucide-icon>
-              <span><strong>Trình độ</strong><small>Mức kỹ năng tự khai trong hồ sơ</small></span>
-              <i><b></b></i><em>10%</em>
-            </li>
-            <li>
-              <lucide-icon name="clock-3" class="w-6 h-6"></lucide-icon>
-              <span><strong>Khung giờ</strong><small>Lịch đã chọn hoặc lịch rảnh trong hồ sơ</small></span>
-              <i><b></b></i><em>25%</em>
-            </li>
-            <li>
-              <lucide-icon name="map-pin" class="w-6 h-6"></lucide-icon>
-              <span><strong>Khoảng cách</strong><small>Ưu tiên đối thủ gần bạn</small></span>
-              <i><b></b></i><em>15%</em>
-            </li>
-            <li>
-              <lucide-icon name="users" class="w-6 h-6"></lucide-icon>
-              <span><strong>Phong cách</strong><small>Cùng tinh thần thể thao</small></span>
-              <i><b></b></i><em>10%</em>
-            </li>
-            <li>
-              <lucide-icon name="scan-search" class="w-6 h-6"></lucide-icon>
-              <span><strong>Vị trí yêu thích</strong><small>So khớp vai trò hoặc vị trí thi đấu</small></span>
-              <i><b></b></i><em>5%</em>
-            </li>
-            <li>
-              <lucide-icon name="history" class="w-6 h-6"></lucide-icon>
-              <span><strong>Kinh nghiệm &amp; phong độ</strong><small>Độ tương đồng số trận và tỷ lệ
-                  thắng</small></span>
-              <i><b></b></i><em>5%</em>
-            </li>
-          </ol>
-          <div class="radar-illustration" aria-hidden="true">
-            <span class="orbit orbit--one"></span>
-            <span class="orbit orbit--two"></span>
-            <span class="orbit orbit--three"></span>
-            <span class="radar-center"><lucide-icon name="brain" class="w-8 h-8"></lucide-icon></span>
-            <span class="player-node player-node--one">{{ currentParticipantInitials() }}</span>
-            <span class="player-node player-node--two">AI</span>
-          </div>
-        </div>
+        <ol class="criteria-list">
+          @for (item of criteria; track item.label) {
+          <li>
+            <lucide-icon [name]="item.icon" class="w-5 h-5"></lucide-icon>
+            <span><strong>{{ item.label }}</strong><small>{{ item.helper }}</small></span>
+            <em>{{ item.weight }}%</em>
+            <i aria-hidden="true"><b [style.width.%]="item.weight * 100 / 30"></b></i>
+          </li>
+          }
+        </ol>
       </div>
       }
 
       <section class="match-history" aria-labelledby="match-history-title">
         <header>
-          <div>
-            <p>Lịch sử</p>
-            <h2 id="match-history-title">Ghép kèo gần đây</h2>
-          </div>
+          <h2 id="match-history-title">Ghép kèo gần đây</h2>
           @if (history().length) { <span>{{ history().length }} phiên gần nhất</span> }
         </header>
 

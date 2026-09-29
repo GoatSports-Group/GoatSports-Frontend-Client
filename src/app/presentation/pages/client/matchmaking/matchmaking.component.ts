@@ -46,6 +46,7 @@ import { FRIEND_REPOSITORY_TOKEN } from '@application/ports/persistence/friend.r
 import { MyClubMembership } from '@application/dto/club/club.dto';
 import { PlayerDirectoryService } from '@presentation/services/player-directory.service';
 import { PLAY_FORMATS } from '@domain/models/matchmaking.model';
+import { SelectOption } from '@shared/components/ui/select/select.component';
 import { AuthService } from '@presentation/services/auth.service';
 import { NotificationService } from '@presentation/services/notification.service';
 import { NotificationType } from '@application/dto/notification/notification.dto';
@@ -113,6 +114,27 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     item.status === 'ACTIVE' && (item.role === 'OWNER' || item.role === 'ADMIN')
     && item.club.sportType === this.selectedSport() && item.club.active !== false));
   readonly isTeamSport = computed(() => this.formats().every(item => item.size > 2));
+  readonly partnerOptions = computed<SelectOption[]>(() =>
+    (this.friends() ?? []).map(friend => ({ value: friend.userId, label: friend.fullName })));
+  readonly clubOptions = computed<SelectOption[]>(() =>
+    this.managedClubs().map(item => ({ value: item.club.clubId, label: item.club.name })));
+  /** Trình độ, ELO, phong cách, cách chọn: đã có mặc định từ hồ sơ nên thu gọn, chỉ hiện một dòng tóm tắt. */
+  readonly prefsOpen = signal(false);
+  readonly prefsSummary = computed(() => [
+    this.skills.find(item => item.value === this.selectedSkill())?.label,
+    `ELO ${this.eloRating()} ±${this.maxEloDifference()}`,
+    this.playStyles.find(item => item.value === this.selectedPlayStyle())?.label,
+    this.selectionMode() === 'AI' ? 'AI tự chọn' : 'Tôi sẽ chọn'
+  ].filter(Boolean).join(' · '));
+  readonly criteria: ReadonlyArray<{ icon: string; label: string; helper: string; weight: number }> = [
+    { icon: 'trending-up', label: 'ELO theo môn', helper: 'Điểm thi đấu trong đúng môn', weight: 30 },
+    { icon: 'clock-3', label: 'Khung giờ', helper: 'Phần rảnh chung của hai bên', weight: 25 },
+    { icon: 'map-pin', label: 'Khoảng cách', helper: 'Ưu tiên đối thủ gần bạn', weight: 15 },
+    { icon: 'badge-check', label: 'Trình độ', helper: 'Mức kỹ năng trong hồ sơ', weight: 10 },
+    { icon: 'users', label: 'Phong cách', helper: 'Cùng tinh thần thể thao', weight: 10 },
+    { icon: 'scan-search', label: 'Vị trí yêu thích', helper: 'Vai trò hoặc vị trí thi đấu', weight: 5 },
+    { icon: 'history', label: 'Kinh nghiệm', helper: 'Số trận và tỷ lệ thắng', weight: 5 }
+  ];
   readonly selectedSkill = signal<MatchmakingSkill>('INTERMEDIATE');
   readonly selectedPlayStyle = signal<MatchmakingPlayStyle>('BALANCED');
   readonly selectionMode = signal<MatchSelectionMode>('AI');
