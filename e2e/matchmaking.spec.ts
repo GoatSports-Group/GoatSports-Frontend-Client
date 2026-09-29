@@ -385,6 +385,8 @@ test.describe('hình thức thi đấu', () => {
     await page.getByRole('button', { name: 'Tìm đối thủ', exact: true }).click();
 
     await expect(page.getByRole('heading', { name: 'GOAT AI đang quét đối thủ phù hợp' })).toBeVisible();
+    // Thẻ "đang quét" hiện ngay khi bấm, trước khi request tới mock.
+    await expect.poll(() => payload).not.toBeNull();
     expect(payload).toMatchObject({ sportType: 'FOOTBALL', playFormat: 'FOOTBALL_7', clubId: 'c1c1c1c1-c1c1-4c1c-8c1c-c1c1c1c1c1c1' });
     expect(payload).not.toHaveProperty('partnerIds');
   });
@@ -437,6 +439,7 @@ test.describe('hình thức thi đấu', () => {
     await page.getByRole('button', { name: 'Tìm đối thủ', exact: true }).click();
 
     await expect(page.getByRole('heading', { name: 'GOAT AI đang quét đối thủ phù hợp' })).toBeVisible();
+    await expect.poll(() => payload).not.toBeNull();
     expect(payload).toMatchObject({
       sportType: 'BASKETBALL', playFormat: 'BASKETBALL_3X3', partnerIds: [clubmateId, partnerId], teammateClubId: clubId
     });

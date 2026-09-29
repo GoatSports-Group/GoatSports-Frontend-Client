@@ -2024,3 +2024,84 @@ button:focus-visible {
   justify-items: end;
   gap: 8px;
 }
+
+// Thẻ kèo ở cột trái: nút × ở góc, không chiếm chỗ của tiêu đề.
+.card-close {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex: none;
+  place-items: center;
+  margin: -6px -8px 0 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--body);
+  cursor: pointer;
+
+  &:hover { background: var(--surface-subtle); color: var(--ink); }
+  &:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+}
+
+// Tỷ số chốt thay chữ VS giữa hai người chơi.
+.match-score {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 6px;
+
+  strong {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    color: var(--ink);
+    font-size: clamp(2.25rem, 4vw, 3rem);
+    font-variant-numeric: tabular-nums;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+
+  strong span { color: var(--body); font-weight: 600; }
+
+  em {
+    padding: 3px 10px;
+    border-radius: 9999px;
+    background: var(--surface-strong);
+    color: var(--body);
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 800;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+
+  &[data-outcome='WIN'] em { background: var(--primary-light); color: var(--primary); }
+  &[data-outcome='LOSS'] em { background: var(--danger-soft); color: var(--danger); }
+}
+
+.elo-change {
+  color: var(--primary);
+  font-weight: 800;
+
+  &.is-down { color: var(--danger); }
+}
+
+.completed-result > header {
+  display: grid;
+  gap: 2px;
+
+  strong { font-size: 15px; font-weight: 800; }
+  span { color: var(--body); font-size: 13px; }
+}
+
+.feedback-done {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 700;
+}
+

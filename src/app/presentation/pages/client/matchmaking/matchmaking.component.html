@@ -515,13 +515,9 @@
             <p>{{ sportLabel(match.sportType) }} · {{ matchDateLabel(match) || historyDate(match) }}</p>
           </div>
           @if (side) {
-          <div class="match-header__aside">
-            <span class="match-status">{{ statusLabel(match) }}</span>
-            <button type="button" class="history-return" (click)="clearHistorySelection()">
-              <lucide-icon name="x" class="w-4 h-4"></lucide-icon>
-              Đóng chi tiết
-            </button>
-          </div>
+          <button type="button" class="card-close" aria-label="Đóng chi tiết" title="Đóng chi tiết" (click)="clearHistorySelection()">
+            <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+          </button>
           } @else if (match.status === 'PROPOSED' || match.status === 'ACCEPTED_BY_ONE') {
           <div class="decision-timer">
             <span>Phản hồi trong</span>
@@ -550,10 +546,18 @@
             }
             <span>Bạn</span>
             <h3>{{ me.name }}</h3>
-            <p>ELO {{ me.eloRating }}</p>
+            <p>ELO {{ me.eloRating }}@if (myEloAfter(match); as newElo) {<b class="elo-change" [class.is-down]="newElo < me.eloRating"> → {{ newElo }}</b>}</p>
           </article>
           }
+          @if (finalScore(match); as score) {
+          <div class="match-score" [attr.data-outcome]="score.outcome"
+            [attr.aria-label]="'Tỷ số ' + score.my + ' – ' + score.opponent">
+            <strong>{{ score.my }}<span>–</span>{{ score.opponent }}</strong>
+            <em>{{ score.outcome === 'WIN' ? 'Thắng' : score.outcome === 'LOSS' ? 'Thua' : 'Hòa' }}</em>
+          </div>
+          } @else {
           <div class="match-connection" aria-hidden="true"><span></span><b>VS</b><span></span></div>
+          }
           @if (opponent(match); as rival) {
           <article class="player player--opponent">
             @if (rival.avatarUrl) {
@@ -759,10 +763,6 @@
         </section>
         } @else if (match.status === 'COMPLETED') {
         <section class="completed-result">
-          <strong>Kết quả: {{ match.result?.participantOneScore }}–{{ match.result?.participantTwoScore }}</strong>
-          @if (myEloAfter(match); as newElo) {
-          <p>{{ currentParticipant(match)?.participantType === 'CLUB' ? 'ELO mới của CLB' : 'ELO mới của bạn' }}: <strong>{{ newElo }}</strong></p>
-          }
           @if (match.result && match.result.eloApplied === false) {
           <p class="result-deadline-note" data-state="OPEN">
             <lucide-icon name="hourglass" class="w-4 h-4"></lucide-icon>
@@ -770,17 +770,20 @@
           </p>
           }
           @if (!hasSubmittedFeedback(match)) {
+          <header><strong>Đánh giá đối thủ</strong><span>Giúp AI ghép những người chơi đẹp với nhau.</span></header>
           <div class="feedback-form">
-            <label>Đánh giá<input type="number" min="1" max="5" [disabled]="isHistory(match)" [ngModel]="feedbackRating()"
+            <label>Đánh giá<input type="number" min="1" max="5" [ngModel]="feedbackRating()"
                 (ngModelChange)="feedbackRating.set($event)" /></label>
-            <label>Fair-play<input type="number" min="1" max="5" [disabled]="isHistory(match)" [ngModel]="fairPlayRating()"
+            <label>Fair-play<input type="number" min="1" max="5" [ngModel]="fairPlayRating()"
                 (ngModelChange)="fairPlayRating.set($event)" /></label>
-            <label class="feedback-comment">Nhận xét<input type="text" maxlength="500" [disabled]="isHistory(match)" [ngModel]="feedbackComment()"
-                (ngModelChange)="feedbackComment.set($event)" /></label>
-            <button type="button" class="button button-primary" [disabled]="isHistory(match) || actionLoading()"
-              (click)="submitFeedback()">Gửi đánh giá</button>
+            <label class="feedback-comment">Nhận xét<input type="text" maxlength="500" [ngModel]="feedbackComment()"
+                (ngModelChange)="feedbackComment.set($event)" placeholder="Đối thủ chơi thế nào?" /></label>
+            <button type="button" class="button button-primary" [disabled]="actionLoading()"
+              (click)="submitFeedback(match)">Gửi đánh giá</button>
           </div>
-          } @else { <p>Cảm ơn bạn đã đánh giá đối thủ.</p> }
+          } @else {
+          <p class="feedback-done"><lucide-icon name="check-circle-2" class="w-4 h-4"></lucide-icon>Bạn đã đánh giá đối thủ trận này.</p>
+          }
         </section>
         } @else if (isTerminalMatchStatus(match)) {
         <button type="button" class="button button-primary button-full" (click)="findAnotherMatch()">

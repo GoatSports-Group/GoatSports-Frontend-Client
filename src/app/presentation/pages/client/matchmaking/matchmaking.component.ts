@@ -963,9 +963,9 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     });
   }
 
-  submitFeedback(): void {
-    const match = this.session();
-    if (!match || this.actionLoading()) return;
+  /** Đánh giá được mọi trận đã hoàn tất của mình, kể cả mở từ lịch sử. */
+  submitFeedback(match: MatchmakingSession): void {
+    if (this.actionLoading()) return;
     this.actionLoading.set(true);
     this.errorMessage.set('');
     this.aiRepository.submitOpponentFeedback(
@@ -977,7 +977,12 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
       takeUntilDestroyed(this.destroyRef),
       finalize(() => this.actionLoading.set(false))
     ).subscribe({
-      next: session => this.applySession(session),
+      next: updated => {
+        if (updated.sessionId === this.session()?.sessionId) this.applySession(updated);
+        if (this.selectedHistorySession()?.sessionId === updated.sessionId) this.selectedHistorySession.set(updated);
+        this.history.update(items => items.map(item => item.sessionId === updated.sessionId ? updated : item));
+        this.feedbackComment.set('');
+      },
       error: error => this.errorMessage.set(this.userMessage(error, 'Không thể gửi đánh giá.'))
     });
   }
@@ -1246,6 +1251,13 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     this.resultOpponentScore.set(opponent);
   }
 
+  /** Tỷ số đã chốt, nhìn từ phía mình; null khi trận chưa có kết quả. */
+  finalScore(m: MatchmakingSession): { my: number; opponent: number; outcome: 'WIN' | 'LOSS' | 'DRAW' } | null {
+    if (!m.result || m.result.participantOneScore == null || m.result.participantTwoScore == null) return null;
+    const { my, opponent } = this.claimScoresFromMyPerspective(m, m.result);
+    return { my, opponent, outcome: my > opponent ? 'WIN' : my < opponent ? 'LOSS' : 'DRAW' };
+  }
+
   myResultClaim(m: MatchmakingSession): MatchResultClaim | null {
     return m.resultClaims?.find(item => this.onMySide(m, item.submittedBy)) ?? null;
   }
@@ -1254,7 +1266,10 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     return m.resultClaims?.find(item => item.submittedBy && !this.onMySide(m, item.submittedBy)) ?? null;
   }
 
-  claimScoresFromMyPerspective(session: MatchmakingSession, claim: MatchResultClaim): { my: number; opponent: number } {
+  claimScoresFromMyPerspective(
+    session: MatchmakingSession,
+    claim: Pick<MatchResultClaim, 'participantOneScore' | 'participantTwoScore'>
+  ): { my: number; opponent: number } {
     return session.participants[0] && session.participants[0] === this.mySide(session)
       ? { my: claim.participantOneScore, opponent: claim.participantTwoScore }
       : { my: claim.participantTwoScore, opponent: claim.participantOneScore };
