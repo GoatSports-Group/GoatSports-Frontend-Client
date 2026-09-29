@@ -1546,15 +1546,46 @@ button:focus-visible {
   }
 }
 
-// Thanh 4px: xong = đầy, đang làm = nửa, chưa tới = xám.
+// Thanh 4px: đã tới (xong hoặc đang làm) = đầy, chưa tới = xám. Phần tô chạy từ trái sang khi tới bước đó
+// và co lại khi quay về bước trước (scaleX, chỉ transform nên không gây reflow).
 .stepper__bar {
+  position: relative;
   height: 4px;
+  overflow: hidden;
   border-radius: 9999px;
   background: var(--surface-strong);
-  transition: background 240ms ease;
 
-  .is-current & { background: linear-gradient(90deg, var(--primary-fill) 50%, var(--surface-strong) 50%); }
-  .is-done & { background: var(--primary-fill); }
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--primary-fill);
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 360ms cubic-bezier(.22, 1, .36, 1);
+  }
+
+  .is-done &::after { transform: scaleX(1); }
+  .is-current &::after { transform: scaleX(1); animation: stepper-fill 520ms cubic-bezier(.22, 1, .36, 1); }
+}
+
+@keyframes stepper-fill { from { transform: scaleX(0); } }
+@keyframes stepper-pop { 0% { transform: scale(.7); } 60% { transform: scale(1.12); } 100% { transform: scale(1); } }
+@keyframes step-in { from { opacity: 0; transform: translateY(6px); } }
+
+// Số của bước vừa tới nảy nhẹ; nội dung bước mới trượt lên.
+.is-current .stepper__dot { animation: stepper-pop 360ms ease-out; }
+.step-body > .sport-step,
+.step-body > .team-step,
+.step-body > .step-grid { animation: step-in 280ms ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  .stepper__bar::after { transition: none; animation: none !important; }
+  .is-current .stepper__dot,
+  .step-body > .sport-step,
+  .step-body > .team-step,
+  .step-body > .step-grid { animation: none; }
 }
 
 .stepper__title {
