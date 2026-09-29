@@ -144,7 +144,7 @@
 
       <fieldset class="form-section" [disabled]="isSearching() || restoring()">
         <legend><span>4</span>Thời gian rảnh</legend>
-        <p class="section-helper">Trận chỉ được tạo khi hai lịch có phần giao nhau</p>
+        <p class="section-helper">Khung bạn rảnh. Trận đấu là một khung giờ của sân nằm trong phần rảnh chung</p>
         <div class="schedule-grid">
           <label for="match-date">
             <span>Ngày chơi</span>
@@ -152,11 +152,11 @@
               (ngModelChange)="playDate.set($event)" />
           </label>
           <label for="match-start">
-            <span>Bắt đầu</span>
+            <span>Rảnh từ</span>
             <input id="match-start" type="time" [ngModel]="startTime()" (ngModelChange)="startTime.set($event)" />
           </label>
           <label for="match-end">
-            <span>Kết thúc</span>
+            <span>Rảnh đến</span>
             <input id="match-end" type="time" [ngModel]="endTime()" (ngModelChange)="endTime.set($event)" />
           </label>
         </div>
@@ -370,8 +370,8 @@
             <dd>{{ match.eloDifference }} ELO</dd>
           </div>
           <div>
-            <dt>Khung giờ chung</dt>
-            <dd>{{ match.startTime }}–{{ match.endTime }}</dd>
+            <dt>{{ hasMatchTime(match) ? 'Giờ thi đấu' : 'Khung rảnh chung' }}</dt>
+            <dd>{{ hhmm(match.startTime) }}–{{ hhmm(match.endTime) }}</dd>
           </div>
           <div>
             <dt>Khoảng cách</dt>
@@ -409,7 +409,7 @@
           @for (venue of match.proposal!.venueOptions; track venue.venueId) {
           <article>
             <div><strong>{{ venue.venueName }}</strong><small>{{ venue.address }}</small></div>
-            <span>{{ venue.distanceKm | number:'1.0-1' }} km · {{ venue.rating | number:'1.1-1' }}/5</span>
+            <span>@if (venue.slotStart && venue.slotEnd) {<b class="venue-slot">Thi đấu {{ hhmm(venue.slotStart) }}–{{ hhmm(venue.slotEnd) }}</b> · }{{ venue.distanceKm | number:'1.0-1' }} km · {{ venue.rating | number:'1.1-1' }}/5</span>
             <p>{{ venue.matchReason }}</p>
             <button type="button" class="button button-secondary"
               [disabled]="isViewingHistory() || !isDesignatedBooker() || !venue.venueCourtId || actionLoading()"
@@ -426,8 +426,8 @@
           <span class="spinner spinner--small"></span>
           <div>
             <strong>AI đang kiểm tra sân còn lịch trống</strong>
-            <p>Đang tìm sân {{ sportLabel(match.sportType) }} cho khung {{ match.startTime }}–{{ match.endTime }} trong phạm vi
-              của hai người chơi.</p>
+            <p>Đang tìm sân {{ sportLabel(match.sportType) }} còn trống trong khung rảnh chung {{ hhmm(match.startTime) }}–{{ hhmm(match.endTime) }},
+              trong phạm vi của hai bên.</p>
           </div>
           } @else if (match.proposal.venueSearchStatus === 'SERVICE_UNAVAILABLE') {
           <lucide-icon name="cloud-off" class="w-6 h-6"></lucide-icon>
@@ -439,8 +439,8 @@
           <lucide-icon name="calendar-x-2" class="w-6 h-6"></lucide-icon>
           <div>
             <strong>Chưa có sân phù hợp còn lịch trống</strong>
-            <p>Không có sân {{ sportLabel(match.sportType) }} đáp ứng {{ match.startTime }}–{{ match.endTime }} trong phạm vi
-              đã chọn. Hãy đổi thời gian hoặc bán kính rồi tạo kèo mới.</p>
+            <p>Không sân {{ sportLabel(match.sportType) }} nào trong phạm vi đã chọn còn khung giờ trống nằm trong
+              {{ hhmm(match.startTime) }}–{{ hhmm(match.endTime) }}. Hãy đổi thời gian hoặc bán kính rồi tạo kèo mới.</p>
           </div>
           }
           @if (match.proposal.venueSearchStatus !== 'PENDING') {

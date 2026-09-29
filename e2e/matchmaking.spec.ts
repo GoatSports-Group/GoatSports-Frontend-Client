@@ -347,3 +347,35 @@ test.describe('hình thức thi đấu', () => {
     expect(payload).not.toHaveProperty('partnerId');
   });
 });
+
+test('khung giờ là khoảng rảnh: mỗi sân gợi ý hiện giờ thi đấu là một slot trong khung chung', async ({ page }) => {
+  const accepted = session('ACCEPTED');
+  const withOptions = {
+    ...accepted,
+    proposal: {
+      ...accepted.proposal,
+      venueId: undefined,
+      venueSearchStatus: 'READY',
+      venueOptions: [{
+        venueId: 'dddddddd-0000-4000-8000-000000000001', venueCourtId: 'dddddddd-0000-4000-8000-000000000002',
+        venueName: 'Nhà thi đấu Phú Thọ', address: 'Quận 11', distanceKm: 2.1, rating: 4.6, score: 88,
+        matchReason: 'Còn trống 19:00–20:00. Được đánh giá 4.6/5.', suggestedCourts: ['Sân 2'],
+        slotStart: '19:00:00', slotEnd: '20:00:00'
+      }]
+    }
+  };
+  await page.route('**/ai-service/api/v1/ai/matchmaking/status', route =>
+    route.fulfill({ json: { status: 'ACCEPTED', session: withOptions } }));
+  await page.route('**/ai-service/api/v1/ai/matchmaking/sessions?**', route => route.fulfill({ json: [withOptions] }));
+  await page.route('**/ai-service/api/v1/ai/matchmaking/sessions/*', route => route.fulfill({ json: withOptions }));
+
+  await page.goto('/matchmaking');
+  const closeAssistant = page.getByRole('button', { name: 'Đóng trợ lý' });
+  if (await closeAssistant.isVisible()) await closeAssistant.click();
+  await page.locator('.history-row').click();
+
+  await expect(page.getByText('Khung rảnh chung')).toBeVisible();
+  await expect(page.getByText('18:00–20:00').first()).toBeVisible();
+  await expect(page.getByText('Thi đấu 19:00–20:00')).toBeVisible();
+  await expect(page.getByLabel('Rảnh từ')).toBeVisible();
+});

@@ -67,6 +67,9 @@ export interface MatchVenueOption {
   score: number;
   matchReason: string;
   suggestedCourts: string[];
+  /** Giờ thi đấu: slot trống sớm nhất của sân nằm trong khung rảnh chung. */
+  slotStart?: string;
+  slotEnd?: string;
 }
 
 export interface MatchmakingPlayer {

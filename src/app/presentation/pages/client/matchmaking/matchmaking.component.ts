@@ -747,6 +747,16 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     return Boolean(this.displayedSession()?.feedback?.some(item => this.onMySide(item.reviewerId)));
   }
 
+  /** "18:00:00" → "18:00". */
+  hhmm(value: string | undefined | null): string {
+    return value ? value.slice(0, 5) : '';
+  }
+
+  /** Đã chọn sân: giờ của kèo là giờ thi đấu (một slot), không còn là cả khung rảnh chung. */
+  hasMatchTime(match: MatchmakingSession): boolean {
+    return !!match.proposal?.venueId && match.status !== 'ACCEPTED';
+  }
+
   /** ELO mới: của riêng mình khi chơi đơn/đôi, của CLB khi đấu CLB. */
   myEloAfter(): number | null {
     const mine = this.currentParticipant();

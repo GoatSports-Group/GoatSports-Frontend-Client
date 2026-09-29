@@ -201,6 +201,7 @@
 .venue-options article div { display: grid; gap: 3px; }
 .venue-options article small, .venue-options article span, .venue-options article p { color: var(--body); font-size: 11px; }
 .venue-options article p { grid-column: 1 / -1; margin: 0; }
+.venue-options article .venue-slot { color: var(--primary); font-weight: 800; }
 .venue-options article button { grid-column: 2; grid-row: 1 / span 2; }
 
 .venue-search-state {
