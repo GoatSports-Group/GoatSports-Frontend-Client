@@ -880,6 +880,92 @@
   height: 70px;
 }
 
+// ---- Radar khi đang tìm: lưới, kim quét, sóng lan, chấm tín hiệu, lõi "thở" ----
+.search-visual { width: 260px; }
+
+// Hai vòng đồng tâm + chữ thập mờ làm nền.
+.radar-grid {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgb(0 138 99 / 16%);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, transparent 0 32%, rgb(0 138 99 / 14%) 32% calc(32% + 1px), transparent calc(32% + 1px) 65%,
+      rgb(0 138 99 / 14%) 65% calc(65% + 1px), transparent calc(65% + 1px)),
+    linear-gradient(transparent calc(50% - .5px), rgb(0 138 99 / 12%) calc(50% - .5px) calc(50% + .5px), transparent calc(50% + .5px)),
+    linear-gradient(90deg, transparent calc(50% - .5px), rgb(0 138 99 / 12%) calc(50% - .5px) calc(50% + .5px), transparent calc(50% + .5px));
+}
+
+// Kim quét: một quạt màu xoay đều.
+.radar-sweep {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0deg 280deg, rgb(0 138 99 / 30%) 360deg);
+  animation: radar-sweep 2.8s linear infinite;
+}
+
+.radar-ring { border: 2px solid rgb(0 138 99 / 38%); }
+
+// Chấm "tín hiệu": chớp lên rồi tan, lệch nhịp nhau như vừa phát hiện người chơi.
+.radar-blip {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 0 4px rgb(0 138 99 / 18%);
+  opacity: 0;
+  animation: radar-blip 2.8s ease-out infinite;
+}
+
+.radar-blip--one { top: 20%; left: 64%; animation-delay: .5s; }
+.radar-blip--two { top: 62%; left: 18%; animation-delay: 1.4s; }
+.radar-blip--three { top: 72%; left: 70%; animation-delay: 2.2s; }
+
+.radar-core {
+  position: relative;
+  z-index: 1;
+  animation: radar-breathe 1.8s ease-in-out infinite;
+}
+
+.result-state--searching .status-dot { animation: live-ping 1.4s ease-out infinite; }
+
+.scan-step {
+  margin: 16px 0 0;
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 700;
+  animation: step-in 360ms ease-out;
+
+  &::after { content: '…'; }
+}
+
+@keyframes radar-sweep { to { transform: rotate(360deg); } }
+
+@keyframes radar-blip {
+  0%, 100% { opacity: 0; transform: scale(.4); }
+  12% { opacity: 1; transform: scale(1); }
+  45% { opacity: 0; transform: scale(1.5); }
+}
+
+@keyframes radar-breathe {
+  50% { transform: scale(1.06); box-shadow: 0 0 0 10px rgb(0 138 99 / 10%), 0 12px 28px -18px #006f50; }
+}
+
+@keyframes live-ping {
+  0% { box-shadow: 0 0 0 0 rgb(24 185 129 / 55%); }
+  100% { box-shadow: 0 0 0 9px rgb(24 185 129 / 0%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .radar-sweep,
+  .radar-core,
+  .scan-step,
+  .result-state--searching .status-dot { animation: none; }
+  .radar-blip { display: none; }
+}
+
 .search-metrics,
 .match-facts {
   display: grid;
@@ -915,8 +1001,10 @@
   font-weight: 850;
 }
 
+// Nút hủy bên trái: góc phải dưới là chỗ của nút trợ lý AI nổi.
 .search-footer {
   display: flex;
+  flex-direction: row-reverse;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;

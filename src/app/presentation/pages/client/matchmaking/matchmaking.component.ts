@@ -464,6 +464,14 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     const end = this.localDateTime(match.playDate, match.endTime);
     return Boolean(end && end.getTime() + 60 * 60 * 1000 > this.nowMs());
   }));
+  /** Câu dưới radar khi đang tìm: đổi mỗi 2 giây theo các tiêu chí AI đang chấm. */
+  private readonly scanSteps = [
+    'Đang so ELO theo môn',
+    'Đang tìm phần rảnh chung của hai bên',
+    'Đang đo khoảng cách tới các đối thủ',
+    'Đang xét trình độ và phong cách chơi'
+  ];
+  readonly scanStep = computed(() => this.scanSteps[Math.floor(this.elapsedSeconds() / 2) % this.scanSteps.length]);
   readonly searchButtonLabel = computed(() => this.hasUpcomingMatch() ? 'Tìm đối thủ khác' : 'Tìm đối thủ');
 
   private elapsedTimer?: Subscription;

@@ -35,11 +35,20 @@
           <time>{{ formatCountdown(elapsedSeconds()) }}</time>
         </header>
         <div class="search-visual" aria-hidden="true">
+          <span class="radar-grid"></span>
+          <span class="radar-sweep"></span>
           <span class="radar-ring radar-ring--one"></span>
           <span class="radar-ring radar-ring--two"></span>
           <span class="radar-ring radar-ring--three"></span>
+          <span class="radar-blip radar-blip--one"></span>
+          <span class="radar-blip radar-blip--two"></span>
+          <span class="radar-blip radar-blip--three"></span>
           <span class="radar-core"><lucide-icon name="scan-search" class="w-8 h-8"></lucide-icon></span>
         </div>
+        <!-- Tạo lại phần tử mỗi lần đổi câu để hiệu ứng hiện chữ chạy lại. -->
+        @for (step of [scanStep()]; track step) {
+        <p class="scan-step">{{ step }}</p>
+        }
         <div class="search-metrics">
           <div><span>Phạm vi</span><strong>{{ maxDistance() }} km</strong></div>
           <div><span>ELO mục tiêu</span><strong>± {{ maxEloDifference() }}</strong></div>
