@@ -13,6 +13,7 @@ export {
   type MatchmakingActionResponse,
   type MatchmakingPlayer,
   type MatchmakingQueueResponse,
+  type MatchmakingSearchInfo,
   type MatchmakingQueueStatus,
   type MatchmakingSessionModel as MatchmakingSession,
   type MatchmakingSkill,

@@ -456,6 +456,42 @@ test.describe('hình thức thi đấu', () => {
   });
 });
 
+test('được đồng đội thêm vào đội: thấy đúng lượt tìm của đội và có thể rời đội', async ({ page }) => {
+  const leaderId = '34343434-3434-4343-8343-343434343434';
+  let left = false;
+  await page.route('**/ai-service/api/v1/ai/matchmaking/status', route => route.fulfill({ json: left
+    ? { status: 'NOT_IN_QUEUE' }
+    : {
+      status: 'QUEUED', queueSize: 4,
+      search: {
+        sportType: 'FOOTBALL', playFormat: 'FOOTBALL_5', playDate: futureDate(1), startTime: '19:00:00', endTime: '21:00:00',
+        queuedAt: new Date(Date.now() - 65_000).toISOString(), queuedBy: leaderId, leaderName: 'Minh Đạt',
+        members: [
+          { userId: leaderId, name: 'Minh Đạt' }, { userId: currentUserId, name: 'Thắng Đạt' },
+          { userId: 'u3', name: 'Đinh Hoàng Long' }, { userId: 'u4', name: 'Lê Hoàng Nam' }, { userId: 'u5', name: 'Đỗ Tuấn Kiệt' }
+        ]
+      }
+    } }));
+  await page.route('**/ai-service/api/v1/ai/matchmaking/sessions?**', route => route.fulfill({ json: [] }));
+  await page.route('**/ai-service/api/v1/ai/matchmaking/queue', route => {
+    expect(route.request().method()).toBe('DELETE');
+    left = true;
+    return route.fulfill({ json: { success: true, message: 'Đã rời hàng chờ.' } });
+  });
+
+  await page.goto('/matchmaking');
+  const card = page.locator('.result-state--searching');
+  // Môn, hình thức và giờ là của đội (không phải form của mình), đồng hồ đếm từ lúc người dẫn bắt đầu.
+  await expect(card).toContainText('Bóng đá · Sân 5');
+  await expect(card).toContainText('19:00–21:00');
+  await expect(card).toContainText('Minh Đạt đã đưa bạn vào đội này');
+  await expect(card.locator('.search-team li')).toHaveCount(5);
+  await expect(card.locator('time')).toContainText('01:');
+
+  await page.getByRole('button', { name: 'Rời đội' }).click();
+  await expect(page.locator('.setup-card')).toBeVisible();
+});
+
 test('khung giờ là khoảng rảnh: mỗi sân gợi ý hiện giờ thi đấu là một slot trong khung chung', async ({ page }) => {
   const accepted = session('ACCEPTED');
   const withOptions = {

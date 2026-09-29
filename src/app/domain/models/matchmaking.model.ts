@@ -226,16 +226,31 @@ export interface JoinMatchmakingQueueRequest {
   clubId?: string;
 }
 
+/** Lượt tìm đang chờ như người dẫn đã đặt (đồng đội được thêm vào cũng thấy đúng lượt này). */
+export interface MatchmakingSearchInfo {
+  sportType: MatchmakingSport;
+  playFormat?: string;
+  playDate: string;
+  startTime: string;
+  endTime: string;
+  queuedAt: string;
+  queuedBy?: string;
+  leaderName?: string;
+  members: { userId: string; name: string }[];
+}
+
 export interface MatchmakingQueueResponse {
   status: MatchmakingQueueStatus;
   message: string;
   session?: MatchmakingSessionModel;
+  search?: MatchmakingSearchInfo;
 }
 
 export interface MatchmakingStatusResponse {
   status: MatchmakingQueueStatus | MatchSessionStatus;
   queueSize?: number;
   session?: MatchmakingSessionModel;
+  search?: MatchmakingSearchInfo;
 }
 
 export interface MatchmakingActionResponse {

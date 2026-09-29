@@ -30,7 +30,7 @@
           <div>
             <p class="live-status"><span class="status-dot"></span>Đang tìm kiếm</p>
             <h2>GOAT AI đang quét đối thủ phù hợp</h2>
-            <p>{{ selectedSportLabel() }} · {{ selectedPlayDateLabel() }} · {{ startTime() }}–{{ endTime() }}</p>
+            <p>{{ searchSummary() }}</p>
           </div>
           <time>{{ formatCountdown(elapsedSeconds()) }}</time>
         </header>
@@ -48,6 +48,24 @@
         <!-- Tạo lại phần tử mỗi lần đổi câu để hiệu ứng hiện chữ chạy lại. -->
         @for (step of [scanStep()]; track step) {
         <p class="scan-step">{{ step }}</p>
+        }
+        @if (queuedSearch(); as search) {
+        @if (search.members.length > 1) {
+        <section class="search-team" aria-label="Đội đang tìm">
+          <p>
+            <lucide-icon name="users-round" class="w-4 h-4"></lucide-icon>
+            @if (searchLedByOther()) { <span><strong>{{ search.leaderName }}</strong> đã đưa bạn vào đội này</span> }
+            @else { <span>Đội của bạn · {{ search.members.length }} người</span> }
+          </p>
+          <ul>
+            @for (member of search.members; track member.userId) {
+            <li [class.is-leader]="member.userId === search.queuedBy">
+              <span class="person__avatar" aria-hidden="true">{{ initials(member.name) }}</span>{{ member.name }}
+            </li>
+            }
+          </ul>
+        </section>
+        }
         }
         <div class="search-metrics">
           <div><span>Phạm vi</span><strong>{{ maxDistance() }} km</strong></div>
@@ -75,8 +93,8 @@
         <div class="search-footer">
           <p class="search-note">Bạn có thể rời trang. Trạng thái tìm kiếm sẽ tự động được khôi phục.</p>
           <button type="button" class="button button-danger" (click)="cancelSearch()">
-            <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
-            Hủy tìm kiếm
+            <lucide-icon [name]="searchLedByOther() ? 'log-out' : 'x'" class="w-5 h-5"></lucide-icon>
+            {{ searchLedByOther() ? 'Rời đội' : 'Hủy tìm kiếm' }}
           </button>
         </div>
       </div>

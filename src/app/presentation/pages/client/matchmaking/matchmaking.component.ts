@@ -27,6 +27,7 @@ import {
   MatchmakingPlayer,
   MatchResultClaim,
   MatchSelectionMode,
+  MatchmakingSearchInfo,
   MatchmakingSession,
   MatchmakingSkill,
   MatchmakingSport,
@@ -472,6 +473,19 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     'Đang xét trình độ và phong cách chơi'
   ];
   readonly scanStep = computed(() => this.scanSteps[Math.floor(this.elapsedSeconds() / 2) % this.scanSteps.length]);
+  /** Lượt tìm đang chờ theo server: có thể do đồng đội đưa mình vào, khi đó dùng giờ và môn của họ. */
+  readonly queuedSearch = signal<MatchmakingSearchInfo | null>(null);
+  readonly searchLedByOther = computed(() => {
+    const leader = this.queuedSearch()?.queuedBy;
+    return !!leader && leader !== this.authService.currentUser?.userId;
+  });
+  readonly searchSummary = computed(() => {
+    const search = this.queuedSearch();
+    if (!search) return `${this.selectedSportLabel()} · ${this.selectedPlayDateLabel()} · ${this.startTime()}–${this.endTime()}`;
+    const format = PLAY_FORMATS[search.sportType]?.find(item => item.value === search.playFormat)?.label;
+    return [this.sportLabel(search.sportType), format, this.formatLocalDate(search.playDate),
+      `${this.hhmm(search.startTime)}–${this.hhmm(search.endTime)}`].filter(Boolean).join(' · ');
+  });
   readonly searchButtonLabel = computed(() => this.hasUpcomingMatch() ? 'Tìm đối thủ khác' : 'Tìm đối thủ');
 
   private elapsedTimer?: Subscription;
@@ -1234,6 +1248,8 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
             this.upsertHistory(response.session);
             return;
           }
+          // Đồng đội đã đưa đúng đội này vào hàng chờ: hiện lượt của đội (giờ, người dẫn), đếm từ lúc họ bắt đầu.
+          this.showQueuedSearch(response.search);
           if (this.selectionMode() === 'MANUAL') this.loadCandidates();
         },
         error: error => {
@@ -1257,11 +1273,21 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
           this.isSearching.set(true);
           this.queueSize.set(response.queueSize ?? null);
           this.startElapsedTimer();
+          this.showQueuedSearch(response.search);
           if (this.selectionMode() === 'MANUAL') this.loadCandidates();
         }
       },
       error: () => this.errorMessage.set('Chưa thể khôi phục trạng thái ghép kèo trước đó.')
     });
+  }
+
+  private showQueuedSearch(search: MatchmakingSearchInfo | undefined): void {
+    this.queuedSearch.set(search ?? null);
+    if (!search?.queuedAt) return;
+    const started = new Date(search.queuedAt.endsWith('Z') || search.queuedAt.includes('+') ? search.queuedAt : `${search.queuedAt}Z`);
+    if (!Number.isNaN(started.getTime())) {
+      this.elapsedSeconds.set(Math.max(0, Math.floor((Date.now() - started.getTime()) / 1000)));
+    }
   }
 
   private applySession(session: MatchmakingSession): void {
@@ -1331,16 +1357,26 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     const becomesCurrent = !referenceId || !activeSession || activeSession.sessionId === referenceId;
 
     this.realtimeRefreshInFlight = true;
-    const request: Observable<{ session: MatchmakingSession | null; queueSize: number | null }> = referenceId
+    type Refresh = {
+      session: MatchmakingSession | null;
+      queueSize: number | null;
+      status?: string;
+      search?: MatchmakingSearchInfo;
+    };
+    const status$: Observable<Refresh> = this.aiRepository.checkMatchmakingStatus().pipe(
+      map(response => ({
+        session: response.session ?? null,
+        queueSize: response.queueSize ?? null,
+        status: response.status,
+        search: response.search
+      }))
+    );
+    const request: Observable<Refresh> = referenceId
       ? this.aiRepository.getMatchmakingSession(referenceId).pipe(
-          map(session => ({ session, queueSize: null }))
+          map(session => ({ session, queueSize: null })),
+          catchError(() => status$)
         )
-      : this.aiRepository.checkMatchmakingStatus().pipe(
-          map(response => ({
-            session: response.session ?? null,
-            queueSize: response.queueSize ?? null
-          }))
-        );
+      : status$;
 
     request.pipe(
       takeUntilDestroyed(this.destroyRef),
@@ -1361,8 +1397,18 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
           this.upsertHistory(response.session);
         } else if (response.session) {
           this.upsertHistory(response.session);
-        } else if (this.selectionMode() === 'MANUAL' && this.isSearching()) {
-          this.loadCandidates();
+        } else if (response.status === 'QUEUED') {
+          // Vừa được đồng đội thêm vào một đội đang tìm: hiện luôn trạng thái tìm của đội.
+          if (!this.isSearching()) {
+            this.isSearching.set(true);
+            this.startElapsedTimer();
+          }
+          this.queueSize.set(response.queueSize ?? null);
+          this.showQueuedSearch(response.search);
+          if (this.selectionMode() === 'MANUAL') this.loadCandidates();
+        } else if (response.status && this.isSearching()) {
+          // Người dẫn hủy hoặc một đồng đội rời: đội đã dừng tìm.
+          this.resetSearch();
         }
       },
       error: error => this.errorMessage.set(
@@ -1388,6 +1434,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   }
 
   private resetSearch(): void {
+    this.queuedSearch.set(null);
     this.stopPolling();
     this.isSearching.set(false);
     this.queueSize.set(null);

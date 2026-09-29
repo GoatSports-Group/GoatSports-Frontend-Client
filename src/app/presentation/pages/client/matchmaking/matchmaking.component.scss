@@ -2268,3 +2268,33 @@ button:focus-visible {
   .modal__header, .modal__body, .modal__footer { padding-inline: 16px; }
   .modal__footer .button { flex: 1; }
 }
+
+// Đội đang tìm (khi có đồng đội): ai dẫn, ai trong đội.
+.search-team {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  margin-top: 16px;
+
+  p { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--body); font-size: 14px; }
+  p lucide-icon { color: var(--primary); }
+  strong { color: var(--ink); }
+
+  ul { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 0; padding: 0; list-style: none; }
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px 4px 4px;
+    border: 1px solid var(--hairline);
+    border-radius: 9999px;
+    background: var(--surface);
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  li .person__avatar { width: 28px; height: 28px; font-size: 11px; }
+  li.is-leader { border-color: var(--primary); }
+}
+
