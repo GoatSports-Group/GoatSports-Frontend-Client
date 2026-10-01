@@ -2298,3 +2298,67 @@ button:focus-visible {
   li.is-leader { border-color: var(--primary); }
 }
 
+// Trạng thái mô hình xếp hạng: đã học (AUC) hay đang thu thập dữ liệu.
+.model-status {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--surface-subtle);
+  color: var(--body);
+
+  > lucide-icon { flex: none; margin-top: 2px; color: var(--primary); }
+  > span { display: grid; flex: 1; gap: 3px; min-width: 0; }
+  strong { color: var(--ink); font-size: 14px; font-weight: 800; }
+  small { font-size: 12px; line-height: 1.45; }
+
+  &.is-learned { background: var(--primary-light); }
+}
+
+.model-status__bar {
+  display: block;
+  height: 6px;
+  margin-top: 4px;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: var(--surface-strong);
+
+  b { display: block; height: 100%; border-radius: inherit; background: var(--primary-fill); }
+}
+
+.ai-probability { color: var(--primary); font-weight: 800; }
+
+// Phân tích của AI (LLM chạy nền): chữ thường, không in đậm, có dòng nguồn model.
+.ai-insight {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--primary-light);
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgb(0 138 99 / 6%), transparent 60%), var(--surface);
+
+  header { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  header lucide-icon { color: var(--primary); }
+  strong { color: var(--ink); font-size: 14px; font-weight: 800; }
+  small { color: var(--body); font-size: 12px; }
+  p { margin: 0; color: var(--ink); font-size: 14px; line-height: 1.65; }
+}
+
+.ai-insight__line {
+  display: block;
+  height: 10px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, var(--surface-strong) 25%, var(--surface-subtle) 50%, var(--surface-strong) 75%);
+  background-size: 200% 100%;
+  animation: skeleton 1.4s ease-in-out infinite;
+}
+
+.ai-insight__line--short { width: 60%; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-insight__line { animation: none; }
+}
+

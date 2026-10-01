@@ -429,17 +429,34 @@
     } @else {
     <section class="criteria-card" aria-labelledby="criteria-title">
       <header>
-        <p class="live-status"><span class="status-dot"></span>{{ isSearching() ? 'Đang chấm điểm' : 'Cách AI chấm' }}</p>
+        <p class="live-status"><span class="status-dot"></span>{{ isLearnedModel() ? 'Mô hình học máy' : 'Trọng số mặc định' }}</p>
         <h2 id="criteria-title">AI chọn đối thủ thế nào?</h2>
+        @if (isLearnedModel()) {
+        <p>Mô hình học từ {{ modelStatus()!.trainedSamples }} kèo đã có kết quả để dự đoán kèo nào sẽ diễn ra suôn sẻ, rồi xếp hạng ứng viên theo xác suất đó.</p>
+        } @else {
         <p>Mỗi ứng viên được chấm trên bảy tiêu chí, cộng theo trọng số dưới đây.</p>
+        }
       </header>
+      @if (modelStatus(); as model) {
+      <div class="model-status" [class.is-learned]="model.mode === 'LEARNED'">
+        <lucide-icon [name]="model.mode === 'LEARNED' ? 'brain-circuit' : 'graduation-cap'" class="w-5 h-5"></lucide-icon>
+        @if (model.mode === 'LEARNED') {
+        <span><strong>Độ chính xác (AUC) {{ model.auc | number:'1.2-2' }}</strong>
+          <small>Bản {{ model.version }} · tự học lại định kỳ từ kết quả kèo mới</small></span>
+        } @else {
+        <span><strong>AI đang thu thập dữ liệu để tự học</strong>
+          <small>{{ model.samples }}/{{ model.minSamples }} kèo có kết quả · cần ≥ {{ model.minPerClass }} kèo thành công và thất bại</small>
+          <i class="model-status__bar" aria-hidden="true"><b [style.width.%]="trainingProgress()"></b></i></span>
+        }
+      </div>
+      }
       <ol class="criteria-list">
-        @for (item of criteria; track item.label) {
+        @for (item of criteria(); track item.key) {
         <li>
           <lucide-icon [name]="item.icon" class="w-5 h-5"></lucide-icon>
           <span><strong>{{ item.label }}</strong><small>{{ item.helper }}</small></span>
-          <em>{{ item.weight }}%</em>
-          <i aria-hidden="true"><b [style.width.%]="item.weight * 100 / 30"></b></i>
+          <em>{{ item.weight | number:'1.0-0' }}%</em>
+          <i aria-hidden="true"><b [style.width.%]="item.weight * 100 / criteriaMax()"></b></i>
         </li>
         }
       </ol>
@@ -562,7 +579,11 @@
               <span class="status-dot"></span>{{ statusMessage(match) }}
             </p>
             <h2>{{ match.compatibilityScore | number:'1.0-0' }}% phù hợp</h2>
-            <p>{{ sportLabel(match.sportType) }} · {{ matchDateLabel(match) || historyDate(match) }}</p>
+            <p>{{ sportLabel(match.sportType) }} · {{ matchDateLabel(match) || historyDate(match) }}
+              @if (match.scoreBreakdown?.successProbability != null) {
+              · <span class="ai-probability">AI dự đoán {{ match.scoreBreakdown!.successProbability | number:'1.0-0' }}% kèo suôn sẻ</span>
+              }
+            </p>
           </div>
           @if (side) {
           <button type="button" class="card-close" aria-label="Đóng chi tiết" title="Đóng chi tiết" (click)="clearHistorySelection()">
@@ -643,6 +664,20 @@
           <span><lucide-icon name="check-circle-2" class="w-4 h-4"></lucide-icon>{{ reason }}</span>
           }
         </div>
+        }
+
+        @if (match.aiInsightStatus === 'PENDING') {
+        <section class="ai-insight ai-insight--pending" aria-live="polite">
+          <header><lucide-icon name="sparkles" class="w-4 h-4"></lucide-icon><strong>GOAT AI đang phân tích kèo…</strong>
+            <small>thường mất 1–2 phút</small></header>
+          <span class="ai-insight__line"></span><span class="ai-insight__line"></span><span class="ai-insight__line ai-insight__line--short"></span>
+        </section>
+        } @else if (match.aiInsightStatus === 'READY' && match.aiInsight) {
+        <section class="ai-insight" aria-label="Phân tích của AI">
+          <header><lucide-icon name="sparkles" class="w-4 h-4"></lucide-icon><strong>Phân tích của AI</strong>
+            <small>{{ match.aiInsightModel }} · chạy trên máy chủ GoatSports</small></header>
+          <p>{{ match.aiInsight }}</p>
+        </section>
         }
 
         <div class="match-progress-wrap" [style.--progress]="progressPercent(match)">

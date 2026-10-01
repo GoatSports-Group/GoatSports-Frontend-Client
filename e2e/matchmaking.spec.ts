@@ -492,6 +492,47 @@ test('được đồng đội thêm vào đội: thấy đúng lượt tìm củ
   await expect(page.locator('.setup-card')).toBeVisible();
 });
 
+test('AI thật: trạng thái mô hình học máy và phân tích kèo bằng LLM', async ({ page }) => {
+  let learned = false;
+  await page.route('**/ai-service/api/v1/ai/matchmaking/model', route => route.fulfill({ json: learned
+    ? { mode: 'LEARNED', modelName: 'matchmaking-logistic-regression', version: '202610010900', auc: 0.74,
+        trainedSamples: 186, samples: 190, positives: 80, minSamples: 40, minPerClass: 10,
+        weights: { eloScore: 12, scheduleScore: 41, distanceScore: 27, skillScore: 8, playStyleScore: 6, positionScore: 2, experienceScore: 4 } }
+    : { mode: 'RULES', samples: 22, positives: 1, minSamples: 40, minPerClass: 10,
+        weights: { eloScore: 30, scheduleScore: 25, distanceScore: 15, skillScore: 10, playStyleScore: 10, positionScore: 5, experienceScore: 5 } } }));
+  const analysed = session('ACCEPTED');
+  Object.assign(analysed, {
+    aiInsightStatus: 'READY', aiInsightModel: 'qwen3.5:4b',
+    aiInsight: 'Hai bên hợp nhau về khung giờ và trình độ. Nhớ khởi động kỹ và thống nhất số set qua trò chuyện.',
+    scoreBreakdown: { eloScore: 80, skillScore: 100, scheduleScore: 100, distanceScore: 90, playStyleScore: 70,
+      positionScore: 70, experienceScore: 55, totalScore: 86, reasons: ['Chênh lệch 60 ELO trong ngưỡng cho phép'], successProbability: 72 }
+  });
+  const pending = { ...session('PROPOSED'), sessionId: '77777777-7777-4777-8777-000000000002', aiInsightStatus: 'PENDING' };
+  await page.route('**/ai-service/api/v1/ai/matchmaking/status', route => route.fulfill({ json: { status: 'NOT_IN_QUEUE' } }));
+  await page.route('**/ai-service/api/v1/ai/matchmaking/sessions?**', route => route.fulfill({ json: [analysed, pending] }));
+
+  await page.goto('/matchmaking');
+  const criteria = page.locator('.criteria-card');
+  await expect(criteria).toContainText('Trọng số mặc định');
+  await expect(criteria).toContainText('AI đang thu thập dữ liệu để tự học');
+  await expect(criteria).toContainText('22/40 kèo có kết quả');
+
+  await page.locator('.history-row').first().click();
+  const card = page.locator('.insights .result-state--matched');
+  await expect(card).toContainText('AI dự đoán 72% kèo suôn sẻ');
+  await expect(card.locator('.ai-insight')).toContainText('Hai bên hợp nhau về khung giờ');
+  await expect(card.locator('.ai-insight')).toContainText('qwen3.5:4b');
+  await page.locator('.history-row').nth(1).click();
+  await expect(card.locator('.ai-insight--pending')).toContainText('GOAT AI đang phân tích kèo');
+
+  learned = true;
+  await page.reload();
+  await expect(criteria).toContainText('Mô hình học máy');
+  await expect(criteria).toContainText('Độ chính xác (AUC) 0.74');
+  // Tỷ trọng lấy từ trọng số đã học: khung giờ đứng đầu.
+  await expect(criteria.locator('.criteria-list li').nth(1)).toContainText('41%');
+});
+
 test('khung giờ là khoảng rảnh: mỗi sân gợi ý hiện giờ thi đấu là một slot trong khung chung', async ({ page }) => {
   const accepted = session('ACCEPTED');
   const withOptions = {

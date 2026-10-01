@@ -4,6 +4,7 @@ import {
   ChatbotResponseModel,
   JoinMatchmakingQueueRequest,
   MatchmakingActionResponse,
+  MatchmakingModelStatus,
   MatchCandidate,
   MatchmakingQueueResponse,
   MatchmakingSessionModel,
@@ -18,6 +19,7 @@ export abstract class AiRepositoryPort {
   abstract getMatchmakingSession(sessionId: string): Observable<MatchmakingSessionModel>;
   abstract getMatchmakingHistory(limit?: number, offset?: number): Observable<MatchmakingSessionModel[]>;
   abstract getMatchmakingCandidates(limit?: number): Observable<MatchCandidate[]>;
+  abstract getMatchmakingModel(): Observable<MatchmakingModelStatus>;
   abstract selectMatchmakingCandidate(candidateParticipantId: string): Observable<MatchmakingSessionModel>;
   abstract decideMatch(sessionId: string, decision: AcceptanceDecision): Observable<MatchmakingSessionModel>;
   abstract updateMatchProposal(

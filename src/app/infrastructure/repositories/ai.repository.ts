@@ -7,6 +7,7 @@ import {
   ChatbotResponseModel,
   JoinMatchmakingQueueRequest,
   MatchmakingActionResponse,
+  MatchmakingModelStatus,
   MatchCandidate,
   MatchmakingQueueResponse,
   MatchmakingSessionModel,
@@ -40,6 +41,10 @@ export class AiRepository extends AiRepositoryPort {
   override getMatchmakingHistory(limit = 5, offset = 0): Observable<MatchmakingSessionModel[]> {
     const params = new HttpParams().set('limit', String(limit)).set('offset', String(offset));
     return this.http.get<MatchmakingSessionModel[]>(`${this.baseUrl}/matchmaking/sessions`, { params });
+  }
+
+  override getMatchmakingModel(): Observable<MatchmakingModelStatus> {
+    return this.http.get<MatchmakingModelStatus>(`${this.baseUrl}/matchmaking/model`);
   }
 
   override getMatchmakingCandidates(limit = 5): Observable<MatchCandidate[]> {

@@ -53,6 +53,24 @@ export interface MatchScoreBreakdown {
   experienceScore: number;
   totalScore: number;
   reasons: string[];
+  /** Xác suất kèo suôn sẻ (%) theo mô hình học máy; không có khi đang dùng trọng số mặc định. */
+  successProbability?: number;
+}
+
+/** Hệ thống đang xếp hạng bằng mô hình học máy (LEARNED) hay trọng số viết tay (RULES). */
+export interface MatchmakingModelStatus {
+  mode: 'LEARNED' | 'RULES';
+  modelName?: string;
+  version?: string;
+  trainedAt?: string;
+  auc?: number;
+  trainedSamples?: number;
+  samples: number;
+  positives: number;
+  minSamples: number;
+  minPerClass: number;
+  /** Tỷ trọng (%) theo khóa: eloScore, scheduleScore, distanceScore… */
+  weights: Record<string, number>;
 }
 
 export interface MatchVenueOption {
@@ -188,6 +206,10 @@ export interface MatchmakingSessionModel {
   resultClaims: MatchResultClaim[];
   result?: MatchResult;
   feedback: OpponentFeedback[];
+  /** Phân tích bằng LLM chạy nền: PENDING → READY | FAILED; DISABLED khi chưa cấu hình. */
+  aiInsight?: string;
+  aiInsightStatus?: 'PENDING' | 'READY' | 'FAILED' | 'DISABLED';
+  aiInsightModel?: string;
 }
 
 export interface MatchCandidate {

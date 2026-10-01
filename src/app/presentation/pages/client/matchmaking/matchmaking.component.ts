@@ -27,6 +27,7 @@ import {
   MatchmakingPlayer,
   MatchResultClaim,
   MatchSelectionMode,
+  MatchmakingModelStatus,
   MatchmakingSearchInfo,
   MatchmakingSession,
   MatchmakingSkill,
@@ -183,15 +184,28 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     this.playStyles.find(item => item.value === this.selectedPlayStyle())?.label,
     this.selectionMode() === 'AI' ? 'AI tự chọn' : 'Tôi sẽ chọn'
   ].filter(Boolean).join(' · '));
-  readonly criteria: ReadonlyArray<{ icon: string; label: string; helper: string; weight: number }> = [
-    { icon: 'trending-up', label: 'ELO theo môn', helper: 'Điểm thi đấu trong đúng môn', weight: 30 },
-    { icon: 'clock-3', label: 'Khung giờ', helper: 'Phần rảnh chung của hai bên', weight: 25 },
-    { icon: 'map-pin', label: 'Khoảng cách', helper: 'Ưu tiên đối thủ gần bạn', weight: 15 },
-    { icon: 'badge-check', label: 'Trình độ', helper: 'Mức kỹ năng trong hồ sơ', weight: 10 },
-    { icon: 'users', label: 'Phong cách', helper: 'Cùng tinh thần thể thao', weight: 10 },
-    { icon: 'scan-search', label: 'Vị trí yêu thích', helper: 'Vai trò hoặc vị trí thi đấu', weight: 5 },
-    { icon: 'history', label: 'Kinh nghiệm', helper: 'Số trận và tỷ lệ thắng', weight: 5 }
+  private readonly criteriaBase: ReadonlyArray<{ key: string; icon: string; label: string; helper: string; weight: number }> = [
+    { key: 'eloScore', icon: 'trending-up', label: 'ELO theo môn', helper: 'Điểm thi đấu trong đúng môn', weight: 30 },
+    { key: 'scheduleScore', icon: 'clock-3', label: 'Khung giờ', helper: 'Phần rảnh chung của hai bên', weight: 25 },
+    { key: 'distanceScore', icon: 'map-pin', label: 'Khoảng cách', helper: 'Ưu tiên đối thủ gần bạn', weight: 15 },
+    { key: 'skillScore', icon: 'badge-check', label: 'Trình độ', helper: 'Mức kỹ năng trong hồ sơ', weight: 10 },
+    { key: 'playStyleScore', icon: 'users', label: 'Phong cách', helper: 'Cùng tinh thần thể thao', weight: 10 },
+    { key: 'positionScore', icon: 'scan-search', label: 'Vị trí yêu thích', helper: 'Vai trò hoặc vị trí thi đấu', weight: 5 },
+    { key: 'experienceScore', icon: 'history', label: 'Kinh nghiệm', helper: 'Số trận và tỷ lệ thắng', weight: 5 }
   ];
+  /** Mô hình xếp hạng đang dùng; null khi chưa tải được (vẫn hiện trọng số mặc định). */
+  readonly modelStatus = signal<MatchmakingModelStatus | null>(null);
+  readonly isLearnedModel = computed(() => this.modelStatus()?.mode === 'LEARNED');
+  /** Khi mô hình đã học, tỷ trọng lấy từ trọng số học được thay cho bảng viết tay. */
+  readonly criteria = computed(() => {
+    const learned = this.isLearnedModel() ? this.modelStatus()!.weights : null;
+    return this.criteriaBase.map(item => ({ ...item, weight: learned ? learned[item.key] ?? 0 : item.weight }));
+  });
+  readonly criteriaMax = computed(() => Math.max(1, ...this.criteria().map(item => item.weight)));
+  readonly trainingProgress = computed(() => {
+    const status = this.modelStatus();
+    return status ? Math.min(100, Math.round(100 * status.samples / Math.max(1, status.minSamples))) : 0;
+  });
   readonly selectedSkill = signal<MatchmakingSkill>('INTERMEDIATE');
   readonly selectedPlayStyle = signal<MatchmakingPlayStyle>('BALANCED');
   readonly selectionMode = signal<MatchSelectionMode>('AI');
@@ -537,6 +551,28 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     });
     this.restoreState();
     this.loadClubs();
+    this.aiRepository.getMatchmakingModel().pipe(
+      catchError(() => of(null)),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(status => this.modelStatus.set(status));
+    // Phân tích của AI chạy nền 1–2 phút: hỏi lại các kèo đang hiện mà phân tích còn PENDING.
+    timer(15_000, 15_000).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.refreshPendingInsights());
+  }
+
+  private refreshPendingInsights(): void {
+    const pending = new Map<string, MatchmakingSession>();
+    for (const match of [this.liveSession(), this.selectedHistorySession()]) {
+      if (match?.aiInsightStatus === 'PENDING') pending.set(match.sessionId, match);
+    }
+    pending.forEach((_, sessionId) => this.aiRepository.getMatchmakingSession(sessionId).pipe(
+      catchError(() => of(null)),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(updated => {
+      if (!updated) return;
+      if (this.session()?.sessionId === updated.sessionId) this.session.set(updated);
+      if (this.selectedHistorySession()?.sessionId === updated.sessionId) this.selectedHistorySession.set(updated);
+      this.history.update(items => items.map(item => item.sessionId === updated.sessionId ? updated : item));
+    }));
   }
 
   ngAfterViewInit(): void {
