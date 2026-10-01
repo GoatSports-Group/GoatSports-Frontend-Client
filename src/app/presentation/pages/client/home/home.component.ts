@@ -134,6 +134,16 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.zone.runOutsideAngular(() => {
       gsap.registerPlugin(ScrollTrigger);
       this.animationContext = gsap.context(() => {
+        // Các bảng của Trang chủ (Hôm nay, Dành cho bạn, Cộng đồng) hiện dần khi cuộn tới.
+        ScrollTrigger.batch('.home-panel', {
+          start: 'top 92%',
+          once: true,
+          onEnter: panels => gsap.from(panels, {
+            autoAlpha: 0, y: 12, duration: .32, stagger: .08, ease: 'power3.out', clearProps: 'opacity,visibility,transform'
+          })
+        });
+        if (this.signedIn) return;
+
         gsap.from('.home-hero__content > *', {
           autoAlpha: 0,
           y: 24,

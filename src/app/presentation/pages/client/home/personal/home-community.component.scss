@@ -1,0 +1,193 @@
+// Cộng đồng của bạn: ba bảng cùng chiều cao (CLB · giải đấu mở đăng ký · bạn bè).
+@use './home-panel' as *;
+
+:host { display: block; }
+
+.community {
+  width: min(100%, var(--page-max));
+  margin-inline: auto;
+  padding: 8px var(--page-gutter) 48px;
+  display: grid;
+  gap: 16px;
+}
+
+.community__head {
+  h2 { margin: 0; color: var(--ink); font-size: 22px; font-weight: 800; line-height: 1.2; }
+  p { margin: 4px 0 0; color: var(--body); font-size: 14px; }
+}
+
+.community__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  // Ba bảng dài ngắn khác nhau tùy dữ liệu: canh theo mép trên, không kéo giãn thành khung rỗng.
+  align-items: start;
+}
+
+.panel-head h3 { margin: 0; overflow: hidden; color: var(--ink); font-size: 16px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+
+.row-list {
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  list-style: none;
+}
+
+.row,
+.post,
+.tournament {
+  border-radius: 12px;
+  color: inherit;
+  text-decoration: none;
+  transition: background var(--motion-fast) var(--ease-standard), translate var(--motion-fast) var(--ease-standard);
+
+  &:hover { background: var(--surface-subtle); translate: 0 -1px; }
+}
+
+.row {
+  min-height: 64px;
+  padding: 10px;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.row__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.row__avatar--round { border-radius: 9999px; }
+
+.row__avatar--text {
+  display: grid;
+  place-items: center;
+  background: var(--primary-light);
+  color: var(--primary-strong);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.row__copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+
+  strong, small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  strong { color: var(--ink); font-size: 15px; font-weight: 800; }
+  small { color: var(--body); font-size: 13px; }
+}
+
+.role-badge {
+  height: 22px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 6px;
+  background: var(--surface-strong);
+  color: var(--body);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+
+  &[data-role='OWNER'] { background: var(--primary-light); color: var(--primary-strong); }
+  &[data-role='ADMIN'] { background: var(--info-soft); color: var(--info); }
+}
+
+.tournament {
+  padding: 12px;
+  display: grid;
+  gap: 6px;
+
+  > small { overflow: hidden; color: var(--body); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+}
+
+.tournament__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+
+  strong { overflow: hidden; color: var(--ink); font-size: 15px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+}
+
+.deadline {
+  flex: none;
+  height: 22px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 6px;
+  background: var(--surface-strong);
+  color: var(--body);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.deadline--soon { background: var(--warning-soft); color: var(--warning); }
+
+.slots {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+
+  i { height: 6px; overflow: hidden; border-radius: 9999px; background: var(--surface-strong); }
+  i b {
+    display: block;
+    width: var(--fill, 0%);
+    height: 100%;
+    border-radius: inherit;
+    background: var(--primary-fill);
+    transform-origin: left;
+    animation: bar-grow .9s var(--ease-standard) both .3s;
+  }
+  small { color: var(--body); font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+}
+
+.fee { color: var(--ink); font-size: 14px; font-weight: 900; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.post {
+  padding: 10px;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: 12px;
+}
+
+.post__copy { display: grid; gap: 4px; min-width: 0; }
+
+.post__meta {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+
+  strong { overflow: hidden; color: var(--ink); font-size: 14px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+  small { flex: none; color: var(--body); font-size: 13px; }
+}
+
+.post__text {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--body);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+@keyframes bar-grow { from { scale: 0 1; } }
+
+@media (max-width: 1100px) {
+  .community__grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slots i b { animation: none; }
+}

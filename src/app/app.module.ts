@@ -214,7 +214,8 @@ import {
   LucideRepeat2,
   LucideSwitchCamera,
   LucideCameraOff,
-  LucideChevronUp
+  LucideChevronUp,
+  LucideSplit
 } from '@lucide/angular';
 
 @NgModule({
@@ -418,7 +419,8 @@ import {
       LucideArchive,
       LucideGlobe2,
       LucideArrowDownAZ,
-      LucideChevronUp
+      LucideChevronUp,
+      LucideSplit
     )
   ],
   bootstrap: [AppComponent]

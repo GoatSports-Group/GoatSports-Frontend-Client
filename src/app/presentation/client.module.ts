@@ -5,6 +5,8 @@ import { ClientRoutingModule } from './routes/client-routing.module';
 
 import { ClientComponent } from '@shared/layouts/client/client.component';
 import { HomeComponent } from '@presentation/pages/client/home/home.component';
+import { HomePersonalComponent } from '@presentation/pages/client/home/personal/home-personal.component';
+import { HomeCommunityComponent } from '@presentation/pages/client/home/personal/home-community.component';
 import { SettingsComponent } from '@presentation/pages/client/settings/settings.component';
 import { NotificationsComponent } from '@presentation/pages/client/notifications/notifications.component';
 import { SettingsPersonalTabComponent } from '@presentation/pages/client/settings/tabs/personal/settings-personal-tab.component';
@@ -58,6 +60,8 @@ import { AiAssistantModalComponent } from '@presentation/shared/components/ai-as
   declarations: [
     ClientComponent,
     HomeComponent,
+    HomePersonalComponent,
+    HomeCommunityComponent,
     SettingsComponent,
     NotificationsComponent,
     SettingsPersonalTabComponent,

@@ -1,0 +1,154 @@
+<section class="community" aria-labelledby="community-title">
+  <header class="community__head">
+    <h2 id="community-title">Cộng đồng của bạn</h2>
+    <p>Câu lạc bộ, giải đấu đang mở và hoạt động của những người bạn theo dõi</p>
+  </header>
+
+  <div class="community__grid">
+    <!-- CLB của tôi -->
+    <section class="home-panel" aria-labelledby="my-clubs-title">
+      <header class="panel-head">
+        <h3 id="my-clubs-title">CLB của tôi</h3>
+        <a routerLink="/clubs/my" class="panel-link">Tất cả<lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a>
+      </header>
+      @switch (clubs().state) {
+      @case ('loading') {
+      <app-loading-skeleton variant="rows" [count]="3" [flush]="true" label="Đang tải câu lạc bộ"></app-loading-skeleton>
+      }
+      @case ('error') {
+      <div class="panel-state panel-state--error">
+        <lucide-icon name="wifi-off" class="w-6 h-6"></lucide-icon>
+        <strong>Chưa tải được CLB</strong>
+        <button type="button" (click)="loadClubs()">Thử lại</button>
+      </div>
+      }
+      @default {
+      @if (clubItems().length) {
+      <ul class="row-list goat-stagger">
+        @for (row of clubItems(); track row.membership.club.clubId) {
+        <li>
+          <a class="row" [routerLink]="['/clubs/my', row.membership.club.clubId]">
+            @if (row.membership.club.logoUrl) {
+            <img class="row__avatar" [src]="row.membership.club.logoUrl" [alt]="'Logo ' + row.membership.club.name" loading="lazy" />
+            } @else {
+            <span class="row__avatar row__avatar--text" aria-hidden="true">{{ initials(row.membership.club.name, true) }}</span>
+            }
+            <span class="row__copy">
+              <strong>{{ row.membership.club.name }}</strong>
+              <small>{{ row.next ? 'Sắp tới: ' + activityLabel(row.next) : sportLabel(row.membership.club.sportType) + ' · chưa có hoạt động sắp tới' }}</small>
+            </span>
+            <span class="role-badge" [attr.data-role]="row.membership.role">{{ roleLabel[row.membership.role] }}</span>
+          </a>
+        </li>
+        }
+      </ul>
+      } @else {
+      <div class="panel-state">
+        <lucide-icon name="users" class="w-6 h-6"></lucide-icon>
+        <strong>Bạn chưa tham gia CLB nào</strong>
+        <p>Tham gia CLB để có lịch tập chung và đồng đội thi đấu.</p>
+        <a routerLink="/clubs/explore">Khám phá CLB</a>
+      </div>
+      }
+      }
+      }
+    </section>
+
+    <!-- Giải đấu đang mở đăng ký, hạn gần nhất trước -->
+    <section class="home-panel" aria-labelledby="open-tournaments-title">
+      <header class="panel-head">
+        <h3 id="open-tournaments-title">Giải đấu đang mở đăng ký</h3>
+        <a routerLink="/tournaments" class="panel-link">Tất cả<lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a>
+      </header>
+      @switch (tournaments().state) {
+      @case ('loading') {
+      <app-loading-skeleton variant="rows" [count]="3" [flush]="true" label="Đang tải giải đấu"></app-loading-skeleton>
+      }
+      @case ('error') {
+      <div class="panel-state panel-state--error">
+        <lucide-icon name="wifi-off" class="w-6 h-6"></lucide-icon>
+        <strong>Chưa tải được giải đấu</strong>
+        <button type="button" (click)="loadTournaments()">Thử lại</button>
+      </div>
+      }
+      @default {
+      @if (tournamentItems().length) {
+      <ul class="row-list goat-stagger">
+        @for (tournament of tournamentItems(); track tournament.tournamentId) {
+        <li>
+          <a class="tournament" [routerLink]="['/tournaments', tournament.tournamentId]">
+            <span class="tournament__top">
+              <strong>{{ tournament.name }}</strong>
+              <span class="deadline" [class.deadline--soon]="closeSoon(tournament)">{{ closeLabel(tournament) }}</span>
+            </span>
+            <small>{{ sportLabel(tournament.sportType) }}{{ tournament.playFormatLabel ? ' · ' + tournament.playFormatLabel : '' }} · {{ startLabel(tournament) }}</small>
+            <span class="slots">
+              <i aria-hidden="true"><b [style.--fill]="filled(tournament) + '%'"></b></i>
+              <small>{{ tournament.currentParticipants }}/{{ tournament.maxParticipants }} đội</small>
+              <b class="fee">{{ fee(tournament) }}</b>
+            </span>
+          </a>
+        </li>
+        }
+      </ul>
+      } @else {
+      <div class="panel-state">
+        <lucide-icon name="trophy" class="w-6 h-6"></lucide-icon>
+        <strong>Chưa có giải nào mở đăng ký</strong>
+        <p>Giải mới sẽ hiện ở đây ngay khi ban tổ chức mở đăng ký.</p>
+        <a routerLink="/tournaments">Xem giải đấu</a>
+      </div>
+      }
+      }
+      }
+    </section>
+
+    <!-- Bạn bè đang hoạt động: bài mới của người mình theo dõi -->
+    <section class="home-panel" aria-labelledby="friends-activity-title">
+      <header class="panel-head">
+        <h3 id="friends-activity-title">Bạn bè đang hoạt động</h3>
+        <a routerLink="/feed" class="panel-link">Cộng đồng<lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a>
+      </header>
+      @switch (friends().state) {
+      @case ('loading') {
+      <app-loading-skeleton variant="rows" [count]="3" [flush]="true" label="Đang tải hoạt động bạn bè"></app-loading-skeleton>
+      }
+      @case ('error') {
+      <div class="panel-state panel-state--error">
+        <lucide-icon name="wifi-off" class="w-6 h-6"></lucide-icon>
+        <strong>Chưa tải được hoạt động</strong>
+        <button type="button" (click)="loadFriends()">Thử lại</button>
+      </div>
+      }
+      @default {
+      @if (friendItems().length) {
+      <ul class="row-list goat-stagger">
+        @for (item of friendItems(); track item.post.postId) {
+        <li>
+          <a class="post" [routerLink]="['/feed/posts', item.post.postId]">
+            @if (item.author?.avatarUrl) {
+            <img class="row__avatar row__avatar--round" [src]="item.author!.avatarUrl" [alt]="authorName(item)" loading="lazy" />
+            } @else {
+            <span class="row__avatar row__avatar--round row__avatar--text" aria-hidden="true">{{ initials(authorName(item)) }}</span>
+            }
+            <span class="post__copy">
+              <span class="post__meta"><strong>{{ authorName(item) }}</strong><small>{{ timeAgo(item.post.publishedAt || item.post.createdAt) }}</small></span>
+              <span class="post__text">{{ item.post.content }}</span>
+            </span>
+          </a>
+        </li>
+        }
+      </ul>
+      } @else {
+      <div class="panel-state">
+        <lucide-icon name="user-plus" class="w-6 h-6"></lucide-icon>
+        <strong>Chưa có hoạt động mới</strong>
+        <p>Theo dõi bạn bè và người chơi cùng sân để xem họ đang làm gì.</p>
+        <a routerLink="/feed" [queryParams]="{ tab: 'friends' }">Tìm bạn bè</a>
+      </div>
+      }
+      }
+      }
+    </section>
+  </div>
+</section>

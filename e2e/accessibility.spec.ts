@@ -3,7 +3,8 @@ import { expect, test } from '@playwright/test';
 import { mockGoatSportsApi } from './fixtures/api.fixture';
 
 const pages = [
-  { path: '/home', heading: 'Tìm sân. Gặp đội.' },
+  // Fixture đã đăng nhập: Trang chủ hiện lời chào và bảng cá nhân.
+  { path: '/home', heading: 'Minh Anh' },
   { path: '/venues', heading: 'Tìm sân phù hợp' },
   { path: '/feed', heading: 'Cộng đồng' },
   { path: '/feed?tab=friends', heading: 'Cộng đồng' },

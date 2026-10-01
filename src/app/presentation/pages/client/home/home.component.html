@@ -1,4 +1,7 @@
 <main class="home-page-container">
+  @if (signedIn) {
+  <app-home-personal></app-home-personal>
+  } @else {
   <section class="home-hero" aria-labelledby="home-title">
     <img class="home-hero__image" src="assets/images/default-banner-light.png"
       alt="Hai cầu thủ bắt tay trên sân bóng dưới ánh đèn" />
@@ -47,6 +50,7 @@
       </div>
     </div>
   </section>
+  }
 
   <nav class="sport-rail" aria-label="Chọn môn thể thao">
     <strong>Chọn môn thể thao</strong>
@@ -227,6 +231,10 @@
       }
     </aside>
   </section>
+
+  @if (signedIn) {
+  <app-home-community></app-home-community>
+  }
 
   @if (locationPickerOpen) {
   <div class="location-picker-backdrop" role="presentation" (click)="closeLocationPicker()">

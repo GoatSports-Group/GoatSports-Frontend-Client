@@ -1,0 +1,266 @@
+<!-- Ưu tiên 1 · Hôm nay: lời chào, lối tắt và lịch kế tiếp trên vùng nổi bật (sports-navy) duy nhất của trang. -->
+<section class="today-hero" aria-labelledby="today-title">
+  <svg class="today-hero__pitch" viewBox="0 0 1200 420" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <rect x="40" y="40" width="1120" height="340" rx="6"></rect>
+    <line x1="600" y1="40" x2="600" y2="380"></line>
+    <circle cx="600" cy="210" r="72"></circle>
+    <rect x="40" y="130" width="140" height="160"></rect>
+    <rect x="1020" y="130" width="140" height="160"></rect>
+  </svg>
+
+  <div class="today-hero__inner">
+    <div class="today-hero__lead">
+      <h1 id="today-title" class="today-hero__title">{{ greeting() }},<br /><span>{{ firstName() }}</span></h1>
+      <p class="today-hero__meta"><lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon>{{ today() }}</p>
+      <p class="today-hero__summary" aria-live="polite">{{ summary() }}</p>
+
+      <nav class="shortcuts" aria-label="Lối tắt">
+        <a class="shortcut" routerLink="/venues">
+          <span class="shortcut__icon"><lucide-icon name="search" class="w-5 h-5"></lucide-icon></span>
+          <span><b>Tìm sân</b><small>Đặt sân gần bạn</small></span>
+        </a>
+        <a class="shortcut" routerLink="/matchmaking">
+          <span class="shortcut__icon"><lucide-icon name="swords" class="w-5 h-5"></lucide-icon></span>
+          <span><b>AI ghép trận</b><small>Tìm đối thủ hợp</small></span>
+        </a>
+        <a class="shortcut" routerLink="/clubs/my">
+          <span class="shortcut__icon"><lucide-icon name="users" class="w-5 h-5"></lucide-icon></span>
+          <span><b>Câu lạc bộ</b><small>Hoạt động của CLB</small></span>
+        </a>
+        <a class="shortcut" routerLink="/tournaments">
+          <span class="shortcut__icon"><lucide-icon name="trophy" class="w-5 h-5"></lucide-icon></span>
+          <span><b>Giải đấu</b><small>Đăng ký thi đấu</small></span>
+        </a>
+      </nav>
+    </div>
+
+    <aside class="next-up" aria-labelledby="next-up-title">
+      <h2 id="next-up-title" class="next-up__label"><span class="next-up__dot" aria-hidden="true"></span>Lịch kế tiếp</h2>
+      @if (agenda() === null) {
+      <app-loading-skeleton variant="text" [lines]="3" [flush]="true" label="Đang tải lịch kế tiếp"></app-loading-skeleton>
+      } @else if (nextUp(); as item) {
+      <a class="next-up__body" [routerLink]="item.link" [queryParams]="item.queryParams">
+        <span class="next-up__ring" aria-hidden="true">
+          <svg viewBox="0 0 80 80">
+            <circle class="next-up__track" cx="40" cy="40" r="34"></circle>
+            <circle class="next-up__progress" cx="40" cy="40" r="34" [attr.stroke-dasharray]="circumference"
+              [style.stroke-dashoffset]="ringOffset(item)"></circle>
+          </svg>
+          <lucide-icon [name]="kindMeta[item.kind].icon" class="w-6 h-6"></lucide-icon>
+        </span>
+        <span class="next-up__copy">
+          <small class="next-up__when">{{ countdown(item) }}</small>
+          <strong>{{ item.title }}</strong>
+          <span>{{ item.allDay ? 'Cả ngày' : hhmm(item.start) + '–' + hhmm(item.end) }} · {{ item.subtitle }}</span>
+        </span>
+        <lucide-icon name="arrow-right" class="next-up__arrow w-5 h-5"></lucide-icon>
+      </a>
+      } @else {
+      <div class="next-up__empty">
+        <p>Chưa có lịch nào sắp tới. Đặt sân hoặc để AI tìm đối thủ cho buổi chơi tiếp theo.</p>
+        <div>
+          <a routerLink="/venues" class="next-up__cta">Đặt sân</a>
+          <a routerLink="/matchmaking" class="next-up__cta next-up__cta--ghost">Tìm đối thủ</a>
+        </div>
+      </div>
+      }
+    </aside>
+  </div>
+</section>
+
+<div class="personal-body">
+  <div class="personal-col personal-col--main">
+    <!-- Lịch sắp tới: gộp đặt sân, kèo AI, hoạt động CLB và giải đấu theo ngày. -->
+    <section class="home-panel agenda" aria-labelledby="agenda-title">
+      <header class="panel-head">
+        <div>
+          <h2 id="agenda-title">Lịch sắp tới</h2>
+          <p>Đặt sân, kèo AI, hoạt động CLB và giải đấu của bạn</p>
+        </div>
+        <a routerLink="/booking/history" class="panel-link">Lịch sử đặt sân<lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a>
+      </header>
+
+      @if (agenda() === null) {
+      <app-loading-skeleton variant="rows" [count]="4" [flush]="true" label="Đang tải lịch sắp tới"></app-loading-skeleton>
+      } @else if (agendaFailed()) {
+      <div class="panel-state panel-state--error">
+        <lucide-icon name="wifi-off" class="w-6 h-6"></lucide-icon>
+        <strong>Chưa tải được lịch</strong>
+        <p>Kiểm tra kết nối rồi thử lại.</p>
+        <button type="button" (click)="load()">Thử lại</button>
+      </div>
+      } @else if (!agendaGroups().length) {
+      <div class="panel-state">
+        <lucide-icon name="calendar-days" class="w-6 h-6"></lucide-icon>
+        <strong>Chưa có lịch nào sắp tới</strong>
+        <p>Lịch đặt sân, kèo AI và hoạt động CLB sẽ hiện ở đây.</p>
+        <a routerLink="/venues">Tìm sân</a>
+      </div>
+      } @else {
+      <div class="agenda__days">
+        @for (group of agendaGroups(); track group.label) {
+        <div class="agenda__day">
+          <h3>{{ group.label }}</h3>
+          <ol class="timeline goat-stagger">
+            @for (item of group.items; track item.id) {
+            <li class="timeline__item" [attr.data-kind]="item.kind">
+              <a [routerLink]="item.link" [queryParams]="item.queryParams">
+                <time class="timeline__time">{{ item.allDay ? 'Cả ngày' : hhmm(item.start) }}</time>
+                <span class="timeline__dot" aria-hidden="true"><lucide-icon [name]="kindMeta[item.kind].icon" class="w-4 h-4"></lucide-icon></span>
+                <span class="timeline__copy">
+                  <small>{{ kindMeta[item.kind].label }}</small>
+                  <strong>{{ item.title }}</strong>
+                  <span>{{ item.allDay ? item.subtitle : hhmm(item.start) + '–' + hhmm(item.end) + ' · ' + item.subtitle }}</span>
+                </span>
+                @if (item.status) {
+                <span class="tone-badge" [attr.data-tone]="item.status.tone">{{ item.status.label }}</span>
+                }
+                <lucide-icon name="chevron-right" class="timeline__chevron w-4 h-4"></lucide-icon>
+              </a>
+            </li>
+            }
+          </ol>
+        </div>
+        }
+      </div>
+      @if (agendaPartial()) {
+      <p class="panel-note">Một số lịch chưa tải được. <button type="button" (click)="load()">Thử lại</button></p>
+      }
+      }
+    </section>
+
+    <!-- Ưu tiên 2 · Dành cho bạn: hồ sơ thể thao. -->
+    <section class="home-panel profiles" aria-labelledby="profiles-title">
+      <header class="panel-head">
+        <div>
+          <h2 id="profiles-title">Hồ sơ thể thao</h2>
+          <p>ELO và thành tích theo từng môn</p>
+        </div>
+        <a routerLink="/settings" [queryParams]="{ tab: 'sports' }" class="panel-link">Quản lý<lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a>
+      </header>
+
+      @if (profiles() === null) {
+      <app-loading-skeleton variant="cards" [count]="3" minWidth="200px" [media]="false" [flush]="true" label="Đang tải hồ sơ thể thao"></app-loading-skeleton>
+      } @else if (profilesFailed()) {
+      <div class="panel-state panel-state--error">
+        <lucide-icon name="wifi-off" class="w-6 h-6"></lucide-icon>
+        <strong>Chưa tải được hồ sơ</strong>
+        <button type="button" (click)="load()">Thử lại</button>
+      </div>
+      } @else if (!profileList().length) {
+      <div class="panel-state">
+        <lucide-icon name="trending-up" class="w-6 h-6"></lucide-icon>
+        <strong>Chưa có hồ sơ thể thao</strong>
+        <p>Tạo hồ sơ để có ELO, được AI ghép trận và tham gia giải đấu.</p>
+        <a routerLink="/settings" [queryParams]="{ tab: 'sports' }">Tạo hồ sơ</a>
+      </div>
+      } @else {
+      <ul class="profile-grid goat-stagger">
+        @for (profile of profileList(); track profile.profileId) {
+        <li class="profile-card">
+          <span class="profile-card__sport">{{ sportLabel(profile.sportType) }}</span>
+          <span class="profile-card__elo"><b [attr.data-count-to]="profile.eloRating">{{ profile.eloRating }}</b><small>ELO</small></span>
+          <span class="profile-card__record">
+            <span><b>{{ profile.winCount }}</b> thắng</span><span><b>{{ profile.drawCount }}</b> hòa</span><span><b>{{ profile.lossCount }}</b> thua</span>
+          </span>
+          <span class="profile-card__rate">
+            <i aria-hidden="true"><b [style.--rate]="winPercent(profile) + '%'"></b></i>
+            <small>Tỷ lệ thắng {{ winPercent(profile) }}% · {{ profile.matchCount }} trận</small>
+          </span>
+        </li>
+        }
+      </ul>
+      }
+    </section>
+
+  </div>
+
+  <div class="personal-col personal-col--side">
+    <!-- Việc cần xử lý: việc có hạn chót đứng trước. -->
+    <section class="home-panel tasks" aria-labelledby="tasks-title">
+      <header class="panel-head">
+        <div>
+          <h2 id="tasks-title">Việc cần xử lý
+            @if (tasks()?.length) { <span class="count-pill">{{ tasks()!.length }}</span> }
+          </h2>
+          <p>Phản hồi, thanh toán và lời mời đang chờ bạn</p>
+        </div>
+      </header>
+
+      @if (tasks() === null) {
+      <app-loading-skeleton variant="rows" [count]="3" [flush]="true" label="Đang tải việc cần xử lý"></app-loading-skeleton>
+      } @else if (!tasks()!.length) {
+      <div class="panel-state panel-state--done">
+        <span class="done-check" aria-hidden="true">
+          <svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="23"></circle><path d="m15 27 7 7 15-16"></path></svg>
+        </span>
+        <strong>Bạn đã xử lý hết</strong>
+        <p>Lời mời, kèo cần phản hồi và đơn chờ cọc sẽ hiện ở đây.</p>
+      </div>
+      } @else {
+      <ul class="task-list goat-stagger">
+        @for (task of tasks()!; track task.id) {
+        <li>
+          <a class="task" [routerLink]="task.link" [queryParams]="task.queryParams" [attr.data-tone]="task.tone"
+            [class.task--urgent]="urgent(task.deadline)">
+            <span class="task__icon"><lucide-icon [name]="task.icon" class="w-5 h-5"></lucide-icon></span>
+            <span class="task__copy"><strong>{{ task.title }}</strong><small>{{ task.detail }}</small></span>
+            @if (deadlineLabel(task.deadline); as due) {
+            <span class="task__due">{{ due }}</span>
+            }
+            <lucide-icon name="arrow-right" class="task__arrow w-4 h-4"></lucide-icon>
+          </a>
+        </li>
+        }
+      </ul>
+      }
+      @if (tasksPartial()) {
+      <p class="panel-note">Một số mục chưa tải được. <button type="button" (click)="load()">Thử lại</button></p>
+      }
+    </section>
+    <!-- Ưu tiên 2 · Dành cho bạn: sân quen. -->
+    <section class="home-panel venues" aria-labelledby="venues-title">
+      <header class="panel-head">
+        <div>
+          <h2 id="venues-title">Đặt lại sân quen</h2>
+          <p>Những sân bạn đã chơi gần đây</p>
+        </div>
+      </header>
+
+      @if (venues() === null) {
+      <app-loading-skeleton variant="rows" [count]="3" [flush]="true" label="Đang tải sân quen"></app-loading-skeleton>
+      } @else if (venuesFailed()) {
+      <div class="panel-state panel-state--error">
+        <lucide-icon name="wifi-off" class="w-6 h-6"></lucide-icon>
+        <strong>Chưa tải được lịch sử đặt sân</strong>
+        <button type="button" (click)="load()">Thử lại</button>
+      </div>
+      } @else if (!venueList().length) {
+      <div class="panel-state">
+        <lucide-icon name="repeat-2" class="w-6 h-6"></lucide-icon>
+        <strong>Chưa có sân quen</strong>
+        <p>Sau buổi chơi đầu tiên, sân của bạn sẽ hiện ở đây để đặt lại nhanh.</p>
+        <a routerLink="/venues">Tìm sân</a>
+      </div>
+      } @else {
+      <ul class="venue-list goat-stagger">
+        @for (venue of venueList(); track venue.venueId) {
+        <li>
+          <a class="venue-row" [routerLink]="['/venues', venue.venueId]">
+            <span class="venue-row__icon"><lucide-icon name="map-pin" class="w-5 h-5"></lucide-icon></span>
+            <span class="venue-row__copy">
+              <strong>{{ venue.venueName }}</strong>
+              <small>{{ venue.visits }} lần · {{ playedLabel(venue.lastPlayed) }}{{ venue.courtName ? ' · ' + venue.courtName : '' }}</small>
+            </span>
+            <span class="venue-row__cta">Đặt lại<lucide-icon name="repeat-2" class="w-4 h-4"></lucide-icon></span>
+          </a>
+        </li>
+        }
+      </ul>
+      }
+      @if (venueList().length) {
+        <a routerLink="/venues" class="venues__more"><lucide-icon name="search" class="w-4 h-4"></lucide-icon>Tìm sân mới gần bạn</a>
+      }
+    </section>
+  </div>
+</div>
