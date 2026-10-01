@@ -202,10 +202,6 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     return this.criteriaBase.map(item => ({ ...item, weight: learned ? learned[item.key] ?? 0 : item.weight }));
   });
   readonly criteriaMax = computed(() => Math.max(1, ...this.criteria().map(item => item.weight)));
-  readonly trainingProgress = computed(() => {
-    const status = this.modelStatus();
-    return status ? Math.min(100, Math.round(100 * status.samples / Math.max(1, status.minSamples))) : 0;
-  });
   readonly selectedSkill = signal<MatchmakingSkill>('INTERMEDIATE');
   readonly selectedPlayStyle = signal<MatchmakingPlayStyle>('BALANCED');
   readonly selectionMode = signal<MatchSelectionMode>('AI');
@@ -555,8 +551,8 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
       catchError(() => of(null)),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(status => this.modelStatus.set(status));
-    // Phân tích của AI chạy nền 1–2 phút: hỏi lại các kèo đang hiện mà phân tích còn PENDING.
-    timer(15_000, 15_000).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.refreshPendingInsights());
+    // Phân tích của AI chạy nền vài giây: hỏi lại các kèo đang hiện mà phân tích còn PENDING (không có thì không gọi API).
+    timer(3_000, 3_000).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.refreshPendingInsights());
   }
 
   private refreshPendingInsights(): void {

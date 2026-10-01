@@ -2298,7 +2298,7 @@ button:focus-visible {
   li.is-leader { border-color: var(--primary); }
 }
 
-// Trạng thái mô hình xếp hạng: đã học (AUC) hay đang thu thập dữ liệu.
+// Trạng thái mô hình xếp hạng: chỉ hiện khi mô hình đã học xong (AUC, phiên bản).
 .model-status {
   display: flex;
   align-items: flex-start;
@@ -2315,17 +2315,6 @@ button:focus-visible {
   small { font-size: 12px; line-height: 1.45; }
 
   &.is-learned { background: var(--primary-light); }
-}
-
-.model-status__bar {
-  display: block;
-  height: 6px;
-  margin-top: 4px;
-  overflow: hidden;
-  border-radius: 9999px;
-  background: var(--surface-strong);
-
-  b { display: block; height: 100%; border-radius: inherit; background: var(--primary-fill); }
 }
 
 .ai-probability { color: var(--primary); font-weight: 800; }

@@ -514,8 +514,9 @@ test('AI thật: trạng thái mô hình học máy và phân tích kèo bằng 
   await page.goto('/matchmaking');
   const criteria = page.locator('.criteria-card');
   await expect(criteria).toContainText('Trọng số mặc định');
-  await expect(criteria).toContainText('AI đang thu thập dữ liệu để tự học');
-  await expect(criteria).toContainText('22/40 kèo có kết quả');
+  // Chưa đủ dữ liệu: không hiện tiến độ thu thập, chỉ hiện trọng số mặc định.
+  await expect(criteria.locator('.model-status')).toHaveCount(0);
+  await expect(criteria).not.toContainText('thu thập dữ liệu');
 
   await page.locator('.history-row').first().click();
   const card = page.locator('.insights .result-state--matched');
