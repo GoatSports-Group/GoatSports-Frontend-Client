@@ -233,6 +233,17 @@
   gap: 16px;
 }
 
+// Tổng quan: hai cột cùng đáy. Cột ngắn hơn kéo dài thẻ cuối; bỏ sticky vì rail giờ cao bằng cột chính.
+@media (min-width: 1024px) {
+  .layout--even {
+    align-items: stretch;
+
+    .main, .overview, .rail { display: flex; flex-direction: column; }
+    .main > .overview, .overview > :last-child, .rail > :last-child { flex: 1; }
+    .rail { position: static; }
+  }
+}
+
 .overview__body {
   display: grid;
   gap: 20px;

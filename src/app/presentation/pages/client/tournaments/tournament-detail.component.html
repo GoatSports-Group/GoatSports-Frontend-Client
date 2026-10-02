@@ -92,7 +92,7 @@
       <span class="tab__count">{{ holdingTeams().length }}</span></button>
   </nav>
 
-  <div class="layout">
+  <div class="layout" [class.layout--even]="activeTab() === 'OVERVIEW'">
     <section class="main" role="tabpanel">
       @switch (activeTab()) {
 
@@ -177,7 +177,7 @@
       @case ('MATCHES') {
       @if (fixtures().length) {
       <div class="match-days">
-        @for (day of matchDays(); track day.label) {
+        @for (day of visibleDays(); track day.label) {
         <section class="match-day" [attr.aria-label]="day.label">
           <h3 class="match-day__title">{{ day.label }}</h3>
           <div class="match-day__grid goat-stagger">
@@ -207,6 +207,9 @@
         </section>
         }
       </div>
+      @if (moreFixtures()) {
+      <div class="list-sentinel" appInfiniteScroll (reached)="fixturesShown.update(count => count + listChunk)" aria-hidden="true"></div>
+      }
       <p class="muted-copy">KT: đã kết thúc. Chọn một trận để xem tỷ số, sân thi đấu và đội hình hai bên.</p>
       } @else {
       <div class="state">
@@ -294,7 +297,7 @@
                 : acceptedOf(team) + '/' + t.rosterMin + ' người' }}</span>
             </p>
           </div>
-          @if (team.type !== 'INDIVIDUAL') {
+          @if (isTeamEvent()) {
           <button type="button" class="icon-btn" (click)="lineupOf.set(team)"
             [attr.aria-label]="'Xem đội hình ' + names().get(team.registrationId)"><lucide-icon name="users" class="w-5 h-5"></lucide-icon></button>
           }
@@ -367,7 +370,7 @@
                 <span class="roster__shirt">{{ line.shirtNumber ?? '–' }}</span>
                 <span class="roster__name">{{ memberName(line) }}@if (line.playerId === me) { <small> (bạn)</small> }</span>
                 <span class="badge" [ngClass]="'badge--' + memberMeta[line.memberStatus ?? 'ACCEPTED'].tone">{{ line.lineupRole === 'CAPTAIN' ? 'Đội trưởng' : memberMeta[line.memberStatus ?? 'ACCEPTED'].label }}</span>
-                @if (isRegistrant() && isHolding() && line.lineupRole !== 'CAPTAIN' && t.status !== 'IN_PROGRESS' && t.status !== 'COMPLETED') {
+                @if (canRemoveMember() && line.lineupRole !== 'CAPTAIN') {
                 <button type="button" class="icon-btn icon-btn--danger" [disabled]="mutating()" (click)="askRemove(line)"
                   [attr.aria-label]="'Bỏ ' + memberName(line) + ' khỏi đội'"><lucide-icon name="user-minus" class="w-4 h-4"></lucide-icon></button>
                 }
@@ -429,9 +432,18 @@
         <button type="button" class="icon-btn" aria-label="Đóng" (click)="lineupOf.set(null)"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button>
       </header>
       <div class="modal__body">
-        <app-lineup-pitch [home]="{ name: names().get(team.registrationId) ?? 'Đội', lineups: team.lineups }"
+        @let lineup = publicLineup(team);
+        @if (lineup.length) {
+        <app-lineup-pitch [home]="{ name: names().get(team.registrationId) ?? 'Đội', lineups: lineup }"
           [sport]="t.sportType" [playFormat]="t.playFormat" [onField]="t.rosterMin" [names]="playerNames()"></app-lineup-pitch>
         <p class="muted-copy">Sơ đồ dự kiến xếp theo số áo tăng dần; ban tổ chức chốt đội hình chính thức trước mỗi trận.</p>
+        } @else {
+        <div class="state">
+          <span class="state__icon"><lucide-icon name="users" class="w-6 h-6"></lucide-icon></span>
+          <strong>Chưa công bố đội hình</strong>
+          <p>{{ team.type === 'INDIVIDUAL' ? 'Đăng ký cá nhân: ban tổ chức sẽ xếp người này vào đội trước khi thi đấu.' : 'Đội chưa có thành viên nhận lời.' }}</p>
+        </div>
+        }
       </div>
     </section>
   </div>

@@ -15,6 +15,7 @@ import {
   TournamentStatus
 } from '@application/dto/tournament/tournament.dto';
 import { AuthService } from '@presentation/services/auth.service';
+import { LIST_CHUNK } from '@shared/directives/infinite-scroll.directive';
 import { PlayerDirectoryService } from '@presentation/services/player-directory.service';
 import { NotifyService } from '@shared/components/notify/notify.service';
 import { NotificationService } from '@presentation/services/notification.service';
@@ -39,7 +40,6 @@ interface ConfirmState {
 
 interface TimelineStep { label: string; date: string; state: 'done' | 'current' | 'upcoming'; }
 
-const LOCKED: readonly TournamentStatus[] = ['IN_PROGRESS', 'COMPLETED', 'CANCELLED'];
 
 /**
  * Trang giai phia nguoi choi: xem, dang ky ca nhan / lap doi, tra loi loi moi, dong le phi trong 24 gio,
@@ -121,9 +121,12 @@ export class TournamentDetailComponent {
     .filter(line => line.memberStatus !== 'DECLINED'));
   readonly acceptedCount = computed(() => this.myLineup().filter(line => (line.memberStatus ?? 'ACCEPTED') === 'ACCEPTED').length);
   readonly missingMembers = computed(() => Math.max(0, (this.tournament()?.rosterMin ?? 1) - this.acceptedCount()));
-  readonly canInvite = computed(() => this.isRegistrant() && this.isHolding() && this.isTeamEvent()
-    && !LOCKED.includes(this.status()!) && this.myLineup().length < (this.tournament()?.rosterMax ?? 1));
-  readonly canWithdraw = computed(() => this.isHolding() && !LOCKED.includes(this.status()!));
+  /** Doi hinh va suat chi doi duoc khi giai dang mo dang ky (backend chan tuong tu). */
+  readonly rosterOpen = computed(() => this.status() === 'REGISTRATION_OPEN' && this.isHolding());
+  readonly canInvite = computed(() => this.rosterOpen() && this.isRegistrant() && this.isTeamEvent()
+    && this.myLineup().length < (this.tournament()?.rosterMax ?? 1));
+  readonly canRemoveMember = computed(() => this.rosterOpen() && this.isRegistrant());
+  readonly canWithdraw = this.rosterOpen;
 
   readonly feeAmount = computed(() => this.myRegistration()?.feeAmount ?? this.tournament()?.entryFee ?? 0);
   /** Thoi gian con lai de dong phi, null neu khong ap dung. */
@@ -167,6 +170,21 @@ export class TournamentDetailComponent {
     if (unscheduled.length) days.push({ date: null, label: 'Chưa xếp lịch', fixtures: unscheduled });
     return days;
   });
+  /** Lich tra ve ca mang; render dan tung LIST_CHUNK tran khi cuon (ngay cuoi co the bi cat giua). */
+  readonly fixturesShown = signal(LIST_CHUNK);
+  readonly visibleDays = computed<MatchDay[]>(() => {
+    let left = this.fixturesShown();
+    const days: MatchDay[] = [];
+    for (const day of this.matchDays()) {
+      if (left <= 0) break;
+      days.push(day.fixtures.length <= left ? day : { ...day, fixtures: day.fixtures.slice(0, left) });
+      left -= day.fixtures.length;
+    }
+    return days;
+  });
+  readonly moreFixtures = computed(() =>
+    this.matchDays().reduce((sum, day) => sum + day.fixtures.length, 0) > this.fixturesShown());
+  readonly listChunk = LIST_CHUNK;
 
   /** Phong độ 5 trận gần nhất của mỗi đội (mới nhất ở cuối), tính từ các trận đã có kết quả. */
   readonly form = computed<ReadonlyMap<string, FormResult[]>>(() => {
@@ -377,6 +395,11 @@ export class TournamentDetailComponent {
   memberName(line: TournamentLineup): string {
     const user = this.users().get(line.playerId);
     return user?.fullName || line.playerName || user?.email || 'Người chơi';
+  }
+
+  /** Doi hinh cong khai cua mot doi: chi nguoi da nhan loi (loi moi dang cho / bi tu choi khong tinh). */
+  publicLineup(registration: TournamentRegistrationModel): TournamentLineup[] {
+    return (registration.lineups ?? []).filter(line => (line.memberStatus ?? 'ACCEPTED') === 'ACCEPTED');
   }
 
   acceptedOf(registration: TournamentRegistrationModel): number {
