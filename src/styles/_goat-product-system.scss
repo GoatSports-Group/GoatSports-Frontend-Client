@@ -10,6 +10,9 @@
   --transition-spring: 220ms cubic-bezier(.2, .8, .2, 1);
   --page-gutter: clamp(1rem, 2vw, 1.75rem);
   --page-max: 1560px;
+  // Khoảng cách chung từ header tới nội dung đầu trang và từ nội dung cuối tới footer (mọi tab).
+  --page-block-start: 24px;
+  --page-block-end: 24px;
 }
 
 html {

@@ -38,9 +38,8 @@ button:focus-visible, a:focus-visible, [tabindex='0']:focus-visible {
 
 .member-space-page {
   width: min(100%, var(--page-max));
-  min-height: 72vh;
   margin: 0 auto;
-  padding: 22px var(--page-gutter) 72px;
+  padding: var(--page-block-start) var(--page-gutter) var(--page-block-end);
   color: var(--club-ink);
 }
 

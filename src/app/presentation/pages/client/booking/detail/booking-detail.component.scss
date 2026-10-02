@@ -1,7 +1,6 @@
 .booking-detail-page {
-  min-height: 100vh;
   background: var(--surface-subtle);
-  padding-bottom: 80px;
+  padding-block: var(--page-block-start) var(--page-block-end);
 
   .container {
     max-width: 800px;

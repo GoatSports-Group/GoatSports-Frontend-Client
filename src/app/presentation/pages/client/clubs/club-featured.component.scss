@@ -7,9 +7,8 @@
   --border: var(--hairline);
   --green: var(--primary);
   width: min(100%, var(--page-max));
-  min-height: 70vh;
   margin: 0 auto;
-  padding: 24px var(--page-gutter) 24px;
+  padding: var(--page-block-start) var(--page-gutter) var(--page-block-end);
   color: var(--ink);
 }
 

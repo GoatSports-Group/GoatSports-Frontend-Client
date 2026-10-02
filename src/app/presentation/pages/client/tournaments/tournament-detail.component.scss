@@ -8,7 +8,7 @@
   width: 100%;
   max-width: var(--page-max, 1480px);
   margin: 0 auto;
-  padding: 24px var(--page-gutter);
+  padding: var(--page-block-start) var(--page-gutter) var(--page-block-end);
   gap: 20px;
   grid-template-columns: minmax(0, 1fr);
 }

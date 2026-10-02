@@ -4,7 +4,7 @@
 }
 
 .my-clubs-page {
-  padding-block: 20px;
+  padding-block: var(--page-block-start) var(--page-block-end);
 }
 
 .my-clubs-breadcrumb {

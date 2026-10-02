@@ -6,7 +6,7 @@
 .community {
   width: min(100%, var(--page-max));
   margin-inline: auto;
-  padding: 8px var(--page-gutter) 48px;
+  padding: 24px var(--page-gutter) var(--page-block-end);
   display: grid;
   gap: 16px;
 }

@@ -13,7 +13,7 @@
 .community {
   width: min(100%, 1480px);
   margin: 0 auto;
-  padding: 24px clamp(16px, 2vw, 28px) 64px;
+  padding: var(--page-block-start) clamp(16px, 2vw, 28px) var(--page-block-end);
 }
 
 .community__identity {

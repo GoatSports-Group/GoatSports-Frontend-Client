@@ -3,7 +3,6 @@
 }
 
 .venue-detail-page {
-  min-height: calc(100vh - 70px);
   background: var(--canvas);
   color: var(--ink);
 }
@@ -11,7 +10,7 @@
 .venue-detail-shell {
   width: min(100%, 1540px);
   margin: 0 auto;
-  padding: 18px 24px 18px;
+  padding: var(--page-block-start) 24px var(--page-block-end);
 }
 
 .venue-detail-loading {

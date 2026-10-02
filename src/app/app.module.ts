@@ -172,6 +172,9 @@ import {
   LucideWifi,
   LucideClock3,
   LucideLayoutGrid,
+  LucideLayoutDashboard,
+  LucideCloudOff,
+  LucideTriangleAlert,
   LucideList,
   LucideChevronLeft,
   LucideChevronRight,
@@ -215,7 +218,8 @@ import {
   LucideSwitchCamera,
   LucideCameraOff,
   LucideChevronUp,
-  LucideSplit
+  LucideSplit,
+  LucideSlice
 } from '@lucide/angular';
 
 @NgModule({
@@ -381,6 +385,9 @@ import {
       LucideWifi,
       LucideClock3,
       LucideLayoutGrid,
+      LucideLayoutDashboard,
+      LucideCloudOff,
+      LucideTriangleAlert,
       LucideList,
       LucideChevronLeft,
       LucideChevronRight,
@@ -420,7 +427,8 @@ import {
       LucideGlobe2,
       LucideArrowDownAZ,
       LucideChevronUp,
-      LucideSplit
+      LucideSplit,
+      LucideSlice
     )
   ],
   bootstrap: [AppComponent]

@@ -3,15 +3,13 @@
 }
 
 .venue-search-page {
-  min-height: 100vh;
-  padding-bottom: 12px;
+  padding-block: var(--page-block-start) var(--page-block-end);
   color: var(--ink);
   background: radial-gradient(circle at 82% 14%, rgb(0 134 95 / 5%), transparent 26rem), linear-gradient(180deg, var(--surface-subtle), var(--surface-strong));
 }
 
 .search-heading {
   width: min(100%, var(--page-max));
-  min-height: 142px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(390px, 49%);
   margin: 0 auto;
@@ -20,7 +18,7 @@
 
 .search-heading__copy {
   align-self: center;
-  padding: 24px 2rem 40px 0;
+  padding: 0 2rem 24px 0;
 }
 
 .search-heading h1 {
@@ -48,7 +46,7 @@
   flex-direction: column;
   justify-content: center;
   gap: .55rem;
-  margin: 12px 0 24px;
+  margin: 0 0 24px;
   padding: 1.25rem 3.2rem;
   overflow: hidden;
   border-radius: 28px;

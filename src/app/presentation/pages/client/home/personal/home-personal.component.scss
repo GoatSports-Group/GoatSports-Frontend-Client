@@ -9,10 +9,14 @@
 
 /* ---------- Hero "Hôm nay" ---------- */
 
+// Hero dạng thẻ nổi (bo 24, GOAT: featured hero card) trong khung trang, cách header như mọi tab.
 .today-hero {
   position: relative;
   isolation: isolate;
   overflow: hidden;
+  width: calc(min(100%, var(--page-max)) - 2 * var(--page-gutter));
+  margin: var(--page-block-start) auto 0;
+  border-radius: 24px;
   background:
     linear-gradient(115deg, rgb(2 14 24 / 0%) 40%, rgb(0 122 85 / 22%) 100%),
     var(--sports-navy);
@@ -40,9 +44,7 @@
 }
 
 .today-hero__inner {
-  width: min(100%, var(--page-max));
-  margin-inline: auto;
-  padding: clamp(28px, 4vw, 44px) var(--page-gutter);
+  padding: clamp(24px, 3.4vw, 40px) clamp(20px, 3vw, 40px);
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
   gap: clamp(24px, 4vw, 56px);
@@ -277,7 +279,7 @@
 .personal-body {
   width: min(100%, var(--page-max));
   margin-inline: auto;
-  padding: 28px var(--page-gutter) 8px;
+  padding: 24px var(--page-gutter) 0;
   display: grid;
   gap: 24px;
 }

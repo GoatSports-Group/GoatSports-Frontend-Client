@@ -255,7 +255,7 @@
 
 .matchmaking-page {
   width: min(100%, var(--page-max));
-  margin: 12px auto 36px;
+  margin: var(--page-block-start) auto var(--page-block-end);
   padding-inline: var(--page-gutter);
   box-sizing: border-box;
   color: var(--ink);

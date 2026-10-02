@@ -6,9 +6,8 @@
 
 .explore-page {
   width: min(1440px, calc(100% - 48px));
-  min-height: 70vh;
   margin: 0 auto;
-  padding: 24px 0 24px;
+  padding: var(--page-block-start) 0 var(--page-block-end);
   font-family: 'Be Vietnam Pro', Arial, sans-serif;
 }
 

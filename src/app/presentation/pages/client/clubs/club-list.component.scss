@@ -13,7 +13,7 @@
   --club-green-dark: var(--primary-hover);
   width: min(100%, var(--page-max));
   margin: 0 auto;
-  padding: 24px var(--page-gutter) 24px;
+  padding: var(--page-block-start) var(--page-gutter) var(--page-block-end);
   color: var(--club-ink);
   font-size: 16px;
 }
