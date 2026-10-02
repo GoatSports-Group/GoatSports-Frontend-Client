@@ -8,8 +8,7 @@
       </div>
       <button type="button" class="dialog-close" aria-label="Đóng cửa sổ thanh toán"
         [attr.title]="canCloseDialog ? 'Đóng' : 'Vui lòng dùng nút Hủy thanh toán'"
-        [disabled]="submitting || cancelling || !canCloseDialog"
-        (click)="closeDialog()">
+        [disabled]="submitting || cancelling || !canCloseDialog" (click)="closeDialog()">
         <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
       </button>
     </header>
@@ -204,7 +203,7 @@
             </div>
             <div class="cancel-confirmation__actions">
               <button type="button" class="keep-payment-button" [disabled]="cancelling"
-                (click)="keepWaitingForPayment()">Tiếp tục thanh toán</button>
+                (click)="keepWaitingForPayment()">Thanh toán</button>
               <button type="button" class="confirm-cancel-button" [disabled]="cancelling"
                 (click)="confirmCancelPayment()">
                 @if (cancelling) { Đang hủy... } @else { Xác nhận hủy }
@@ -226,21 +225,27 @@
           @if (isDuplicateRefund) {
           <span class="payment-step">Khoản thanh toán trùng</span>
           <h2 id="summary-title">Sân vẫn được giữ, khoản trùng đang được hoàn</h2>
-          <p>Lượt đặt đã được đóng cọc bằng giao dịch khác. Khoản <strong>{{ formatPrice(lateRefundAmount) }}</strong> vừa chuyển sẽ được hoàn toàn bộ.</p>
+          <p>Lượt đặt đã được đóng cọc bằng giao dịch khác. Khoản <strong>{{ formatPrice(lateRefundAmount) }}</strong>
+            vừa chuyển sẽ được hoàn toàn bộ.</p>
           } @else {
           <span class="payment-step">Hết giờ giữ sân</span>
           <h2 id="summary-title">Chưa giữ được sân, tiền đang được hoàn</h2>
-          <p>Tiền về sau khi hết thời gian giữ chỗ nên khung giờ đã được mở lại. Khoản <strong>{{ formatPrice(lateRefundAmount) }}</strong> đang được hoàn toàn bộ, không mất phí.</p>
+          <p>Tiền về sau khi hết thời gian giữ chỗ nên khung giờ đã được mở lại. Khoản <strong>{{
+              formatPrice(lateRefundAmount) }}</strong> đang được hoàn toàn bộ, không mất phí.</p>
           }
-          <p class="payment-result-note">Tiền tự về tài khoản ngân hàng đã liên kết. Chưa liên kết thì liên kết trong Cài đặt để nhận.</p>
-          <a mat-flat-button color="primary" class="checkout-button" [routerLink]="['/settings']" [queryParams]="{ tab: 'banking' }">
+          <p class="payment-result-note">Tiền tự về tài khoản ngân hàng đã liên kết. Chưa liên kết thì liên kết trong
+            Cài đặt để nhận.</p>
+          <a mat-flat-button color="primary" class="checkout-button" [routerLink]="['/settings']"
+            [queryParams]="{ tab: 'banking' }">
             Theo dõi khoản hoàn
             <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon>
           </a>
           @if (isDuplicateRefund) {
-          <a mat-button class="payment-result-secondary" [routerLink]="bookingDetailUrl">{{ paymentSuccessActionLabel }}</a>
+          <a mat-button class="payment-result-secondary" [routerLink]="bookingDetailUrl">{{ paymentSuccessActionLabel
+            }}</a>
           } @else {
-          <a mat-button class="payment-result-secondary" [routerLink]="venueId ? ['/venues', venueId] : ['/venues']">Chọn khung giờ khác</a>
+          <a mat-button class="payment-result-secondary"
+            [routerLink]="venueId ? ['/venues', venueId] : ['/venues']">Chọn khung giờ khác</a>
           }
         </section>
         } @else if (paymentStatus === 'SUCCEEDED' && paymentOutcome !== 'confirmed') {
@@ -253,11 +258,15 @@
             }
           </span>
           <span class="payment-step">Đã nhận thanh toán</span>
-          <h2 id="summary-title">{{ paymentOutcome === 'unresolved' ? 'Chưa xác nhận xong chỗ' : 'Đang xác nhận chỗ của bạn' }}</h2>
+          <h2 id="summary-title">{{ paymentOutcome === 'unresolved' ? 'Chưa xác nhận xong chỗ' : 'Đang xác nhận chỗ của
+            bạn' }}</h2>
           @if (paymentOutcome === 'unresolved') {
-          <p>Hệ thống cần thêm chút thời gian. Nếu không giữ được sân, khoản <strong>{{ formatPrice(depositAmount) }}</strong> sẽ được hoàn toàn bộ và bạn nhận thông báo.</p>
-          <button mat-flat-button color="primary" class="checkout-button" type="button" (click)="recheckPaymentOutcome()">Kiểm tra lại</button>
-          <a mat-button class="payment-result-secondary" [routerLink]="bookingDetailUrl">{{ paymentSuccessActionLabel }}</a>
+          <p>Hệ thống cần thêm chút thời gian. Nếu không giữ được sân, khoản <strong>{{ formatPrice(depositAmount)
+              }}</strong> sẽ được hoàn toàn bộ và bạn nhận thông báo.</p>
+          <button mat-flat-button color="primary" class="checkout-button" type="button"
+            (click)="recheckPaymentOutcome()">Kiểm tra lại</button>
+          <a mat-button class="payment-result-secondary" [routerLink]="bookingDetailUrl">{{ paymentSuccessActionLabel
+            }}</a>
           } @else {
           <p>Khoản cọc <strong>{{ formatPrice(depositAmount) }}</strong> đã về, đang ghi nhận vào lượt đặt sân.</p>
           }
@@ -290,8 +299,8 @@
           <h2 id="summary-title">{{ paymentStateTitle }}</h2>
           <p>{{ paymentStateMessage }}</p>
           @if (paymentStatus === 'FAILED') {
-          <button mat-flat-button color="primary" class="checkout-button" type="button"
-            [disabled]="submitting" (click)="retryPayment()">
+          <button mat-flat-button color="primary" class="checkout-button" type="button" [disabled]="submitting"
+            (click)="retryPayment()">
             @if (submitting) {
             <mat-progress-spinner mode="indeterminate" diameter="20"></mat-progress-spinner>
             Đang tạo mã mới...
@@ -362,8 +371,8 @@
             <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon>
             }
           </button>
-          <button type="button" class="cancel-payment-button cancel-payment-button--initial"
-            [disabled]="submitting" (click)="requestCancelCheckout()">
+          <button type="button" class="cancel-payment-button cancel-payment-button--initial" [disabled]="submitting"
+            (click)="requestCancelCheckout()">
             Hủy
           </button>
         </section>

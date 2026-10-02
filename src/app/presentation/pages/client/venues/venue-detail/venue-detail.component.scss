@@ -977,7 +977,17 @@
 .rating-summary span { color: #e99a00; font-size: 1.1rem; }
 .rating-summary small { color: var(--body); font-size: .76rem; }
 
-.review-list { display: grid; }
+.review-list {
+  /* Danh sach cuon trong khung (GOAT-DESIGN Scroll areas): trang khong dai ra; cham day khung moi tai them 10. */
+  display: grid;
+  grid-auto-rows: max-content;
+  align-content: start;
+  max-height: 520px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: 28px;
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
+}
 
 .review-card {
   display: grid;

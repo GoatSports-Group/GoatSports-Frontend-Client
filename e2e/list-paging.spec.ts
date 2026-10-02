@@ -33,10 +33,16 @@ test('đánh giá sân tải trang tiếp khi cuộn tới cuối', async ({ pag
   await expect(page.getByText('Nhận xét số 1', { exact: true })).toBeVisible();
   await expect(page.locator('.review-card')).toHaveCount(10);
 
-  // Cuon xuong cuoi: trang 2 roi trang 3 duoc noi vao, khong co nut "Xem thêm".
-  for (let attempt = 0; attempt < 6 && (await page.locator('.review-card').count()) < 22; attempt++) {
-    await page.locator('.review-card').last().scrollIntoViewIfNeeded();
-    await page.mouse.wheel(0, 2000);
+  // Danh sach cuon trong khung rieng: chua cuon thi khong tai them, trang khong dai ra.
+  const list = page.locator('.review-list');
+  await page.waitForTimeout(800);
+  expect(requestedPages).toEqual([0]);
+  expect((await list.boundingBox())!.height).toBeLessThanOrEqual(520);
+
+  // Cuon toi day khung: trang 2 roi trang 3 duoc noi vao, khong co nut "Xem thêm".
+  await list.scrollIntoViewIfNeeded();
+  for (let attempt = 0; attempt < 8 && (await page.locator('.review-card').count()) < 22; attempt++) {
+    await list.evaluate(element => element.scrollTo({ top: element.scrollHeight }));
     await page.waitForTimeout(300);
   }
   await expect(page.locator('.review-card')).toHaveCount(22);
