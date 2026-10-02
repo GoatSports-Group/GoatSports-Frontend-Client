@@ -74,3 +74,33 @@ test('/clubs/featured: phân trang ở server và giữ thứ tự xếp hạng'
   await expect(page.locator('.featured-card').first()).toContainText('#7');
   expect(requests.at(-1)!.searchParams.get('page')).toBe('1');
 });
+
+test('trang Câu lạc bộ: đổi bộ lọc không chèn khung xương lên trên "CLB của bạn"', async ({ page }) => {
+  await mockGoatSportsApi(page);
+  await mockFeatured(page, 1);
+  let calls = 0;
+  await page.route('**/club-service/api/v1/clubs/me', async route => {
+    calls += 1;
+    // Lan tai lai (sau khi doi bo loc) tra cham de bat duoc trang thai dang tai.
+    if (calls > 1) await new Promise(resolve => setTimeout(resolve, 1500));
+    await route.fulfill({ json: ok([{ membershipId: 'm1', role: 'OWNER', status: 'ACTIVE', club: { ...club(40), name: 'Weekend Club' } }]) });
+  });
+
+  const emptyPage = ok({ content: [], page: { size: 20, number: 0, totalElements: 0, totalPages: 0 } });
+  await page.route('**/club-service/api/v1/clubs/me/requests', route => route.fulfill({ json: ok([]) }));
+  await page.route('**/club-service/api/v1/clubs/me/invitations', route => route.fulfill({ json: ok([]) }));
+  await page.route('**/club-service/api/v1/clubs/me/activities/page**', route => route.fulfill({ json: emptyPage }));
+  await page.route('**/club-service/api/v1/clubs/search**', route => route.fulfill({ json: emptyPage }));
+
+  await page.goto('/clubs');
+  const rail = page.locator('.rail-section').filter({ has: page.getByRole('heading', { name: 'CLB của bạn' }) });
+  await expect(rail.getByText('Weekend Club')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Lọc theo môn thể thao' }).click();
+  await page.getByRole('option', { name: 'Bóng đá' }).click();
+  // Dang tai lai: van thay danh sach cu, khong co skeleton.
+  await expect(rail.locator('app-loading-skeleton')).toHaveCount(0);
+  await expect(rail.getByText('Weekend Club')).toBeVisible();
+  await expect.poll(() => calls).toBeGreaterThan(1);
+  await expect(rail.locator('.compact-club')).toHaveCount(1);
+});

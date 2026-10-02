@@ -54,7 +54,7 @@ export class ScoutingPlayerPanelComponent implements OnChanges {
       case 'INVITED': return 'Đã gửi lời mời';
       case 'REQUESTED': return 'Đang xin vào CLB';
       case 'MEMBER': return 'Đã là thành viên';
-      case 'BANNED': return 'Đang bị cấm khỏi CLB';
+      case 'BANNED': return 'Bị cấm khỏi CLB';
       default: return '';
     }
   }

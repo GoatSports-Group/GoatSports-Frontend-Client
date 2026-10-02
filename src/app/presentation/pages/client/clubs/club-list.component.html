@@ -209,11 +209,12 @@
           <p class="rail-empty">Đăng nhập để xem câu lạc bộ bạn đang sinh hoạt.
             <button type="button" class="link-action" (click)="goToLogin()">Đăng nhập</button>
           </p>
-          } @else if (loading()) {
+          } @else if (loading() && !myClubs().length) {
+          <!-- Chi lan tai dau; tai lai (doi bo loc) thi giu danh sach dang co, khong chen skeleton len tren. -->
           <app-loading-skeleton variant="rows" [count]="3" [flush]="true" label="Đang tải câu lạc bộ của bạn"></app-loading-skeleton>
           } @else if (!myClubs().length) {
           <p class="rail-empty">Bạn chưa tham gia câu lạc bộ nào. Chọn một câu lạc bộ bên trái để bắt đầu.</p>
-          }
+          } @else {
           <div class="rail-list">
             @for (club of myClubs(); track club.clubId) {
             <button type="button" class="compact-club" (click)="openMyClub(club)">
@@ -227,6 +228,7 @@
             </button>
             }
           </div>
+          }
         </section>
 
         <section class="rail-section">
@@ -240,7 +242,7 @@
           <p class="rail-empty">Đăng nhập để xem lời mời và yêu cầu tham gia của bạn.
             <button type="button" class="link-action" (click)="goToLogin()">Đăng nhập</button>
           </p>
-          } @else if (loading()) {
+          } @else if (loading() && !(invitations().length || pendingRequests().length)) {
           <app-loading-skeleton variant="rows" [count]="3" [flush]="true" label="Đang tải lời mời và yêu cầu"></app-loading-skeleton>
           } @else if (invitations().length || pendingRequests().length) {
           <div class="rail-list">
@@ -281,11 +283,11 @@
           <p class="rail-empty">Đăng nhập để xem lịch hoạt động của câu lạc bộ bạn tham gia.
             <button type="button" class="link-action" (click)="goToLogin()">Đăng nhập</button>
           </p>
-          } @else if (loading()) {
+          } @else if (loading() && !upcomingActivities().length) {
           <app-loading-skeleton variant="rows" [count]="3" [flush]="true" label="Đang tải hoạt động sắp tới"></app-loading-skeleton>
           } @else if (!upcomingActivities().length) {
           <p class="rail-empty">Chưa có hoạt động nào sắp diễn ra. Ban quản trị câu lạc bộ sẽ đăng lời nhắc ở đây.</p>
-          }
+          } @else {
           <div class="activity-list">
             @for (activity of upcomingActivities(); track activity.activityId) {
             <button type="button" class="activity-row" (click)="openActivityDetails(activity)">
@@ -308,6 +310,7 @@
             </div>
             }
           </div>
+          }
         </section>
 
         <section class="rail-section">
