@@ -103,14 +103,13 @@
   </section>
   }
 
-  @if (tab() === 'explore') {
   <section class="filters card" aria-label="Bộ lọc giải đấu">
     <label class="search">
       <lucide-icon name="search" class="w-5 h-5"></lucide-icon>
       <input type="search" placeholder="Tìm theo tên giải..." aria-label="Tìm theo tên giải" [value]="keyword()"
         (input)="onKeyword($any($event.target).value)" />
     </label>
-    <app-select class="filters__select" [options]="statusOptions" [ngModel]="status()" (ngModelChange)="setStatus($event)"
+    <app-select class="filters__select" [options]="statusOptions()" [ngModel]="status()" (ngModelChange)="setStatus($event)"
       leadingIcon="circle-dot" ariaLabel="Lọc theo trạng thái"></app-select>
     <div class="filters__meta">
       @if (page(); as result) { <span class="result-count">{{ result.total }} giải đấu</span> }
@@ -129,7 +128,6 @@
       }
     </div>
   </section>
-  }
 
   <section class="results" #listTop aria-live="polite">
     @if (loading()) {
@@ -187,7 +185,7 @@
     <app-pagination [pageIndex]="pageIndex()" [pageSize]="pageSize" [totalItems]="result.total"
       itemLabel="giải đấu" (pageChange)="goToPage($event)"></app-pagination>
     }
-    } @else if (tab() === 'explore') {
+    } @else if (tab() === 'explore' || hasFilters()) {
     <div class="state">
       <span class="state__icon"><lucide-icon [name]="hasFilters() ? 'search-x' : 'trophy'" class="w-6 h-6"></lucide-icon></span>
       <strong>{{ hasFilters() ? 'Không có giải phù hợp' : 'Chưa có giải đấu nào' }}</strong>
@@ -196,7 +194,7 @@
       <button type="button" class="btn btn--secondary" (click)="clearFilters()">Xóa bộ lọc</button>
       }
     </div>
-    } @else if (tab() === 'joined') {
+    } @else if (tab() === 'joined' && !hasFilters()) {
     <div class="state">
       <span class="state__icon"><lucide-icon name="user-round-check" class="w-6 h-6"></lucide-icon></span>
       <strong>Bạn chưa tham gia giải nào</strong>

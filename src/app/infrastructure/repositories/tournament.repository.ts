@@ -22,8 +22,13 @@ export class TournamentRepository extends TournamentRepositoryPort {
     if (filter.keyword?.trim()) params = params.set('keyword', filter.keyword.trim());
     return this.getPage(`${this.baseUrl}/search`, params.set('sort', filter.sort ?? 'startDate,desc'), page, size);
   }
-  override getMyTournaments(role: MyTournamentRole, page: number, size: number): Observable<PageResult<TournamentModel>> {
-    return this.getPage(`${this.baseUrl}/me`, new HttpParams().set('role', role).set('sort', 'startDate,desc'), page, size);
+  override getMyTournaments(role: MyTournamentRole, page: number, size: number, filter: TournamentSearchFilter = {})
+    : Observable<PageResult<TournamentModel>> {
+    let params = new HttpParams().set('role', role).set('sort', 'startDate,desc');
+    if (filter.sportType) params = params.set('sportType', filter.sportType);
+    if (filter.status) params = params.set('status', filter.status);
+    if (filter.keyword?.trim()) params = params.set('keyword', filter.keyword.trim());
+    return this.getPage(`${this.baseUrl}/me`, params, page, size);
   }
   /** club-service phan trang 0-based (EnableSpringDataWebSupport tat thuoc tinh one-indexed cua Boot). */
   private getPage(url: string, params: HttpParams, page: number, size: number): Observable<PageResult<TournamentModel>> {

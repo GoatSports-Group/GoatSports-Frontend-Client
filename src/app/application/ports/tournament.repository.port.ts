@@ -19,7 +19,8 @@ import {
 export abstract class TournamentRepositoryPort {
   /** {@code page} 0-based; ban nhap khong bao gio xuat hien o day. */
   abstract searchTournaments(filter: TournamentSearchFilter, page: number, size: number): Observable<PageResult<TournamentModel>>;
-  abstract getMyTournaments(role: MyTournamentRole, page: number, size: number): Observable<PageResult<TournamentModel>>;
+  /** Giai cua toi; `filter` (mon, trang thai hieu luc, ten) giong trang kham pha. */
+  abstract getMyTournaments(role: MyTournamentRole, page: number, size: number, filter?: TournamentSearchFilter): Observable<PageResult<TournamentModel>>;
   abstract getTournamentDetails(tournamentId: string): Observable<TournamentModel>;
   abstract registerTeam(tournamentId: string, payload: TournamentRegistrationPayload): Observable<TournamentRegistrationModel>;
   /** Nguoi dang ky tu rut; da dong phi thi he thong tu gui yeu cau hoan. */

@@ -97,3 +97,34 @@ test('trang Giải đấu đạt WCAG A/AA (chip trên mặt sân, chấm LIVE, 
   const results = await new AxeBuilder({ page }).include('main').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
   expect(results.violations.map(item => `${item.id}: ${item.nodes.map(node => node.target.join(' ')).join(', ')}`)).toEqual([]);
 });
+
+test('Tôi tham gia: có cùng bộ lọc với Khám phá và thêm "Đã hủy"', async ({ page }) => {
+  await mockGoatSportsApi(page);
+  await mockTournaments(page);
+  const mine = [...all, tournament(9, 'CANCELLED', 'BADMINTON', { name: 'Giải Đã Hủy' })];
+  const requests: URL[] = [];
+  await page.route('**/club-service/api/v1/tournaments/me**', route => {
+    const url = new URL(route.request().url());
+    requests.push(url);
+    const sport = url.searchParams.get('sportType');
+    const status = url.searchParams.get('status');
+    const size = Number(url.searchParams.get('size') ?? 12);
+    const matched = mine.filter(item => (!sport || item.sportType === sport) && (!status || item.status === status));
+    return route.fulfill({ json: ok({ content: matched.slice(0, size), page: { size, number: 0, totalElements: matched.length, totalPages: 1 } }) });
+  });
+
+  await page.goto('/tournaments?tab=joined');
+  await expect(page.locator('.t-card')).toHaveCount(5);
+  await expect(page.locator('.filters')).toBeVisible();
+
+  await page.locator('.sport-chips').getByRole('button', { name: 'Cầu lông' }).click();
+  await expect(page.locator('.t-card')).toHaveCount(2);
+  expect(requests.at(-1)!.searchParams.get('role')).toBe('PARTICIPATING');
+  expect(requests.at(-1)!.searchParams.get('sportType')).toBe('BADMINTON');
+
+  await page.getByRole('button', { name: 'Lọc theo trạng thái' }).click();
+  await page.getByRole('option', { name: 'Đã hủy' }).click();
+  await expect(page.locator('.t-card')).toHaveCount(1);
+  await expect(page.locator('.t-card')).toContainText('Giải Đã Hủy');
+  expect(requests.at(-1)!.searchParams.get('status')).toBe('CANCELLED');
+});

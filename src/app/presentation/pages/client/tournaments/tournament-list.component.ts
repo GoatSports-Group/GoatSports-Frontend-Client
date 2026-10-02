@@ -6,7 +6,7 @@ import { Observable, Subject, catchError, debounceTime, distinctUntilChanged, fo
 import { PageResult } from '@application/dto/base/base-response';
 import { SportType } from '@application/dto/club/club.dto';
 import { TournamentRepositoryPort } from '@application/ports/tournament.repository.port';
-import { Tournament as TournamentModel, TournamentStatus } from '@application/dto/tournament/tournament.dto';
+import { Tournament as TournamentModel, TournamentSearchFilter, TournamentStatus } from '@application/dto/tournament/tournament.dto';
 import { AuthService } from '@presentation/services/auth.service';
 import {
   FORMAT_LABEL, SPORT_ICON, SPORT_LABEL, SPORT_OPTIONS, SPORT_SURFACE, STATUS_FILTER_OPTIONS, STATUS_META, dateTile,
@@ -49,7 +49,10 @@ export class TournamentListComponent {
     { value: '', label: 'Mọi môn', icon: 'trophy' },
     ...SPORT_OPTIONS.map(option => ({ value: option.value as SportType, label: option.label, icon: SPORT_ICON[option.value as SportType] }))
   ];
-  readonly statusOptions = STATUS_FILTER_OPTIONS;
+  /** Toi tham gia van hien giai da huy (tinh trang hoan phi), nen co them lua chon "Da huy". */
+  readonly statusOptions = computed(() => this.tab() === 'joined'
+    ? [...STATUS_FILTER_OPTIONS, { value: 'CANCELLED', label: STATUS_META.CANCELLED.label }]
+    : STATUS_FILTER_OPTIONS);
   readonly signedIn = !!this.auth.currentUser;
 
   readonly tab = signal<ListTab>('explore');
@@ -88,6 +91,8 @@ export class TournamentListComponent {
   setTab(tab: ListTab): void {
     if (this.tab() === tab) return;
     this.tab.set(tab);
+    // Kham pha khong liet ke giai da huy: bo loc "Da huy" khong con y nghia khi quay lai.
+    if (tab === 'explore' && this.status() === 'CANCELLED') this.status.set('');
     void this.router.navigate([], { queryParams: { tab: tab === 'explore' ? null : tab }, replaceUrl: true });
     this.reload();
   }
@@ -183,11 +188,14 @@ export class TournamentListComponent {
 
   private request(pageIndex: number): Observable<PageResult<TournamentModel>> {
     switch (this.tab()) {
-      case 'joined': return this.repository.getMyTournaments('PARTICIPATING', pageIndex, this.pageSize);
-      default: return this.repository.searchTournaments({
-        sportType: this.sport() || undefined, status: this.status() || undefined, keyword: this.keyword()
-      }, pageIndex, this.pageSize);
+      case 'joined': return this.repository.getMyTournaments('PARTICIPATING', pageIndex, this.pageSize, this.filter());
+      default: return this.repository.searchTournaments(this.filter(), pageIndex, this.pageSize);
     }
+  }
+
+  /** Cung bo loc cho ca hai tab (Kham pha va Toi tham gia). */
+  private filter(): TournamentSearchFilter {
+    return { sportType: this.sport() || undefined, status: this.status() || undefined, keyword: this.keyword() };
   }
 
   private loadCounts(): void {
