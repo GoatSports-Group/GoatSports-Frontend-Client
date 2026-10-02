@@ -27,10 +27,9 @@
         (favoriteChange)="onFavoriteChange(venue.venueId, $event)"></app-venue-card>
       }
     </div>
-    @if (total() > pageSize) {
+    <!-- Luon hien (ke ca khi chi co mot trang) de nguoi choi thay tong so san da luu. -->
     <app-pagination [pageIndex]="pageIndex()" [pageSize]="pageSize" [totalItems]="total()" itemLabel="sân"
       (pageChange)="changePage($event)"></app-pagination>
-    }
   </section>
   } @else {
   <section class="state">

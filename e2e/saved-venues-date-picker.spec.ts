@@ -45,13 +45,13 @@ test('Sân đã lưu: liệt kê theo thứ tự đã lưu, bỏ lưu thì thẻ
   await expect(page.locator('.results__count')).toContainText('13 sân đã lưu');
   await expect(page.locator('app-pagination')).toContainText('Hiển thị 1 - 12 trong tổng số 13 sân');
 
-  // Bỏ lưu sân đầu: sân thứ 13 trượt lên, còn 12 sân nên hết phân trang.
+  // Bỏ lưu sân đầu: sân thứ 13 trượt lên; còn 12 sân, pagination vẫn hiện (một trang).
   await cards.first().getByRole('button', { name: 'Bỏ lưu sân' }).click();
   await expect(cards.first()).toContainText('Sân số 2');
   await expect(cards).toHaveCount(12);
   await expect(page.locator('.grid')).toContainText('Sân số 13');
   await expect(page.locator('.results__count')).toContainText('12 sân đã lưu');
-  await expect(page.locator('app-pagination')).toHaveCount(0);
+  await expect(page.locator('app-pagination')).toContainText('Hiển thị 1 - 12 trong tổng số 12 sân');
 });
 
 test('Sân đã lưu: chưa lưu sân nào thì có lời mời đi tìm sân', async ({ page }) => {
