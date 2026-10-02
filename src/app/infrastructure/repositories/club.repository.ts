@@ -129,7 +129,7 @@ export class ClubRepository extends ClubRepositoryPort {
     return this.getPage<ClubActivityModel>(`${this.baseUrl}/me/activities/page`, page, size);
   }
   override getClubMembersPage(clubId: string, page: number, size: number,
-    status: 'ACTIVE' | 'PENDING' = 'ACTIVE'): Observable<PageResult<ClubMemberModel>> {
+    status: 'ACTIVE' | 'PENDING' | 'BANNED' = 'ACTIVE'): Observable<PageResult<ClubMemberModel>> {
     const params = new HttpParams().set('page', page).set('size', size).set('status', status);
     return this.http.get<BaseResponse<PagedModelResponse<ClubMemberModel>>>(
       `${this.baseUrl}/${clubId}/members/page`, { params }).pipe(map(response => {
@@ -197,6 +197,9 @@ export class ClubRepository extends ClubRepositoryPort {
     return this.http.patch<BaseResponse<ClubMemberModel>>(
       `${this.baseUrl}/${clubId}/members/${membershipId}/role`, { role })
       .pipe(map(response => response.data));
+  }
+  override unbanMember(clubId: string, membershipId: string): Observable<void> {
+    return this.http.post(`${this.baseUrl}/${clubId}/members/${membershipId}/unban`, {}).pipe(map(() => void 0));
   }
   override removeMember(clubId: string, membershipId: string, ban: boolean): Observable<void> {
     return this.http.delete(`${this.baseUrl}/${clubId}/members/${membershipId}`,

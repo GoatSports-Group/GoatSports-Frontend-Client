@@ -68,7 +68,7 @@ export abstract class ClubRepositoryPort {
   abstract getMyMembership(clubId: string): Observable<ClubMemberModel | null>;
   abstract getClubMembers(clubId: string): Observable<ClubMemberModel[]>;
   abstract getClubMembersPage(clubId: string, page: number, size: number,
-    status?: 'ACTIVE' | 'PENDING'): Observable<PageResult<ClubMemberModel>>;
+    status?: 'ACTIVE' | 'PENDING' | 'BANNED'): Observable<PageResult<ClubMemberModel>>;
   abstract respondMembership(clubId: string, membershipId: string, accepted: boolean): Observable<ClubMemberModel>;
   abstract getClubActivities(clubId: string): Observable<ClubActivityModel[]>;
   abstract getClubPhotosPage(clubId: string, page: number, size: number): Observable<PageResult<ClubPhotoModel>>;
@@ -88,6 +88,8 @@ export abstract class ClubRepositoryPort {
   abstract updateClub(clubId: string, payload: UpdateClubPayload): Observable<ClubModel>;
   abstract changeMemberRole(clubId: string, membershipId: string, role: ClubRole): Observable<ClubMemberModel>;
   abstract removeMember(clubId: string, membershipId: string, ban: boolean): Observable<void>;
+  /** Go cam (BANNED -> REMOVED): nguoi choi lai xin vao hoac duoc moi nhu binh thuong. */
+  abstract unbanMember(clubId: string, membershipId: string): Observable<void>;
   abstract updateClubActivity(clubId: string, activityId: string,
     payload: CreateClubActivityPayload): Observable<ClubActivityModel>;
   abstract deleteClubActivity(clubId: string, activityId: string): Observable<void>;

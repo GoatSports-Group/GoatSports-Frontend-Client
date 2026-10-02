@@ -2263,6 +2263,83 @@ a {
   border-radius: 10px;
 }
 
+/* Tab Yeu cau tham gia: chip "Cho duyet" | "Bi cam" (GOAT-DESIGN Tabs & Filters: chip pill, chon = primary-light). */
+.request-views {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+
+.request-view {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  border: 1px solid var(--hairline);
+  border-radius: 9999px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover { border-color: var(--border-strong); }
+  &.is-active { border-color: var(--primary); background: var(--primary-light); color: var(--primary-strong); }
+}
+
+.request-view__count {
+  min-width: 22px;
+  padding: 1px 7px;
+  border-radius: 9999px;
+  background: var(--surface-strong);
+  color: var(--body);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.request-view.is-active .request-view__count { background: var(--surface); color: var(--primary-strong); }
+
+.request-note {
+  margin: 0 0 12px;
+  color: var(--body);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.request-card__copy { min-width: 0; }
+
+.request-card__copy span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Xac nhan go cam ngay tren dong (GOAT-DESIGN List cards: mot hanh dong -> inline confirm). */
+.unban-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+
+  span { color: var(--ink); font-size: 13px; font-weight: 700; }
+}
+
+@media (max-width: 640px) {
+  .request-card--banned { grid-template-columns: 50px minmax(0, 1fr); }
+  .request-card--banned .row-actions,
+  .request-card--banned .unban-confirm { grid-column: 1 / -1; justify-content: flex-start; }
+  .unban-confirm span { flex: 1 1 100%; }
+  .unban-confirm .button { flex: 1 1 0; }
+}
+
 .request-card h3 {
   margin: 0;
   font-size: 14px;

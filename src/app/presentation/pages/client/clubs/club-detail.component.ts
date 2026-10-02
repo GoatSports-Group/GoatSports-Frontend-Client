@@ -130,6 +130,16 @@ export class ClubDetailComponent implements OnDestroy {
   });
   readonly activeMembers = computed(() => this.members().filter(member => member.status === 'ACTIVE'));
   readonly pendingMembers = computed(() => this.members().filter(member => member.status === 'PENDING'));
+  /** Tab "Yeu cau tham gia": chip "Cho duyet" | "Bi cam". Danh sach bi cam phan trang o server, rieng voi members. */
+  readonly requestView = signal<'PENDING' | 'BANNED'>('PENDING');
+  readonly bannedMembers = signal<ClubMemberModel[]>([]);
+  readonly bannedTotal = signal(0);
+  readonly bannedPage = signal(0);
+  readonly bannedLoading = signal(false);
+  readonly bannedPaging = signal(false);
+  readonly bannedError = signal(false);
+  readonly confirmUnbanId = signal<string | null>(null);
+  readonly bannedPageSize = 10;
   readonly memberPageLoading = signal(false);
   readonly memberPageError = signal(false);
   readonly memberTotal = signal(0);
@@ -300,7 +310,10 @@ export class ClubDetailComponent implements OnDestroy {
         }
         this.resetMemberPagination();
         this.loadNextMemberPage();
-        if (this.isManager()) this.loadPendingMembers();
+        if (this.isManager()) {
+          this.loadPendingMembers();
+          this.loadBannedMembers(0);
+        }
         this.loading.set(false); this.resolveUsers(data.club, []);
       },
       error: () => { this.error.set('Không thể tải thông tin câu lạc bộ.'); this.loading.set(false); }
@@ -799,7 +812,7 @@ export class ClubDetailComponent implements OnDestroy {
     this.repository.removeMember(this.clubId, member.membershipId, ban).subscribe({
       next: () => {
         this.mutating.set(false);
-        this.notify.success(ban ? 'Đã cấm thành viên.' : 'Đã xóa thành viên.');
+        this.notify.success(ban ? 'Đã cấm thành viên. Có thể gỡ cấm ở tab Yêu cầu tham gia › Bị cấm.' : 'Đã xóa thành viên.');
         this.load();
       },
       error: error => { this.mutating.set(false); this.notify.error(error?.error?.message ?? 'Không thể xử lý thành viên.'); }
@@ -1141,6 +1154,11 @@ export class ClubDetailComponent implements OnDestroy {
   isClubStanding(standing: TournamentStandingModel): boolean {
     return standing.registrationId === this.clubTournamentRegistrationId();
   }
+  /** "bởi bạn" khi chinh nguoi dang xem da cam. */
+  bannedBy(userId: string): string {
+    return userId === this.currentUser()?.userId ? 'bạn' : this.displayName(userId);
+  }
+
   displayName(userId: string): string { return this.users().get(userId)?.fullName || this.users().get(userId)?.email || `Người dùng ${userId.slice(0, 8)}`; }
   avatar(userId: string): string | undefined { return this.users().get(userId)?.avatarUrl; }
   initials(value: string): string { return value.split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase(); }
@@ -1192,6 +1210,51 @@ export class ClubDetailComponent implements OnDestroy {
     });
   }
 
+  /** Doi trang giu danh sach cu (lam mo); lan dau / tai lai thi skeleton (GOAT-DESIGN Pagination). */
+  loadBannedMembers(page: number, keepCurrent = false): void {
+    (keepCurrent ? this.bannedPaging : this.bannedLoading).set(true);
+    this.bannedError.set(false);
+    this.repository.getClubMembersPage(this.clubId, page, this.bannedPageSize, 'BANNED').subscribe({
+      next: result => {
+        // Trang vua rong (go cam nguoi cuoi cua trang) thi lui mot trang.
+        if (!result.items.length && page > 0) {
+          this.loadBannedMembers(page - 1, keepCurrent);
+          return;
+        }
+        this.bannedMembers.set(result.items);
+        this.bannedTotal.set(result.total);
+        this.bannedPage.set(result.page);
+        this.bannedLoading.set(false);
+        this.bannedPaging.set(false);
+        // Ten nguoi bi cam va nguoi da cam (respondedBy).
+        this.resolveUsers(this.club(), result.items,
+          result.items.map(member => member.respondedBy).filter((id): id is string => !!id));
+      },
+      error: () => {
+        this.bannedError.set(true);
+        this.bannedLoading.set(false);
+        this.bannedPaging.set(false);
+      }
+    });
+  }
+
+  unban(member: ClubMemberModel): void {
+    if (this.mutating()) return;
+    this.mutating.set(true);
+    this.repository.unbanMember(this.clubId, member.membershipId).subscribe({
+      next: () => {
+        this.mutating.set(false);
+        this.confirmUnbanId.set(null);
+        this.notify.success(`Đã gỡ cấm ${this.displayName(member.userId)}. Họ có thể xin tham gia lại.`);
+        this.loadBannedMembers(this.bannedPage(), true);
+      },
+      error: error => {
+        this.mutating.set(false);
+        this.notify.error(error?.error?.message ?? 'Không thể gỡ cấm người chơi.');
+      }
+    });
+  }
+
   private loadPendingMembers(): void {
     this.repository.getClubMembersPage(this.clubId, 0, 50, 'PENDING').subscribe({
       next: page => {
@@ -1210,8 +1273,8 @@ export class ClubDetailComponent implements OnDestroy {
     });
   }
 
-  private resolveUsers(club: ClubModel | null, members: ClubMemberModel[]): void {
-    const userIds = [...new Set([club?.ownerId, ...members.map(member => member.userId)]
+  private resolveUsers(club: ClubModel | null, members: ClubMemberModel[], extraUserIds: string[] = []): void {
+    const userIds = [...new Set([club?.ownerId, ...members.map(member => member.userId), ...extraUserIds]
       .filter((userId): userId is string => Boolean(userId)))];
     if (!userIds.length) return;
     this.directory.resolve(userIds).subscribe(users => this.users.update(current => {

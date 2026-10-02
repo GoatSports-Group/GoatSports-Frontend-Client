@@ -740,6 +740,19 @@
         <p>Đọc lời giới thiệu trước khi đưa người chơi vào đội hình.</p>
       </div>
     </header>
+    <div class="request-views" role="group" aria-label="Loại yêu cầu">
+      <button type="button" class="request-view" [class.is-active]="requestView() === 'PENDING'"
+        [attr.aria-pressed]="requestView() === 'PENDING'" (click)="requestView.set('PENDING')">
+        <lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon>Chờ duyệt
+        <span class="request-view__count">{{ pendingMembers().length }}</span>
+      </button>
+      <button type="button" class="request-view" [class.is-active]="requestView() === 'BANNED'"
+        [attr.aria-pressed]="requestView() === 'BANNED'" (click)="requestView.set('BANNED'); confirmUnbanId.set(null)">
+        <lucide-icon name="ban" class="w-4 h-4"></lucide-icon>Bị cấm
+        <span class="request-view__count">{{ bannedTotal() }}</span>
+      </button>
+    </div>
+    @if (requestView() === 'PENDING') {
     @if (pendingMembers().length) {
     <div class="request-list">
       @for (member of pendingMembers(); track member.membershipId) {
@@ -763,6 +776,52 @@
       <h3>Không có yêu cầu đang chờ</h3>
       <p>Yêu cầu mới sẽ xuất hiện tại đây theo thời gian thực.</p>
     </div> }
+    } @else {
+    <!-- Nguoi choi bi chu CLB / quan ly cam: khong xin vao, khong duoc moi cho toi khi go cam. -->
+    @if (bannedLoading()) {
+    <app-loading-skeleton variant="rows" [count]="3" label="Đang tải danh sách bị cấm"></app-loading-skeleton>
+    } @else if (bannedError()) {
+    <div class="detail-empty detail-empty--inline" role="alert"><lucide-icon name="wifi-off" class="w-8 h-8"></lucide-icon>
+      <h3>Không tải được danh sách bị cấm</h3>
+      <p>Kiểm tra kết nối mạng rồi thử lại.</p>
+      <button type="button" class="button button--secondary" (click)="loadBannedMembers(bannedPage())">Thử lại</button>
+    </div>
+    } @else if (bannedMembers().length) {
+    <p class="request-note">Người bị cấm không thể xin tham gia hay được mời vào câu lạc bộ. Gỡ cấm không đưa họ vào lại đội hình: họ cần gửi yêu cầu mới.</p>
+    <div class="request-list" [class.is-paging]="bannedPaging()" [attr.aria-busy]="bannedPaging()">
+      @for (member of bannedMembers(); track member.membershipId) {
+      <article class="request-card request-card--banned">
+        <div class="member-avatar member-avatar--large">@if (avatar(member.userId); as avatarUrl) { <img
+            [src]="avatarUrl" [alt]="displayName(member.userId)" /> } @else { {{ initials(displayName(member.userId)) }}
+          }</div>
+        <div class="request-card__copy">
+          <h3>{{ displayName(member.userId) }}</h3>
+          <span>Bị cấm {{ member.respondedAt ? 'từ ' + (member.respondedAt | date:'dd/MM/yyyy') : '' }}@if (member.respondedBy) { · bởi {{ bannedBy(member.respondedBy) }} }</span>
+        </div>
+        @if (confirmUnbanId() !== member.membershipId) {
+        <div class="row-actions"><button type="button" class="button button--secondary" [disabled]="mutating()"
+            (click)="confirmUnbanId.set(member.membershipId)"><lucide-icon name="undo-2" class="w-4 h-4"></lucide-icon>Gỡ cấm</button></div>
+        } @else {
+        <div class="unban-confirm" role="alertdialog" [attr.aria-label]="'Gỡ cấm ' + displayName(member.userId)">
+          <span>Gỡ cấm {{ displayName(member.userId) }}?</span>
+          <button type="button" class="button button--secondary" [disabled]="mutating()" (click)="confirmUnbanId.set(null)">Hủy</button>
+          <button type="button" class="button button--primary" [disabled]="mutating()" (click)="unban(member)">Gỡ cấm</button>
+        </div>
+        }
+      </article>
+      }
+    </div>
+    @if (bannedTotal() > bannedPageSize) {
+    <app-pagination [pageIndex]="bannedPage()" [pageSize]="bannedPageSize" [totalItems]="bannedTotal()" itemLabel="người bị cấm"
+      (pageChange)="loadBannedMembers($event, true)"></app-pagination>
+    }
+    } @else {
+    <div class="detail-empty detail-empty--inline"><lucide-icon name="shield-check" class="w-8 h-8"></lucide-icon>
+      <h3>Không có ai bị cấm</h3>
+      <p>Khi cấm một thành viên ở tab Thành viên, người đó sẽ hiện ở đây để bạn gỡ cấm khi cần.</p>
+    </div>
+    }
+    }
   </section>
   } @else if (activeTab() === 'ACTIVITIES') {
   <section class="content-panel">
