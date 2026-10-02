@@ -41,6 +41,7 @@ import { PolicyLayoutComponent } from '@shared/layouts/policy/policy-layout.comp
 import { ScreenLoaderComponent } from '@shared/components/screen-loader/screen-loader.component';
 import { QrCodeComponent } from '@shared/components/qr-code/qr-code.component';
 import { AccessibleDialogDirective } from '@shared/directives/accessible-dialog.directive';
+import { InfiniteScrollDirective } from '@shared/directives/infinite-scroll.directive';
 
 const MATERIAL_MODULES = [
   MatToolbarModule,
@@ -75,7 +76,8 @@ const COMPONENT_DECLARATIONS = [
   PolicyLayoutComponent,
   ScreenLoaderComponent,
   QrCodeComponent,
-  AccessibleDialogDirective
+  AccessibleDialogDirective,
+  InfiniteScrollDirective
 ];
 
 @NgModule({

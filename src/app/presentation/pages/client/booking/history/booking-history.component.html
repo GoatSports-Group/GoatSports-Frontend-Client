@@ -2,7 +2,6 @@
   <div class="container py-8">
     <div class="header-section mb-6">
       <div>
-        <p class="eyebrow">Lịch thi đấu cá nhân</p>
         <h1 class="page-title athletic-title">Vé đặt sân của tôi</h1>
         <p class="page-subtitle">Theo dõi vé điện tử, yêu cầu hủy và trạng thái hoàn tiền.</p>
       </div>
@@ -39,7 +38,7 @@
         <button type="button" class="neo-btn" (click)="retry()">Thử lại</button>
       </div>
     } @else if (bookings().length > 0) {
-      <div class="tickets-grid goat-stagger">
+      <div class="tickets-grid goat-stagger" #listTop [class.is-paging]="paging()" [attr.aria-busy]="paging()">
         @for (booking of bookings(); track booking.bookingId) {
           <article
             class="ticket-card neo-card"
@@ -94,18 +93,8 @@
         }
       </div>
 
-      @if (hasMore()) {
-        <div class="load-more-row">
-          <button type="button" class="load-more-button" [disabled]="loadingMore()" (click)="loadMore()">
-            @if (loadingMore()) {
-              <lucide-icon name="loader-2" class="w-4 h-4 animate-spin"></lucide-icon>
-              Đang tải
-            } @else {
-              Xem thêm
-            }
-          </button>
-        </div>
-      }
+      <app-pagination [pageIndex]="page()" [pageSize]="pageSize" [totalItems]="total()" itemLabel="vé"
+        (pageChange)="changePage($event)"></app-pagination>
     } @else {
       <div class="empty-tickets neo-card text-center py-12">
         <lucide-icon name="receipt" class="w-12 h-12 text-slate-300 mx-auto mb-3"></lucide-icon>

@@ -22,6 +22,8 @@ import {
   BookingCreateDialogData
 } from '@presentation/pages/client/booking/booking-create.component';
 
+const REVIEW_PAGE_SIZE = 10;
+
 @Component({
   selector: 'app-venue-detail',
   templateUrl: './venue-detail.component.html',
@@ -65,6 +67,9 @@ export class VenueDetailComponent implements OnInit {
   reviewsLoading = false;
   reviewsLoaded = false;
   reviewsError = '';
+  reviewsPage = 0;
+  reviewsHasMore = false;
+  reviewsLoadingMore = false;
 
   readonly reviewStars = [1, 2, 3, 4, 5];
 
@@ -157,6 +162,8 @@ export class VenueDetailComponent implements OnInit {
     this.reviews = [];
     this.reviewsLoaded = false;
     this.reviewsError = '';
+    this.reviewsPage = 0;
+    this.reviewsHasMore = false;
 
     this.venueSearchRepo.getVenueDetails(this.venueId)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -424,21 +431,41 @@ export class VenueDetailComponent implements OnInit {
   private loadReviews(): void {
     this.reviewsLoading = true;
     this.reviewsError = '';
-    this.reviewRepository.getVenueReviews(this.venueId, 0, 20).pipe(
+    this.fetchReviews(0);
+  }
+
+  /** Cuon toi cuoi danh sach danh gia: tai them mot trang. */
+  loadMoreReviews(): void {
+    if (this.reviewsLoadingMore || !this.reviewsHasMore) return;
+    this.reviewsLoadingMore = true;
+    this.fetchReviews(this.reviewsPage + 1);
+  }
+
+  private fetchReviews(page: number): void {
+    this.reviewRepository.getVenueReviews(this.venueId, page, REVIEW_PAGE_SIZE).pipe(
       take(1),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       next: response => {
-        this.reviews = response?.data?.items ?? [];
+        const result = response?.data;
+        const items = result?.items ?? [];
+        this.reviews = page === 0 ? items : [...this.reviews, ...items];
+        this.reviewsPage = page;
+        this.reviewsHasMore = result ? page + 1 < result.totalPages : false;
         this.reviewsLoaded = true;
         this.reviewsLoading = false;
+        this.reviewsLoadingMore = false;
       },
       error: error => {
-        this.reviewsError = error?.error?.message || 'Không thể tải đánh giá của sân.';
+        // Trang dau loi thi hien o trang thai; trang sau loi thi dung tai them, giu nhung gi da co.
+        if (page === 0) this.reviewsError = error?.error?.message || 'Không thể tải đánh giá của sân.';
+        this.reviewsHasMore = false;
         this.reviewsLoading = false;
+        this.reviewsLoadingMore = false;
       }
     });
   }
+
 
   private resolveVenueImages(values: readonly string[]): void {
     const venueId = this.venueId;

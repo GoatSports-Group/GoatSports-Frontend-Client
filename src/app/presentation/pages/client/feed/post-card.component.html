@@ -184,7 +184,14 @@
         </div>
       }
 
-      @if (commentsHasMore()) {
+      @if (commentsHasMore() && openComments) {
+        <!-- Trang chi tiet bai viet: binh luan cuon vo han. Trong bang tin giu nut de khong gianh cuon voi feed. -->
+        @if (commentsLoading()) {
+          <app-loading-skeleton variant="rows" [count]="2" [flush]="true" label="Đang tải thêm bình luận"></app-loading-skeleton>
+        } @else {
+          <div class="list-sentinel" appInfiniteScroll (reached)="commentsLoading() || loadComments(commentsPage() + 1)" aria-hidden="true"></div>
+        }
+      } @else if (commentsHasMore()) {
         <button type="button" class="link-btn comments__more" [disabled]="commentsLoading()" (click)="loadComments(commentsPage() + 1)">
           @if (commentsLoading()) { <span class="spinner" aria-hidden="true"></span> }
           Xem thêm bình luận

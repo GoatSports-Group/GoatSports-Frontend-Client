@@ -414,36 +414,9 @@
   color: var(--danger);
 }
 
-.pagination {
-  display: flex;
-  justify-content: center;
-  gap: .45rem;
+app-pagination {
+  display: block;
   margin-top: 1.6rem;
-}
-
-.page-btn {
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--border-strong);
-  border-radius: 10px;
-  background: var(--surface);
-  color: var(--ink);
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.page-btn:hover:not(:disabled),
-.page-btn.active {
-  border-color: var(--primary);
-  background: var(--primary-fill);
-  color: #fff;
-}
-
-.page-btn:disabled {
-  opacity: .45;
-  cursor: not-allowed;
 }
 
 .map-rail {

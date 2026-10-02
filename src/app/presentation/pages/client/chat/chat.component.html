@@ -68,6 +68,11 @@
               </li>
             }
           </ul>
+          @if (loadingMoreRooms()) {
+            <app-loading-skeleton variant="rows" [count]="2" [flush]="true" label="Đang tải thêm cuộc trò chuyện"></app-loading-skeleton>
+          } @else if (hasMoreRooms()) {
+            <div class="list-sentinel" appInfiniteScroll (reached)="loadMoreRooms()" aria-hidden="true"></div>
+          }
         } @else {
           <div class="state state--compact">
             <span class="state__icon"><lucide-icon name="messages-square" class="w-6 h-6"></lucide-icon></span>
@@ -131,6 +136,11 @@
             </div>
           } @else {
             <div class="stream">
+              @if (loadingOlderMessages()) {
+                <div class="stream__older" role="status"><lucide-icon name="loader-2" class="w-4 h-4 animate-spin"></lucide-icon>Đang tải tin cũ hơn</div>
+              } @else if (hasOlderMessages()) {
+                <div class="list-sentinel" appInfiniteScroll (reached)="loadOlderMessages()" aria-hidden="true"></div>
+              }
               @for (message of messages(); track message.clientMessageId || message.messageId; let index = $index) {
                 @if (getDaySeparator(index); as day) {
                   <div class="day"><span>{{ day }}</span></div>

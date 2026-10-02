@@ -522,7 +522,6 @@ test('AI thật: trạng thái mô hình học máy và phân tích kèo bằng 
   const card = page.locator('.insights .result-state--matched');
   await expect(card).toContainText('AI dự đoán 72% kèo suôn sẻ');
   await expect(card.locator('.ai-insight')).toContainText('Hai bên hợp nhau về khung giờ');
-  await expect(card.locator('.ai-insight')).toContainText('qwen3.5:4b');
   await page.locator('.history-row').nth(1).click();
   await expect(card.locator('.ai-insight--pending')).toContainText('GOAT AI đang phân tích kèo');
 

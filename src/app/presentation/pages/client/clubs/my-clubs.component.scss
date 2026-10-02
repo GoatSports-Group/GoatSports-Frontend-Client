@@ -498,8 +498,8 @@
   display: grid;
   place-items: center;
   padding: 16px;
-  background: rgba(7, 25, 45, .7);
-  backdrop-filter: blur(4px);
+  background: rgb(16 26 44 / 55%);
+  backdrop-filter: blur(3px);
 }
 
 .my-clubs-modal {
@@ -508,9 +508,9 @@
   overflow: auto;
   padding: 24px;
   border: 1px solid var(--hairline);
-  border-radius: 14px;
+  border-radius: 24px;
   background: var(--surface);
-  box-shadow: 0 28px 72px rgba(7, 25, 45, .3);
+  box-shadow: var(--shadow-lg);
 }
 
 .my-clubs-modal>header {
@@ -970,4 +970,18 @@ app-select.my-clubs-filters__select {
 /* One-line rule (GOAT-DESIGN §4): modal actions never wrap. */
 .my-clubs-modal > footer button {
   white-space: nowrap;
+}
+
+// GOAT-DESIGN Modals: duoi 768px modal la bottom sheet (sat day, bo 24 o hai goc tren, cao toi da 92dvh).
+@media (max-width: 767px) {
+  .my-clubs-modal-overlay {
+    align-items: end;
+    padding: 0;
+  }
+
+  .my-clubs-modal {
+    width: 100%;
+    max-height: 92dvh;
+    border-radius: 24px 24px 0 0;
+  }
 }

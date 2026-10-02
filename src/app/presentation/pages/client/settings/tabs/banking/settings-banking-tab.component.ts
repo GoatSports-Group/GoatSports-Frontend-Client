@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { LIST_CHUNK } from '@shared/directives/infinite-scroll.directive';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, forkJoin, from, Observable, of } from 'rxjs';
@@ -22,6 +23,9 @@ export class SettingsBankingTabComponent {
   readonly accounts = signal<BankAccount[]>([]);
   /** Khoản hoàn tiền (lệ phí giải, cọc đặt sân...) của người chơi. */
   readonly refunds = signal<MyRefund[]>([]);
+  /** Hoan tien tra ve ca mang; chi render dan tung LIST_CHUNK dong khi cuon. */
+  readonly refundsShown = signal(LIST_CHUNK);
+  readonly listChunk = LIST_CHUNK;
   readonly claimingId = signal<string | null>(null);
   readonly hasUsableAccount = computed(() => this.accounts().some(item => item.status !== 'REJECTED' && item.status !== 'DISABLED'));
   readonly loading = signal(true);

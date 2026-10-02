@@ -73,7 +73,7 @@
         @case ('friends') {
           @if (store.connections().friends.length) {
             <ul class="rows goat-stagger">
-              @for (friendship of store.connections().friends; track friendship.friendshipId) {
+              @for (friendship of store.connections().friends | slice:0:shown(); track friendship.friendshipId) {
                 @let other = store.otherParty(friendship);
                 <li class="row">
                   <a class="row__who" [routerLink]="['/feed']" [queryParams]="{ author: other }">
@@ -101,6 +101,9 @@
                 </li>
               }
             </ul>
+            @if (store.connections().friends.length > shown()) {
+              <div class="list-sentinel" appInfiniteScroll (reached)="showMore()" aria-hidden="true"></div>
+            }
           } @else {
             <div class="state">
               <span class="state__icon"><lucide-icon name="users" class="w-6 h-6"></lucide-icon></span>
@@ -112,7 +115,7 @@
         @case ('received') {
           @if (store.connections().received.length) {
             <ul class="rows goat-stagger">
-              @for (friendship of store.connections().received; track friendship.friendshipId) {
+              @for (friendship of store.connections().received | slice:0:shown(); track friendship.friendshipId) {
                 <li class="row">
                   <a class="row__who" [routerLink]="['/feed']" [queryParams]="{ author: friendship.requesterId }">
                     <img class="avatar" [src]="store.avatar(friendship.requesterId)" alt="" width="40" height="40" />
@@ -123,6 +126,9 @@
                 </li>
               }
             </ul>
+            @if (store.connections().received.length > shown()) {
+              <div class="list-sentinel" appInfiniteScroll (reached)="showMore()" aria-hidden="true"></div>
+            }
           } @else {
             <div class="state">
               <span class="state__icon"><lucide-icon name="user-check" class="w-6 h-6"></lucide-icon></span>
@@ -134,7 +140,7 @@
         @case ('sent') {
           @if (store.connections().sent.length) {
             <ul class="rows goat-stagger">
-              @for (friendship of store.connections().sent; track friendship.friendshipId) {
+              @for (friendship of store.connections().sent | slice:0:shown(); track friendship.friendshipId) {
                 <li class="row">
                   <a class="row__who" [routerLink]="['/feed']" [queryParams]="{ author: friendship.addresseeId }">
                     <img class="avatar" [src]="store.avatar(friendship.addresseeId)" alt="" width="40" height="40" />
@@ -149,6 +155,9 @@
                 </li>
               }
             </ul>
+            @if (store.connections().sent.length > shown()) {
+              <div class="list-sentinel" appInfiniteScroll (reached)="showMore()" aria-hidden="true"></div>
+            }
           } @else {
             <div class="state">
               <span class="state__icon"><lucide-icon name="send" class="w-6 h-6"></lucide-icon></span>
@@ -160,7 +169,7 @@
         @case ('blocked') {
           @if (store.connections().blocked.length) {
             <ul class="rows goat-stagger">
-              @for (block of store.connections().blocked; track block.blockId) {
+              @for (block of store.connections().blocked | slice:0:shown(); track block.blockId) {
                 <li class="row">
                   <span class="row__who">
                     <img class="avatar" [src]="store.avatar(block.blockedUserId)" alt="" width="40" height="40" />
@@ -172,6 +181,9 @@
                 </li>
               }
             </ul>
+            @if (store.connections().blocked.length > shown()) {
+              <div class="list-sentinel" appInfiniteScroll (reached)="showMore()" aria-hidden="true"></div>
+            }
           } @else {
             <div class="state">
               <span class="state__icon"><lucide-icon name="shield-check" class="w-6 h-6"></lucide-icon></span>

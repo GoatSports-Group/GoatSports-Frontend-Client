@@ -122,7 +122,7 @@
           <p>Tiền hoàn chuyển về tài khoản mặc định ở trên. Lần chuyển lỗi có thể thử lại.</p>
         </header>
         <ul class="refunds__list">
-          @for (refund of refunds(); track refund.refundId) {
+          @for (refund of refunds() | slice:0:refundsShown(); track refund.refundId) {
           <li class="refund">
             <span class="refund__icon" aria-hidden="true">
               <lucide-icon [name]="refund.purpose === 'TOURNAMENT_FEE' ? 'trophy' : 'calendar-check'" class="w-4 h-4"></lucide-icon>
@@ -145,6 +145,9 @@
           </li>
           }
         </ul>
+        @if (refunds().length > refundsShown()) {
+        <div class="list-sentinel" appInfiniteScroll (reached)="refundsShown.update(count => count + listChunk)" aria-hidden="true"></div>
+        }
       </section>
     }
 

@@ -195,6 +195,11 @@
                 </div>
               </article>
               }
+              @if (reviewsLoadingMore) {
+              <app-loading-skeleton variant="rows" [count]="2" label="Đang tải thêm đánh giá"></app-loading-skeleton>
+              } @else if (reviewsHasMore) {
+              <div class="list-sentinel" appInfiniteScroll (reached)="loadMoreReviews()" aria-hidden="true"></div>
+              }
             </div>
             } @else {
             <div class="reviews-state"><lucide-icon name="star" class="w-7 h-7"></lucide-icon><span>Chưa có đánh giá cho

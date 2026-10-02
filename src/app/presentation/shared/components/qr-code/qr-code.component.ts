@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnChanges, SimpleChanges, inject } from '@angular/core';
+import { toDataURL } from 'qrcode';
 
 @Component({
   selector: 'app-qr-code',
@@ -8,6 +9,9 @@ import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges } f
   standalone: false
 })
 export class QrCodeComponent implements OnChanges {
+  private readonly changeDetector = inject(ChangeDetectorRef);
+  private generation = 0;
+
   @Input() value: string = '';
   @Input() size: number = 180;
   @Input() title: string = 'Mã vé điện tử';
@@ -32,13 +36,29 @@ export class QrCodeComponent implements OnChanges {
     URL.revokeObjectURL(blobUrl);
   }
 
+  /**
+   * Ve QR ngay tren may (thu vien qrcode, giong admin). Truoc day ma ve check-in duoc gui sang
+   * api.qrserver.com: lo token cho ben thu ba va trong o QR khi dich vu do cham hoac bi chan.
+   */
   private generateQr(): void {
+    const generation = ++this.generation;
     if (!this.value) {
       this.qrSvgDataUrl = '';
       return;
     }
-    // Encode string to QR code using public lightweight API / data URI SVG
-    const encoded = encodeURIComponent(this.value);
-    this.qrSvgDataUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${this.size}x${this.size}&data=${encoded}&color=0f172a&bgcolor=ffffff&margin=1`;
+    toDataURL(this.value, {
+      width: this.size * 2,
+      margin: 1,
+      errorCorrectionLevel: 'M',
+      color: { dark: '#0f172a', light: '#ffffff' }
+    }).then(url => {
+      if (generation !== this.generation) return;
+      this.qrSvgDataUrl = url;
+      this.changeDetector.markForCheck();
+    }).catch(() => {
+      if (generation !== this.generation) return;
+      this.qrSvgDataUrl = '';
+      this.changeDetector.markForCheck();
+    });
   }
 }

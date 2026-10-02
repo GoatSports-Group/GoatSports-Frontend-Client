@@ -22,9 +22,8 @@
     } @else if (booking(); as currentBooking) {
       <div class="detail-heading">
         <div>
-          <p class="eyebrow">Mã đặt sân {{ currentBooking.bookingCode }}</p>
           <h1>{{ currentBooking.venueName || 'Cơ sở thể thao' }}</h1>
-          <p>{{ currentBooking.courtName || 'Sân thể thao' }}</p>
+          <p>{{ currentBooking.courtName || 'Sân thể thao' }} · Mã đặt sân <strong>{{ currentBooking.bookingCode }}</strong></p>
         </div>
         <span class="pass-status" [class]="'status-' + (statusColors[currentBooking.status] || 'slate')">
           {{ statusLabels[currentBooking.status] || currentBooking.status }}
@@ -282,13 +281,15 @@
 
   @if (showCancelModal() && booking(); as currentBooking) {
     <div class="modal-backdrop" (click)="closeCancelModal()">
-      <section class="modal-card neo-card" appAccessibleDialog aria-labelledby="cancel-title" (dialogClosed)="closeCancelModal()" (click)="$event.stopPropagation()">
-        <div class="modal-heading">
-          <div><p class="eyebrow">Xác nhận thao tác</p><h2 id="cancel-title">Yêu cầu hủy sân</h2></div>
+      <section class="modal" appAccessibleDialog aria-labelledby="cancel-title" (dialogClosed)="closeCancelModal()" (click)="$event.stopPropagation()">
+        <header class="modal__header">
+          <div><h2 id="cancel-title">Yêu cầu hủy sân</h2><p>{{ currentBooking.venueName || 'Cơ sở thể thao' }} · {{ currentBooking.bookingCode }}</p></div>
           <button type="button" class="icon-button" aria-label="Đóng" [disabled]="cancelling()" (click)="closeCancelModal()">
             <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
           </button>
-        </div>
+        </header>
+
+        <div class="modal__body">
 
         @if (automaticCancellation()) {
           <div class="refund-preview">
@@ -309,6 +310,7 @@
           </div>
         }
 
+        <div class="field">
         <label class="field-label" for="cancel-reason">Lý do hủy sân</label>
         <textarea
           id="cancel-reason"
@@ -320,27 +322,31 @@
           class="cancel-textarea"
         ></textarea>
         <small class="character-count">{{ cancelReason().length }}/1000</small>
+        </div>
+        </div>
 
-        <div class="modal-actions">
+        <footer class="modal__footer">
           <button type="button" class="secondary-button" [disabled]="cancelling()" (click)="closeCancelModal()">Quay lại</button>
           <button type="button" class="danger-button" [disabled]="cancelling() || !cancelReason().trim()" (click)="submitCancel()">
             @if (cancelling()) { <lucide-icon name="loader-2" class="w-4 h-4 animate-spin"></lucide-icon> Đang gửi }
             @else { {{ automaticCancellation() ? 'Hủy sân và hoàn tiền' : 'Gửi chủ sân xét duyệt' }} }
           </button>
-        </div>
+        </footer>
       </section>
     </div>
   }
 
-  @if (showReviewModal()) {
+  @if (showReviewModal() && booking(); as currentBooking) {
     <div class="modal-backdrop" (click)="closeReviewModal()">
-      <section class="modal-card neo-card" appAccessibleDialog aria-labelledby="review-title" (dialogClosed)="closeReviewModal()" (click)="$event.stopPropagation()">
-        <div class="modal-heading">
-          <div><p class="eyebrow">Booking đã hoàn thành</p><h2 id="review-title">Đánh giá sân</h2></div>
+      <section class="modal" appAccessibleDialog aria-labelledby="review-title" (dialogClosed)="closeReviewModal()" (click)="$event.stopPropagation()">
+        <header class="modal__header">
+          <div><h2 id="review-title">Đánh giá sân</h2><p>{{ currentBooking.venueName || 'Cơ sở thể thao' }} · {{ currentBooking.courtName || 'Sân thể thao' }}</p></div>
           <button type="button" class="icon-button" aria-label="Đóng" [disabled]="reviewing()" (click)="closeReviewModal()">
             <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
           </button>
-        </div>
+        </header>
+
+        <div class="modal__body">
 
         <fieldset class="rating-fieldset">
           <legend>Mức độ hài lòng</legend>
@@ -356,6 +362,7 @@
           </div>
         </fieldset>
 
+        <div class="field">
         <label class="field-label" for="review-content">Chia sẻ thêm về trải nghiệm</label>
         <textarea
           id="review-content"
@@ -367,14 +374,16 @@
           class="cancel-textarea"
         ></textarea>
         <small class="character-count">{{ reviewContent().length }}/2000</small>
+        </div>
+        </div>
 
-        <div class="modal-actions">
+        <footer class="modal__footer">
           <button type="button" class="secondary-button" [disabled]="reviewing()" (click)="closeReviewModal()">Để sau</button>
           <button type="button" class="primary-button" [disabled]="reviewing()" (click)="submitReview()">
             @if (reviewing()) { <lucide-icon name="loader-2" class="w-4 h-4 animate-spin"></lucide-icon> Đang gửi }
             @else { Gửi đánh giá }
           </button>
-        </div>
+        </footer>
       </section>
     </div>
   }

@@ -169,7 +169,7 @@
       </div>
       } @else {
       <ol class="history-list">
-        @for (item of history; track item.resultId) {
+        @for (item of history | slice:0:historyShown; track item.resultId) {
         <li class="history-row" [class]="'history-row history-row--' + item.outcome.toLowerCase()">
           <span class="badge" [class.badge--success]="item.outcome === 'WIN'" [class.badge--danger]="item.outcome === 'LOSS'">
             {{ outcomeLabel(item.outcome) }}
@@ -192,6 +192,9 @@
         </li>
         }
       </ol>
+      @if (history.length > historyShown) {
+      <div class="list-sentinel" appInfiniteScroll (reached)="historyShown = historyShown + listChunk" aria-hidden="true"></div>
+      }
       }
     </div>
   </section>

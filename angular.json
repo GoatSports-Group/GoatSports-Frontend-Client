@@ -26,7 +26,8 @@
             ],
             "tsConfig": "tsconfig.app.json",
             "allowedCommonJsDependencies": [
-              "leaflet"
+              "leaflet",
+              "qrcode"
             ],
             "assets": [
               {

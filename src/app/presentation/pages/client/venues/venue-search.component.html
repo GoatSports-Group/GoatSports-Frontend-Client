@@ -122,31 +122,15 @@
         <button type="button" (click)="loadVenues()">Thử lại</button>
       </section>
       } @else if (venues.length) {
-      <div class="venues-grid goat-stagger">
+      <div class="venues-grid goat-stagger" [class.is-paging]="paging" [attr.aria-busy]="paging">
         @for (venue of displayedVenues; track venue.venueId) {
         <app-venue-card [venue]="venue" [homeStyle]="true" [selectable]="true"
           [selected]="selectedVenue?.venueId === venue.venueId" (venueSelected)="selectVenue($event)"></app-venue-card>
         }
       </div>
 
-      @if (totalPages > 1) {
-      <nav class="pagination" aria-label="Phân trang danh sách sân">
-        <button type="button" class="page-btn" [disabled]="currentPage === 0" (click)="onPageChange(currentPage - 1)"
-          aria-label="Trang trước">
-          <lucide-icon name="chevron-left" class="w-4 h-4"></lucide-icon>
-        </button>
-        @for (page of visiblePages; track page) {
-        <button type="button" class="page-btn" [class.active]="page === currentPage"
-          [attr.aria-current]="page === currentPage ? 'page' : null" (click)="onPageChange(page)">
-          {{ page + 1 }}
-        </button>
-        }
-        <button type="button" class="page-btn" [disabled]="currentPage + 1 >= totalPages"
-          (click)="onPageChange(currentPage + 1)" aria-label="Trang sau">
-          <lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon>
-        </button>
-      </nav>
-      }
+      <app-pagination [pageIndex]="currentPage" [pageSize]="pageSize" [totalItems]="totalVenues" itemLabel="sân"
+        (pageChange)="onPageChange($event)"></app-pagination>
       } @else {
       <section class="empty-state">
         <lucide-icon name="search" class="w-10 h-10"></lucide-icon>

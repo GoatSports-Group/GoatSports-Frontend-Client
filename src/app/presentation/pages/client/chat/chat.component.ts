@@ -1,6 +1,6 @@
 import { AfterViewChecked, Component, ElementRef, OnDestroy, OnInit, ViewChild, computed, effect, inject, signal, untracked } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, Subscription, finalize, map, of, switchMap } from 'rxjs';
+import { Observable, Subscription, finalize, map, of, switchMap, tap } from 'rxjs';
 import { CHAT_REPOSITORY_TOKEN } from '@application/ports/persistence/chat.repository';
 import { FRIEND_REPOSITORY_TOKEN } from '@application/ports/persistence/friend.repository';
 import { WEBSOCKET_SERVICE_TOKEN } from '@application/ports/websocket.service';
@@ -38,6 +38,9 @@ const SPORT_LABELS: Record<string, string> = {
 const MUTED_ROOMS_STORAGE_KEY = 'goat.chat.mutedRooms';
 
 type RoomFilter = 'ALL' | 'UNREAD' | 'GROUP' | 'CLUB';
+
+const MESSAGE_PAGE = 50;
+const ROOM_PAGE = 30;
 
 @Component({
   selector: 'app-chat',
@@ -124,6 +127,14 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   private readonly remoteTypingTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
   private relativeTimeInterval?: ReturnType<typeof setInterval>;
   private shouldScrollBottom = false;
+  /** Chieu cao cu cua khung tin nhan khi chen tin cu len dau; giu nguyen vi tri dang doc. */
+  private keepScrollFrom: { height: number; top: number } | null = null;
+  private messagesPage = 0;
+  private roomsPage = 0;
+  readonly hasOlderMessages = signal(false);
+  readonly loadingOlderMessages = signal(false);
+  readonly hasMoreRooms = signal(false);
+  readonly loadingMoreRooms = signal(false);
   private requestedRoomId: string | null = null;
   private messageRequestSequence = 0;
   private readonly subscriptions: Subscription[] = [];
@@ -154,6 +165,11 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   ngAfterViewChecked(): void {
+    const element = this.scrollContainer?.nativeElement;
+    if (this.keepScrollFrom && element) {
+      element.scrollTop = element.scrollHeight - this.keepScrollFrom.height + this.keepScrollFrom.top;
+      this.keepScrollFrom = null;
+    }
     if (!this.shouldScrollBottom) return;
     this.scrollToBottom();
     this.shouldScrollBottom = false;
@@ -187,7 +203,10 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   loadRooms(): void {
     this.loadingRooms.set(true);
     this.roomsLoadFailed.set(false);
-    this.chatRepo.getUserRooms(0, 50).pipe(
+    this.roomsPage = 0;
+    this.hasMoreRooms.set(false);
+    this.chatRepo.getUserRooms(0, ROOM_PAGE).pipe(
+      tap(response => this.hasMoreRooms.set((response.data?.length ?? 0) === ROOM_PAGE)),
       switchMap(response => this.enrichRooms(response.data || [])),
       finalize(() => this.loadingRooms.set(false))
     ).subscribe({
@@ -204,6 +223,28 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
         }
       },
       error: () => this.roomsLoadFailed.set(true)
+    });
+  }
+
+  /** Cuon toi cuoi danh sach hoi thoai: tai them mot trang, bo trung (phong moi co the day trang). */
+  loadMoreRooms(): void {
+    if (this.loadingMoreRooms() || !this.hasMoreRooms()) return;
+    this.loadingMoreRooms.set(true);
+    const page = this.roomsPage + 1;
+    this.chatRepo.getUserRooms(page, ROOM_PAGE).pipe(
+      tap(response => this.hasMoreRooms.set((response.data?.length ?? 0) === ROOM_PAGE)),
+      switchMap(response => this.enrichRooms(response.data || [])),
+      finalize(() => this.loadingMoreRooms.set(false))
+    ).subscribe({
+      next: rooms => {
+        const known = new Set(this.rooms().map(room => room.roomId));
+        const fresh = rooms.filter(room => !known.has(room.roomId));
+        this.roomsPage = page;
+        this.rooms.update(current => this.sortRooms([...current, ...fresh]));
+        fresh.forEach(room => this.wsService.subscribeToRoom(room.roomId));
+        this.loadPresenceForRooms(fresh);
+      },
+      error: () => this.hasMoreRooms.set(false)
     });
   }
 
@@ -280,7 +321,10 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.messagesLoadFailed.set(false);
     this.messages.set([]);
 
-    this.chatRepo.getRoomMessages(roomId, 0, 100).pipe(
+    this.messagesPage = 0;
+    this.hasOlderMessages.set(false);
+    this.keepScrollFrom = null;
+    this.chatRepo.getRoomMessages(roomId, 0, MESSAGE_PAGE).pipe(
       finalize(() => {
         if (sequence === this.messageRequestSequence) this.loadingMessages.set(false);
       })
@@ -288,6 +332,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       next: response => {
         if (sequence !== this.messageRequestSequence || this.activeRoom()?.roomId !== roomId) return;
         const savedMessages = [...(response.data || [])].reverse();
+        this.hasOlderMessages.set(savedMessages.length === MESSAGE_PAGE);
         const unmatchedPending = localPending.filter(pending =>
           !savedMessages.some(saved => saved.clientMessageId === pending.clientMessageId)
         );
@@ -299,6 +344,32 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       }
     });
   }
+  /** Cuon len dau khung tin nhan: tai trang tin cu hon (trang 0 la moi nhat) va giu nguyen cho dang doc. */
+  loadOlderMessages(): void {
+    const room = this.activeRoom();
+    if (!room || this.loadingOlderMessages() || !this.hasOlderMessages()) return;
+    this.loadingOlderMessages.set(true);
+    const sequence = this.messageRequestSequence;
+    const page = this.messagesPage + 1;
+    this.chatRepo.getRoomMessages(room.roomId, page, MESSAGE_PAGE).pipe(
+      finalize(() => this.loadingOlderMessages.set(false))
+    ).subscribe({
+      next: response => {
+        if (sequence !== this.messageRequestSequence) return;
+        const older = [...(response.data || [])].reverse();
+        // Tin moi den lam lech offset nen trang sau co the lap lai vai tin da co: bo trung theo id.
+        const known = new Set(this.messages().map(message => message.messageId));
+        const fresh = older.filter(message => !known.has(message.messageId));
+        const element = this.scrollContainer?.nativeElement;
+        if (element) this.keepScrollFrom = { height: element.scrollHeight, top: element.scrollTop };
+        this.messagesPage = page;
+        this.hasOlderMessages.set(older.length === MESSAGE_PAGE);
+        this.messages.update(current => this.sortMessages([...fresh, ...current]));
+      },
+      error: () => this.hasOlderMessages.set(false)
+    });
+  }
+
 
   get canSend(): boolean {
     return !this.preparingImages() && (!!this.messageInput.trim() || this.draftImages().length > 0);

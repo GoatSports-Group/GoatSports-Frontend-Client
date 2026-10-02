@@ -1391,7 +1391,7 @@ button:focus-visible {
   display: grid;
   place-items: center;
   padding: 16px;
-  background: rgba(7, 20, 38, .7);
+  background: rgb(16 26 44 / 55%);
   backdrop-filter: blur(3px);
 }
 
@@ -2097,4 +2097,18 @@ app-select.sort-select {
 .accept-button,
 .count-badge {
   white-space: nowrap;
+}
+
+// GOAT-DESIGN Modals: duoi 768px modal la bottom sheet (sat day, bo 24 o hai goc tren, cao toi da 92dvh).
+@media (max-width: 767px) {
+  .modal-overlay {
+    align-items: end;
+    padding: 0;
+  }
+
+  .modal-card {
+    width: 100%;
+    max-height: 92dvh;
+    border-radius: 24px 24px 0 0;
+  }
 }

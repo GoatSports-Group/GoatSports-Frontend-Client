@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, inject } from '@angular/core';
+import { LIST_CHUNK } from '@shared/directives/infinite-scroll.directive';
 import { finalize } from 'rxjs';
 import {
   PLAYER_DAY_OPTIONS,
@@ -80,6 +81,9 @@ export class SettingsSportsTabComponent implements OnInit {
   /** Hồ sơ đang mở "Lịch sử thi đấu". */
   historyProfile: PlayerSportProfile | null = null;
   history: SportMatchHistoryItem[] = [];
+  /** Lich su tra ve ca mang; chi render dan tung LIST_CHUNK dong khi cuon trong modal. */
+  historyShown = LIST_CHUNK;
+  readonly listChunk = LIST_CHUNK;
   historyLoading = false;
   historyFailed = false;
 
@@ -133,6 +137,7 @@ export class SettingsSportsTabComponent implements OnInit {
     this.historyLoading = true;
     this.historyFailed = false;
     this.history = [];
+    this.historyShown = LIST_CHUNK;
     this.repository.getMyHistory(profile.sportType).pipe(
       finalize(() => this.historyLoading = false)
     ).subscribe({

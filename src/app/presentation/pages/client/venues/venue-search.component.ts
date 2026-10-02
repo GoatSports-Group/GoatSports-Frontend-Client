@@ -71,6 +71,8 @@ export class VenueSearchComponent implements OnInit, AfterViewInit, OnDestroy {
   totalVenues = 0;
   totalPages = 0;
   currentPage = 0;
+  /** Doi trang: giu ket qua hien tai (lam mo) thay vi skeleton. */
+  paging = false;
   sortBy: VenueSort = 'distance';
   filter: VenueSearchFilter = this.emptyFilter();
 
@@ -124,7 +126,7 @@ export class VenueSearchComponent implements OnInit, AfterViewInit, OnDestroy {
 
   loadVenues(): void {
     const searchVersion = ++this.venueSearchVersion;
-    this.loading = true;
+    this.loading = !this.paging;
     this.errorMessage = '';
 
     const worldwideSearch = this.locationActive
@@ -142,6 +144,7 @@ export class VenueSearchComponent implements OnInit, AfterViewInit, OnDestroy {
         this.totalVenues = response?.data?.total || 0;
         this.totalPages = response?.data?.totalPages || 0;
         this.loading = false;
+        this.paging = false;
         this.syncSelectedVenue();
         requestAnimationFrame(() => this.renderMapMarkers(true));
       },
@@ -154,6 +157,7 @@ export class VenueSearchComponent implements OnInit, AfterViewInit, OnDestroy {
         this.totalPages = 0;
         this.errorMessage = error?.error?.message || 'Không thể tải danh sách sân. Vui lòng thử lại.';
         this.loading = false;
+        this.paging = false;
         requestAnimationFrame(() => this.renderMapMarkers(true));
       }
     });
@@ -175,6 +179,7 @@ export class VenueSearchComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onPageChange(page: number): void {
     if (page < 0 || page >= this.totalPages || page === this.currentPage) return;
+    this.paging = this.venues.length > 0;
     this.navigateWithFilters(page).then(() => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
@@ -268,13 +273,6 @@ export class VenueSearchComponent implements OnInit, AfterViewInit, OnDestroy {
       || this.filter.maxPrice != null || this.filter.minRating != null
       || this.locationActive || this.viewportSearchActive
     );
-  }
-
-  get visiblePages(): number[] {
-    if (this.totalPages <= 1) return [];
-    const start = Math.max(0, Math.min(this.currentPage - 2, this.totalPages - 5));
-    const count = Math.min(5, this.totalPages);
-    return Array.from({ length: count }, (_, index) => start + index);
   }
 
   formatPrice(price: number | null | undefined): string {

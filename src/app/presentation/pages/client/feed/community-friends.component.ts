@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { LIST_CHUNK } from '@shared/directives/infinite-scroll.directive';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, Subject, catchError, debounceTime, distinctUntilChanged, finalize, map, of, switchMap, tap } from 'rxjs';
@@ -44,6 +45,8 @@ export class CommunityFriendsComponent implements OnInit {
 
   readonly lists = LISTS;
   readonly list = signal<FriendList>('friends');
+  /** Ban be tra ve ca mang (chi ID); chi render dan tung LIST_CHUNK dong khi cuon. */
+  readonly shown = signal(LIST_CHUNK);
   readonly pending = signal<ReadonlySet<string>>(new Set());
   readonly confirm = signal<Confirm | null>(null);
 
@@ -68,6 +71,7 @@ export class CommunityFriendsComponent implements OnInit {
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       const list = params.get('list') as FriendList | null;
       this.list.set(LISTS.some(item => item.value === list) ? list! : 'friends');
+      this.shown.set(LIST_CHUNK);
     });
     this.search$.pipe(
       map(value => value.trim()),
@@ -82,6 +86,10 @@ export class CommunityFriendsComponent implements OnInit {
   selectList(list: FriendList): void {
     this.confirm.set(null);
     void this.router.navigate([], { queryParams: { list: list === 'friends' ? null : list }, queryParamsHandling: 'merge' });
+  }
+
+  showMore(): void {
+    this.shown.update(count => count + LIST_CHUNK);
   }
 
   onQuery(value: string): void {
