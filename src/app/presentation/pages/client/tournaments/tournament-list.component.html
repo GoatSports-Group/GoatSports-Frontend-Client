@@ -4,6 +4,26 @@
       <h1 class="page-title">Giải đấu</h1>
       <p>Giải do các chủ sân tổ chức ngay tại cơ sở. Đăng ký cá nhân hoặc lập đội, đóng lệ phí và theo dõi lịch, kết quả.</p>
     </div>
+    @if (pulse(); as p) {
+    <!-- Nhip mua giai: so that tu club-service, bam de loc. -->
+    <div class="pulse" role="group" aria-label="Nhịp mùa giải">
+      <button type="button" class="pulse__item pulse__item--live" [class.is-active]="status() === 'IN_PROGRESS'"
+        [attr.aria-pressed]="status() === 'IN_PROGRESS'" (click)="togglePulseStatus('IN_PROGRESS')">
+        <span class="pulse__label"><i class="live-dot" [class.is-on]="p.live > 0" aria-hidden="true"></i>Đang diễn ra</span>
+        <strong>{{ p.live }}</strong>
+      </button>
+      <button type="button" class="pulse__item" [class.is-active]="status() === 'REGISTRATION_OPEN'"
+        [attr.aria-pressed]="status() === 'REGISTRATION_OPEN'" (click)="togglePulseStatus('REGISTRATION_OPEN')">
+        <span class="pulse__label"><lucide-icon name="ticket" class="w-4 h-4"></lucide-icon>Mở đăng ký</span>
+        <strong>{{ p.open }}</strong>
+      </button>
+      <button type="button" class="pulse__item" [class.is-active]="status() === 'REGISTRATION_CLOSED'"
+        [attr.aria-pressed]="status() === 'REGISTRATION_CLOSED'" (click)="togglePulseStatus('REGISTRATION_CLOSED')">
+        <span class="pulse__label"><lucide-icon name="flag" class="w-4 h-4"></lucide-icon>Sắp khởi tranh</span>
+        <strong>{{ p.upcoming }}</strong>
+      </button>
+    </div>
+    }
   </header>
 
   @if (signedIn) { <app-tournament-invitations class="invitations" (answered)="onInvitationAnswered()"></app-tournament-invitations> }
@@ -23,7 +43,7 @@
   }
 
   @if (showFeatured()) {
-  <section class="featured-slot" aria-label="Giải sắp đóng đăng ký">
+  <section class="featured-slot" aria-label="Giải nổi bật">
     @if (featuredLoading()) {
     <div class="featured featured--skeleton" role="status" aria-label="Đang tải giải nổi bật">
       <div class="featured__main">
@@ -34,10 +54,16 @@
       <app-loading-skeleton [decorative]="true" width="100%" height="140px" radius="16px"></app-loading-skeleton>
     </div>
     } @else if (featured(); as item) {
-    <a class="featured" [routerLink]="['/tournaments', item.tournamentId]"
-      [attr.aria-label]="'Xem giải ' + item.name">
+    @let live = item.status === 'IN_PROGRESS';
+    <a class="featured" [class.featured--live]="live" [ngClass]="'featured--' + sportSurface[item.sportType]"
+      [routerLink]="['/tournaments', item.tournamentId]" [attr.aria-label]="'Xem giải ' + item.name">
+      <span class="featured__court" aria-hidden="true"></span>
       <div class="featured__main">
-        <span class="featured__kicker">Sắp đóng đăng ký · {{ sportLabel[item.sportType] }}</span>
+        @if (live) {
+        <span class="featured__kicker"><i class="live-dot is-on" aria-hidden="true"></i>Đang diễn ra · {{ sportLabel[item.sportType] }}</span>
+        } @else {
+        <span class="featured__kicker"><lucide-icon name="timer" class="w-4 h-4"></lucide-icon>Sắp đóng đăng ký · {{ sportLabel[item.sportType] }}</span>
+        }
         <h2>{{ item.name }}</h2>
         @if (item.description) { <p class="featured__desc">{{ item.description }}</p> }
         <dl class="featured__facts">
@@ -48,6 +74,18 @@
         </dl>
       </div>
       <div class="featured__aside">
+        @if (live) {
+        @let progress = liveProgress(item);
+        <div class="featured__countdown">
+          <strong>Ngày {{ progress.day }}<small>/{{ progress.total }}</small></strong>
+          <span>Kết thúc {{ item.endDate | date:'dd/MM' }}</span>
+        </div>
+        <div class="fill fill--inverse">
+          <div class="fill__meta"><span>Tiến độ giải</span><b>{{ (progress.day / progress.total * 100) | number:'1.0-0' }}%</b></div>
+          <div class="fill__track"><div class="fill__bar" [style.width.%]="progress.day / progress.total * 100"></div></div>
+        </div>
+        <span class="featured__cta">Xem lịch thi đấu <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></span>
+        } @else {
         <div class="featured__countdown">
           <strong>{{ daysLeft(item) }}</strong>
           <span>{{ daysLeft(item) === 0 ? 'Hạn chót hôm nay' : 'ngày còn lại để đăng ký' }}</span>
@@ -57,6 +95,7 @@
           <div class="fill__track"><div class="fill__bar" [style.width.%]="fillPercent(item)"></div></div>
         </div>
         <span class="featured__cta">Xem & đăng ký <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></span>
+        }
       </div>
     </a>
     }
@@ -71,8 +110,6 @@
       <input type="search" placeholder="Tìm theo tên giải..." aria-label="Tìm theo tên giải" [value]="keyword()"
         (input)="onKeyword($any($event.target).value)" />
     </label>
-    <app-select class="filters__select" [options]="sportOptions" [ngModel]="sport()" (ngModelChange)="setSport($event)"
-      leadingIcon="trophy" ariaLabel="Lọc theo môn"></app-select>
     <app-select class="filters__select" [options]="statusOptions" [ngModel]="status()" (ngModelChange)="setStatus($event)"
       leadingIcon="circle-dot" ariaLabel="Lọc theo trạng thái"></app-select>
     <div class="filters__meta">
@@ -80,6 +117,14 @@
       @if (hasFilters()) {
       <button type="button" class="btn btn--ghost" (click)="clearFilters()">
         <lucide-icon name="rotate-ccw" class="w-4 h-4"></lucide-icon>Xóa bộ lọc
+      </button>
+      }
+    </div>
+    <div class="sport-chips" role="group" aria-label="Lọc theo môn">
+      @for (chip of sportChips; track chip.value) {
+      <button type="button" class="sport-chip" [class.is-active]="sport() === chip.value" [attr.aria-pressed]="sport() === chip.value"
+        (click)="setSport(chip.value)">
+        <lucide-icon [name]="chip.icon" class="w-4 h-4"></lucide-icon>{{ chip.label }}
       </button>
       }
     </div>
@@ -102,33 +147,45 @@
     } @else if (page()?.items?.length) {
     <div class="grid goat-stagger" [class.is-paging]="paging()">
       @for (item of page()!.items; track item.tournamentId) {
-      <a class="t-card" [routerLink]="['/tournaments', item.tournamentId]" [attr.aria-label]="'Xem giải ' + item.name">
-        <div class="t-card__top">
-          <span class="badge badge--sport">{{ sportLabel[item.sportType] }}</span>
-          <span class="badge" [ngClass]="'badge--' + statusMeta[item.status].tone">{{ statusMeta[item.status].label }}</span>
+      @let tile = dateTile(item.startDate);
+      @let soon = closingSoon(item);
+      <a class="t-card" [ngClass]="['t-card--' + sportSurface[item.sportType], 't-card--' + item.status.toLowerCase()]"
+        [routerLink]="['/tournaments', item.tournamentId]" [attr.aria-label]="'Xem giải ' + item.name">
+        <div class="t-card__band">
+          <span class="t-card__surface" aria-hidden="true"></span>
+          <span class="t-card__sport"><lucide-icon [name]="sportIcon[item.sportType]" class="w-4 h-4"></lucide-icon>{{ sportLabel[item.sportType] }}</span>
+          <span class="t-card__status" [ngClass]="'t-card__status--' + statusMeta[item.status].tone">
+            @if (item.status === 'IN_PROGRESS') { <i class="live-dot is-on" aria-hidden="true"></i> }
+            {{ statusMeta[item.status].label }}
+          </span>
+          <span class="t-card__date" aria-hidden="true"><b>{{ tile.day }}</b><small>{{ tile.month }}</small></span>
+          @if (soon !== null) {
+          <span class="t-card__urgent"><lucide-icon name="timer" class="w-3 h-3"></lucide-icon>{{ soon === 0 ? 'Hạn chót hôm nay' : 'Còn ' + soon + ' ngày' }}</span>
+          }
         </div>
-        <h3 class="t-card__title">{{ item.name }}</h3>
-        <ul class="t-card__meta">
-          <li><lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon>
-            <span>{{ item.startDate | date:'dd/MM' }} – {{ item.endDate | date:'dd/MM/yyyy' }}</span></li>
-          <li><lucide-icon name="swords" class="w-4 h-4"></lucide-icon><span>{{ item.playFormatLabel ? item.playFormatLabel + ' · ' : '' }}{{ formatLabel[item.format] }}</span></li>
-        </ul>
-        <div class="fill">
-          <div class="fill__meta"><span>Đăng ký</span><b>{{ item.currentParticipants }}/{{ item.maxParticipants }}</b></div>
-          <div class="fill__track"><div class="fill__bar" [style.width.%]="fillPercent(item)"></div></div>
+        <div class="t-card__body">
+          <h3 class="t-card__title">{{ item.name }}</h3>
+          <ul class="t-card__meta">
+            <li><lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon>
+              <span>{{ item.startDate | date:'dd/MM' }} – {{ item.endDate | date:'dd/MM/yyyy' }}</span></li>
+            <li><lucide-icon name="swords" class="w-4 h-4"></lucide-icon><span>{{ item.playFormatLabel ? item.playFormatLabel + ' · ' : '' }}{{ formatLabel[item.format] }}</span></li>
+          </ul>
+          <div class="fill" [class.fill--full]="fillPercent(item) >= 100">
+            <div class="fill__meta"><span>{{ seatsLabel(item) }}</span><b>{{ item.currentParticipants }}/{{ item.maxParticipants }}</b></div>
+            <div class="fill__track"><div class="fill__bar" [style.width.%]="fillPercent(item)"></div></div>
+          </div>
+          <footer class="t-card__foot">
+            <strong class="t-card__fee">{{ formatVnd(item.entryFee) }}</strong>
+            <span class="t-card__milestone">{{ nextMilestone(item) }}</span>
+          </footer>
         </div>
-        <footer class="t-card__foot">
-          <strong class="t-card__fee">{{ formatVnd(item.entryFee) }}</strong>
-          <span class="t-card__milestone">{{ nextMilestone(item) }}</span>
-        </footer>
       </a>
       }
     </div>
     @if (page(); as result) {
-    @if (result.totalPages > 1) {
+    <!-- Luon hien (ke ca mot trang) de nguoi choi thay tong so giai. -->
     <app-pagination [pageIndex]="pageIndex()" [pageSize]="pageSize" [totalItems]="result.total"
       itemLabel="giải đấu" (pageChange)="goToPage($event)"></app-pagination>
-    }
     }
     } @else if (tab() === 'explore') {
     <div class="state">

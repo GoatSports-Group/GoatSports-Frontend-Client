@@ -35,13 +35,98 @@
   }
 }
 
+// ---- Nhip mua giai (3 o KPI bam duoc) ----------------------------------------------------------
+.pulse {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(132px, 1fr));
+  gap: 8px;
+}
+
+.pulse__item {
+  display: grid;
+  min-height: 64px;
+  align-content: center;
+  gap: 2px;
+  padding: 10px 16px;
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--transition-smooth), transform var(--transition-smooth), background-color var(--transition-smooth);
+
+  strong {
+    font-size: 26px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 900;
+    letter-spacing: -.03em;
+    line-height: 1.1;
+  }
+
+  &:hover { border-color: var(--border-strong); transform: translateY(-1px); }
+  &.is-active { border-color: var(--primary); background: var(--primary-light); }
+  &.is-active strong { color: var(--primary-strong); }
+}
+
+.pulse__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--body);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+
+  lucide-icon { color: var(--primary); }
+}
+
+// Cham "dang dien ra": nhay vong khi co giai dang da (tat khi giam chuyen dong).
+.live-dot {
+  position: relative;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 9999px;
+  background: var(--body);
+  opacity: .5;
+
+  &.is-on {
+    background: #34c48f;
+    opacity: 1;
+
+    &::after {
+      position: absolute;
+      inset: -4px;
+      border-radius: inherit;
+      background: rgb(52 196 143 / 45%);
+      content: '';
+      animation: live-ping 1.6s ease-out infinite;
+    }
+  }
+}
+
+@keyframes live-ping {
+  from { opacity: .9; transform: scale(.5); }
+  to { opacity: 0; transform: scale(1.6); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-dot.is-on::after { animation: none; opacity: 0; }
+}
+
 // ---- Featured (sports navy, one per view) ------------------------------------------------------
 .featured-slot:empty {
   display: none;
 }
 
 .featured {
+  position: relative;
   display: grid;
+  overflow: hidden;
   grid-template-columns: minmax(0, 1fr) minmax(0, 320px);
   gap: 32px;
   padding: 28px;
@@ -57,6 +142,42 @@
     box-shadow: var(--shadow-md);
     transform: translateY(-2px);
   }
+}
+
+// Hoa van mat san theo mon, mo dan sang trai, nam duoi noi dung.
+.featured__court {
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 58%;
+  opacity: .16;
+  pointer-events: none;
+  mask-image: linear-gradient(to left, #000 35%, transparent);
+}
+
+.featured--grass .featured__court {
+  background:
+    radial-gradient(circle at 70% 50%, transparent 54px, #fff 55px 57px, transparent 58px),
+    linear-gradient(90deg, transparent calc(70% - 1px), #fff calc(70% - 1px) calc(70% + 1px), transparent calc(70% + 1px)),
+    repeating-linear-gradient(90deg, #34c48f 0 36px, transparent 36px 72px);
+}
+
+.featured--court .featured__court {
+  background:
+    linear-gradient(90deg, transparent calc(60% - 1px), #fff calc(60% - 1px) calc(60% + 1px), transparent calc(60% + 1px)),
+    linear-gradient(transparent 22%, #fff 22% calc(22% + 2px), transparent calc(22% + 2px) calc(78% - 2px), #fff calc(78% - 2px) 78%, transparent 78%),
+    repeating-linear-gradient(180deg, #4b8db5 0 40px, transparent 40px 80px);
+}
+
+.featured--hardwood .featured__court {
+  background:
+    radial-gradient(circle at 70% 50%, transparent 48px, #fff 49px 51px, transparent 52px),
+    repeating-linear-gradient(90deg, #e0a868 0 22px, transparent 22px 44px);
+}
+
+.featured__main,
+.featured__aside {
+  position: relative;
+  z-index: 1;
 }
 
 .featured--skeleton {
@@ -90,6 +211,9 @@
 }
 
 .featured__kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   color: #7be0b4;
   font-size: 12px;
   font-weight: 800;
@@ -145,7 +269,9 @@
   padding: 20px;
   border: 1px solid rgb(255 255 255 / 14%);
   border-radius: 16px;
-  background: rgb(255 255 255 / 6%);
+  // Dam hon nen navy de hoa van san phia sau khong lam roi so dem.
+  background: rgb(7 25 45 / 78%);
+  backdrop-filter: blur(3px);
 }
 
 .featured__countdown {
@@ -158,6 +284,8 @@
     font-weight: 900;
     letter-spacing: -.04em;
     line-height: 1;
+
+    small { color: rgb(255 255 255 / 60%); font-size: 24px; font-weight: 800; }
   }
 
   span {
@@ -199,7 +327,7 @@
 // ---- Filter panel -------------------------------------------------------------------------------
 .filters {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
   padding: 12px;
@@ -255,6 +383,40 @@
   font-weight: 700;
 }
 
+// Chip mon co icon, mot hang cuon ngang co mep phai mo (GOAT-DESIGN Scroll areas).
+.sport-chips {
+  display: flex;
+  grid-column: 1 / -1;
+  gap: 8px;
+  overflow-x: auto;
+  padding-right: 24px;
+  overscroll-behavior-x: contain;
+  mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent);
+}
+
+.sport-chip {
+  display: inline-flex;
+  min-height: 40px;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  border: 1px solid var(--hairline);
+  border-radius: 9999px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color var(--transition-smooth), background-color var(--transition-smooth);
+
+  lucide-icon { color: var(--primary); }
+  &:hover { border-color: var(--border-strong); }
+  &.is-active { border-color: var(--primary); background: var(--primary-light); color: var(--primary-strong); }
+}
+
 // ---- Card grid ----------------------------------------------------------------------------------
 .results {
   display: grid;
@@ -265,7 +427,7 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 24px;
   transition: opacity var(--transition-smooth);
 
@@ -275,12 +437,12 @@
   }
 }
 
+// The giai: dai "mat san" theo mon + o lich ngay khai mac noi len, than the gon ben duoi.
 .t-card {
   display: grid;
+  overflow: hidden;
   min-width: 0;
-  grid-template-rows: auto auto 1fr auto auto;
-  gap: 12px;
-  padding: 20px;
+  grid-template-rows: auto 1fr;
   border: 1px solid var(--hairline);
   border-radius: 16px;
   background: var(--surface);
@@ -294,14 +456,128 @@
     box-shadow: var(--shadow-md);
     transform: translateY(-2px);
   }
+
+  &:hover .t-card__surface { transform: scale(1.04); }
 }
 
-.t-card__top {
-  display: flex;
-  min-width: 0;
+.t-card__band {
+  position: relative;
+  height: 96px;
+  overflow: visible;
+}
+
+.t-card__surface {
+  position: absolute;
+  inset: 0;
+  transition: transform .4s ease, filter var(--transition-smooth);
+}
+
+.t-card--grass .t-card__surface {
+  background:
+    radial-gradient(circle at 50% 50%, transparent 21px, rgb(255 255 255 / 55%) 22px 23px, transparent 24px),
+    linear-gradient(90deg, transparent calc(50% - 1px), rgb(255 255 255 / 55%) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)),
+    repeating-linear-gradient(90deg, #1c7a3a 0 28px, #1f8540 28px 56px);
+}
+
+.t-card--court .t-card__surface {
+  background:
+    linear-gradient(90deg, transparent calc(50% - 1px), rgb(255 255 255 / 60%) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)),
+    linear-gradient(transparent 18%, rgb(255 255 255 / 45%) 18% calc(18% + 2px), transparent calc(18% + 2px) calc(82% - 2px), rgb(255 255 255 / 45%) calc(82% - 2px) 82%, transparent 82%),
+    repeating-linear-gradient(180deg, #2f6b8f 0 24px, #2c6588 24px 48px);
+}
+
+.t-card--hardwood .t-card__surface {
+  background:
+    radial-gradient(circle at 50% 50%, transparent 21px, rgb(255 255 255 / 60%) 22px 23px, transparent 24px),
+    linear-gradient(90deg, transparent calc(50% - 1px), rgb(255 255 255 / 60%) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)),
+    repeating-linear-gradient(90deg, #c98d52 0 22px, #c28549 22px 44px);
+}
+
+// Giai da xong: mat san nhat mau, thong tin van doc ro.
+.t-card--completed .t-card__surface,
+.t-card--cancelled .t-card__surface { filter: grayscale(.7) brightness(.92); }
+
+.t-card__sport,
+.t-card__status,
+.t-card__urgent {
+  position: absolute;
+  z-index: 1;
+  display: inline-flex;
+  height: 26px;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
+  padding: 0 9px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.t-card__sport {
+  top: 12px;
+  left: 12px;
+  background: rgb(7 25 45 / 72%);
+  color: #fff;
+}
+
+.t-card__status {
+  top: 12px;
+  right: 12px;
+  background: var(--surface);
+  color: var(--body);
+
+  &--success { background: var(--success-soft); color: var(--success); }
+  &--warning { background: var(--warning-soft); color: var(--warning); }
+  &--info { background: var(--info-soft); color: var(--info); }
+  &--primary { background: var(--primary-light); color: var(--primary-strong); }
+  &--danger { background: var(--danger-soft); color: var(--danger); }
+}
+
+.t-card__urgent {
+  right: 12px;
+  bottom: 12px;
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+.t-card__date {
+  position: absolute;
+  z-index: 2;
+  bottom: -22px;
+  left: 16px;
+  display: grid;
+  width: 54px;
+  height: 58px;
+  place-content: center;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+  color: var(--ink);
+  text-align: center;
+
+  b {
+    font-size: 22px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  small {
+    margin-top: 3px;
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .04em;
+  }
+}
+
+.t-card__body {
+  display: grid;
+  min-width: 0;
+  grid-template-rows: auto 1fr auto auto;
+  gap: 12px;
+  padding: 32px 20px 20px;
 }
 
 .t-card__title {
@@ -345,6 +621,8 @@
   }
 }
 
+.fill--full .fill__bar { background: var(--primary-strong); }
+
 .t-card__foot {
   display: flex;
   min-width: 0;
@@ -372,18 +650,28 @@
   white-space: nowrap;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .t-card:hover .t-card__surface { transform: none; }
+}
+
 // ---- Responsive ---------------------------------------------------------------------------------
+@media (max-width: 1279px) {
+  .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
 @media (max-width: 1023px) {
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pulse { width: 100%; }
+
   .featured {
     grid-template-columns: minmax(0, 1fr);
     gap: 20px;
   }
 
   .filters {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr) auto;
 
     .search { grid-column: 1 / -1; }
-    .filters__meta { grid-column: 1 / -1; justify-content: space-between; }
   }
 }
 
@@ -401,4 +689,15 @@
 
 @media (max-width: 479px) {
   .filters { grid-template-columns: minmax(0, 1fr); }
+  // Ba o khong vua mot hang ma khong xuong dong: thanh hang cuon ngang co mep phai mo.
+  .pulse {
+    display: flex;
+    overflow-x: auto;
+    padding-right: 24px;
+    overscroll-behavior-x: contain;
+    mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent);
+  }
+
+  .pulse__item { min-width: 136px; flex: none; padding: 10px 14px; }
+  .pulse__item strong { font-size: 22px; }
 }

@@ -1,16 +1,19 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, Subject, debounceTime, distinctUntilChanged } from 'rxjs';
+import { Observable, Subject, catchError, debounceTime, distinctUntilChanged, forkJoin, map, of, switchMap } from 'rxjs';
 import { PageResult } from '@application/dto/base/base-response';
 import { SportType } from '@application/dto/club/club.dto';
 import { TournamentRepositoryPort } from '@application/ports/tournament.repository.port';
 import { Tournament as TournamentModel, TournamentStatus } from '@application/dto/tournament/tournament.dto';
 import { AuthService } from '@presentation/services/auth.service';
-import { SelectOption } from '@shared/components/ui/select/select.component';
 import {
-  FORMAT_LABEL, SPORT_LABEL, SPORT_OPTIONS, STATUS_FILTER_OPTIONS, STATUS_META, fillPercent, formatVnd, nextMilestone
+  FORMAT_LABEL, SPORT_ICON, SPORT_LABEL, SPORT_OPTIONS, SPORT_SURFACE, STATUS_FILTER_OPTIONS, STATUS_META, dateTile,
+  daysUntil, fillPercent, formatVnd, liveProgress, nextMilestone, seatsLabel
 } from './tournament-view';
+
+/** Nhip mua giai canh tieu de: bam de loc theo trang thai do. */
+export interface TournamentPulse { live: number; open: number; upcoming: number; }
 
 type ListTab = 'explore' | 'joined';
 
@@ -35,7 +38,16 @@ export class TournamentListComponent {
   readonly formatVnd = formatVnd;
   readonly fillPercent = fillPercent;
   readonly nextMilestone = nextMilestone;
-  readonly sportOptions: readonly SelectOption[] = [{ value: '', label: 'Mọi môn' }, ...SPORT_OPTIONS];
+  readonly sportIcon = SPORT_ICON;
+  readonly sportSurface = SPORT_SURFACE;
+  readonly dateTile = dateTile;
+  readonly seatsLabel = seatsLabel;
+  readonly liveProgress = liveProgress;
+  /** Chip mon (cuon ngang) thay cho o chon mon. */
+  readonly sportChips: ReadonlyArray<{ value: SportType | ''; label: string; icon: string }> = [
+    { value: '', label: 'Mọi môn', icon: 'trophy' },
+    ...SPORT_OPTIONS.map(option => ({ value: option.value as SportType, label: option.label, icon: SPORT_ICON[option.value as SportType] }))
+  ];
   readonly statusOptions = STATUS_FILTER_OPTIONS;
   readonly signedIn = !!this.auth.currentUser;
 
@@ -55,6 +67,7 @@ export class TournamentListComponent {
   readonly featuredLoading = signal(true);
   readonly featuredError = signal(false);
   readonly joinedCount = signal<number | null>(null);
+  readonly pulse = signal<TournamentPulse | null>(null);
 
   readonly hasFilters = computed(() => !!this.sport() || !!this.status() || !!this.keyword().trim());
   /** Moi view chi mot vung navy noi bat: chi o Kham pha, trang dau, khong loc. */
@@ -67,6 +80,7 @@ export class TournamentListComponent {
       .subscribe(value => { this.keyword.set(value); this.reload(); });
     this.load();
     this.loadFeatured();
+    this.loadPulse();
     if (this.signedIn) this.loadCounts();
   }
 
@@ -80,6 +94,12 @@ export class TournamentListComponent {
   onKeyword(value: string): void { this.keyword$.next(value); }
   setSport(value: SportType | ''): void { this.sport.set(value); this.reload(); }
   setStatus(value: TournamentStatus | ''): void { this.status.set(value); this.reload(); }
+
+  /** O nhip mua giai: bam lan nua thi bo loc. */
+  togglePulseStatus(value: TournamentStatus): void {
+    if (this.tab() !== 'explore') this.setTab('explore');
+    this.setStatus(this.status() === value ? '' : value);
+  }
 
   clearFilters(): void {
     this.sport.set(''); this.status.set(''); this.keyword.set(''); this.keyword$.next('');
@@ -116,10 +136,18 @@ export class TournamentListComponent {
     });
   }
 
+  /**
+   * Mot vung navy: giai dang mo sap dong dang ky nhat; khong con giai mo thi giai dang dien ra
+   * sap ket thuc nhat (LIVE). Ca hai deu khong co thi an.
+   */
   loadFeatured(): void {
     this.featuredLoading.set(true);
     this.featuredError.set(false);
-    this.repository.searchTournaments({ status: 'REGISTRATION_OPEN', sort: 'registrationCloseDate,asc' }, 0, 1).subscribe({
+    this.repository.searchTournaments({ status: 'REGISTRATION_OPEN', sort: 'registrationCloseDate,asc' }, 0, 1).pipe(
+      switchMap(open => open.items.length
+        ? of(open)
+        : this.repository.searchTournaments({ status: 'IN_PROGRESS', sort: 'endDate,asc' }, 0, 1))
+    ).subscribe({
       next: page => { this.featured.set(page.items[0] ?? null); this.featuredLoading.set(false); },
       error: () => { this.featuredError.set(true); this.featuredLoading.set(false); }
     });
@@ -131,9 +159,25 @@ export class TournamentListComponent {
     if (this.tab() === 'joined') this.load();
   }
 
+  /** So giai dang dien ra / mo dang ky / sap khai mac (chi doc `total`). */
+  loadPulse(): void {
+    const count = (status: TournamentStatus) => this.repository.searchTournaments({ status }, 0, 1).pipe(
+      map(page => page.total), catchError(() => of(0)));
+    forkJoin({ live: count('IN_PROGRESS'), open: count('REGISTRATION_OPEN'), upcoming: count('REGISTRATION_CLOSED') })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(pulse => this.pulse.set(pulse));
+  }
+
+  /** "Còn 2 ngày" khi giai dang mo con <= 3 ngay dang ky. */
+  closingSoon(tournament: TournamentModel): number | null {
+    if (tournament.status !== 'REGISTRATION_OPEN') return null;
+    const days = daysUntil(tournament.registrationCloseDate);
+    return days >= 0 && days <= 3 ? days : null;
+  }
+
+  /** Ngay con lai toi han dang ky (hom nay = 0, ngay mai = 1), cung cach tinh voi chip "Còn N ngày" tren the. */
   daysLeft(tournament: TournamentModel): number {
-    const close = new Date(`${tournament.registrationCloseDate}T23:59:59`);
-    return Math.max(0, Math.ceil((close.getTime() - Date.now()) / 86_400_000));
+    return Math.max(0, daysUntil(tournament.registrationCloseDate));
   }
 
   private request(pageIndex: number): Observable<PageResult<TournamentModel>> {

@@ -147,3 +147,48 @@ export function dayLabel(isoDateValue: string): string {
   const name = weekday === 0 ? 'Chủ nhật' : `Thứ ${weekday + 1}`;
   return `${name}, ${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}`;
 }
+
+/** Mat san tren the giai (cung bang mau voi Lineup pitch): co, san ke vach, san go. */
+export type SportSurface = 'grass' | 'court' | 'hardwood';
+
+export const SPORT_SURFACE: Readonly<Record<SportType, SportSurface>> = {
+  FOOTBALL: 'grass', BASKETBALL: 'hardwood',
+  BADMINTON: 'court', TENNIS: 'court', PICKLEBALL: 'court', VOLLEYBALL: 'court'
+};
+
+/** Icon Lucide theo mon (cung bo icon voi CLB). */
+export const SPORT_ICON: Readonly<Record<SportType, string>> = {
+  FOOTBALL: 'circle-dot', BADMINTON: 'zap', TENNIS: 'circle',
+  BASKETBALL: 'circle-dot-dashed', PICKLEBALL: 'target', VOLLEYBALL: 'circle'
+};
+
+function parseDay(value: string): Date {
+  const [year, month, day] = value.slice(0, 10).split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+/** So ngay tu hom nay toi ngay `value` (0 = hom nay, am = da qua). */
+export function daysUntil(value: string, now = new Date()): number {
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.round((parseDay(value).getTime() - today.getTime()) / 86_400_000);
+}
+
+/** Giai dang dien ra: dang o ngay thu may trong tong so ngay thi dau. */
+export function liveProgress(tournament: TournamentModel, now = new Date()): { day: number; total: number } {
+  const total = Math.max(1, daysUntil(tournament.endDate, parseDay(tournament.startDate)) + 1);
+  const day = Math.min(total, Math.max(1, -daysUntil(tournament.startDate, now) + 1));
+  return { day, total };
+}
+
+/** O lich ngay khai mac tren the: "04" / "THG 10". */
+export function dateTile(value: string): { day: string; month: string } {
+  return { day: value.slice(8, 10), month: `THG ${Number(value.slice(5, 7))}` };
+}
+
+/** Dong trang thai suat: "Còn 3 suất" khi dang mo, "Đủ suất" khi da kin. */
+export function seatsLabel(tournament: TournamentModel): string {
+  const left = Math.max(0, tournament.maxParticipants - tournament.currentParticipants);
+  if (left === 0) return 'Đủ suất';
+  const unit = tournament.participantType === 'TEAM' ? 'đội' : 'người';
+  return tournament.status === 'REGISTRATION_OPEN' ? `Còn ${left} suất` : `${tournament.currentParticipants} ${unit}`;
+}
