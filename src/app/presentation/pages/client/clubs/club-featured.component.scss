@@ -43,19 +43,9 @@
   color: #fff;
 }
 
-.page-kicker {
-  margin: 0;
-  color: #78d5b3;
-  font-size: 12px;
-  font-weight: 850;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-}
-
 .page-hero h1 {
-  margin: 6px 0 8px;
+  margin: 0 0 8px;
   color: #fff;
-  font-family: 'Arial Narrow', 'Roboto Condensed', 'Be Vietnam Pro', sans-serif;
   font-size: clamp(42px, 5vw, 68px);
   font-weight: 900;
   line-height: .95;
@@ -63,7 +53,7 @@
   text-transform: uppercase;
 }
 
-.page-hero p:not(.page-kicker) {
+.page-hero p {
   max-width: 68ch;
   margin: 0;
   color: rgba(255, 255, 255, .78);
@@ -525,4 +515,23 @@ app-pagination {
 .location,
 .metrics {
   font-size: 13px;
+}
+
+// Vi sao CLB duoc xep vao day (GOAT-DESIGN §7 Featured clubs).
+.reason {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: var(--primary-light);
+  color: var(--primary-strong);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+
+  lucide-icon { flex: none; }
+  span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 }

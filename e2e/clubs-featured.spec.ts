@@ -1,0 +1,76 @@
+import { expect, test, type Page } from '@playwright/test';
+import { mockGoatSportsApi } from './fixtures/api.fixture';
+
+// CLB noi bat do club-service xep hang (GET /clubs/featured). Client gui mon + ma tinh tu ho so the thao
+// va ghep dong ly do tu so lieu tra ve.
+const ok = (data: unknown) => ({ data, statusCode: 200, message: null, error: null });
+
+function club(index: number) {
+  return {
+    clubId: `c0000000-0000-4000-8000-0000000000${String(index).padStart(2, '0')}`,
+    name: `CLB Nổi Bật ${index + 1}`, sportType: 'FOOTBALL', city: 'ho-chi-minh', location: 'Thủ Đức',
+    description: 'Đá giao lưu tối thứ Tư.', tags: [], memberCount: 12, winRate: 0.64, matchCount: 14,
+    privacy: 'PUBLIC', approvalMode: 'AUTO', active: true
+  };
+}
+
+async function mockFeatured(page: Page, total: number) {
+  const requests: URL[] = [];
+  await page.route('**/auth-service/api/v1/users/me/sport-profiles', route => route.fulfill({ json: ok([
+    { profileId: 'p1', sportType: 'FOOTBALL', city: 'Hồ Chí Minh', eloRating: 1200 }
+  ]) }));
+  await page.route('**/club-service/api/v1/clubs/featured**', route => {
+    const url = new URL(route.request().url());
+    requests.push(url);
+    const pageIndex = Number(url.searchParams.get('page'));
+    const size = Number(url.searchParams.get('size'));
+    const count = Math.max(0, Math.min(size, total - pageIndex * size));
+    const content = Array.from({ length: count }, (_, i) => ({
+      club: club(pageIndex * size + i), score: 70 - i, sameSport: true, sameCity: true, recentActivities: 3, newMembers: 0
+    }));
+    return route.fulfill({ json: ok({ content, page: { size, number: pageIndex, totalElements: total, totalPages: Math.ceil(total / size) } }) });
+  });
+  return requests;
+}
+
+test('trang Câu lạc bộ: CLB nổi bật lấy từ club-service, có dòng lý do, gửi môn và tỉnh của người chơi', async ({ page }) => {
+  await mockGoatSportsApi(page);
+  const requests = await mockFeatured(page, 3);
+
+  await page.goto('/clubs');
+  const featured = page.locator('.featured-club');
+  await expect(featured).toContainText('CLB Nổi Bật 1');
+  await expect(featured.locator('.featured-club__reason'))
+    .toHaveText('Cùng môn bóng đá · Cùng khu vực với bạn · 3 buổi sinh hoạt gần đây');
+  await expect(page.locator('#featured-club-title + p')).toContainText('Gợi ý theo môn bạn chơi');
+
+  const last = requests.at(-1)!;
+  expect(last.searchParams.getAll('sport')).toEqual(['FOOTBALL']);
+  expect(last.searchParams.getAll('city')).toEqual(['ho-chi-minh']);
+  expect(last.searchParams.get('size')).toBe('1');
+});
+
+test('trang Câu lạc bộ: không có CLB đủ tiêu chí thì nói rõ điều kiện', async ({ page }) => {
+  await mockGoatSportsApi(page);
+  await mockFeatured(page, 0);
+
+  await page.goto('/clubs');
+  await expect(page.getByText('Chưa có câu lạc bộ nổi bật')).toBeVisible();
+  await expect(page.getByText(/ít nhất 3 thành viên/)).toBeVisible();
+});
+
+test('/clubs/featured: phân trang ở server và giữ thứ tự xếp hạng', async ({ page }) => {
+  await mockGoatSportsApi(page);
+  const requests = await mockFeatured(page, 8);
+
+  await page.goto('/clubs/featured');
+  await expect(page.locator('.featured-card')).toHaveCount(6);
+  await expect(page.locator('.featured-card').first()).toContainText('#1');
+  await expect(page.locator('.featured-card').first().locator('.reason')).toContainText('Cùng môn bóng đá');
+  await expect(page.locator('.hero-count')).toContainText('8');
+
+  await page.locator('app-pagination').getByRole('button', { name: 'Trang 2' }).click();
+  await expect(page.locator('.featured-card')).toHaveCount(2);
+  await expect(page.locator('.featured-card').first()).toContainText('#7');
+  expect(requests.at(-1)!.searchParams.get('page')).toBe('1');
+});

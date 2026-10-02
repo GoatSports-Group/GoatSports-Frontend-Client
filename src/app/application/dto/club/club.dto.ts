@@ -7,6 +7,8 @@ export {
   ClubPhotoModel as ClubPhoto,
   ClubRecentMatchModel as ClubRecentMatch,
   ClubTournamentModel,
+  FeaturedClubModel as FeaturedClub,
+  FeaturedClubQuery,
   CreateClubPayload,
   CreateClubActivityPayload,
   UpdateClubPayload,

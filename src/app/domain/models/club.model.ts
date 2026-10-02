@@ -87,6 +87,26 @@ export interface ClubMemberModel {
   respondedAt?: string;
 }
 
+/** Mot CLB noi bat (GET /clubs/featured): CLB + diem va so lieu de ghi ly do tren the. */
+export interface FeaturedClubModel {
+  club: ClubModel;
+  score: number;
+  sameSport: boolean;
+  sameCity: boolean;
+  /** Buoi sinh hoat trong 30 ngay qua va 14 ngay toi. */
+  recentActivities: number;
+  /** Thanh vien moi trong 30 ngay. */
+  newMembers: number;
+}
+
+/** Mon va ma tinh/thanh cua nguoi xem (chi cong diem) + bo loc cua trang /clubs/featured. */
+export interface FeaturedClubQuery {
+  sports?: SportType[];
+  cities?: string[];
+  filterSport?: SportType;
+  filterCity?: string;
+}
+
 export interface ClubActivityModel {
   activityId: string;
   clubId: string;

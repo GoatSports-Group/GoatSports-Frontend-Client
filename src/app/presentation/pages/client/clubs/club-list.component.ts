@@ -12,6 +12,7 @@ import { NotificationService } from '@presentation/services/notification.service
 import { NotifyService } from '@shared/components/notify/notify.service';
 import gsap from 'gsap';
 import { ClubLocationDataService } from './club-location-data.service';
+import { ClubFeaturedService, FeaturedClubView } from './club-featured.service';
 import {
   ActivityView,
   CLUB_APPROVAL_OPTIONS,
@@ -45,6 +46,7 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
   private readonly elementRef = inject(ElementRef<HTMLElement>);
   private readonly socialFeed = inject(SOCIAL_FEED_REPOSITORY_TOKEN);
   private readonly communityStore = inject(CommunityStore);
+  private readonly featuredService = inject(ClubFeaturedService);
   /** Keo "Tim nguoi choi" cua cac CLB (chu/quan ly dang); null = dang tai. */
   readonly clubCalls = signal<SocialPost[] | null>(null);
   readonly clubCallsError = signal(false);
@@ -109,7 +111,10 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
     }
   });
 
-  readonly featuredClub = computed(() => this.sortedClubs()[0] ?? null);
+  /** CLB noi bat do club-service xep hang (khong phu thuoc o "Sap xep" cua phan Kham pha). */
+  readonly featuredClub = signal<FeaturedClubView | null>(null);
+  readonly featuredLoading = signal(true);
+  readonly featuredError = signal(false);
   readonly discoveryClubs = computed(() => {
     const featured = this.featuredClub();
     return this.sortedClubs().filter(club => club.clubId !== featured?.clubId).slice(0, 5);
@@ -146,7 +151,30 @@ export class ClubListComponent implements AfterViewInit, OnDestroy {
       .subscribe(() => this.load());
   }
 
+  /** Mot CLB dung dau theo ClubFeaturedPolicy, ton trong bo loc mon / thanh pho cua trang. */
+  loadFeatured(): void {
+    const sport = this.selectedSport();
+    const city = this.selectedCity();
+    this.featuredLoading.set(true);
+    this.featuredError.set(false);
+    this.featuredService.load({
+      filterSport: sport === 'ALL' ? undefined : sport,
+      filterCity: city === 'ALL' ? undefined : city
+    }, 0, 1).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: result => {
+        this.featuredClub.set(result.items[0] ?? null);
+        this.featuredLoading.set(false);
+      },
+      error: () => {
+        this.featuredClub.set(null);
+        this.featuredError.set(true);
+        this.featuredLoading.set(false);
+      }
+    });
+  }
+
   load(): void {
+    this.loadFeatured();
     this.loading.set(true);
     this.error.set(null);
     this.signedIn.set(this.auth.isAuthenticated);

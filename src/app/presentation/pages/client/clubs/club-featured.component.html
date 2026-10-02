@@ -3,11 +3,10 @@
 
   <header class="page-hero">
     <div>
-      <p class="page-kicker">GOAT Sports tuyển chọn</p>
       <h1>Câu lạc bộ nổi bật</h1>
-      <p>Khám phá các cộng đồng có lịch sinh hoạt đều đặn, tỉ lệ thắng tốt và thành viên tích cực.</p>
+      <p>Xếp theo buổi sinh hoạt gần đây, thành tích, thành viên mới và quy mô; ưu tiên môn bạn chơi và khu vực của bạn.</p>
     </div>
-    <span class="hero-count"><b>{{ filteredClubs().length }}</b> câu lạc bộ</span>
+    <span class="hero-count"><b>{{ total() }}</b> câu lạc bộ</span>
   </header>
 
   <section class="filter-bar" aria-label="Lọc câu lạc bộ nổi bật">
@@ -27,9 +26,9 @@
       <p>{{ error() }}</p>
       <button type="button" class="retry-button" (click)="reload()">Thử lại</button>
     </section>
-  } @else if (filteredClubs().length) {
-    <section class="featured-grid goat-stagger" aria-label="Danh sách câu lạc bộ nổi bật">
-      @for (club of pagedClubs(); track club.clubId; let rank = $index) {
+  } @else if (clubs().length) {
+    <section class="featured-grid goat-stagger" aria-label="Danh sách câu lạc bộ nổi bật" [class.is-paging]="paging()" [attr.aria-busy]="paging()">
+      @for (club of clubs(); track club.clubId; let rank = $index) {
         <article class="featured-card" role="link" tabindex="0" [attr.aria-label]="'Xem chi tiết ' + club.name"
           (click)="goToClub(club)" (keydown.enter)="goToClubFromKeyboard($event, club)">
           <div class="featured-card__cover">
@@ -60,19 +59,21 @@
               <div class="metrics">
                 <span><lucide-icon name="users" class="w-4 h-4"></lucide-icon><b>{{ club.memberCount }}</b> thành viên</span>
                 <span><lucide-icon name="trophy" class="w-4 h-4"></lucide-icon><b>{{ club.winRate }}%</b> tỉ lệ thắng</span>
-                <span><lucide-icon name="activity" class="w-4 h-4"></lucide-icon>{{ club.activityLabel }}</span>
               </div>
+              @if (club.reason) {
+              <p class="reason"><lucide-icon name="sparkles" class="w-4 h-4"></lucide-icon><span>{{ club.reason }}</span></p>
+              }
             </footer>
           </div>
         </article>
       }
     </section>
-    <app-pagination [pageIndex]="pageIndex()" [pageSize]="pageSize" [totalItems]="filteredClubs().length" (pageChange)="changePage($event)"></app-pagination>
+    <app-pagination [pageIndex]="pageIndex()" [pageSize]="pageSize" [totalItems]="total()" itemLabel="câu lạc bộ" (pageChange)="changePage($event)"></app-pagination>
   } @else {
     <section class="empty-state">
       <lucide-icon name="search-x" class="w-10 h-10"></lucide-icon>
-      <h2>Chưa có câu lạc bộ phù hợp</h2>
-      <p>Hãy thử lại với môn thể thao hoặc thành phố khác.</p>
+      <h2>Chưa có câu lạc bộ nổi bật</h2>
+      <p>CLB nổi bật cần ít nhất 3 thành viên và có buổi sinh hoạt trong 60 ngày gần đây. Thử môn hoặc thành phố khác.</p>
       <button type="button" (click)="clearFilters()">Xóa bộ lọc</button>
     </section>
   }

@@ -6,7 +6,7 @@ import { BaseResponse, PageResult, PagedModelResponse } from '@application/dto/b
 import {
   ClubActivityModel, ClubPhotoModel, ClubRecentMatchModel, ClubTournamentModel, PlayerClubRelation, ClubMemberModel, ClubModel, ClubRole, ScoutedPlayerModel,
   MyClubMembership, ClubInvitationModel, ScoutingFilters, ShortlistEntryModel, SentInvitationModel,
-  CreateClubActivityPayload, CreateClubPayload, SportType, UpdateClubPayload
+  CreateClubActivityPayload, CreateClubPayload, SportType, UpdateClubPayload, FeaturedClubModel, FeaturedClubQuery
 } from '@domain/models/club.model';
 import { API_ENDPOINTS } from '@infrastructure/config/api-endpoints';
 
@@ -22,6 +22,21 @@ export class ClubRepository extends ClubRepositoryPort {
     if (keyword?.trim()) params = params.set('keyword', keyword.trim());
     return this.http.get<BaseResponse<PagedModelResponse<ClubModel>>>(`${this.baseUrl}/search`, { params })
       .pipe(map(response => response.data?.content ?? []));
+  }
+  override getFeaturedClubs(query: FeaturedClubQuery, page: number, size: number): Observable<PageResult<FeaturedClubModel>> {
+    let params = new HttpParams().set('page', page).set('size', size);
+    query.sports?.forEach(sport => params = params.append('sport', sport));
+    query.cities?.forEach(city => params = params.append('city', city));
+    if (query.filterSport) params = params.set('filterSport', query.filterSport);
+    if (query.filterCity) params = params.set('filterCity', query.filterCity);
+    return this.http.get<BaseResponse<PagedModelResponse<FeaturedClubModel>>>(`${this.baseUrl}/featured`, { params })
+      .pipe(map(response => ({
+        items: response.data?.content ?? [],
+        total: response.data?.page?.totalElements ?? 0,
+        page: response.data?.page?.number ?? page,
+        pageSize: response.data?.page?.size ?? size,
+        totalPages: response.data?.page?.totalPages ?? 0
+      })));
   }
   override getMyClubs(): Observable<MyClubMembership[]> {
     return this.http.get<BaseResponse<MyClubMembership[]>>(`${this.baseUrl}/me`)

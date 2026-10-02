@@ -18,13 +18,17 @@ import {
   ClubRole,
   UpdateClubPayload,
   CreateClubPayload,
-  SportType
+  SportType,
+  FeaturedClubModel as FeaturedClub,
+  FeaturedClubQuery
 } from '@domain/models/club.model';
 
 export abstract class ClubRepositoryPort {
   abstract searchClubs(sportType?: SportType, keyword?: string, city?: string): Observable<ClubModel[]>;
 
   /** CLB toi dang sinh hoat, kem vai tro cua toi. */
+  /** CLB noi bat da xep hang o club-service (mot thu tu cho trang Cau lac bo va /clubs/featured). */
+  abstract getFeaturedClubs(query: FeaturedClubQuery, page: number, size: number): Observable<PageResult<FeaturedClub>>;
   abstract getMyClubs(): Observable<MyClubMembership[]>;
 
   /** Yeu cau tham gia cua toi con dang cho duyet. */

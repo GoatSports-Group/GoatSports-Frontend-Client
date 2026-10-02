@@ -1926,6 +1926,25 @@ app-select.sort-select {
   font-size: 14px;
 }
 
+/* Vi sao CLB duoc goi y (GOAT-DESIGN §7 Featured clubs): mot dong caption, primary-strong tren primary-light. */
+.featured-club__reason {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: var(--primary-light);
+  color: var(--primary-strong);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+
+  lucide-icon { flex: none; }
+  span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+}
+
 /* Header, note and footer keep their size; only the body scrolls, so nothing hides under the footer. */
 .modal-card:has(#create-club-title) {
   display: flex;

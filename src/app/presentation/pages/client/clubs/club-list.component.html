@@ -38,14 +38,14 @@
         <header class="section-heading">
           <div>
             <h2 id="featured-club-title">Nổi bật dành cho bạn</h2>
-            <p>Những cộng đồng đang hoạt động đều đặn và có thành tích tốt.</p>
+            <p>{{ signedIn() ? 'Gợi ý theo môn bạn chơi và khu vực của bạn, ưu tiên CLB sinh hoạt đều.' : 'Những câu lạc bộ sinh hoạt đều và có thành tích tốt.' }}</p>
           </div>
           <a class="text-action" routerLink="/clubs/featured">
             Xem tất cả <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon>
           </a>
         </header>
 
-        @if (loading()) {
+        @if (featuredLoading()) {
         <div class="panel-skeleton featured-skeleton" role="status" aria-label="Đang tải câu lạc bộ nổi bật">
           <app-loading-skeleton [decorative]="true" height="100%" radius="0"></app-loading-skeleton>
           <div class="featured-skeleton__body">
@@ -54,14 +54,14 @@
             <app-loading-skeleton [decorative]="true" width="160px" height="44px" radius="12px"></app-loading-skeleton>
           </div>
         </div>
-        } @else if (error()) {
+        } @else if (featuredError()) {
         <div class="empty-state" role="alert">
           <lucide-icon name="wifi-off" class="w-9 h-9"></lucide-icon>
           <div>
-            <h3>Không tải được câu lạc bộ</h3>
-            <p>{{ error() }}</p>
+            <h3>Không tải được câu lạc bộ nổi bật</h3>
+            <p>Kiểm tra kết nối mạng rồi thử lại.</p>
           </div>
-          <button type="button" class="secondary-action" (click)="load()">Thử lại</button>
+          <button type="button" class="secondary-action" (click)="loadFeatured()">Thử lại</button>
         </div>
         } @else if (featuredClub(); as club) {
         <article class="featured-club" role="link" tabindex="0" [attr.aria-label]="'Xem ' + club.name"
@@ -101,18 +101,22 @@
                 viên</span>
               <span><lucide-icon name="trophy" class="w-5 h-5"></lucide-icon><b>{{ club.winRate }}%</b> tỉ lệ
                 thắng</span>
-              <span><lucide-icon name="activity" class="w-5 h-5"></lucide-icon>{{ club.activityLabel }}</span>
             </div>
+            @if (club.reason) {
+            <p class="featured-club__reason"><lucide-icon name="sparkles" class="w-4 h-4"></lucide-icon><span>{{ club.reason }}</span></p>
+            }
           </div>
         </article>
         } @else {
         <div class="empty-state">
           <lucide-icon name="search-x" class="w-9 h-9"></lucide-icon>
           <div>
-            <h3>Chưa có câu lạc bộ phù hợp</h3>
-            <p>Hãy thử đổi môn thể thao hoặc thành phố.</p>
+            <h3>Chưa có câu lạc bộ nổi bật</h3>
+            <p>CLB nổi bật cần ít nhất 3 thành viên và có buổi sinh hoạt trong 60 ngày gần đây.</p>
           </div>
+          @if (selectedSport() !== 'ALL' || selectedCity() !== 'ALL') {
           <button type="button" class="secondary-action" (click)="clearFilters()">Xóa bộ lọc</button>
+          }
         </div>
         }
       </section>
