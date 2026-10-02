@@ -2,54 +2,7 @@
   @if (signedIn) {
   <app-home-personal></app-home-personal>
   } @else {
-  <section class="home-hero" aria-labelledby="home-title">
-    <img class="home-hero__image" src="assets/images/default-banner-light.png"
-      alt="Hai cầu thủ bắt tay trên sân bóng dưới ánh đèn" />
-    <div class="home-hero__shade" aria-hidden="true"></div>
-
-    <div class="home-hero__content">
-      <h1 id="home-title" class="home-hero__title">
-        Tìm sân. Gặp đội.<br />
-        <span>Vào trận.</span>
-      </h1>
-      <p class="home-hero__description">Đặt sân, ghép trận và tìm cộng đồng thể thao quanh bạn.</p>
-
-      <div class="home-hero__buttons">
-        <button type="button" class="hero-primary" (click)="onSearch()">
-          <lucide-icon name="search" class="w-5 h-5"></lucide-icon>
-          Tìm sân gần bạn
-          <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon>
-        </button>
-        <a routerLink="/matchmaking" class="hero-secondary">
-          Ghép trận ngay
-          <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon>
-        </a>
-      </div>
-
-      <div class="hero-benefits" aria-label="Lợi ích GoatSports">
-        <span>
-          <lucide-icon name="clock-3" class="w-6 h-6"></lucide-icon>
-          <b>Đặt sân nhanh</b>
-          <small>Chỉ vài phút</small>
-        </span>
-        <span>
-          <lucide-icon name="users" class="w-6 h-6"></lucide-icon>
-          <b>Kết nối cộng đồng</b>
-          <small>Câu lạc bộ, bạn bè</small>
-        </span>
-        <span>
-          <lucide-icon name="trophy" class="w-6 h-6"></lucide-icon>
-          <b>Tham gia giải đấu</b>
-          <small>Từ phong trào đến chuyên nghiệp</small>
-        </span>
-        <span>
-          <lucide-icon name="brain" class="w-6 h-6"></lucide-icon>
-          <b>AI ghép trận</b>
-          <small>Tìm đúng đối thủ</small>
-        </span>
-      </div>
-    </div>
-  </section>
+  <app-home-landing></app-home-landing>
   }
 
   <nav class="sport-rail" aria-label="Chọn môn thể thao">
@@ -234,6 +187,8 @@
 
   @if (signedIn) {
   <app-home-community></app-home-community>
+  } @else {
+  <app-home-landing-outro></app-home-landing-outro>
   }
 
   @if (locationPickerOpen) {

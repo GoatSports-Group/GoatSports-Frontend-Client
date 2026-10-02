@@ -1,0 +1,35 @@
+// Nút kêu gọi của landing (dùng chung cho phần mở đầu và phần kết).
+
+.cta {
+  min-height: 52px;
+  padding: 0 22px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 800;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background var(--motion-fast), border-color var(--motion-fast), translate var(--motion-fast) var(--ease-standard);
+
+  lucide-icon { transition: translate var(--motion-base) var(--ease-standard); }
+  &:hover { translate: 0 -1px; }
+  &:hover lucide-icon:last-child { translate: 4px 0; }
+  &:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+}
+
+.cta--primary {
+  background: var(--primary-fill);
+  color: #fff;
+
+  &:hover { background: var(--primary-fill-hover); }
+}
+
+.cta--ghost {
+  border: 1px solid rgb(255 255 255 / 28%);
+  background: rgb(255 255 255 / 6%);
+  color: #fff;
+
+  &:hover { border-color: rgb(255 255 255 / 55%); background: rgb(255 255 255 / 12%); }
+}

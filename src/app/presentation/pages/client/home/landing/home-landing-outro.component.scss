@@ -1,0 +1,251 @@
+@use './landing-cta' as *;
+
+// Phần kết landing: hai dải thẻ cuộn ngang (giải đấu, CLB) trên nền sáng, rồi lời mời cuối trên ảnh sân đêm.
+:host {
+  display: block;
+  --accent: #08bb82;
+}
+
+/* ---------- Cộng đồng đang chơi ---------- */
+
+.playing {
+  width: min(100%, var(--page-max));
+  margin-inline: auto;
+  padding: 56px var(--page-gutter) 64px;
+  display: grid;
+  gap: 32px;
+}
+
+.playing__head {
+  h2 { margin: 0; color: var(--ink); font-size: clamp(1.8rem, 3.2vw, 2.6rem); font-weight: 900; letter-spacing: -.03em; }
+  p { margin: 8px 0 0; color: var(--body); font-size: 16px; }
+}
+
+.strip {
+  min-width: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.strip__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  h3 { margin: 0; color: var(--ink); font-size: 18px; font-weight: 800; }
+}
+
+.strip__link {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 800;
+  white-space: nowrap;
+  text-decoration: none;
+
+  lucide-icon { transition: translate var(--motion-fast) var(--ease-standard); }
+  &:hover lucide-icon { translate: 3px 0; }
+}
+
+// Dải cuộn ngang, hít theo thẻ, mép phải mờ (thanh cuộn ẩn toàn cục).
+.strip__track {
+  margin: 0;
+  padding: 4px 24px 10px 2px;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(260px, 300px);
+  gap: 16px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  list-style: none;
+  mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent);
+
+  > li { min-width: 0; scroll-snap-align: start; }
+  &:focus-visible { outline: 2px solid var(--focus-ring, #13a879); outline-offset: 2px; border-radius: 16px; }
+}
+
+.strip__state {
+  min-height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 16px;
+  color: var(--body);
+  font-size: 14px;
+
+  lucide-icon { color: var(--primary); }
+  button {
+    min-height: 40px;
+    padding: 0 14px;
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+  }
+}
+
+.tour-card,
+.club-card {
+  height: 100%;
+  padding: 18px;
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  background: var(--surface);
+  color: inherit;
+  text-decoration: none;
+  box-shadow: var(--shadow-sm);
+  transition: translate var(--motion-base) var(--ease-standard), box-shadow var(--motion-base), border-color var(--motion-fast);
+
+  strong { display: -webkit-box; overflow: hidden; color: var(--ink); font-size: 17px; font-weight: 900; line-height: 1.3;
+    -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+  > small { overflow: hidden; color: var(--body); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+  &:hover { translate: 0 -4px; border-color: var(--border-strong); box-shadow: var(--shadow-md); }
+}
+
+.tour-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tag {
+  height: 24px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 6px;
+  background: var(--primary-light);
+  color: var(--primary-strong);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.tour-card__deadline { color: var(--warning); font-size: 13px; font-weight: 800; white-space: nowrap; }
+
+.tour-card__slots {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+
+  i { height: 6px; overflow: hidden; border-radius: 9999px; background: var(--surface-strong); }
+  i b { display: block; height: 100%; border-radius: inherit; background: var(--primary-fill); }
+  small { color: var(--body); font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+}
+
+.tour-card__foot {
+  margin-top: auto;
+  padding-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--hairline);
+
+  > b { color: var(--ink); font-size: 16px; font-weight: 900; font-variant-numeric: tabular-nums; }
+  > span { display: inline-flex; align-items: center; gap: 6px; color: var(--primary); font-size: 14px; font-weight: 800; }
+  lucide-icon { transition: translate var(--motion-fast) var(--ease-standard); }
+}
+
+.tour-card:hover .tour-card__foot lucide-icon { translate: 4px 0; }
+
+.club-card {
+  justify-items: start;
+
+  img, .club-card__crest { width: 56px; height: 56px; border-radius: 16px; object-fit: cover; }
+}
+
+.club-card__crest {
+  display: grid;
+  place-items: center;
+  background: var(--primary-fill);
+  color: #fff;
+  font-size: 18px;
+  font-style: italic;
+  font-weight: 900;
+}
+
+.club-card__meta {
+  margin-top: auto;
+  display: flex;
+  gap: 14px;
+  color: var(--body);
+  font-size: 13px;
+
+  b { color: var(--ink); font-weight: 900; font-variant-numeric: tabular-nums; }
+}
+
+/* ---------- Lời mời cuối ---------- */
+
+.final-cta {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--sports-navy);
+  color: #fff;
+}
+
+.final-cta__photo {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 45%;
+  opacity: .28;
+  filter: grayscale(.4);
+}
+
+.final-cta__inner {
+  width: min(100%, var(--page-max));
+  margin-inline: auto;
+  padding: clamp(64px, 10vw, 128px) var(--page-gutter);
+  display: grid;
+  justify-items: center;
+  gap: 20px;
+  text-align: center;
+
+  p { max-width: 52ch; margin: 0; color: rgb(255 255 255 / 82%); font-size: 17px; line-height: 1.6; text-wrap: balance; }
+}
+
+.final-cta__title {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(2.8rem, 8vw, 7rem);
+  font-style: italic;
+  font-weight: 900;
+  line-height: 1.2; // xuống dòng trên màn hẹp vẫn đủ chỗ cho dấu
+  letter-spacing: -.06em;
+  text-transform: uppercase;
+
+  span { display: inline-block; }
+  // Khoảng trắng giữa hai inline-block bị letter-spacing âm và nét nghiêng nuốt mất.
+  span:first-child { margin-right: .28em; }
+  span:last-child { color: var(--accent); }
+}
+
+.final-cta__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .strip__state { flex-direction: column; text-align: center; padding: 16px; }
+  .cta { flex: 1 1 auto; justify-content: center; }
+}

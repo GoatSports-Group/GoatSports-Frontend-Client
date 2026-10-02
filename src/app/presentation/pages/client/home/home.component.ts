@@ -23,6 +23,7 @@ import { SOCIAL_FEED_REPOSITORY_TOKEN } from '@application/ports/persistence/soc
 import { SocialPost } from '@application/dto/social-feed/social-feed.dto';
 import { AuthService } from '@presentation/services/auth.service';
 import { CommunityStore } from '@presentation/pages/client/feed/community.store';
+import { pageScroller } from './landing/landing-motion';
 import { SportType, SPORT_TYPE_OPTIONS, Venue } from '@application/dto/venue/venue.dto';
 
 type LocationState = 'locating' | 'ready' | 'error' | 'unsupported';
@@ -137,33 +138,13 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       this.animationContext = gsap.context(() => {
         // Các bảng của Trang chủ (Hôm nay, Dành cho bạn, Cộng đồng) hiện dần khi cuộn tới.
         ScrollTrigger.batch('.home-panel', {
+          scroller: pageScroller(this.host.nativeElement),
           start: 'top 92%',
           once: true,
           onEnter: panels => gsap.from(panels, {
             autoAlpha: 0, y: 12, duration: .32, stagger: .08, ease: 'power3.out', clearProps: 'opacity,visibility,transform'
           })
         });
-        if (this.signedIn) return;
-
-        gsap.from('.home-hero__content > *', {
-          autoAlpha: 0,
-          y: 24,
-          duration: .7,
-          stagger: .08,
-          ease: 'power3.out'
-        });
-
-        gsap.to('.home-hero__image', {
-          yPercent: 9,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: '.home-hero',
-            start: 'top top',
-            end: 'bottom top',
-            scrub: .6
-          }
-        });
-
       }, this.host.nativeElement);
     });
   }

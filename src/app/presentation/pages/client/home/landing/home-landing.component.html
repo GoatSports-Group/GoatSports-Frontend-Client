@@ -1,0 +1,205 @@
+<!-- 1 · Hero: chữ hiển thị lớn trồi từng dòng trên ảnh sân đêm; thẻ minh họa sản phẩm nổi và nghiêng theo con trỏ. -->
+<section class="landing-hero" aria-labelledby="landing-title">
+  <img class="landing-hero__photo" src="assets/images/goat-night-football-hero.png"
+    alt="Hai cầu thủ bắt tay sau trận bóng đá dưới ánh đèn sân" fetchpriority="high" />
+  <div class="landing-hero__shade" aria-hidden="true"></div>
+
+  <div class="landing-hero__inner">
+    <div class="landing-hero__copy">
+      <h1 id="landing-title" class="landing-hero__title">
+        <span class="landing-hero__line"><span>Tìm sân.</span></span>
+        <span class="landing-hero__line"><span>Gặp đội.</span></span>
+        <span class="landing-hero__line landing-hero__line--accent">
+          <span>Vào trận.</span>
+          <svg class="landing-hero__underline" viewBox="0 0 420 26" aria-hidden="true"><path d="M6 18C120 4 280 2 414 14"></path></svg>
+        </span>
+      </h1>
+      <p class="landing-hero__lead">Đặt sân trong vài phút, để AI tìm đối thủ ngang sức, cùng CLB tập luyện và đăng ký giải đấu quanh bạn. Tất cả trong một ứng dụng.</p>
+      <div class="landing-hero__actions">
+        <a class="cta cta--primary" [href]="registerUrl">Tạo tài khoản miễn phí<lucide-icon name="arrow-right" class="w-5 h-5"></lucide-icon></a>
+        <a class="cta cta--ghost" routerLink="/venues"><lucide-icon name="search" class="w-5 h-5"></lucide-icon>Tìm sân gần bạn</a>
+      </div>
+      <p class="landing-hero__login">Đã có tài khoản? <a [href]="loginUrl">Đăng nhập</a></p>
+    </div>
+
+    <div class="landing-hero__stage" aria-hidden="true">
+      <div class="float-card float-card--match">
+        <span class="float-card__kicker"><i></i>AI ghép trận</span>
+        <div class="versus">
+          <span class="avatar">TĐ</span>
+          <b>VS</b>
+          <span class="avatar avatar--alt">MĐ</span>
+        </div>
+        <div class="fit">
+          <svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="18"></circle><circle class="fit__value" cx="22" cy="22" r="18"></circle></svg>
+          <span><strong>92%</strong><small>phù hợp · cầu lông đơn</small></span>
+        </div>
+      </div>
+
+      <div class="float-card float-card--slots">
+        <span class="float-card__kicker">Sân Cầu Lông · Hôm nay</span>
+        <div class="slots">
+          <span class="slot slot--taken">17:00</span>
+          <span class="slot slot--picked">18:00</span>
+          <span class="slot">19:00</span>
+          <span class="slot">20:00</span>
+        </div>
+        <span class="float-card__foot"><lucide-icon name="qr-code" class="w-4 h-4"></lucide-icon>Giữ sân · đặt cọc qua payOS</span>
+      </div>
+
+      <div class="float-card float-card--elo">
+        <lucide-icon name="trending-up" class="w-5 h-5"></lucide-icon>
+        <span><strong>+18 ELO</strong><small>Thắng 21–15</small></span>
+      </div>
+    </div>
+  </div>
+
+  <span class="landing-hero__scroll" aria-hidden="true"><i></i>Cuộn để khám phá</span>
+</section>
+
+<!-- 2 · Dải chữ chạy hai chiều: tăng tốc và đổi chiều theo tốc độ cuộn. -->
+<section class="marquee" aria-label="Sáu môn thể thao và các tính năng của GoatSports">
+  <div class="marquee__row">
+    <div class="marquee__track">
+      @for (copy of [0, 1, 2, 3]; track copy) {
+      @for (sport of sports; track sport; let odd = $odd) {
+      <span class="marquee__word" [class.marquee__word--outline]="odd">{{ sport }}</span><i class="marquee__dot"></i>
+      }
+      }
+    </div>
+  </div>
+  <div class="marquee__row marquee__row--alt" aria-hidden="true">
+    <div class="marquee__track">
+      @for (copy of [0, 1, 2, 3]; track copy) {
+      @for (verb of verbs; track verb; let odd = $odd) {
+      <span class="marquee__word" [class.marquee__word--outline]="!odd">{{ verb }}</span><i class="marquee__dot"></i>
+      }
+      }
+    </div>
+  </div>
+</section>
+
+<!-- 3 · Số liệu thật từ API công khai; ô nào lỗi hoặc bằng 0 thì ẩn. -->
+<section class="stats" aria-label="GoatSports hôm nay">
+  @for (stat of visibleStats(); track stat.key) {
+  <div class="stat reveal">
+    @if (stat.value === null) {
+    <b class="stat__value stat__value--loading" aria-label="Đang tải">&nbsp;</b>
+    } @else {
+    <b class="stat__value"><span [attr.data-count]="stat.value">{{ stat.value.toLocaleString('vi-VN') }}</span>{{ stat.plus ? '+' : '' }}</b>
+    }
+    <span class="stat__label">{{ stat.label }}</span>
+  </div>
+  }
+</section>
+
+<!-- 4 · Hành trình 4 bước: màn rộng ghim lại và trượt ngang theo cuộn; màn hẹp xếp dọc. -->
+<section class="journey" id="landing-journey" aria-labelledby="journey-title">
+  <header class="journey__head">
+    <div>
+      <h2 id="journey-title">Một ứng dụng, cả hành trình thể thao</h2>
+      <p>Từ lúc tìm sân đến khi nâng cúp, mọi bước đều nằm trong GoatSports.</p>
+    </div>
+    <span class="journey__progress" aria-hidden="true"><i></i></span>
+  </header>
+
+  <div class="journey__track">
+    <article class="step reveal">
+      <div class="step__copy">
+        <span class="step__num">01</span>
+        <h3>Đặt sân trong vài phút</h3>
+        <p>Xem lịch trống theo từng giờ, giữ sân và đặt cọc qua payOS. Đến sân chỉ cần đưa vé QR để check-in.</p>
+        <a routerLink="/venues" class="step__link">Tìm sân<lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a>
+      </div>
+      <div class="step__visual visual-booking" aria-hidden="true">
+        <span class="visual-booking__head"><b>Thứ Bảy</b><small>Sân 2 · 200.000đ/giờ</small></span>
+        <div class="visual-booking__grid">
+          @for (hour of ['06:00','07:00','08:00','16:00','17:00','18:00','19:00','20:00','21:00']; track hour; let i = $index) {
+          <span class="cell" [class.cell--taken]="i === 1 || i === 4 || i === 7" [class.cell--pick]="i === 5" [style.--i]="i">{{ hour }}</span>
+          }
+        </div>
+        <span class="visual-booking__ticket"><lucide-icon name="qr-code" class="w-5 h-5"></lucide-icon>Vé check-in đã sẵn sàng</span>
+      </div>
+    </article>
+
+    <article class="step reveal">
+      <div class="step__copy">
+        <span class="step__num">02</span>
+        <h3>AI tìm đối thủ ngang sức</h3>
+        <p>Chọn môn, khung giờ và bán kính. AI chấm 7 tiêu chí, rồi tự học từ kết quả các kèo thật để ghép ngày càng chuẩn.</p>
+        <a routerLink="/matchmaking" class="step__link">Thử AI ghép trận<lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a>
+      </div>
+      <div class="step__visual visual-radar" aria-hidden="true">
+        <div class="radar">
+          <i class="radar__sweep"></i>
+          <i class="radar__blip" style="--x: 30%; --y: 34%"></i>
+          <i class="radar__blip" style="--x: 68%; --y: 58%; --d: .8s"></i>
+          <i class="radar__blip radar__blip--match" style="--x: 58%; --y: 26%; --d: 1.6s"></i>
+        </div>
+        <span class="visual-radar__chip"><lucide-icon name="swords" class="w-4 h-4"></lucide-icon>Đã tìm thấy đối thủ · 92%</span>
+      </div>
+    </article>
+
+    <article class="step reveal">
+      <div class="step__copy">
+        <span class="step__num">03</span>
+        <h3>Cùng CLB tập luyện</h3>
+        <p>Lập CLB, tuyển thành viên, lên lịch tập và giao hữu CLB với CLB. ELO của CLB tăng theo từng trận thắng.</p>
+        <a routerLink="/clubs" class="step__link">Khám phá CLB<lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a>
+      </div>
+      <div class="step__visual visual-club" aria-hidden="true">
+        <span class="visual-club__crest">GB</span>
+        <b>GOAT Badminton</b>
+        <span class="visual-club__stack">
+          @for (member of ['TĐ','MA','HN','LK','QB']; track member; let i = $index) {
+          <span [style.--i]="i">{{ member }}</span>
+          }
+          <span class="visual-club__more">+12</span>
+        </span>
+        <ul>
+          <li style="--i: 0"><small>T5 · 19:00</small>Tập luyện kỹ thuật</li>
+          <li style="--i: 1"><small>CN · 08:00</small>Giao hữu với Saigon Smash</li>
+        </ul>
+      </div>
+    </article>
+
+    <article class="step reveal">
+      <div class="step__copy">
+        <span class="step__num">04</span>
+        <h3>Thi đấu và nâng cúp</h3>
+        <p>Đăng ký đội, theo dõi lịch thi đấu, bảng xếp hạng và nhánh đấu. Mỗi trận có tỷ số đều cộng vào ELO của bạn.</p>
+        <a routerLink="/tournaments" class="step__link">Xem giải đấu<lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a>
+      </div>
+      <div class="step__visual visual-bracket" aria-hidden="true">
+        <svg viewBox="0 0 260 200">
+          <!-- 4 đội → 2 bán kết → chung kết; pathLength=1 để vẽ nét bằng một biến duy nhất. -->
+          <path pathLength="1" d="M16 30H86V70H16M86 50H150M16 130H86V170H16M86 150H150M150 50V150M150 100H222"></path>
+          @for (y of [30, 70, 130, 170]; track y) {
+          <circle [attr.cy]="y" cx="16" r="5"></circle>
+          }
+        </svg>
+        <span class="visual-bracket__cup"><lucide-icon name="trophy" class="w-7 h-7"></lucide-icon></span>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- 5 · AI: trọng số thật của 7 tiêu chí, thanh chạy khi khối hiện ra. -->
+<section class="ai-board" aria-labelledby="ai-title">
+  <div class="ai-board__inner">
+    <div class="ai-board__copy reveal">
+      <h2 id="ai-title">AI không đoán.<br /><span>AI chấm điểm.</span></h2>
+      <p>Mỗi đối thủ được chấm trên 7 tiêu chí. Khi đủ kèo thật, mô hình học máy tự điều chỉnh trọng số theo cách cộng đồng GoatSports thật sự chơi. Sau mỗi lần ghép, AI viết vài dòng giải thích vì sao hai bên hợp nhau.</p>
+      <a class="cta cta--primary" [href]="registerUrl">Bắt đầu tìm đối thủ<lucide-icon name="arrow-right" class="w-5 h-5"></lucide-icon></a>
+    </div>
+    <ul class="ai-board__criteria reveal" aria-label="Tỷ trọng các tiêu chí khi chưa đủ dữ liệu học">
+      @for (item of criteria; track item.label) {
+      <li class="criterion">
+        <span>{{ item.label }}</span>
+        <i class="criterion__bar" aria-hidden="true"><b [style.width.%]="item.weight * 100 / 30"></b></i>
+        <em>{{ item.weight }}%</em>
+      </li>
+      }
+    </ul>
+  </div>
+</section>

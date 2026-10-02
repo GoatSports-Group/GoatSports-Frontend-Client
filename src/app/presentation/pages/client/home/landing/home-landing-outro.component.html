@@ -1,0 +1,114 @@
+<!-- 6 · Cộng đồng đang chơi: dữ liệu thật, mỗi dải cuộn ngang. -->
+<section class="playing" aria-labelledby="playing-title">
+  <header class="playing__head outro-reveal">
+    <h2 id="playing-title">Cộng đồng đang chơi</h2>
+    <p>Giải đấu đang nhận đội và các câu lạc bộ đang hoạt động trên GoatSports.</p>
+  </header>
+
+  <div class="strip outro-reveal">
+    <div class="strip__head">
+      <h3>Giải đấu đang mở đăng ký</h3>
+      <a routerLink="/tournaments" class="strip__link">Xem tất cả<lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a>
+    </div>
+    @switch (tournaments().state) {
+    @case ('loading') {
+    <app-loading-skeleton variant="cards" [count]="3" minWidth="300px" [media]="false" label="Đang tải giải đấu"></app-loading-skeleton>
+    }
+    @case ('error') {
+    <div class="strip__state">
+      <lucide-icon name="wifi-off" class="w-6 h-6"></lucide-icon>
+      <span>Chưa tải được giải đấu.</span>
+      <button type="button" (click)="loadTournaments()">Thử lại</button>
+    </div>
+    }
+    @default {
+    @if (items(tournaments()).length) {
+    <ul class="strip__track" tabindex="0" aria-label="Giải đấu đang mở đăng ký, cuộn ngang để xem thêm">
+      @for (tournament of items(tournaments()); track tournament.tournamentId) {
+      <li>
+        <a class="tour-card" [routerLink]="['/tournaments', tournament.tournamentId]">
+          <span class="tour-card__top">
+            <span class="tag">{{ sportLabel(tournament.sportType) || 'Thể thao' }}</span>
+            <span class="tour-card__deadline">{{ closeLabel(tournament) }}</span>
+          </span>
+          <strong>{{ tournament.name }}</strong>
+          <small>{{ startLabel(tournament) }}{{ tournament.playFormatLabel ? ' · ' + tournament.playFormatLabel : '' }}</small>
+          <span class="tour-card__slots">
+            <i aria-hidden="true"><b [style.width.%]="filled(tournament)"></b></i>
+            <small>{{ slots(tournament) }}</small>
+          </span>
+          <span class="tour-card__foot"><b>{{ fee(tournament) }}</b><span>Đăng ký<lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></span></span>
+        </a>
+      </li>
+      }
+    </ul>
+    } @else {
+    <div class="strip__state">
+      <lucide-icon name="trophy" class="w-6 h-6"></lucide-icon>
+      <span>Chưa có giải nào mở đăng ký. Giải mới sẽ hiện ở đây.</span>
+    </div>
+    }
+    }
+    }
+  </div>
+
+  <div class="strip outro-reveal">
+    <div class="strip__head">
+      <h3>Câu lạc bộ đang hoạt động</h3>
+      <a routerLink="/clubs" class="strip__link">Khám phá CLB<lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon></a>
+    </div>
+    @switch (clubs().state) {
+    @case ('loading') {
+    <app-loading-skeleton variant="cards" [count]="4" minWidth="240px" [media]="false" label="Đang tải câu lạc bộ"></app-loading-skeleton>
+    }
+    @case ('error') {
+    <div class="strip__state">
+      <lucide-icon name="wifi-off" class="w-6 h-6"></lucide-icon>
+      <span>Chưa tải được câu lạc bộ.</span>
+      <button type="button" (click)="loadClubs()">Thử lại</button>
+    </div>
+    }
+    @default {
+    @if (items(clubs()).length) {
+    <ul class="strip__track" tabindex="0" aria-label="Câu lạc bộ đang hoạt động, cuộn ngang để xem thêm">
+      @for (club of items(clubs()); track club.clubId) {
+      <li>
+        <a class="club-card" [routerLink]="['/clubs', club.clubId]">
+          @if (club.logoUrl) {
+          <img [src]="club.logoUrl" [alt]="'Logo ' + club.name" loading="lazy" />
+          } @else {
+          <span class="club-card__crest" aria-hidden="true">{{ initials(club.name) }}</span>
+          }
+          <strong>{{ club.name }}</strong>
+          <small>{{ sportLabel(club.sportType) }}{{ club.location ? ' · ' + club.location : '' }}</small>
+          <span class="club-card__meta">
+            <span><b>{{ club.memberCount }}</b> thành viên</span>
+            @if (club.eloRating) { <span><b>{{ club.eloRating }}</b> ELO</span> }
+          </span>
+        </a>
+      </li>
+      }
+    </ul>
+    } @else {
+    <div class="strip__state">
+      <lucide-icon name="users" class="w-6 h-6"></lucide-icon>
+      <span>Chưa có câu lạc bộ nào. Hãy là người lập CLB đầu tiên.</span>
+    </div>
+    }
+    }
+    }
+  </div>
+</section>
+
+<!-- 7 · Lời mời cuối: chữ phóng to dần theo cuộn. -->
+<section class="final-cta" aria-labelledby="final-title">
+  <img class="final-cta__photo" src="assets/images/goat-night-football-hero.png" alt="" aria-hidden="true" loading="lazy" />
+  <div class="final-cta__inner">
+    <h2 id="final-title" class="final-cta__title"><span>Sẵn sàng</span> <span>vào trận?</span></h2>
+    <p>Tạo tài khoản miễn phí để đặt sân, để AI tìm đối thủ và tham gia cộng đồng thể thao quanh bạn.</p>
+    <div class="final-cta__actions">
+      <a class="cta cta--primary" [href]="registerUrl">Tạo tài khoản miễn phí<lucide-icon name="arrow-right" class="w-5 h-5"></lucide-icon></a>
+      <a class="cta cta--ghost" [href]="loginUrl">Tôi đã có tài khoản</a>
+    </div>
+  </div>
+</section>
