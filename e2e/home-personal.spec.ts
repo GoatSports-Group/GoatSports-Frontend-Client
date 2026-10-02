@@ -103,6 +103,19 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('Trang chủ khi đã đăng nhập: hôm nay, dành cho bạn và cộng đồng', async ({ page }, testInfo) => {
+  // Có vị trí và 6 sân gần: dải "Sân đấu nổi bật" phải cuộn ngang thay vì cắt còn 4 sân.
+  await page.context().grantPermissions(['geolocation']);
+  await page.context().setGeolocation({ latitude: 12.2104, longitude: 109.1937 });
+  await page.route('**/venue-service/api/v1/venues?**', route => route.fulfill({ json: ok({
+    items: Array.from({ length: 6 }, (_, index) => ({
+      venueId: `5555555${index}-5555-4555-8555-555555555555`, name: `Sân Nha Trang ${index + 1}`, description: '',
+      openTime: '06:00:00', closeTime: '23:00:00', active: true, minPrice: 200_000, maxPrice: 200_000,
+      averageRating: 4.5, totalReviews: 3, phone: '', email: '', address: 'Nha Trang', ward: '', district: '', city: 'Khánh Hòa',
+      latitude: 12.21, longitude: 109.19, imageUrls: [], amenities: [], sportTypes: ['FOOTBALL'], totalCourts: 2,
+      distanceKm: 0.2 + index
+    })),
+    total: 6, page: 0, pageSize: 8, totalPages: 1
+  }) }));
   await page.goto('/home');
 
   const hero = page.locator('.today-hero');
@@ -142,6 +155,22 @@ test('Trang chủ khi đã đăng nhập: hôm nay, dành cho bạn và cộng �
   await expect(community.locator('.tournament').first()).toContainText('Hết hạn ngày mai');
   await expect(community.locator('.tournament').first()).toContainText('200.000');
   await expect(community.locator('.post')).toContainText('Trần Hoàng Nam');
+
+  // Bố cục: hai bảng cùng hàng cao bằng nhau; danh sách dài cuộn bên trong bảng thay vì kéo dài trang.
+  if (testInfo.project.name.startsWith('desktop')) {
+    const height = async (selector: string) => Math.round((await page.locator(selector).first().boundingBox())!.height);
+    expect(await height('.agenda')).toBe(await height('.tasks'));
+    expect(await height('.profiles')).toBe(await height('.venues'));
+    const community = await Promise.all([0, 1, 2].map(async index =>
+      Math.round((await page.locator('app-home-community .home-panel').nth(index).boundingBox())!.height)));
+    expect(new Set(community).size).toBe(1);
+    await expect(page.locator('.agenda__days')).toHaveCSS('overflow-y', 'auto');
+    await expect(page.locator('.profile-grid')).toHaveCSS('overflow-x', 'auto');
+    const strip = page.locator('.venue-grid').first();
+    await expect(strip.locator('app-venue-card')).toHaveCount(6);
+    await expect(strip).toHaveCSS('overflow-x', 'auto');
+    expect(await strip.evaluate(element => element.scrollWidth > element.clientWidth)).toBe(true);
+  }
 
   await page.screenshot({ path: testInfo.outputPath('home-personal.png'), fullPage: true });
 });

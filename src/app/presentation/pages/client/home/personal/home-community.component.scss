@@ -16,12 +16,15 @@
   p { margin: 4px 0 0; color: var(--body); font-size: 14px; }
 }
 
+// Ba bảng cao bằng nhau (chiều cao cố định); danh sách dài cuộn dọc bên trong từng bảng.
 .community__grid {
+  height: 380px;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr);
   gap: 24px;
-  // Ba bảng dài ngắn khác nhau tùy dữ liệu: canh theo mép trên, không kéo giãn thành khung rỗng.
-  align-items: start;
+
+  > .home-panel { min-height: 0; }
 }
 
 .panel-head h3 { margin: 0; overflow: hidden; color: var(--ink); font-size: 16px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
@@ -185,7 +188,7 @@
 @keyframes bar-grow { from { scale: 0 1; } }
 
 @media (max-width: 1100px) {
-  .community__grid { grid-template-columns: minmax(0, 1fr); }
+  .community__grid { height: auto; grid-template-columns: minmax(0, 1fr); grid-template-rows: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

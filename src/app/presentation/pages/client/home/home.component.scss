@@ -524,10 +524,20 @@
   text-align: right;
 }
 
+// Sân nổi bật: một dải cuộn ngang (hít theo từng thẻ), thấy 4 thẻ, mép phải mờ báo còn sân.
 .venue-grid {
+  --venue-cols: 4;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 9px;
+  grid-auto-flow: column;
+  grid-auto-columns: calc((100% - 24px - (var(--venue-cols) - 1) * 12px) / var(--venue-cols));
+  gap: 12px;
+  padding: 2px 24px 6px 2px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent);
+
+  > * { min-width: 0; scroll-snap-align: start; }
 }
 
 .venue-skeleton {
@@ -576,6 +586,8 @@
 
 .quick-rail {
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .quick-rail>header {
@@ -598,12 +610,20 @@
   box-shadow: 0 0 0 4px rgb(18 185 129 / 11%);
 }
 
+// Kèo đang mở cuộn dọc trong rail; rail cao bằng bảng sân bên cạnh (height: 0 để không đẩy chiều cao hàng).
 .open-calls {
+  flex: 1 1 0;
+  height: 0;
+  min-height: 240px;
   display: grid;
+  align-content: start;
   gap: 10px;
   margin: 0;
-  padding: 12px 14px;
+  padding: 12px 14px 28px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   list-style: none;
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
 }
 
 .open-calls__state {
@@ -1095,7 +1115,7 @@
   }
 
   .venue-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    --venue-cols: 3;
   }
 
   .sport-link {
@@ -1114,6 +1134,13 @@
 @media (max-width: 1060px) {
   .home-dashboard {
     grid-template-columns: 1fr;
+  }
+
+  .open-calls {
+    flex: none;
+    height: auto;
+    min-height: 0;
+    max-height: 420px;
   }
 
   .section-heading {
@@ -1154,7 +1181,7 @@
   }
 
   .venue-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    --venue-cols: 2;
   }
 
   .community-banner {
@@ -1229,7 +1256,7 @@
   }
 
   .venue-grid {
-    grid-template-columns: 1fr;
+    --venue-cols: 1.2;
   }
 
   .inline-state {

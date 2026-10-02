@@ -69,8 +69,7 @@ export class HomeCommunityComponent implements OnInit {
             membership,
             next: activities.find(activity => activity.clubId === membership.club.clubId)
           }))
-          .sort((left, right) => Number(!!right.next) - Number(!!left.next))
-          .slice(0, 4);
+          .sort((left, right) => Number(!!right.next) - Number(!!left.next));
         this.clubs.set({ state: 'ready', items });
       },
       error: () => this.clubs.set({ state: 'error' })
@@ -79,7 +78,7 @@ export class HomeCommunityComponent implements OnInit {
 
   loadTournaments(): void {
     this.tournaments.set({ state: 'loading' });
-    this.tournamentRepo.searchTournaments({ status: 'REGISTRATION_OPEN', sort: 'registrationCloseDate,asc' }, 0, 3)
+    this.tournamentRepo.searchTournaments({ status: 'REGISTRATION_OPEN', sort: 'registrationCloseDate,asc' }, 0, 8)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: page => this.tournaments.set({ state: 'ready', items: page.items }),
@@ -89,7 +88,7 @@ export class HomeCommunityComponent implements OnInit {
 
   loadFriends(): void {
     this.friends.set({ state: 'loading' });
-    this.socialFeed.getFeed(0, 3, { followingOnly: true }).pipe(
+    this.socialFeed.getFeed(0, 8, { followingOnly: true }).pipe(
       map(page => page.content),
       switchMap(posts => posts.length
         ? this.directory.resolve(posts.map(post => post.authorId)).pipe(

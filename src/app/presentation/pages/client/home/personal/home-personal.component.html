@@ -68,8 +68,9 @@
   </div>
 </section>
 
+<!-- Mỗi hàng có chiều cao cố định: hai bảng luôn cao bằng nhau, danh sách dài cuộn bên trong bảng. -->
 <div class="personal-body">
-  <div class="personal-col personal-col--main">
+  <div class="personal-row personal-row--today">
     <!-- Lịch sắp tới: gộp đặt sân, kèo AI, hoạt động CLB và giải đấu theo ngày. -->
     <section class="home-panel agenda" aria-labelledby="agenda-title">
       <header class="panel-head">
@@ -97,7 +98,7 @@
         <a routerLink="/venues">Tìm sân</a>
       </div>
       } @else {
-      <div class="agenda__days">
+      <div class="agenda__days panel-scroll">
         @for (group of agendaGroups(); track group.label) {
         <div class="agenda__day">
           <h3>{{ group.label }}</h3>
@@ -129,6 +130,51 @@
       }
     </section>
 
+    <!-- Việc cần xử lý: việc có hạn chót đứng trước. -->
+    <section class="home-panel tasks" aria-labelledby="tasks-title">
+      <header class="panel-head">
+        <div>
+          <h2 id="tasks-title">Việc cần xử lý
+            @if (tasks()?.length) { <span class="count-pill">{{ tasks()!.length }}</span> }
+          </h2>
+          <p>Phản hồi, thanh toán và lời mời đang chờ bạn</p>
+        </div>
+      </header>
+
+      @if (tasks() === null) {
+      <app-loading-skeleton variant="rows" [count]="3" [flush]="true" label="Đang tải việc cần xử lý"></app-loading-skeleton>
+      } @else if (!tasks()!.length) {
+      <div class="panel-state panel-state--done">
+        <span class="done-check" aria-hidden="true">
+          <svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="23"></circle><path d="m15 27 7 7 15-16"></path></svg>
+        </span>
+        <strong>Bạn đã xử lý hết</strong>
+        <p>Lời mời, kèo cần phản hồi và đơn chờ cọc sẽ hiện ở đây.</p>
+      </div>
+      } @else {
+      <ul class="task-list panel-scroll goat-stagger">
+        @for (task of tasks()!; track task.id) {
+        <li>
+          <a class="task" [routerLink]="task.link" [queryParams]="task.queryParams" [attr.data-tone]="task.tone"
+            [class.task--urgent]="urgent(task.deadline)">
+            <span class="task__icon"><lucide-icon [name]="task.icon" class="w-5 h-5"></lucide-icon></span>
+            <span class="task__copy"><strong>{{ task.title }}</strong><small>{{ task.detail }}</small></span>
+            @if (deadlineLabel(task.deadline); as due) {
+            <span class="task__due">{{ due }}</span>
+            }
+            <lucide-icon name="arrow-right" class="task__arrow w-4 h-4"></lucide-icon>
+          </a>
+        </li>
+        }
+      </ul>
+      }
+      @if (tasksPartial()) {
+      <p class="panel-note">Một số mục chưa tải được. <button type="button" (click)="load()">Thử lại</button></p>
+      }
+    </section>
+  </div>
+
+  <div class="personal-row personal-row--you">
     <!-- Ưu tiên 2 · Dành cho bạn: hồ sơ thể thao. -->
     <section class="home-panel profiles" aria-labelledby="profiles-title">
       <header class="panel-head">
@@ -155,7 +201,7 @@
         <a routerLink="/settings" [queryParams]="{ tab: 'sports' }">Tạo hồ sơ</a>
       </div>
       } @else {
-      <ul class="profile-grid goat-stagger">
+      <ul class="profile-grid panel-hscroll goat-stagger" tabindex="0" aria-label="Hồ sơ thể thao theo môn, cuộn ngang để xem thêm">
         @for (profile of profileList(); track profile.profileId) {
         <li class="profile-card">
           <span class="profile-card__sport">{{ sportLabel(profile.sportType) }}</span>
@@ -173,51 +219,6 @@
       }
     </section>
 
-  </div>
-
-  <div class="personal-col personal-col--side">
-    <!-- Việc cần xử lý: việc có hạn chót đứng trước. -->
-    <section class="home-panel tasks" aria-labelledby="tasks-title">
-      <header class="panel-head">
-        <div>
-          <h2 id="tasks-title">Việc cần xử lý
-            @if (tasks()?.length) { <span class="count-pill">{{ tasks()!.length }}</span> }
-          </h2>
-          <p>Phản hồi, thanh toán và lời mời đang chờ bạn</p>
-        </div>
-      </header>
-
-      @if (tasks() === null) {
-      <app-loading-skeleton variant="rows" [count]="3" [flush]="true" label="Đang tải việc cần xử lý"></app-loading-skeleton>
-      } @else if (!tasks()!.length) {
-      <div class="panel-state panel-state--done">
-        <span class="done-check" aria-hidden="true">
-          <svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="23"></circle><path d="m15 27 7 7 15-16"></path></svg>
-        </span>
-        <strong>Bạn đã xử lý hết</strong>
-        <p>Lời mời, kèo cần phản hồi và đơn chờ cọc sẽ hiện ở đây.</p>
-      </div>
-      } @else {
-      <ul class="task-list goat-stagger">
-        @for (task of tasks()!; track task.id) {
-        <li>
-          <a class="task" [routerLink]="task.link" [queryParams]="task.queryParams" [attr.data-tone]="task.tone"
-            [class.task--urgent]="urgent(task.deadline)">
-            <span class="task__icon"><lucide-icon [name]="task.icon" class="w-5 h-5"></lucide-icon></span>
-            <span class="task__copy"><strong>{{ task.title }}</strong><small>{{ task.detail }}</small></span>
-            @if (deadlineLabel(task.deadline); as due) {
-            <span class="task__due">{{ due }}</span>
-            }
-            <lucide-icon name="arrow-right" class="task__arrow w-4 h-4"></lucide-icon>
-          </a>
-        </li>
-        }
-      </ul>
-      }
-      @if (tasksPartial()) {
-      <p class="panel-note">Một số mục chưa tải được. <button type="button" (click)="load()">Thử lại</button></p>
-      }
-    </section>
     <!-- Ưu tiên 2 · Dành cho bạn: sân quen. -->
     <section class="home-panel venues" aria-labelledby="venues-title">
       <header class="panel-head">
@@ -243,7 +244,7 @@
         <a routerLink="/venues">Tìm sân</a>
       </div>
       } @else {
-      <ul class="venue-list goat-stagger">
+      <ul class="venue-list panel-scroll goat-stagger">
         @for (venue of venueList(); track venue.venueId) {
         <li>
           <a class="venue-row" [routerLink]="['/venues', venue.venueId]">

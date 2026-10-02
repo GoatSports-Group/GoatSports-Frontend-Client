@@ -130,7 +130,7 @@ export class HomePersonalComponent implements OnInit, OnDestroy {
       activities: ok(data.activities, []),
       clubNames,
       tournaments: ok(data.tournaments, [])
-    });
+    }, 12);
   });
   readonly agendaGroups = computed(() => {
     const groups: { label: string; items: AgendaItem[] }[] = [];
@@ -186,7 +186,7 @@ export class HomePersonalComponent implements OnInit, OnDestroy {
   readonly venues = computed(() => {
     const bookings = this.data().bookings;
     if (bookings === undefined) return null;
-    return bookings === FAILED ? FAILED : frequentVenues(bookings, this.now());
+    return bookings === FAILED ? FAILED : frequentVenues(bookings, this.now(), 10);
   });
   readonly venueList = computed(() => {
     const venues = this.venues();

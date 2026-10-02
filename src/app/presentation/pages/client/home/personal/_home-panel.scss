@@ -100,3 +100,39 @@
     cursor: pointer;
   }
 }
+
+// Danh sách dài cuộn bên trong bảng (GOAT-DESIGN §6 Scroll areas): không đẩy chiều cao hàng,
+// thanh cuộn ẩn, mép dưới mờ để báo còn nội dung; padding cuối để mục cuối cuộn ra khỏi vùng mờ.
+.panel-scroll {
+  flex: 1 1 0;
+  height: 0;
+  min-height: 0;
+  align-content: start; // danh sách dạng lưới: dòng xếp từ trên, không giãn ra cho đầy khung
+  margin-inline: -4px;
+  padding: 0 4px 24px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
+}
+
+// Cuộn ngang theo từng thẻ, mép phải mờ.
+.panel-hscroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  gap: 12px;
+  padding: 2px 24px 2px 2px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent);
+
+  > * { flex: 0 0 auto; scroll-snap-align: start; }
+  &:focus-visible { outline: 2px solid var(--focus-ring, #13a879); outline-offset: 2px; border-radius: 16px; }
+}
+
+@media (max-width: 1100px) {
+  // Một cột: bảng cao theo nội dung nhưng danh sách vẫn giới hạn chiều cao và cuộn.
+  .panel-scroll { flex: none; height: auto; max-height: 360px; }
+}
+

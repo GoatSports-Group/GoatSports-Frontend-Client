@@ -102,8 +102,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.latitude != null && this.longitude != null;
   }
 
+  /** Dải sân nổi bật cuộn ngang nên hiện đủ (tối đa 8 sân gần nhất). */
   get visibleFeaturedVenues(): Venue[] {
-    return this.featuredVenues.slice(0, 4);
+    return this.featuredVenues;
   }
 
   ngOnInit(): void {

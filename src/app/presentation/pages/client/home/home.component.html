@@ -170,7 +170,7 @@
         }
       </div>
       } @else if (featuredVenues.length) {
-      <div class="venue-grid goat-stagger">
+      <div class="venue-grid goat-stagger" role="region" aria-label="Sân nổi bật gần bạn, cuộn ngang để xem thêm">
         @for (venue of visibleFeaturedVenues; track venue.venueId) {
         <app-venue-card [venue]="venue" [homeStyle]="true"></app-venue-card>
         }

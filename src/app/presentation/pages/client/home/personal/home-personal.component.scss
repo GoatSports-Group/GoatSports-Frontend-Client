@@ -273,25 +273,29 @@
 
 /* ---------- Khung nội dung ---------- */
 
-// Hai cột xếp chồng (lịch + hồ sơ | việc cần xử lý + sân quen). Độ dài phụ thuộc dữ liệu nên canh theo mép trên.
+// Hàng "Hôm nay" và "Dành cho bạn": chiều cao cố định, hai bảng luôn bằng nhau; danh sách cuộn bên trong.
 .personal-body {
   width: min(100%, var(--page-max));
   margin-inline: auto;
   padding: 28px var(--page-gutter) 8px;
   display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
   gap: 24px;
-  align-items: start;
 }
 
-.personal-col {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
+.personal-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   gap: 24px;
+
+  > .home-panel { min-height: 0; }
 }
+
+.personal-row--today { height: 500px; }
+.personal-row--you { height: 320px; }
 
 .venues__more {
+  flex: none;
   min-height: 44px;
   display: inline-flex;
   align-items: center;
@@ -346,6 +350,7 @@
 
 .agenda__days {
   display: grid;
+  align-content: start;
   gap: 18px;
 }
 
@@ -546,16 +551,14 @@
 
 .profile-grid {
   margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-  gap: 12px;
   list-style: none;
 }
 
 .profile-card {
+  width: 220px;
   padding: 16px;
   display: grid;
+  align-content: space-between;
   gap: 10px;
   border: 1px solid var(--hairline);
   border-radius: 16px;
@@ -701,14 +704,11 @@
 
 @media (max-width: 1100px) {
   .today-hero__inner,
-  .personal-body { grid-template-columns: minmax(0, 1fr); }
+  .personal-row { grid-template-columns: minmax(0, 1fr); }
 
-  // Một cột: giữ thứ tự ưu tiên Lịch → Việc cần xử lý → Hồ sơ → Sân quen.
-  .personal-col { display: contents; }
-  .agenda { order: 1; }
-  .tasks { order: 2; }
-  .profiles { order: 3; }
-  .venues { order: 4; }
+  // Một cột: hàng cao theo nội dung, danh sách vẫn cuộn trong bảng (giới hạn trong _home-panel).
+  .personal-row--today,
+  .personal-row--you { height: auto; grid-template-rows: none; }
 }
 
 @media (max-width: 720px) {

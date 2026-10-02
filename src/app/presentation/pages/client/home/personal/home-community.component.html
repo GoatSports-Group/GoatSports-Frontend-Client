@@ -24,7 +24,7 @@
       }
       @default {
       @if (clubItems().length) {
-      <ul class="row-list goat-stagger">
+      <ul class="row-list panel-scroll goat-stagger">
         @for (row of clubItems(); track row.membership.club.clubId) {
         <li>
           <a class="row" [routerLink]="['/clubs/my', row.membership.club.clubId]">
@@ -73,7 +73,7 @@
       }
       @default {
       @if (tournamentItems().length) {
-      <ul class="row-list goat-stagger">
+      <ul class="row-list panel-scroll goat-stagger">
         @for (tournament of tournamentItems(); track tournament.tournamentId) {
         <li>
           <a class="tournament" [routerLink]="['/tournaments', tournament.tournamentId]">
@@ -122,7 +122,7 @@
       }
       @default {
       @if (friendItems().length) {
-      <ul class="row-list goat-stagger">
+      <ul class="row-list panel-scroll goat-stagger">
         @for (item of friendItems(); track item.post.postId) {
         <li>
           <a class="post" [routerLink]="['/feed/posts', item.post.postId]">
