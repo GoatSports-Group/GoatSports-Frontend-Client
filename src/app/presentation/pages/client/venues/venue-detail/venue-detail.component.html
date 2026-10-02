@@ -231,11 +231,8 @@
                 <strong>{{ date | date:'dd/MM' }}</strong>
               </button>
               }
-              <label class="date-arrow date-picker" title="Chọn ngày khác">
-                <lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon>
-                <input type="date" [value]="selectedDate" [min]="today" [max]="maxBookingDate"
-                  (change)="onDateChange($event)" />
-              </label>
+              <app-date-picker class="date-more" variant="icon" ariaLabel="Chọn ngày khác" [clearable]="false"
+                [min]="today" [max]="maxBookingDate" [ngModel]="selectedDate" (ngModelChange)="onDateChange($event)"></app-date-picker>
             </div>
           </div>
 

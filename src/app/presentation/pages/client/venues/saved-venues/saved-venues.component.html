@@ -1,0 +1,43 @@
+<main class="saved-page">
+  <header class="page-head">
+    <div class="page-head__copy">
+      <h1 class="page-title">Sân đã lưu</h1>
+      <p>Những sân bạn bấm "Lưu sân", mới lưu đứng trước. Bấm tim để bỏ lưu.</p>
+    </div>
+    <a class="btn btn--secondary" routerLink="/venues">
+      <lucide-icon name="search" class="w-4 h-4"></lucide-icon>Tìm thêm sân
+    </a>
+  </header>
+
+  @if (loading()) {
+  <app-loading-skeleton variant="cards" [count]="8" minWidth="260px" label="Đang tải sân đã lưu"></app-loading-skeleton>
+  } @else if (error()) {
+  <section class="state state--error" role="alert">
+    <span class="state__icon"><lucide-icon name="wifi-off" class="w-6 h-6"></lucide-icon></span>
+    <strong>Không tải được sân đã lưu</strong>
+    <p>Kiểm tra kết nối mạng rồi thử lại.</p>
+    <button type="button" class="btn btn--primary" (click)="load()">Thử lại</button>
+  </section>
+  } @else if (venues().length) {
+  <section class="results" #listTop aria-labelledby="saved-count">
+    <p id="saved-count" class="results__count"><strong>{{ total() }}</strong> sân đã lưu</p>
+    <div class="grid goat-stagger">
+      @for (venue of pagedVenues(); track venue.venueId) {
+      <app-venue-card [venue]="venue" [homeStyle]="true" [saved]="true"
+        (favoriteChange)="onFavoriteChange(venue.venueId, $event)"></app-venue-card>
+      }
+    </div>
+    @if (total() > pageSize) {
+    <app-pagination [pageIndex]="pageIndex()" [pageSize]="pageSize" [totalItems]="total()" itemLabel="sân"
+      (pageChange)="changePage($event)"></app-pagination>
+    }
+  </section>
+  } @else {
+  <section class="state">
+    <span class="state__icon"><lucide-icon name="heart" class="w-6 h-6"></lucide-icon></span>
+    <strong>Chưa lưu sân nào</strong>
+    <p>Bấm "Lưu sân" ở trang chi tiết hoặc biểu tượng tim trên thẻ sân để giữ lại những nơi bạn hay chơi.</p>
+    <a class="btn btn--primary" routerLink="/venues">Tìm sân</a>
+  </section>
+  }
+</main>

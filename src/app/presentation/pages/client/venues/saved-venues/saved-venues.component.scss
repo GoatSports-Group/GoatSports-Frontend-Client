@@ -1,0 +1,63 @@
+// Sân đã lưu (/venues/saved) — GOAT-DESIGN.md §7 consumer page rhythm: page identity → result count →
+// discovery grid (4/3/2/1 cột) → pagination hoặc trạng thái rỗng. Nút, khối trạng thái và page-title từ partial dùng chung.
+@use '../../tournaments/tournament-ui' as t;
+@include t.tournament-ui;
+
+.saved-page {
+  display: grid;
+  width: 100%;
+  max-width: var(--page-max, 1480px);
+  margin: 0 auto;
+  padding: var(--page-block-start) var(--page-gutter) var(--page-block-end);
+  gap: 24px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.page-head__copy {
+  min-width: 0;
+  flex: 1 1 420px;
+
+  p {
+    margin: 8px 0 0;
+    color: var(--body);
+    font-size: 16px;
+    line-height: 1.5;
+    text-wrap: balance;
+  }
+}
+
+.results {
+  display: grid;
+  gap: 16px;
+  scroll-margin-top: 88px;
+}
+
+.results__count {
+  margin: 0;
+  color: var(--body);
+  font-size: 14px;
+
+  strong { color: var(--ink); font-variant-numeric: tabular-nums; }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+}
+
+@media (max-width: 1279px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 1023px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+@media (max-width: 640px) {
+  .grid { grid-template-columns: minmax(0, 1fr); }
+  .page-head .btn { width: 100%; }
+}

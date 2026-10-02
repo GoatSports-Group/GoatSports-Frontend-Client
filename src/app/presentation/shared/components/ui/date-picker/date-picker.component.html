@@ -1,0 +1,72 @@
+<div class="date-picker" [class.is-open]="open" [class.is-disabled]="disabled" [class]="'size-' + size"
+  [class.date-picker--icon]="variant === 'icon'">
+  <button #origin="cdkOverlayOrigin" cdkOverlayOrigin type="button" class="date-picker__trigger" [disabled]="disabled"
+    [attr.aria-label]="ariaLabel + (label ? ': ' + label : '')" aria-haspopup="dialog" [attr.aria-expanded]="open"
+    (click)="toggle()" (keydown)="onTriggerKeydown($event)">
+    <span class="date-picker__leading" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" />
+      </svg>
+    </span>
+    @if (variant === 'field') {
+    <span class="date-picker__label" [class.is-placeholder]="!label">{{ label || placeholder }}</span>
+    <svg class="date-picker__chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" d="m6 8 4 4 4-4" />
+    </svg>
+    }
+  </button>
+
+  <ng-template cdkConnectedOverlay [cdkConnectedOverlayOrigin]="origin" [cdkConnectedOverlayOpen]="open"
+    [cdkConnectedOverlayPositions]="positions" [cdkConnectedOverlayViewportMargin]="16" (detach)="close()"
+    (overlayOutsideClick)="onOutsideClick($event)" (overlayKeydown)="onOverlayKeydown($event)">
+    <div class="date-picker__panel" role="dialog" [attr.aria-label]="ariaLabel" (click)="$event.stopPropagation()">
+      <header class="date-picker__head">
+        <button type="button" class="date-picker__title" [attr.aria-label]="view === 'days' ? 'Chọn tháng' : 'Quay lại chọn ngày'"
+          (click)="toggleView()">
+          {{ view === 'days' ? monthTitle : 'Năm ' + cursor.getFullYear() }}
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" [class.is-flipped]="view === 'months'">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m6 8 4 4 4-4" />
+          </svg>
+        </button>
+        <div class="date-picker__nav">
+          <button type="button" class="date-picker__icon-btn" [disabled]="!canPrev" (click)="step(-1)"
+            [attr.aria-label]="view === 'days' ? 'Tháng trước' : 'Năm trước'">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m12 5-5 5 5 5" /></svg>
+          </button>
+          <button type="button" class="date-picker__icon-btn" [disabled]="!canNext" (click)="step(1)"
+            [attr.aria-label]="view === 'days' ? 'Tháng sau' : 'Năm sau'">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m8 5 5 5-5 5" /></svg>
+          </button>
+        </div>
+      </header>
+
+      @if (view === 'days') {
+      <div class="date-picker__weekdays" aria-hidden="true">
+        @for (weekday of weekdays; track weekday.short) { <span [title]="weekday.full">{{ weekday.short }}</span> }
+      </div>
+      <div class="date-picker__grid" role="grid" [attr.aria-label]="monthTitle" (keydown)="onGridKeydown($event)">
+        @for (cell of days; track cell.iso) {
+        <button type="button" class="date-picker__day" role="gridcell" [attr.data-iso]="cell.iso" [attr.aria-label]="cell.aria"
+          [class.is-outside]="!cell.inMonth" [class.is-today]="cell.today" [class.is-selected]="cell.iso === value"
+          [disabled]="cell.disabled" [attr.aria-selected]="cell.iso === value" [attr.aria-current]="cell.today ? 'date' : null"
+          [tabindex]="cell.iso === focused ? 0 : -1" (click)="pick(cell.iso)">{{ cell.day }}</button>
+        }
+      </div>
+      } @else {
+      <div class="date-picker__months">
+        @for (month of months; track month.index) {
+        <button type="button" class="date-picker__month" [disabled]="month.disabled"
+          [class.is-selected]="month.index === cursor.getMonth()" (click)="pickMonth(month.index)">{{ month.label }}</button>
+        }
+      </div>
+      }
+
+      <footer class="date-picker__foot">
+        @if (clearable && value) {
+        <button type="button" class="date-picker__text-btn" (click)="clear()">Xóa</button>
+        } @else { <span></span> }
+        <button type="button" class="date-picker__text-btn" [disabled]="!todayAllowed" (click)="pickToday()">Hôm nay</button>
+      </footer>
+    </div>
+  </ng-template>
+</div>

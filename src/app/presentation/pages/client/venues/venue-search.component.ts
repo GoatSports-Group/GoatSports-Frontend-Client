@@ -16,6 +16,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import * as L from 'leaflet';
 import { catchError, of, take } from 'rxjs';
 import { Venue, VenueSearchFilter } from '@application/dto/venue/venue.dto';
+import { AuthService } from '@presentation/services/auth.service';
 import { VENUE_SEARCH_REPOSITORY_TOKEN } from '@application/ports/persistence/venue-search.repository';
 import { GetStorageFileUrlUseCase } from '@application/usecase/storage/get-storage-file-url.usecase';
 import {
@@ -36,6 +37,7 @@ export class VenueSearchComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('venueMap') private venueMap?: ElementRef<HTMLElement>;
 
   private readonly venueSearchRepo = inject(VENUE_SEARCH_REPOSITORY_TOKEN);
+  readonly auth = inject(AuthService);
   private readonly getFileUrl = inject(GetStorageFileUrlUseCase);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);

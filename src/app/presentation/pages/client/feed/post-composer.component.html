@@ -31,7 +31,8 @@
       </label>
       <label class="call-field">
         <span>Ngày chơi</span>
-        <input type="date" [min]="today" [ngModel]="callDate()" (ngModelChange)="callDate.set($event)" />
+        <app-date-picker ariaLabel="Ngày chơi" [clearable]="false" [min]="today" [ngModel]="callDate()"
+          (ngModelChange)="callDate.set($event)"></app-date-picker>
       </label>
       <div class="call-field call-field--time">
         <label><span>Từ</span><input type="time" [ngModel]="callStart()" (ngModelChange)="callStart.set($event)" aria-label="Giờ bắt đầu" /></label>

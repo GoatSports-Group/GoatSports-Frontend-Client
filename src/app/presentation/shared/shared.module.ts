@@ -36,6 +36,7 @@ import { LucideIconComponent } from '@shared/components/ui/lucide-icon/lucide-ic
 import { PaginationComponent } from '@shared/components/ui/pagination/pagination.component';
 import { FormFieldComponent } from '@shared/components/ui/form-field/form-field.component';
 import { SelectComponent } from '@shared/components/ui/select/select.component';
+import { DatePickerComponent } from '@shared/components/ui/date-picker/date-picker.component';
 import { FileUploadComponent } from '@shared/components/file-upload/file-upload.component';
 import { PolicyLayoutComponent } from '@shared/layouts/policy/policy-layout.component';
 import { ScreenLoaderComponent } from '@shared/components/screen-loader/screen-loader.component';
@@ -95,6 +96,7 @@ const COMPONENT_DECLARATIONS = [
     LoadingSkeletonComponent,
     PaginationComponent,
     FormFieldComponent,
+    DatePickerComponent,
     ...MATERIAL_MODULES
   ],
   exports: [
@@ -106,6 +108,7 @@ const COMPONENT_DECLARATIONS = [
     LoadingSkeletonComponent,
     PaginationComponent,
     FormFieldComponent,
+    DatePickerComponent,
     ...MATERIAL_MODULES,
     ...COMPONENT_DECLARATIONS
   ]

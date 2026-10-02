@@ -1281,10 +1281,20 @@
       <div class="form-group"><label for="activity-description">Nội dung nhắc</label><textarea id="activity-description"
           [(ngModel)]="activityForm.description"></textarea></div>
       <div class="form-row">
-        <div class="form-group"><label for="activity-start">Bắt đầu *</label><input id="activity-start"
-            type="datetime-local" [(ngModel)]="activityForm.startAt" /></div>
-        <div class="form-group"><label for="activity-end">Kết thúc *</label><input id="activity-end"
-            type="datetime-local" [(ngModel)]="activityForm.endAt" /></div>
+        <div class="form-group"><label id="activity-start-label">Bắt đầu *</label>
+          <div class="datetime-field">
+            <app-date-picker ariaLabel="Ngày bắt đầu" [clearable]="false" [ngModel]="activityForm.startAt.slice(0, 10)"
+              (ngModelChange)="setActivityPart('startAt', 'date', $event)"></app-date-picker>
+            <input type="time" aria-label="Giờ bắt đầu" [ngModel]="activityForm.startAt.slice(11, 16)"
+              (ngModelChange)="setActivityPart('startAt', 'time', $event)" />
+          </div></div>
+        <div class="form-group"><label id="activity-end-label">Kết thúc *</label>
+          <div class="datetime-field">
+            <app-date-picker ariaLabel="Ngày kết thúc" [clearable]="false" [min]="activityForm.startAt.slice(0, 10)"
+              [ngModel]="activityForm.endAt.slice(0, 10)" (ngModelChange)="setActivityPart('endAt', 'date', $event)"></app-date-picker>
+            <input type="time" aria-label="Giờ kết thúc" [ngModel]="activityForm.endAt.slice(11, 16)"
+              (ngModelChange)="setActivityPart('endAt', 'time', $event)" />
+          </div></div>
       </div>
       <footer class="modal-footer"><button type="button" class="button button--secondary"
           (click)="closeActivityModal()">Hủy</button><button type="button" class="button button--primary"

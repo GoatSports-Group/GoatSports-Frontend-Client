@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { map, Observable } from 'rxjs';
-import { VenueFavoriteStatus } from '@application/dto/venue/venue-favorite.dto';
+import { SavedVenue, VenueFavoriteStatus } from '@application/dto/venue/venue-favorite.dto';
 import { VenueFavoriteRepository } from '@application/ports/persistence/venue-favorite.repository';
 import { VenueFavoriteApi } from '@infrastructure/api/venue-favorite.api';
 
@@ -18,5 +18,9 @@ export class VenueFavoriteRepositoryImpl implements VenueFavoriteRepository {
 
   unfavorite(venueId: string): Observable<VenueFavoriteStatus> {
     return this.api.unfavorite(venueId).pipe(map(response => response.data));
+  }
+
+  getSaved(): Observable<SavedVenue[]> {
+    return this.api.getSaved().pipe(map(response => response.data ?? []));
   }
 }

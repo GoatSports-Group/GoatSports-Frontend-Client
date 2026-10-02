@@ -22,6 +22,8 @@ export interface VenueSearchFilter {
   minPrice?: number;
   maxPrice?: number;
   minRating?: number;
+  /** Chi lay cac san nay (toi da 50), vd. trang San da luu. */
+  ids?: string[];
   page?: number;
   size?: number;
 }

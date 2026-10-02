@@ -546,7 +546,7 @@
 
 .date-selector {
   display: grid;
-  grid-template-columns: 34px repeat(5, minmax(0, 1fr)) 34px;
+  grid-template-columns: 44px repeat(5, minmax(0, 1fr)) 44px;
   gap: 5px;
 }
 
@@ -604,12 +604,8 @@
   height: 34px;
 }
 
-.date-picker input {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  opacity: 0;
-  cursor: pointer;
+.date-more {
+  height: 58px;
 }
 
 .courts-section {
@@ -1105,7 +1101,7 @@
   }
 
   .date-selector {
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(5, minmax(0, 1fr)) 44px;
   }
 
   .date-arrow {

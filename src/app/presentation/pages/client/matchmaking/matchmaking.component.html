@@ -288,10 +288,10 @@
           <div class="step-block">
             <span class="block-label">Khung giờ rảnh</span>
             <div class="schedule-grid">
-              <label for="match-date">
+              <label>
                 <span>Ngày chơi</span>
-                <input id="match-date" type="date" [min]="today" [ngModel]="playDate()"
-                  (ngModelChange)="playDate.set($event)" />
+                <app-date-picker ariaLabel="Ngày chơi" [clearable]="false" [min]="today" [ngModel]="playDate()"
+                  (ngModelChange)="playDate.set($event)"></app-date-picker>
               </label>
               <label for="match-start">
                 <span>Rảnh từ</span>

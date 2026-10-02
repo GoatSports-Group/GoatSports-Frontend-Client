@@ -6,6 +6,7 @@ import { SettingsComponent } from '@presentation/pages/client/settings/settings.
 import { NotificationsComponent } from '@presentation/pages/client/notifications/notifications.component';
 import { VenueSearchComponent } from '@presentation/pages/client/venues/venue-search.component';
 import { VenueDetailComponent } from '@presentation/pages/client/venues/venue-detail/venue-detail.component';
+import { SavedVenuesComponent } from '@presentation/pages/client/venues/saved-venues/saved-venues.component';
 import { BookingCreateComponent } from '@presentation/pages/client/booking/booking-create.component';
 import { BookingHistoryComponent } from '@presentation/pages/client/booking/history/booking-history.component';
 import { BookingDetailComponent } from '@presentation/pages/client/booking/detail/booking-detail.component';
@@ -31,6 +32,7 @@ const routes: Routes = [
     children: [
       { path: 'home', component: HomeComponent, title: 'Trang chủ | GOAT Sports' },
       { path: 'venues', component: VenueSearchComponent, title: 'Tìm sân đấu | GOAT Sports' },
+      { path: 'venues/saved', component: SavedVenuesComponent, canActivate: [AuthGuard], title: 'Sân đã lưu | GOAT Sports' },
       { path: 'venues/:id', component: VenueDetailComponent, title: 'Chi tiết sân | GOAT Sports' },
       { path: 'booking/create', component: BookingCreateComponent, canActivate: [AuthGuard], title: 'Đặt sân | GOAT Sports' },
       { path: 'booking/history', component: BookingHistoryComponent, canActivate: [AuthGuard], title: 'Lịch sử đặt sân | GOAT Sports' },

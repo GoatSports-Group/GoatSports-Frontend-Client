@@ -28,6 +28,7 @@ import { ChatComponent } from '@presentation/pages/client/chat/chat.component';
 import { ClubListComponent } from '@presentation/pages/client/clubs/club-list.component';
 import { ClubDetailComponent } from '@presentation/pages/client/clubs/club-detail.component';
 import { ClubFeaturedComponent } from '@presentation/pages/client/clubs/club-featured.component';
+import { SavedVenuesComponent } from '@presentation/pages/client/venues/saved-venues/saved-venues.component';
 import { ClubExploreComponent } from '@presentation/pages/client/clubs/club-explore.component';
 import { ClubJoinRequestModalComponent } from '@presentation/pages/client/clubs/club-join-request-modal.component';
 import { ScoutingPlayerPanelComponent } from '@presentation/pages/client/clubs/scouting-player-panel.component';
@@ -84,6 +85,7 @@ import { AiAssistantModalComponent } from '@presentation/shared/components/ai-as
     ClubListComponent,
     ClubDetailComponent,
     ClubFeaturedComponent,
+    SavedVenuesComponent,
     ClubExploreComponent,
     ClubJoinRequestModalComponent,
     ScoutingPlayerPanelComponent,

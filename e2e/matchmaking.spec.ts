@@ -182,7 +182,8 @@ test('hiển thị cấu hình từ hồ sơ và lịch sử ghép kèo thật',
   // Đánh đơn: ba bước, mỗi bước tóm tắt lựa chọn ngay dưới tên bước.
   await expect(page.locator('.stepper li')).toHaveCount(3);
   await page.getByRole('button', { name: 'Tiếp tục' }).click();
-  await expect(page.locator('#match-date')).toHaveValue(futureDate(2));
+  // Ngày chơi là app-date-picker: nút hiển thị dd/MM/yyyy.
+  await expect(page.getByRole('button', { name: /^Ngày chơi:/ })).toContainText(futureDate(2).split('-').reverse().join('/'));
   await expect(page.locator('#match-start')).toHaveValue('06:30');
   await expect(page.locator('#match-end')).toHaveValue('08:00');
   await expect(page.getByRole('button', { name: /Thời gian & nơi chơi/ })).toContainText('06:30–08:00');

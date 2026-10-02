@@ -29,6 +29,7 @@ export class VenueSearchApi {
     if (filter.minPrice != null) params = params.set('minPrice', filter.minPrice.toString());
     if (filter.maxPrice != null) params = params.set('maxPrice', filter.maxPrice.toString());
     if (filter.minRating != null) params = params.set('minRating', filter.minRating.toString());
+    filter.ids?.forEach(id => params = params.append('ids', id));
     if (filter.page !== undefined) params = params.set('page', filter.page.toString());
     if (filter.size !== undefined) params = params.set('size', filter.size.toString());
 

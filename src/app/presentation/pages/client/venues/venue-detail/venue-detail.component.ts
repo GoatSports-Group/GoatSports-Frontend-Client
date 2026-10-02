@@ -192,8 +192,7 @@ export class VenueDetailComponent implements OnInit {
     this.loadSlots();
   }
 
-  onDateChange(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
+  onDateChange(value: string): void {
     if (!value) return;
     this.selectedDate = value < this.today ? this.today : value;
     this.selectedSlot = null;

@@ -831,6 +831,14 @@ export class ClubDetailComponent implements OnDestroy {
     });
   }
 
+  /** Ghep ngay (app-date-picker) va gio (input time) thanh yyyy-MM-ddTHH:mm nhu datetime-local truoc day. */
+  setActivityPart(field: 'startAt' | 'endAt', part: 'date' | 'time', value: string): void {
+    const current = this.activityForm[field] ?? '';
+    const date = part === 'date' ? value : current.slice(0, 10);
+    const time = part === 'time' ? value : current.slice(11, 16);
+    this.activityForm = { ...this.activityForm, [field]: date ? `${date}T${time ?? ''}` : '' };
+  }
+
   closeActivityModal(): void {
     this.showActivityModal.set(false);
     this.editingActivityId.set(null);
@@ -907,7 +915,8 @@ export class ClubDetailComponent implements OnDestroy {
     });
   }
   createActivity(): void {
-    if (!this.activityForm.title.trim() || !this.activityForm.startAt || !this.activityForm.endAt) return;
+    // startAt/endAt dang yyyy-MM-ddTHH:mm; thieu ngay hoac gio thi chua du 16 ky tu.
+    if (!this.activityForm.title.trim() || this.activityForm.startAt.length < 16 || this.activityForm.endAt.length < 16) return;
     if (this.activityForm.endAt <= this.activityForm.startAt) {
       this.notify.warning('Thời điểm kết thúc phải sau thời điểm bắt đầu.');
       return;

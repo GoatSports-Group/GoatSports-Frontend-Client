@@ -7,8 +7,7 @@ import {
   OnInit,
   Output,
   SimpleChanges,
-  inject
-} from '@angular/core';
+  inject, ChangeDetectorRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, distinctUntilChanged, of, take } from 'rxjs';
 import { Venue } from '@application/dto/venue/venue.dto';
@@ -34,12 +33,18 @@ export class VenueCardComponent implements OnInit, OnChanges {
   private readonly authService = inject(AuthService);
   private readonly notify = inject(NotifyService);
   private readonly destroyRef = inject(DestroyRef);
+  /** Anh, trang thai luu ve sau (HTTP): bao cha OnPush (vd. trang San da luu) ve lai the. */
+  private readonly changeDetector = inject(ChangeDetectorRef);
 
   @Input() venue!: Venue;
   @Input() homeStyle = false;
   @Input() selectable = false;
   @Input() selected = false;
+  /** Trang San da luu: biet san da luu nen khong goi API trang thai cho tung the. */
+  @Input() saved = false;
   @Output() venueSelected = new EventEmitter<Venue>();
+  /** Phat trang thai luu moi sau khi nguoi dung bam tim (vd. bo the khoi trang San da luu). */
+  @Output() favoriteChange = new EventEmitter<boolean>();
   primaryImage = VENUE_PLACEHOLDER_IMAGE;
   isFavorite = false;
   favoriteLoading = false;
@@ -107,10 +112,13 @@ export class VenueCardComponent implements OnInit, OnChanges {
       next: status => {
         this.isFavorite = status.followed;
         this.favoriteLoading = false;
+        this.changeDetector.markForCheck();
+        this.favoriteChange.emit(status.followed);
         this.notify.success(status.followed ? 'Đã lưu sân yêu thích.' : 'Đã bỏ lưu sân.');
       },
       error: () => {
         this.favoriteLoading = false;
+        this.changeDetector.markForCheck();
         this.notify.error('Không thể cập nhật sân yêu thích. Vui lòng thử lại.');
       }
     });
@@ -132,6 +140,10 @@ export class VenueCardComponent implements OnInit, OnChanges {
 
   private loadFavoriteStatus(): void {
     const venueId = this.venue?.venueId;
+    if (this.saved) {
+      this.isFavorite = true;
+      return;
+    }
     if (!venueId || !this.authService.isAuthenticated || this.favoriteVenueId === venueId) return;
 
     this.favoriteVenueId = venueId;
@@ -142,7 +154,10 @@ export class VenueCardComponent implements OnInit, OnChanges {
         this.favoriteVenueId = '';
         return of({ venueId, followed: false });
       })
-    ).subscribe(status => this.isFavorite = status.followed);
+    ).subscribe(status => {
+      this.isFavorite = status.followed;
+      this.changeDetector.markForCheck();
+    });
   }
 
   private resolvePrimaryImage(value?: string | null): void {
@@ -166,6 +181,7 @@ export class VenueCardComponent implements OnInit, OnChanges {
       this.primaryImage = isAbsoluteVenueImageUrl(resolvedUrl)
         ? resolvedUrl
         : VENUE_PLACEHOLDER_IMAGE;
+      this.changeDetector.markForCheck();
     });
   }
 }

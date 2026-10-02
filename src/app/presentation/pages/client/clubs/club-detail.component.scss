@@ -3785,3 +3785,14 @@ a {
     border-radius: 24px 24px 0 0;
   }
 }
+
+// Ngay (app-date-picker) + gio tren mot hang; duoi 480px xep chong.
+.datetime-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 128px;
+  gap: 8px;
+}
+
+@media (max-width: 480px) {
+  .datetime-field { grid-template-columns: minmax(0, 1fr); }
+}

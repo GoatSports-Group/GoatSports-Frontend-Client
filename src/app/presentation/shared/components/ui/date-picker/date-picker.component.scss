@@ -1,0 +1,365 @@
+// GOAT-DESIGN.md §6 Inputs & Forms → Date picker. Trigger giong app-select (44px, radius 12, hairline, icon
+// primary-light 28px); lich nam trong CDK overlay: white, hairline, radius 16, shadow-lg, o ngay 44px.
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.date-picker__trigger {
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px 0 10px;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .18s ease;
+
+  &:hover:not(:disabled) {
+    border-color: var(--border-strong);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: .55;
+    background: var(--surface-subtle);
+  }
+}
+
+.date-picker.is-open .date-picker__trigger {
+  border-color: var(--border-strong);
+}
+
+.date-picker.size-sm .date-picker__trigger {
+  min-height: 36px;
+}
+
+.date-picker.size-lg .date-picker__trigger {
+  min-height: 52px;
+  font-size: 15px;
+}
+
+.date-picker__leading {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  place-items: center;
+  border-radius: 6px;
+  background: var(--primary-light);
+  color: var(--primary);
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+// width: 0 giu nhan khoi min-content cua trigger: date picker khong bao gio lam no o luoi/flex cha (nhu app-select).
+.date-picker__label {
+  flex: 1 1 0;
+  width: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+
+  &.is-placeholder {
+    color: var(--body);
+    font-weight: 500;
+  }
+}
+
+.date-picker__chevron {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  color: var(--body);
+  transition: transform .18s ease;
+}
+
+.date-picker.is-open .date-picker__chevron {
+  transform: rotate(180deg);
+  color: var(--primary);
+}
+
+// Bien the icon: nut vuong lap day o cha (cha dat kich thuoc), chi co icon lich.
+:host(.is-icon) {
+  width: auto;
+  height: 100%;
+}
+
+.date-picker--icon {
+  height: 100%;
+}
+
+.date-picker--icon .date-picker__trigger {
+  width: 100%;
+  height: 100%;
+  min-width: 44px;
+  justify-content: center;
+  padding: 0;
+  color: var(--primary);
+
+  &:hover:not(:disabled) {
+    background: var(--primary-light);
+  }
+}
+
+.date-picker--icon .date-picker__leading {
+  width: auto;
+  height: auto;
+  flex: none;
+  margin: 0;
+  background: transparent;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+// ---- Panel (CDK overlay, ngoai .date-picker) ---------------------------------------------------
+.date-picker__panel {
+  display: grid;
+  width: 340px;
+  max-width: calc(100vw - 32px);
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  color: var(--ink);
+  font-family: inherit;
+  animation: date-picker-open .16s ease;
+}
+
+.date-picker__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.date-picker__title {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+
+  svg {
+    width: 16px;
+    height: 16px;
+    color: var(--body);
+    transition: transform .18s ease;
+  }
+
+  svg.is-flipped {
+    transform: rotate(180deg);
+  }
+
+  &:hover {
+    background: var(--surface-subtle);
+  }
+}
+
+.date-picker__nav {
+  display: flex;
+  gap: 4px;
+}
+
+.date-picker__icon-btn {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover:not(:disabled) {
+    background: var(--primary-light);
+    color: var(--primary);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: .4;
+  }
+}
+
+.date-picker__weekdays,
+.date-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.date-picker__weekdays span {
+  display: grid;
+  height: 32px;
+  place-items: center;
+  color: var(--body);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .03em;
+}
+
+.date-picker__day {
+  position: relative;
+  display: grid;
+  height: 44px;
+  place-items: center;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+
+  &:hover:not(:disabled):not(.is-selected) {
+    background: var(--primary-light);
+    color: var(--primary-strong);
+  }
+
+  &.is-outside {
+    color: var(--body);
+    font-weight: 600;
+    opacity: .6;
+  }
+
+  &.is-today:not(.is-selected) {
+    box-shadow: inset 0 0 0 1px var(--primary);
+    color: var(--primary-strong);
+  }
+
+  &.is-selected {
+    background: var(--primary-fill);
+    color: #fff;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    color: var(--body);
+    opacity: .35;
+    text-decoration: line-through;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 1px;
+  }
+}
+
+.date-picker__months {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  padding: 4px 0;
+}
+
+.date-picker__month {
+  height: 52px;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:hover:not(:disabled):not(.is-selected) {
+    border-color: var(--border-strong);
+    color: var(--primary);
+  }
+
+  &.is-selected {
+    border-color: var(--primary);
+    background: var(--primary-light);
+    color: var(--primary-strong);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: .4;
+  }
+}
+
+.date-picker__foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--hairline);
+}
+
+.date-picker__text-btn {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--primary);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--primary-light);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    color: var(--body);
+    opacity: .5;
+  }
+}
+
+@keyframes date-picker-open {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .date-picker__panel {
+    animation: none;
+  }
+}
