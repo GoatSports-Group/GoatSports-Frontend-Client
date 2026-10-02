@@ -1,3 +1,4 @@
+import { PAGE_SIZE } from '@shared/constants/page-size';
 import { isPlatformBrowser } from '@angular/common';
 import {
   AfterViewInit,
@@ -50,7 +51,7 @@ export class VenueSearchComponent implements OnInit, AfterViewInit, OnDestroy {
   private selectedImageKey = '';
   private venueSearchVersion = 0;
 
-  readonly pageSize = 12;
+  readonly pageSize = PAGE_SIZE.grid;
   readonly placeholderImage = VENUE_PLACEHOLDER_IMAGE;
   readonly sportOptions = [
     { value: 'all', label: 'Tất cả', icon: 'layout-grid' },

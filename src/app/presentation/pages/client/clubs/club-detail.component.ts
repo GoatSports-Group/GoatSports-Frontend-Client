@@ -1,3 +1,4 @@
+import { PAGE_SIZE } from '@shared/constants/page-size';
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, HostListener, OnDestroy, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -139,7 +140,7 @@ export class ClubDetailComponent implements OnDestroy {
   readonly bannedPaging = signal(false);
   readonly bannedError = signal(false);
   readonly confirmUnbanId = signal<string | null>(null);
-  readonly bannedPageSize = 10;
+  readonly bannedPageSize = PAGE_SIZE.rows;
   readonly memberPageLoading = signal(false);
   readonly memberPageError = signal(false);
   readonly memberTotal = signal(0);
@@ -194,10 +195,11 @@ export class ClubDetailComponent implements OnDestroy {
   private readonly activityLoadSentinel = viewChild<ElementRef<HTMLElement>>('activityLoadSentinel');
   private readonly matchLoadSentinel = viewChild<ElementRef<HTMLElement>>('matchLoadSentinel');
   private readonly photoLoadSentinel = viewChild<ElementRef<HTMLElement>>('photoLoadSentinel');
-  private readonly memberPageSize = 7;
+  private readonly memberPageSize = PAGE_SIZE.grid;
+  // Hoat dong / tran gan day la khoi xem truoc: so dong bang so o hien thi, khong theo PAGE_SIZE.
   private readonly activityPageSize = 3;
   private readonly matchPageSize = 3;
-  private readonly photoPageSize = 12;
+  private readonly photoPageSize = PAGE_SIZE.grid;
   private memberPage = 0;
   private activityPage = 0;
   private matchPage = 0;

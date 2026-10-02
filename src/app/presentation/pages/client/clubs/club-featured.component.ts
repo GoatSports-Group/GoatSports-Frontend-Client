@@ -1,3 +1,4 @@
+import { PAGE_SIZE } from '@shared/constants/page-size';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
@@ -39,7 +40,7 @@ export class ClubFeaturedComponent {
   readonly selectedSport = signal<SportType | 'ALL'>('ALL');
   readonly selectedCity = signal<string | 'ALL'>('ALL');
   readonly pageIndex = signal(0);
-  readonly pageSize = 6;
+  readonly pageSize = PAGE_SIZE.grid;
   readonly requestClub = signal<ClubCardView | null>(null);
   readonly requestSubmitting = this.browse.mutating;
   readonly provinces = this.locationData.provinces;

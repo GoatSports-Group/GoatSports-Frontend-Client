@@ -1,3 +1,4 @@
+import { PAGE_SIZE } from '@shared/constants/page-size';
 import { ChangeDetectionStrategy, Component, ElementRef, ViewChild, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { BOOKING_REPOSITORY_TOKEN } from '@application/ports/persistence/booking.repository';
@@ -21,7 +22,7 @@ type BookingStatusFilter = BookingStatus | 'ALL';
 export class BookingHistoryComponent {
   private readonly bookingRepository = inject(BOOKING_REPOSITORY_TOKEN);
   private readonly router = inject(Router);
-  readonly pageSize = 12;
+  readonly pageSize = PAGE_SIZE.grid;
 
   readonly bookings = signal<Booking[]>([]);
   readonly loading = signal(true);

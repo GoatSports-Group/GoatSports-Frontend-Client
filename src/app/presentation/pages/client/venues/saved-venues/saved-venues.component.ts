@@ -1,3 +1,4 @@
+import { PAGE_SIZE } from '@shared/constants/page-size';
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin, map, of, switchMap } from 'rxjs';
@@ -26,7 +27,7 @@ export class SavedVenuesComponent {
   private readonly destroyRef = inject(DestroyRef);
   @ViewChild('listTop') private listTop?: ElementRef<HTMLElement>;
 
-  readonly pageSize = 12;
+  readonly pageSize = PAGE_SIZE.grid;
   readonly venues = signal<Venue[]>([]);
   readonly pageIndex = signal(0);
   readonly loading = signal(true);

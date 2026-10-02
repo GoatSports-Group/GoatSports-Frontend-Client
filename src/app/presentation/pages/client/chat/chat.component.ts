@@ -1,3 +1,4 @@
+import { PAGE_SIZE } from '@shared/constants/page-size';
 import { AfterViewChecked, Component, ElementRef, OnDestroy, OnInit, ViewChild, computed, effect, inject, signal, untracked } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, Subscription, finalize, map, of, switchMap, tap } from 'rxjs';
@@ -39,8 +40,8 @@ const MUTED_ROOMS_STORAGE_KEY = 'goat.chat.mutedRooms';
 
 type RoomFilter = 'ALL' | 'UNREAD' | 'GROUP' | 'CLUB';
 
-const MESSAGE_PAGE = 50;
-const ROOM_PAGE = 30;
+const MESSAGE_PAGE = PAGE_SIZE.chat;
+const ROOM_PAGE = PAGE_SIZE.streamLight;
 
 @Component({
   selector: 'app-chat',

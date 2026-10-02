@@ -1,3 +1,4 @@
+import { PAGE_SIZE } from '@shared/constants/page-size';
 import {
   ChangeDetectionStrategy, Component, DestroyRef, ElementRef, OnDestroy, OnInit, ViewChild, computed, inject, signal
 } from '@angular/core';
@@ -20,7 +21,7 @@ import { CommunityStore } from './community.store';
 import { FEED_TABS, FeedTab, POST_SPORTS, compactCount, errorMessage, sportLabel } from './community-view';
 import { PlayerCallPrefill } from './post-composer.component';
 
-const PAGE_SIZE = 10;
+const FEED_PAGE = PAGE_SIZE.stream;
 
 interface ProfileStats {
   postCount: number;
@@ -200,9 +201,9 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
   }
 
   private fetch(page: number): Observable<SpringPageResponse<SocialPost>> {
-    if (this.tab() === 'saved' && !this.authorId()) return this.repository.getSavedPosts(page, PAGE_SIZE);
+    if (this.tab() === 'saved' && !this.authorId()) return this.repository.getSavedPosts(page, FEED_PAGE);
     const authorId = this.authorId() ?? (this.tab() === 'mine' ? this.me : null);
-    return this.repository.getFeed(page, PAGE_SIZE, {
+    return this.repository.getFeed(page, FEED_PAGE, {
       followingOnly: !authorId && this.tab() === 'following',
       playerCallsOnly: !authorId && this.tab() === 'calls',
       sport: this.sport(),

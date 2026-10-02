@@ -1,3 +1,4 @@
+import { PAGE_SIZE } from '@shared/constants/page-size';
 import { Component, ElementRef, OnInit, inject, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
@@ -38,7 +39,7 @@ export class NotificationsComponent implements OnInit {
   readonly unreadCount$ = this.notificationService.unreadCount$;
   readonly allCount$ = this.notificationService.allCount$;
 
-  readonly pageSize = 10;
+  readonly pageSize = PAGE_SIZE.rows;
   readonly pageState$ = this.notificationService.pageState$;
   private requestSequence = 0;
 

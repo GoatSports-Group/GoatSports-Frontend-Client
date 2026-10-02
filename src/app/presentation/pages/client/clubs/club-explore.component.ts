@@ -1,3 +1,4 @@
+import { PAGE_SIZE } from '@shared/constants/page-size';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { SportType } from '@application/dto/club/club.dto';
@@ -41,7 +42,7 @@ export class ClubExploreComponent {
   readonly selectedCity = signal<string | 'ALL'>('ALL');
   readonly sortMode = signal<ClubSortMode>('RELEVANCE');
   readonly pageIndex = signal(0);
-  readonly pageSize = 6;
+  readonly pageSize = PAGE_SIZE.grid;
   readonly requestClub = signal<ClubCardView | null>(null);
   readonly requestSubmitting = this.browse.mutating;
 

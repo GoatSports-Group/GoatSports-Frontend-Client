@@ -1,7 +1,8 @@
+import { PAGE_SIZE } from '@shared/constants/page-size';
 import { Directive, ElementRef, EventEmitter, OnDestroy, OnInit, Output, inject } from '@angular/core';
 
 /** So dong hien them moi lan cham day voi danh sach da co san o client. */
-export const LIST_CHUNK = 20;
+export const LIST_CHUNK = PAGE_SIZE.streamLight;
 
 /**
  * Dat tren phan tu "sentinel" cuoi danh sach: phat `reached` khi no sap vao man hinh.

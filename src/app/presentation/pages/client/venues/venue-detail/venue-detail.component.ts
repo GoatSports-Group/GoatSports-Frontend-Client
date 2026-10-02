@@ -1,3 +1,4 @@
+import { PAGE_SIZE } from '@shared/constants/page-size';
 import { isPlatformBrowser } from '@angular/common';
 import { Component, DestroyRef, OnInit, PLATFORM_ID, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -22,7 +23,7 @@ import {
   BookingCreateDialogData
 } from '@presentation/pages/client/booking/booking-create.component';
 
-const REVIEW_PAGE_SIZE = 10;
+const REVIEW_PAGE_SIZE = PAGE_SIZE.stream;
 
 @Component({
   selector: 'app-venue-detail',

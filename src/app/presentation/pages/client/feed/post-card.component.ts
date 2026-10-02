@@ -1,3 +1,4 @@
+import { PAGE_SIZE } from '@shared/constants/page-size';
 import {
   ChangeDetectionStrategy, Component, DestroyRef, EventEmitter, Input, OnInit, Output, computed, inject, signal
 } from '@angular/core';
@@ -24,7 +25,7 @@ interface CommentThread {
 
 type PendingConfirm = { kind: 'delete-post' } | { kind: 'block' } | { kind: 'delete-comment'; commentId: string };
 
-const COMMENT_PAGE = 20;
+const COMMENT_PAGE = PAGE_SIZE.streamLight;
 const CLAMP_CHARS = 360;
 const CLAMP_LINES = 6;
 

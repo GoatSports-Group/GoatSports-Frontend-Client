@@ -61,17 +61,18 @@ test('trang Câu lạc bộ: không có CLB đủ tiêu chí thì nói rõ đi�
 
 test('/clubs/featured: phân trang ở server và giữ thứ tự xếp hạng', async ({ page }) => {
   await mockGoatSportsApi(page);
-  const requests = await mockFeatured(page, 8);
+  const requests = await mockFeatured(page, 14);
 
   await page.goto('/clubs/featured');
-  await expect(page.locator('.featured-card')).toHaveCount(6);
+  // PAGE_SIZE.grid = 12: 4 / 3 / 2 cot deu kin hang.
+  await expect(page.locator('.featured-card')).toHaveCount(12);
   await expect(page.locator('.featured-card').first()).toContainText('#1');
   await expect(page.locator('.featured-card').first().locator('.reason')).toContainText('Cùng môn bóng đá');
-  await expect(page.locator('.hero-count')).toContainText('8');
+  await expect(page.locator('.hero-count')).toContainText('14');
 
   await page.locator('app-pagination').getByRole('button', { name: 'Trang 2' }).click();
   await expect(page.locator('.featured-card')).toHaveCount(2);
-  await expect(page.locator('.featured-card').first()).toContainText('#7');
+  await expect(page.locator('.featured-card').first()).toContainText('#13');
   expect(requests.at(-1)!.searchParams.get('page')).toBe('1');
 });
 

@@ -1,3 +1,4 @@
+import { PAGE_SIZE } from '@shared/constants/page-size';
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -31,7 +32,7 @@ export class TournamentListComponent {
 
   @ViewChild('listTop') private listTop?: ElementRef<HTMLElement>;
 
-  readonly pageSize = 12;
+  readonly pageSize = PAGE_SIZE.grid;
   readonly statusMeta = STATUS_META;
   readonly sportLabel = SPORT_LABEL;
   readonly formatLabel = FORMAT_LABEL;

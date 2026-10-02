@@ -1,3 +1,4 @@
+import { PAGE_SIZE } from '@shared/constants/page-size';
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
@@ -69,7 +70,7 @@ export class MyClubsComponent {
   readonly selectedCity = signal<string | 'ALL'>('ALL');
   readonly selectedSort = signal<ClubSort>('NEWEST');
   readonly pageIndex = signal(0);
-  readonly pageSize = 6;
+  readonly pageSize = PAGE_SIZE.grid;
   readonly showCreateModal = signal(false);
   readonly creating = signal(false);
 

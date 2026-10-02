@@ -1,3 +1,4 @@
+import { PAGE_SIZE } from '@shared/constants/page-size';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
@@ -229,7 +230,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   readonly historyLoading = signal(true);
   readonly historyLoadingMore = signal(false);
   readonly historyHasMore = signal(true);
-  private static readonly HISTORY_PAGE_SIZE = 5;
+  private static readonly HISTORY_PAGE_SIZE = PAGE_SIZE.stream;
   readonly elapsedSeconds = signal(0);
   readonly nowMs = signal(Date.now());
   readonly queueSize = signal<number | null>(null);

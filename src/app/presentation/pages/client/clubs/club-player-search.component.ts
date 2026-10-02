@@ -1,3 +1,4 @@
+import { PAGE_SIZE } from '@shared/constants/page-size';
 import { ChangeDetectionStrategy, Component, DestroyRef, WritableSignal, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
@@ -36,7 +37,7 @@ type SortMode = 'fit' | 'distance' | 'elo' | 'matches';
 type InvitationFilter = 'ALL' | ClubInvitationStatus;
 
 const DEFAULT_RADIUS_KM = 25;
-const PAGE_SIZE = 8;
+const PAGE_SIZE_ROWS = PAGE_SIZE.rows;
 const INVITE_MESSAGE_MAX = 500;
 
 @Component({
@@ -57,7 +58,7 @@ export class ClubPlayerSearchComponent {
 
   readonly clubId = this.route.snapshot.paramMap.get('clubId') ?? '';
   readonly defaultClubLogo = DEFAULT_CLUB_LOGO;
-  readonly pageSize = PAGE_SIZE;
+  readonly pageSize = PAGE_SIZE_ROWS;
   readonly inviteMessageMax = INVITE_MESSAGE_MAX;
   readonly initials = initialsOf;
   readonly skillLabel = skillLabel;
@@ -133,7 +134,7 @@ export class ClubPlayerSearchComponent {
   });
 
   readonly pagedCandidates = computed(() =>
-    this.visibleCandidates().slice(this.discoverPage() * PAGE_SIZE, (this.discoverPage() + 1) * PAGE_SIZE));
+    this.visibleCandidates().slice(this.discoverPage() * PAGE_SIZE_ROWS, (this.discoverPage() + 1) * PAGE_SIZE_ROWS));
 
   // ---- Shortlist -----------------------------------------------------------------------------
   readonly shortlist = signal<ReadonlyArray<ShortlistEntryModel>>([]);
@@ -144,7 +145,7 @@ export class ClubPlayerSearchComponent {
   readonly savingNote = signal(false);
   readonly shortlistedIds = computed(() => new Set(this.shortlist().map(entry => entry.userId)));
   readonly pagedShortlist = computed(() =>
-    this.shortlist().slice(this.shortlistPage() * PAGE_SIZE, (this.shortlistPage() + 1) * PAGE_SIZE));
+    this.shortlist().slice(this.shortlistPage() * PAGE_SIZE_ROWS, (this.shortlistPage() + 1) * PAGE_SIZE_ROWS));
 
   // ---- Sent invitations ----------------------------------------------------------------------
   readonly invitations = signal<ReadonlyArray<SentInvitationModel>>([]);
@@ -160,7 +161,7 @@ export class ClubPlayerSearchComponent {
     return status === 'ALL' ? this.invitations() : this.invitations().filter(item => item.status === status);
   });
   readonly pagedInvitations = computed(() =>
-    this.filteredInvitations().slice(this.invitationPage() * PAGE_SIZE, (this.invitationPage() + 1) * PAGE_SIZE));
+    this.filteredInvitations().slice(this.invitationPage() * PAGE_SIZE_ROWS, (this.invitationPage() + 1) * PAGE_SIZE_ROWS));
 
   /** Nguoi vua duoc moi trong phien nay: van hien o danh sach nhung khoa nut moi. */
   readonly invitedIds = signal<ReadonlySet<string>>(new Set());
@@ -180,7 +181,7 @@ export class ClubPlayerSearchComponent {
       : this.friends();
   });
   readonly pagedFriends = computed(() =>
-    this.visibleFriends().slice(this.friendPage() * PAGE_SIZE, (this.friendPage() + 1) * PAGE_SIZE));
+    this.visibleFriends().slice(this.friendPage() * PAGE_SIZE_ROWS, (this.friendPage() + 1) * PAGE_SIZE_ROWS));
   readonly invitableFriends = computed(() => this.friends().filter(friend => this.friendRelation(friend) === 'NONE').length);
 
   // ---- Selection & invite dialog ---------------------------------------------------------------
@@ -598,7 +599,7 @@ export class ClubPlayerSearchComponent {
   }
 
   private clampPage(page: WritableSignal<number>, total: number): void {
-    const last = Math.max(0, Math.ceil(total / PAGE_SIZE) - 1);
+    const last = Math.max(0, Math.ceil(total / PAGE_SIZE_ROWS) - 1);
     if (page() > last) page.set(last);
   }
 }
