@@ -721,6 +721,11 @@
   width: 100%;
 }
 
+// Thẻ kèo xếp khối bằng margin-top 14px (venue-proposal, decision-actions...); nút đầy chiều ngang theo cùng nhịp.
+.result-state--matched .button-full {
+  margin-top: 14px;
+}
+
 .result-state {
   min-height: 0;
   overflow: hidden;
