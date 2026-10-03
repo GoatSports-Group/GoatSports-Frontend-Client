@@ -399,3 +399,25 @@
     grid-column: 1 / 3;
   }
 }
+
+// Inside the composer dialog: no card chrome, no author row (the dialog header says it), sticky action bar.
+:host-context(.modal--composer) {
+  .composer {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .composer__who {
+    display: none;
+  }
+
+  .composer__bar {
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+    padding-bottom: 16px;
+    background: var(--surface);
+  }
+}

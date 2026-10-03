@@ -1,0 +1,8 @@
+@use 'community-ui' as c;
+
+@include c.community-ui;
+
+// The composer brings its own author row and action bar; the dialog body only scrolls it.
+.modal--composer .modal__body {
+  padding-bottom: 0;
+}

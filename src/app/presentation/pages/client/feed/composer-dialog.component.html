@@ -1,0 +1,16 @@
+<div class="modal-backdrop" role="presentation" (click)="closed.emit()">
+  <section class="modal modal--wide modal--composer" appAccessibleDialog aria-labelledby="composer-dialog-title"
+    (dialogClosed)="closed.emit()" (click)="$event.stopPropagation()">
+    <header class="modal__header">
+      <div>
+        <h2 id="composer-dialog-title">{{ post ? (post.playerCall ? 'Chỉnh sửa kèo' : 'Chỉnh sửa bài viết') : 'Đăng lên Cộng đồng' }}</h2>
+        <p>{{ post ? 'Thay đổi hiện ngay với mọi người xem bài.' : 'Tìm người chơi cho kèo của bạn, hoặc chia sẻ khoảnh khắc thể thao.' }}</p>
+      </div>
+      <button type="button" class="icon-btn" (click)="closed.emit()" aria-label="Đóng"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button>
+    </header>
+    <div class="modal__body">
+      <app-post-composer [post]="post" [initialKind]="initialKind" [closable]="true" [defaultSport]="defaultSport"
+        [prefill]="prefill" (saved)="saved.emit($event)" (cancelled)="closed.emit()"></app-post-composer>
+    </div>
+  </section>
+</div>

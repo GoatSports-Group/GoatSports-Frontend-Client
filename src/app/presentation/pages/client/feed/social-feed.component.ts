@@ -43,8 +43,11 @@ interface MySport {
   level: string;
 }
 
-/** Thanh tab: "Bai cua toi" la trang ca nhan (bam the ho so), khong chiem mot tab. */
-const BAR_TABS = FEED_TABS.filter(item => item.value !== 'mine');
+/**
+ * Thanh tab: "Bai cua toi" la trang ca nhan (bam the ho so). "Tim nguoi choi" khong la tab: keo nam trong Kham pha,
+ * danh sach keo con mo mo tu "Keo hop voi ban › Xem tat ca" (`?tab=calls`, hien banner).
+ */
+const BAR_TABS = FEED_TABS.filter(item => item.value !== 'mine' && item.value !== 'calls');
 
 @Component({
   selector: 'app-social-feed',
@@ -86,11 +89,12 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
   readonly moreError = signal(false);
   readonly hasMore = signal(false);
   private page = 1;
+  /** Bo loc cua lan tai gan nhat (tab, mon, tac gia, chu de). */
+  private feedKey = '';
   private request?: Subscription;
   private observer?: IntersectionObserver;
 
   readonly mySports = signal<Section<MySport[]>>({ loading: true, error: false, data: [] });
-  readonly myStats = signal<Section<ProfileStats | null>>({ loading: true, error: false, data: null });
   readonly authorStats = signal<Section<ProfileStats | null>>({ loading: true, error: false, data: null });
   readonly myCalls = signal<Section<SocialPost[]>>({ loading: true, error: false, data: [] });
   readonly matchingCalls = signal<Section<SocialPost[]>>({ loading: true, error: false, data: [] });
@@ -111,6 +115,7 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
   readonly isAuthorView = computed(() => !!this.authorId());
   readonly isMyAuthorView = computed(() => this.authorId() === this.me);
   readonly isFriendsTab = computed(() => this.tab() === 'friends' && !this.isAuthorView());
+  readonly isCallsView = computed(() => this.tab() === 'calls' && !this.isAuthorView());
   readonly showComposer = computed(() =>
     this.tab() !== 'saved' && !this.isFriendsTab() && (!this.isAuthorView() || this.isMyAuthorView()));
   readonly showSportFilter = computed(() => this.tab() !== 'saved' && !this.isFriendsTab());
@@ -133,7 +138,6 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.store.loadFollowing(this.me);
     this.store.loadConnections();
-    this.loadMyStats();
     this.loadTrending();
     this.loadMyCalls();
 
@@ -175,6 +179,10 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
         this.callPrefill.set({ sport: this.sport(), format: params.get('format') });
         this.composerKind.set('CALL');
       }
+      // Chi tai lai khi bo loc doi; bo `?compose=` sau khi dang khong duoc xoa bai vua chen vao dau danh sach.
+      const key = [this.tab(), this.sport(), this.mineOnly(), this.authorId(), this.tag()].join('|');
+      if (key === this.feedKey) return;
+      this.feedKey = key;
       if (!this.isFriendsTab()) this.reload();
       if (this.authorId()) this.loadAuthorStats(this.authorId()!);
     });
@@ -207,11 +215,18 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
     void this.router.navigate([], { queryParams: { author: null }, queryParamsHandling: 'merge' });
   }
 
-  /** "Dang keo" tu the Keo cua toi: sang tab Tim nguoi choi va mo o soan keo. */
+  /** "Tao keo" tu the Keo cua toi: mo hop thoai soan keo ngay tai cho. */
   composeCall(): void {
     this.composerKind.set('CALL');
-    if (this.tab() !== 'calls' || this.authorId()) this.selectTab('calls');
-    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /** Dong hop thoai soan; bo luon thong tin dien san tu trang ghep tran de lan mo sau khong bi dien lai. */
+  closeComposer(): void {
+    this.composerKind.set(null);
+    this.callPrefill.set(null);
+    if (this.route.snapshot.queryParamMap.has('compose')) {
+      void this.router.navigate([], { queryParams: { compose: null, format: null }, queryParamsHandling: 'merge', replaceUrl: true });
+    }
   }
 
   // ---- feed -----------------------------------------------------------------------------------
@@ -272,7 +287,7 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
   // ---- card events ----------------------------------------------------------------------------
 
   onPublished(post: SocialPost): void {
-    this.composerKind.set(null);
+    this.closeComposer();
     if (this.fits(post)) this.posts.update(items => [post, ...items]);
     if (post.playerCall) this.loadMyCalls();
     this.bumpMyPosts(1);
@@ -389,16 +404,6 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
       });
   }
 
-  loadMyStats(): void {
-    const me = this.me;
-    if (!me) return;
-    this.myStats.set({ loading: true, error: false, data: null });
-    this.profileStats(me).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: data => this.myStats.set({ loading: false, error: false, data }),
-      error: () => this.myStats.set({ loading: false, error: true, data: null })
-    });
-  }
-
   loadAuthorStats(authorId: string): void {
     this.store.hydrateAuthors([authorId]);
     this.authorStats.set({ loading: true, error: false, data: null });
@@ -426,6 +431,8 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
     if (this.authorId() && this.authorId() !== post.authorId) return false;
     if (this.tag() && !post.tags?.includes(this.tag()!)) return false;
     if (this.tab() === 'calls' && !this.authorId() && !post.playerCall) return false;
+    // Dang theo doi chi co bai cua nguoi minh theo doi, khong bao gio bai cua chinh minh.
+    if (this.tab() === 'following' && !this.authorId()) return false;
     if (this.mineOnly() && (!post.sport || !this.mySportSet().has(post.sport))) return false;
     return !this.sport() || this.sport() === post.sport;
   }
@@ -434,12 +441,12 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
     const update = (section: Section<ProfileStats | null>) => section.data
       ? { ...section, data: { ...section.data, postCount: Math.max(0, section.data.postCount + delta) } }
       : section;
-    this.myStats.update(update);
     if (this.isMyAuthorView()) this.authorStats.update(update);
   }
 
   private adjustFollowing(delta: number): void {
-    this.myStats.update(section => section.data
+    if (!this.isMyAuthorView()) return;
+    this.authorStats.update(section => section.data
       ? { ...section, data: { ...section.data, followingCount: Math.max(0, section.data.followingCount + delta) } }
       : section);
   }

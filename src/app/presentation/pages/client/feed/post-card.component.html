@@ -82,57 +82,54 @@
   }
 
   @if (editing()) {
+    <app-composer-dialog [post]="post" (saved)="onEdited($event)" (closed)="editing.set(false)"></app-composer-dialog>
+  }
+  @if (post.playerCall) {
+    <div class="post__body"><app-player-call [post]="post" (changed)="changed.emit($event)"></app-player-call></div>
+  }
+  <!-- Bai khoe: tieu de, loi dan, roi den the thanh tich. -->
+  @if (post.highlight; as highlight) {
+    <div class="post__body"><h3 class="post__title">{{ highlight.title }}</h3></div>
+  }
+  @if (post.content) {
     <div class="post__body">
-      <app-post-composer [post]="post" (saved)="onEdited($event)" (cancelled)="editing.set(false)"></app-post-composer>
+      <p class="post__text" [class.is-clamped]="isLong && !expanded()"><ng-container [ngTemplateOutlet]="richContent" [ngTemplateOutletContext]="{ $implicit: contentSegments() }"></ng-container></p>
+      @if (isLong) {
+        <button type="button" class="link-btn" (click)="expanded.set(!expanded())">{{ expanded() ? 'Thu gọn' : 'Xem thêm' }}</button>
+      }
     </div>
-  } @else {
-    @if (post.playerCall) {
-      <div class="post__body"><app-player-call [post]="post" (changed)="changed.emit($event)"></app-player-call></div>
-    }
-    <!-- Bai khoe: tieu de, loi dan, roi den the thanh tich. -->
-    @if (post.highlight; as highlight) {
-      <div class="post__body"><h3 class="post__title">{{ highlight.title }}</h3></div>
-    }
-    @if (post.content) {
-      <div class="post__body">
-        <p class="post__text" [class.is-clamped]="isLong && !expanded()"><ng-container [ngTemplateOutlet]="richContent" [ngTemplateOutletContext]="{ $implicit: contentSegments() }"></ng-container></p>
-        @if (isLong) {
-          <button type="button" class="link-btn" (click)="expanded.set(!expanded())">{{ expanded() ? 'Thu gọn' : 'Xem thêm' }}</button>
+  }
+
+  @if (post.highlight; as highlight) {
+    <div class="post__body"><app-post-highlight [highlight]="highlight"></app-post-highlight></div>
+  }
+
+  @if (post.sharedPostId) {
+    @if (post.sharedPost; as original) {
+      <a class="embed" [routerLink]="['/feed/posts', original.postId]" [attr.aria-label]="'Bài gốc của ' + store.authorName(original.authorId)">
+        <div class="embed__head">
+          <img class="avatar" [src]="store.avatar(original.authorId)" alt="" width="32" height="32" />
+          <div>
+            <strong>{{ store.authorName(original.authorId) }}</strong>
+            <span class="meta">
+              {{ relativeTime(original.publishedAt) }}
+              @if (original.sport) { <span class="meta__dot" aria-hidden="true"></span>{{ sportLabel(original.sport) }} }
+            </span>
+          </div>
+        </div>
+        @if (original.content) { <p class="embed__text"><ng-container [ngTemplateOutlet]="richContent" [ngTemplateOutletContext]="{ $implicit: originalSegments(), plain: true }"></ng-container></p> }
+        @if (original.attachments.length) {
+          <ng-container [ngTemplateOutlet]="mediaGrid" [ngTemplateOutletContext]="{ $implicit: original.attachments, linked: false }"></ng-container>
         }
+      </a>
+    } @else {
+      <div class="embed embed--gone">
+        <lucide-icon name="eye-off" class="w-5 h-5"></lucide-icon>
+        <div><strong>Nội dung này không còn hiển thị</strong><span>Bài gốc đã bị xóa, bị ẩn hoặc bạn không có quyền xem.</span></div>
       </div>
     }
-
-    @if (post.highlight; as highlight) {
-      <div class="post__body"><app-post-highlight [highlight]="highlight"></app-post-highlight></div>
-    }
-
-    @if (post.sharedPostId) {
-      @if (post.sharedPost; as original) {
-        <a class="embed" [routerLink]="['/feed/posts', original.postId]" [attr.aria-label]="'Bài gốc của ' + store.authorName(original.authorId)">
-          <div class="embed__head">
-            <img class="avatar" [src]="store.avatar(original.authorId)" alt="" width="32" height="32" />
-            <div>
-              <strong>{{ store.authorName(original.authorId) }}</strong>
-              <span class="meta">
-                {{ relativeTime(original.publishedAt) }}
-                @if (original.sport) { <span class="meta__dot" aria-hidden="true"></span>{{ sportLabel(original.sport) }} }
-              </span>
-            </div>
-          </div>
-          @if (original.content) { <p class="embed__text"><ng-container [ngTemplateOutlet]="richContent" [ngTemplateOutletContext]="{ $implicit: originalSegments(), plain: true }"></ng-container></p> }
-          @if (original.attachments.length) {
-            <ng-container [ngTemplateOutlet]="mediaGrid" [ngTemplateOutletContext]="{ $implicit: original.attachments, linked: false }"></ng-container>
-          }
-        </a>
-      } @else {
-        <div class="embed embed--gone">
-          <lucide-icon name="eye-off" class="w-5 h-5"></lucide-icon>
-          <div><strong>Nội dung này không còn hiển thị</strong><span>Bài gốc đã bị xóa, bị ẩn hoặc bạn không có quyền xem.</span></div>
-        </div>
-      }
-    } @else if (post.attachments.length) {
-      <ng-container [ngTemplateOutlet]="mediaGrid" [ngTemplateOutletContext]="{ $implicit: post.attachments, linked: true }"></ng-container>
-    }
+  } @else if (post.attachments.length) {
+    <ng-container [ngTemplateOutlet]="mediaGrid" [ngTemplateOutletContext]="{ $implicit: post.attachments, linked: true }"></ng-container>
   }
 
   <div class="post__stats">

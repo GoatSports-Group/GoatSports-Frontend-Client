@@ -67,11 +67,14 @@ test('chỉ những gì phục vụ tìm người chơi và chia sẻ; không c�
   await expect(community.getByText('Câu lạc bộ nổi bật')).toHaveCount(0);
 
   const tabs = page.getByRole('navigation', { name: 'Phạm vi bảng tin' });
-  await expect(tabs.getByRole('button')).toHaveText([/Tìm người chơi/, /Khám phá/, /Đang theo dõi/, /Đã lưu/, /Bạn bè/]);
+  // "Tim nguoi choi" khong con la tab; the ho so khong con 3 dong thong ke (trang ca nhan da co).
+  await expect(tabs.getByRole('button')).toHaveText([/Khám phá/, /Đang theo dõi/, /Đã lưu/, /Bạn bè/]);
+  await expect(page.locator('.profile .stats')).toHaveCount(0);
 });
 
 test('tab Tìm người chơi mở sẵn ở môn của bạn, chỉ kèo còn mở', async ({ page }, testInfo) => {
   const { feed, suggestions } = await openCommunity(page, '/feed?tab=calls');
+  await expect(page.locator('.tag-banner')).toContainText('Kèo đang tìm người');
 
   await expect(page.getByRole('button', { name: 'Môn của bạn' })).toHaveAttribute('aria-pressed', 'true');
   await expect.poll(() => feed.some(params => params.get('playerCallsOnly') === 'true' && params.get('sports') === 'BADMINTON'
@@ -95,21 +98,43 @@ test('tab Tìm người chơi mở sẵn ở môn của bạn, chỉ kèo còn m
   await expect.poll(() => feed.at(-1)?.get('sports') ?? null).toBeNull();
 });
 
-test('ô soạn thu gọn, mở đúng loại bài và thu lại bằng Hủy', async ({ page }) => {
+test('soạn kèo / bài viết và chỉnh sửa bài đều mở trong hộp thoại', async ({ page }, testInfo) => {
   await openCommunity(page, '/feed?tab=calls');
   const bar = page.getByRole('region', { name: 'Đăng bài mới' });
+  const dialog = page.getByRole('dialog', { name: 'Đăng lên Cộng đồng' });
   await expect(bar).toBeVisible();
-  await expect(page.getByPlaceholder('Sân Chảo Lửa, Tân Bình')).toHaveCount(0);
+  await expect(page.locator('app-post-composer')).toHaveCount(0);
 
   await bar.getByRole('button', { name: 'Tìm người chơi' }).click();
-  await expect(page.getByPlaceholder('Sân Chảo Lửa, Tân Bình')).toBeVisible();
+  await expect(dialog.getByPlaceholder('Sân Chảo Lửa, Tân Bình')).toBeVisible();
   // Mon mac dinh cua keo = mon trong ho so.
-  await expect(page.getByRole('button', { name: 'Môn', exact: true })).toContainText('Cầu lông');
-  await page.locator('app-post-composer').getByRole('button', { name: 'Hủy' }).click();
-  await expect(bar).toBeVisible();
+  await expect(dialog.getByRole('button', { name: 'Môn', exact: true })).toContainText('Cầu lông');
+  await dialog.getByRole('button', { name: 'Hủy' }).click();
+  await expect(dialog).toHaveCount(0);
 
   await bar.getByRole('button', { name: 'Bài viết' }).click();
-  await expect(page.locator('app-post-composer textarea')).toBeVisible();
+  await expect(dialog.locator('textarea')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+
+  if (!testInfo.project.name.startsWith('mobile')) {
+    await page.locator('.rail--left').getByRole('button', { name: 'Tạo kèo' }).click();
+    await expect(dialog.getByPlaceholder('Sân Chảo Lửa, Tân Bình')).toBeVisible();
+    await dialog.getByRole('button', { name: 'Đóng' }).click();
+  }
+
+  // Chinh sua kèo cua minh: hop thoai, form dien san.
+  const mine = page.locator('app-post-card').filter({ hasText: 'Sân Chảo Lửa' });
+  await mine.getByRole('button', { name: 'Tác vụ bài viết' }).click();
+  await page.getByRole('menuitem', { name: 'Chỉnh sửa bài viết' }).click();
+  const edit = page.getByRole('dialog', { name: 'Chỉnh sửa kèo' });
+  await expect(edit.getByPlaceholder('Sân Chảo Lửa, Tân Bình')).toHaveValue('Sân Chảo Lửa');
+  await expect(edit.getByRole('button', { name: 'Lưu thay đổi' })).toBeVisible();
+});
+
+test('Đang theo dõi chỉ xin bài của người mình theo dõi, bài mới của mình không chen vào', async ({ page }) => {
+  const { feed } = await openCommunity(page, '/feed?tab=following');
+  await expect.poll(() => feed.some(params => params.get('followingOnly') === 'true' && !params.get('withFriends'))).toBe(true);
 });
 
 test('Khám phá: thẻ "Kèo hợp với bạn" chỉ có kèo của người khác', async ({ page }, testInfo) => {

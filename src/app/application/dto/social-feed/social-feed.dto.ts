@@ -123,6 +123,8 @@ export interface FeedFilter {
   playerCallsOnly?: boolean;
   /** "Mon cua ban": loc theo nhieu mon cung luc. */
   sports?: readonly PostSport[] | null;
+  /** Voi followingOnly: kem ca ban be (khoi "Ban be dang hoat dong" o Trang chu). */
+  withFriends?: boolean;
 }
 
 export interface AuthorStats {

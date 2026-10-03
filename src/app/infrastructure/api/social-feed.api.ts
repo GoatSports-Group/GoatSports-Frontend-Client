@@ -34,6 +34,7 @@ export class SocialFeedApi {
     if (filter.tag) params = params.set('tag', filter.tag);
     if (filter.playerCallsOnly) params = params.set('playerCallsOnly', true);
     if (filter.sports?.length) params = params.set('sports', filter.sports.join(','));
+    if (filter.withFriends) params = params.set('withFriends', true);
     return this.http.get<BaseResponse<SpringPageResponse<SocialPost>>>(this.postUrl, { params });
   }
 

@@ -1,4 +1,5 @@
 import { NgModule } from '@angular/core';
+import { ComposerDialogComponent } from '@presentation/pages/client/feed/composer-dialog.component';
 import { HighlightShareDialogComponent } from '@presentation/pages/client/feed/highlight-share-dialog.component';
 import { PostHighlightComponent } from '@presentation/pages/client/feed/post-highlight.component';
 import { CommonModule } from '@angular/common';
@@ -111,6 +112,7 @@ import { AiAssistantModalComponent } from '@presentation/shared/components/ai-as
     PostCardComponent,
     PlayerCallComponent,
     PostHighlightComponent,
+    ComposerDialogComponent,
     HighlightShareDialogComponent,
     PostComposerComponent,
     PostDetailComponent,

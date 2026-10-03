@@ -88,7 +88,7 @@ export class HomeCommunityComponent implements OnInit {
 
   loadFriends(): void {
     this.friends.set({ state: 'loading' });
-    this.socialFeed.getFeed(0, 8, { followingOnly: true }).pipe(
+    this.socialFeed.getFeed(0, 8, { followingOnly: true, withFriends: true }).pipe(
       map(page => page.content),
       switchMap(posts => posts.length
         ? this.directory.resolve(posts.map(post => post.authorId)).pipe(

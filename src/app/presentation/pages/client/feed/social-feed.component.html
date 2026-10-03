@@ -49,6 +49,14 @@
         </nav>
       }
 
+      @if (isCallsView()) {
+        <div class="tag-banner">
+          <span class="tag-banner__icon" aria-hidden="true"><lucide-icon name="megaphone" class="w-5 h-5"></lucide-icon></span>
+          <div><strong>Kèo đang tìm người</strong><span>Kèo còn chỗ, trận sắp diễn ra đứng trước</span></div>
+          <button type="button" class="icon-btn" (click)="selectTab('explore')" aria-label="Về Khám phá"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button>
+        </div>
+      }
+
       @if (tag(); as activeTag) {
         <div class="tag-banner">
           <span class="tag-banner__icon" aria-hidden="true">#</span>
@@ -74,25 +82,25 @@
       }
 
       @if (showComposer() && auth.currentUser; as me) {
-        @if (composerKind(); as kind) {
-          <app-post-composer [initialKind]="kind" [closable]="true" [defaultSport]="composerSport()" [prefill]="callPrefill()"
-            (saved)="onPublished($event)" (cancelled)="composerKind.set(null)"></app-post-composer>
-        } @else {
-          <section class="card compose-bar" aria-label="Đăng bài mới">
-            <img class="avatar" [src]="store.avatar(me.userId)" alt="" width="44" height="44" />
-            <button type="button" class="compose-bar__prompt" (click)="composerKind.set(tab() === 'calls' ? 'CALL' : 'POST')">
-              {{ tab() === 'calls' ? 'Kèo đang thiếu người?' : 'Bạn vừa chơi trận nào?' }}
+        <section class="card compose-bar" aria-label="Đăng bài mới">
+          <img class="avatar" [src]="store.avatar(me.userId)" alt="" width="44" height="44" />
+          <button type="button" class="compose-bar__prompt" (click)="composerKind.set(tab() === 'calls' ? 'CALL' : 'POST')">
+            {{ tab() === 'calls' ? 'Kèo đang thiếu người?' : 'Bạn vừa chơi trận nào?' }}
+          </button>
+          <div class="compose-bar__actions">
+            <button type="button" class="btn btn--primary" (click)="composerKind.set('CALL')">
+              <lucide-icon name="megaphone" class="w-4 h-4"></lucide-icon>Tìm người chơi
             </button>
-            <div class="compose-bar__actions">
-              <button type="button" class="btn btn--primary" (click)="composerKind.set('CALL')">
-                <lucide-icon name="megaphone" class="w-4 h-4"></lucide-icon>Tìm người chơi
-              </button>
-              <button type="button" class="btn btn--secondary" (click)="composerKind.set('POST')">
-                <lucide-icon name="pencil" class="w-4 h-4"></lucide-icon>Bài viết
-              </button>
-            </div>
-          </section>
-        }
+            <button type="button" class="btn btn--secondary" (click)="composerKind.set('POST')">
+              <lucide-icon name="pencil" class="w-4 h-4"></lucide-icon>Bài viết
+            </button>
+          </div>
+        </section>
+      }
+
+      @if (composerKind(); as kind) {
+        <app-composer-dialog [initialKind]="kind" [defaultSport]="composerSport()" [prefill]="callPrefill()"
+          (saved)="onPublished($event)" (closed)="closeComposer()"></app-composer-dialog>
       }
 
       @if (isFriendsTab()) {
@@ -130,7 +138,7 @@
               }
               @case ('following') {
                 <strong>Bảng tin theo dõi đang trống</strong>
-                <p>Theo dõi vài người chơi ở mục gợi ý, bài của họ và bạn bè sẽ xuất hiện ở đây.</p>
+                <p>Bài của những người chơi bạn theo dõi sẽ xuất hiện ở đây. Theo dõi vài người ở mục gợi ý nhé.</p>
                 <button type="button" class="btn btn--secondary" (click)="selectTab('explore')">Sang Khám phá</button>
               }
               @case ('saved') {
@@ -197,7 +205,7 @@
         } @else if (suggestions().error) {
           <div class="rail-card__state">Không tải được gợi ý. <button type="button" class="btn btn--ghost" (click)="loadSuggestions()">Thử lại</button></div>
         } @else if (!suggestions().data.length) {
-          <p class="rail-card__state">Bạn đã theo dõi những người năng nổ nhất. Quay lại sau nhé.</p>
+          <p class="rail-card__state">Chưa có ai để gợi ý: đây là những người đăng bài công khai nhiều nhất 30 ngày qua mà bạn chưa theo dõi.</p>
         } @else {
           <ul class="people">
             @for (person of suggestions().data; track person.authorId) {
@@ -245,7 +253,6 @@
           <small>Bài viết và kèo của bạn</small>
         </span>
       </a>
-      <ng-container [ngTemplateOutlet]="statStrip" [ngTemplateOutletContext]="{ $implicit: myStats() }"></ng-container>
     </section>
   }
 
