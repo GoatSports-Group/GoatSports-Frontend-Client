@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy, Component, DestroyRef, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild,
   computed, inject, signal
 } from '@angular/core';
+import { HashtagPicker } from './hashtag-picker';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize, map, of, switchMap } from 'rxjs';
 import {
@@ -78,6 +79,9 @@ export class PostComposerComponent implements OnInit, OnDestroy {
   /** Goi y @nhac ten; id listbox rieng cho moi o soan (bai moi / tung bai dang sua). */
   readonly mentions = new MentionPicker(this.store, () => this.auth.currentUser?.userId ?? null,
     `mentions-${Math.random().toString(36).slice(2, 8)}`);
+
+  /** Goi y "#chu de" (dung chung kho chu de cua CommunityStore). */
+  readonly hashtags = new HashtagPicker(this.store, `tags-${Math.random().toString(36).slice(2, 8)}`);
 
   readonly content = signal('');
   readonly visibility = signal<PostVisibility>('PUBLIC');
@@ -291,7 +295,8 @@ export class PostComposerComponent implements OnInit, OnDestroy {
   /** Goi y @ xu ly phim truoc; ngoai goi y, Ctrl/Cmd + Enter gui bai. */
   onKeydown(event: KeyboardEvent): void {
     const area = this.textArea?.nativeElement;
-    if (area && this.mentions.keydown(event, area, value => this.content.set(value))) return;
+    const write = (value: string) => this.content.set(value);
+    if (area && (this.hashtags.keydown(event, area, write) || this.mentions.keydown(event, area, write))) return;
     if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
       event.preventDefault();
       this.submit();
@@ -300,7 +305,25 @@ export class PostComposerComponent implements OnInit, OnDestroy {
 
   trackMention(): void {
     const area = this.textArea?.nativeElement;
-    if (area && !this.isShare) this.mentions.track(area);
+    if (!area) return;
+    if (!this.isShare) this.mentions.track(area);
+    this.hashtags.track(area);
+  }
+
+  pickTag(tag: string): void {
+    const area = this.textArea?.nativeElement;
+    if (area) this.hashtags.pick(tag, area, value => this.content.set(value));
+  }
+
+  /** Goi y dang mo (@ hoac #) cho thuoc tinh ARIA cua o nhap. */
+  get openListId(): string | null {
+    if (this.hashtags.options().length) return this.hashtags.listId;
+    return this.mentions.options().length ? this.mentions.listId : null;
+  }
+
+  get activeOptionId(): string | null {
+    if (this.hashtags.options().length) return this.hashtags.optionId(this.hashtags.index());
+    return this.mentions.options().length ? this.mentions.optionId(this.mentions.index()) : null;
   }
 
   pickMention(person: MentionOption): void {

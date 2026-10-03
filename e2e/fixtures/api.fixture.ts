@@ -158,7 +158,7 @@ async function handleApi(route: Route): Promise<void> {
   }
   if (path.endsWith('/social-service/api/v1/social/posts/tags/trending')) {
     await route.fulfill({ json: baseResponse([
-      { tag: 'caulong', postCount: 12 }, { tag: 'keocuoituan', postCount: 7 }, { tag: 'bongda', postCount: 5 }
+      { tag: 'caulong', postCount: 12, authorCount: 6 }, { tag: 'keocuoituan', postCount: 7, authorCount: 4 }, { tag: 'bongda', postCount: 5, authorCount: 3 }
     ]) });
     return;
   }

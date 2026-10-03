@@ -48,8 +48,14 @@ export class SocialFeedApi {
     return this.http.get<BaseResponse<SocialPost>>(`${this.postUrl}/${postId}`);
   }
 
-  getTrendingTags(limit: number): Observable<BaseResponse<TrendingTag[]>> {
-    return this.http.get<BaseResponse<TrendingTag[]>>(`${this.postUrl}/tags/trending`, {
+  getTrendingTags(limit: number, sports: readonly PostSport[] = []): Observable<BaseResponse<TrendingTag[]>> {
+    let params = new HttpParams().set('limit', limit);
+    if (sports.length) params = params.set('sports', sports.join(','));
+    return this.http.get<BaseResponse<TrendingTag[]>>(`${this.postUrl}/tags/trending`, { params });
+  }
+
+  getTagSuggestions(limit: number): Observable<BaseResponse<TrendingTag[]>> {
+    return this.http.get<BaseResponse<TrendingTag[]>>(`${this.postUrl}/tags/suggestions`, {
       params: new HttpParams().set('limit', limit)
     });
   }

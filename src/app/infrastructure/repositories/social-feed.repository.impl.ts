@@ -36,8 +36,12 @@ export class SocialFeedRepositoryImpl implements SocialFeedRepository {
     return this.api.getPost(postId).pipe(map(response => response.data));
   }
 
-  getTrendingTags(limit: number): Observable<TrendingTag[]> {
-    return this.api.getTrendingTags(limit).pipe(map(response => response.data ?? []));
+  getTrendingTags(limit: number, sports: readonly PostSport[] = []): Observable<TrendingTag[]> {
+    return this.api.getTrendingTags(limit, sports).pipe(map(response => response.data ?? []));
+  }
+
+  getTagSuggestions(limit: number): Observable<TrendingTag[]> {
+    return this.api.getTagSuggestions(limit).pipe(map(response => response.data ?? []));
   }
 
   getAuthorStats(authorId: string): Observable<AuthorStats> {

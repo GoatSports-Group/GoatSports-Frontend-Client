@@ -77,14 +77,15 @@
     (click)="trackMention()"
     (keyup.arrowleft)="trackMention()"
     (keyup.arrowright)="trackMention()"
-    (blur)="mentions.query.set(null)"
+    (blur)="mentions.query.set(null); hashtags.query.set(null)"
     (keydown)="onKeydown($event)"
     role="combobox"
     aria-autocomplete="list"
-    [attr.aria-expanded]="mentions.options().length > 0"
-    [attr.aria-controls]="mentions.listId"
-    [attr.aria-activedescendant]="mentions.options().length ? mentions.optionId(mentions.index()) : null"></textarea>
+    [attr.aria-expanded]="openListId !== null"
+    [attr.aria-controls]="openListId ?? mentions.listId"
+    [attr.aria-activedescendant]="activeOptionId"></textarea>
   <app-mention-menu [picker]="mentions" (picked)="pickMention($event)"></app-mention-menu>
+  <app-hashtag-menu [picker]="hashtags" (picked)="pickTag($event)"></app-hashtag-menu>
   </div>
   @if (isCall) {
     <p class="composer__hint">Kèo luôn công khai. Không cần duyệt: ai quan tâm sẽ nhắn tin cho bạn để chốt sân.</p>

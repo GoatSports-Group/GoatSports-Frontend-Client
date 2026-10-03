@@ -1,4 +1,5 @@
 import { NgModule } from '@angular/core';
+import { HashtagMenuComponent } from '@presentation/pages/client/feed/hashtag-menu.component';
 import { ComposerDialogComponent } from '@presentation/pages/client/feed/composer-dialog.component';
 import { HighlightShareDialogComponent } from '@presentation/pages/client/feed/highlight-share-dialog.component';
 import { PostHighlightComponent } from '@presentation/pages/client/feed/post-highlight.component';
@@ -113,6 +114,7 @@ import { AiAssistantModalComponent } from '@presentation/shared/components/ai-as
     PlayerCallComponent,
     PostHighlightComponent,
     ComposerDialogComponent,
+    HashtagMenuComponent,
     HighlightShareDialogComponent,
     PostComposerComponent,
     PostDetailComponent,

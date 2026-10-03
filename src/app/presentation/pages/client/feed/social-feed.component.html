@@ -228,10 +228,13 @@
         }
       </section>
 
-      <section class="card rail-card">
-        <header class="card__head"><h3>Chủ đề nổi bật</h3></header>
-        <ng-container [ngTemplateOutlet]="trendingTags"></ng-container>
-      </section>
+      <!-- Chua co chu de nao thi an han the, khong de mot cau trong chiem cho. -->
+      @if (trending().loading || trending().error || trending().data.length) {
+        <section class="card rail-card">
+          <header class="card__head"><h3>Chủ đề nổi bật</h3></header>
+          <ng-container [ngTemplateOutlet]="trendingTags"></ng-container>
+        </section>
+      }
 
       <section class="guideline">
         <lucide-icon name="shield-check" class="w-5 h-5"></lucide-icon>
@@ -333,8 +336,8 @@
   } @else {
     <div class="tag-cloud">
       @for (item of trending().data; track item.tag) {
-        <a class="tag-chip" [class.is-active]="tag() === item.tag" [routerLink]="['/feed']" [queryParams]="{ tag: item.tag }">
-          #{{ item.tag }}<span>{{ item.postCount }}</span>
+        <a class="tag-chip" [class.is-active]="isActiveTag(item.tag)" [routerLink]="['/feed']" [queryParams]="{ tag: item.tag }">
+          #{{ item.tag }}<span [attr.aria-label]="item.authorCount + ' người dùng'" [title]="item.authorCount + ' người · ' + item.postCount + ' bài'">{{ item.authorCount }}</span>
         </a>
       }
     </div>

@@ -26,7 +26,10 @@ export interface SocialFeedRepository {
   getFollowStatus(userId: string): Observable<UserFollowStatus>;
   /** Uu tien nguoi dang bai cac mon `sports` cua nguoi xem. */
   getFollowSuggestions(limit: number, sports?: readonly PostSport[]): Observable<FollowSuggestion[]>;
-  getTrendingTags(limit: number): Observable<TrendingTag[]>;
+  /** Chu de noi bat 7 ngay; `sports` (mon dang loc / mon cua toi) dung truoc. */
+  getTrendingTags(limit: number, sports?: readonly PostSport[]): Observable<TrendingTag[]>;
+  /** Chu de hay dung 30 ngay, cho goi y khi go "#". */
+  getTagSuggestions(limit: number): Observable<TrendingTag[]>;
   getFollowingUserIds(): Observable<string[]>;
   followUser(userId: string): Observable<UserFollowStatus>;
   unfollowUser(userId: string): Observable<UserFollowStatus>;

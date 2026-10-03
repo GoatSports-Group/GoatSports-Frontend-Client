@@ -133,8 +133,11 @@ export interface AuthorStats {
 }
 
 export interface TrendingTag {
+  /** Cach viet pho bien nhat (co dau), dung lam ?tag=; server so khop khong dau. */
   tag: string;
   postCount: number;
+  /** So nguoi khac nhau da dung (xep hang theo so nay). */
+  authorCount: number;
 }
 
 /** Tac gia dang bai cong khai nhieu nhat trong 30 ngay qua. */

@@ -1,4 +1,5 @@
 import { PAGE_SIZE } from '@shared/constants/page-size';
+import { foldText } from './rich-text';
 import {
   ChangeDetectionStrategy, Component, DestroyRef, ElementRef, OnDestroy, OnInit, ViewChild, computed, inject, signal
 } from '@angular/core';
@@ -89,6 +90,9 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
   readonly moreError = signal(false);
   readonly hasMore = signal(false);
   private page = 1;
+  private trendingRequest?: Subscription;
+  /** Bo loc mon cua lan tai chu de gan nhat. */
+  private trendingKey: string | null = null;
   /** Bo loc cua lan tai gan nhat (tab, mon, tac gia, chu de). */
   private feedKey = '';
   private request?: Subscription;
@@ -138,7 +142,6 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.store.loadFollowing(this.me);
     this.store.loadConnections();
-    this.loadTrending();
     this.loadMyCalls();
 
     // Bo loc mac dinh can biet mon cua nguoi xem, nen doc ho so the thao truoc roi moi theo doi URL.
@@ -181,6 +184,11 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
       }
       // Chi tai lai khi bo loc doi; bo `?compose=` sau khi dang khong duoc xoa bai vua chen vao dau danh sach.
       const key = [this.tab(), this.sport(), this.mineOnly(), this.authorId(), this.tag()].join('|');
+      const trendingKey = `${this.sport()}|${this.mineOnly()}`;
+      if (trendingKey !== this.trendingKey) {
+        this.trendingKey = trendingKey;
+        this.loadTrending();
+      }
       if (key === this.feedKey) return;
       this.feedKey = key;
       if (!this.isFriendsTab()) this.reload();
@@ -200,6 +208,11 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
       queryParams: { tab: tab === 'explore' ? null : tab, author: null, list: null },
       queryParamsHandling: 'merge'
     });
+  }
+
+  /** Chip chu de dang loc (so khop khong dau). */
+  isActiveTag(tag: string): boolean {
+    return !!this.tag() && foldText(this.tag()!) === foldText(tag);
   }
 
   clearTag(): void {
@@ -368,7 +381,10 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
 
   loadTrending(): void {
     this.trending.set({ loading: true, error: false, data: [] });
-    this.repository.getTrendingTags(8).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    // Chu de theo bo loc mon dang xem: mot mon, "Mon cua ban", hoac tat ca.
+    const sports = this.sport() ? [this.sport()!] : this.mineOnly() ? [...this.mySportSet()] : [];
+    this.trendingRequest?.unsubscribe();
+    this.trendingRequest = this.repository.getTrendingTags(8, sports).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: data => this.trending.set({ loading: false, error: false, data }),
       error: () => this.trending.set({ loading: false, error: true, data: [] })
     });
@@ -429,7 +445,8 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
     if (this.tab() === 'saved' && !this.authorId()) return false;
     if (this.isFriendsTab()) return false;
     if (this.authorId() && this.authorId() !== post.authorId) return false;
-    if (this.tag() && !post.tags?.includes(this.tag()!)) return false;
+    // Chu de so khop khong dau, nhu server ("#bóngđá" = "#bongda").
+    if (this.tag() && !post.tags?.some(tag => foldText(tag) === foldText(this.tag()!))) return false;
     if (this.tab() === 'calls' && !this.authorId() && !post.playerCall) return false;
     // Dang theo doi chi co bai cua nguoi minh theo doi, khong bao gio bai cua chinh minh.
     if (this.tab() === 'following' && !this.authorId()) return false;

@@ -42,6 +42,20 @@ export class CommunityStore {
   readonly connectionsError = signal(false);
 
   /** Nap lai moi lan vao trang: tai khoan co the da doi tu lan truoc. */
+  /** Chu de hay dung 30 ngay qua (goi y khi go "#"); tai mot lan khi nguoi dung go "#" lan dau. */
+  readonly tagPool = signal<readonly string[]>([]);
+  private tagPoolRequested = false;
+
+  loadTagPool(): void {
+    if (this.tagPoolRequested) return;
+    this.tagPoolRequested = true;
+    this.repository.getTagSuggestions(50).subscribe({
+      next: tags => this.tagPool.set(tags.map(item => item.tag)),
+      // Loi thi lan go "#" sau thu lai.
+      error: () => { this.tagPoolRequested = false; }
+    });
+  }
+
   loadFollowing(currentUserId?: string | null): void {
     if (currentUserId) this.hydrateAuthors([currentUserId]);
     this.repository.getFollowingUserIds().subscribe({

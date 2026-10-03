@@ -166,3 +166,39 @@ test('gợi ý theo dõi hiện lý do: đã ghép trận, cùng CLB, bạn chun
   await expect(card).toContainText('Đã ghép trận với bạn · 1 bạn chung');
   await expect(card).not.toContainText('bài trong 30 ngày');
 });
+
+test('chủ đề nổi bật theo môn đang lọc, đếm theo số người; trống thì ẩn thẻ', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name.startsWith('mobile'), 'Cột phải ẩn dưới 1024px.');
+  const trending: URLSearchParams[] = [];
+  let empty = false;
+  await openCommunity(page, '/feed');
+  await page.route(url => url.pathname.endsWith('/social/posts/tags/trending'), route => {
+    trending.push(new URL(route.request().url()).searchParams);
+    return route.fulfill(ok(empty ? [] : [{ tag: 'cầulông', postCount: 7, authorCount: 4 }]));
+  });
+  await page.reload();
+  const card = page.locator('.rail--right .rail-card').filter({ hasText: 'Chủ đề nổi bật' });
+  await expect(card.getByRole('link', { name: /#cầulông/ })).toContainText('4');
+  // Mac dinh "Mon cua ban" (cau long): chu de lay theo mon do.
+  expect(trending.at(-1)?.get('sports')).toBe('BADMINTON');
+
+  empty = true;
+  await page.getByRole('button', { name: 'Tất cả môn' }).click();
+  await expect.poll(() => trending.at(-1)?.get('sports') ?? null).toBeNull();
+  await expect(card).toHaveCount(0);
+});
+
+test('gõ # trong ô soạn bài gợi ý chủ đề hay dùng, so khớp không dấu', async ({ page }) => {
+  await openCommunity(page, '/feed');
+  await page.route(url => url.pathname.endsWith('/social/posts/tags/suggestions'), route =>
+    route.fulfill(ok([{ tag: 'cầulông', postCount: 9, authorCount: 5 }, { tag: 'bóngđá', postCount: 3, authorCount: 2 }])));
+  await page.getByRole('region', { name: 'Đăng bài mới' }).getByRole('button', { name: 'Bài viết' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Đăng lên Cộng đồng' });
+  const area = dialog.locator('textarea');
+  await area.pressSequentially('Sáng mai đánh #cau');
+  const menu = dialog.getByRole('listbox', { name: 'Chủ đề' });
+  await expect(menu.getByRole('option')).toHaveText(['#cầulông']);
+  await area.press('Enter');
+  await expect(area).toHaveValue('Sáng mai đánh #cầulông ');
+  await expect(menu).toHaveCount(0);
+});
