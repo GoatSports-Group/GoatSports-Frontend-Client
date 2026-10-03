@@ -89,6 +89,10 @@
     @if (post.playerCall) {
       <div class="post__body"><app-player-call [post]="post" (changed)="changed.emit($event)"></app-player-call></div>
     }
+    <!-- Bai khoe: tieu de, loi dan, roi den the thanh tich. -->
+    @if (post.highlight; as highlight) {
+      <div class="post__body"><h3 class="post__title">{{ highlight.title }}</h3></div>
+    }
     @if (post.content) {
       <div class="post__body">
         <p class="post__text" [class.is-clamped]="isLong && !expanded()"><ng-container [ngTemplateOutlet]="richContent" [ngTemplateOutletContext]="{ $implicit: contentSegments() }"></ng-container></p>
@@ -96,6 +100,10 @@
           <button type="button" class="link-btn" (click)="expanded.set(!expanded())">{{ expanded() ? 'Thu gọn' : 'Xem thêm' }}</button>
         }
       </div>
+    }
+
+    @if (post.highlight; as highlight) {
+      <div class="post__body"><app-post-highlight [highlight]="highlight"></app-post-highlight></div>
     }
 
     @if (post.sharedPostId) {

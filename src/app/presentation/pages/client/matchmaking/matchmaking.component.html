@@ -525,6 +525,11 @@
       }
     </section>
   </div>
+  @if (shareTarget(); as target) {
+  <app-highlight-share-dialog heading="Khoe trận lên Cộng đồng" [summary]="shareSummary(target)"
+    [taggedNote]="shareTaggedNote(target)" [defaultTitle]="shareDefaultTitle(target)" [submit]="shareMatchPost"
+    (closed)="shareTarget.set(null)"></app-highlight-share-dialog>
+  }
   @if (feedbackTarget(); as target) {
   <div class="modal-backdrop" (click)="closeFeedback()">
     <section class="modal" role="dialog" aria-modal="true" aria-labelledby="feedback-title"
@@ -916,6 +921,12 @@
     </button>
     } @else {
     <p class="status-transition-note">Đang cập nhật trạng thái…</p>
+    }
+    @if (canShare(match)) {
+    <button type="button" class="button button-secondary button-full" (click)="shareTarget.set(match)">
+      <lucide-icon name="share-2" class="w-5 h-5"></lucide-icon>
+      Khoe trận lên Cộng đồng
+    </button>
     }
   </div>
 </ng-template>

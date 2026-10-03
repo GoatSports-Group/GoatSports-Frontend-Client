@@ -120,7 +120,7 @@ export class CommunityStore {
   /** Nap tac gia va URL media cua cac bai (ca bai goc duoc chia se). */
   hydrate(posts: readonly SocialPost[]): void {
     const all = posts.flatMap(post => post.sharedPost ? [post, post.sharedPost] : [post]);
-    this.hydrateAuthors(all.map(post => post.authorId));
+    this.hydrateAuthors([...all.map(post => post.authorId), ...all.flatMap(post => post.highlight?.tagged ?? [])]);
 
     const missing = [...new Set(all.flatMap(post => post.attachments.map(item => item.storageKey)))]
       .filter(key => !this.mediaUrls().has(key));

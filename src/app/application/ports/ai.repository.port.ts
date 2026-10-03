@@ -31,6 +31,8 @@ export abstract class AiRepositoryPort {
   abstract cancelMatchmakingSession(sessionId: string): Observable<MatchmakingSessionModel>;
   abstract registerMatchBooking(sessionId: string, bookingId: string): Observable<MatchmakingSessionModel>;
   abstract submitMatchResult(sessionId: string, myScore: number, opponentScore: number): Observable<MatchmakingSessionModel>;
+  /** Khoe tran len Cong dong (gan the doi thu); tra id bai viet. */
+  abstract shareMatch(sessionId: string, title: string, content: string | null): Observable<string>;
   abstract submitOpponentFeedback(sessionId: string, rating: number, fairPlayRating: number, comment?: string): Observable<MatchmakingSessionModel>;
   abstract getVenueRecommendations(lat?: number, lng?: number, sport?: string): Observable<VenueRecommendationModel[]>;
   abstract queryChatbot(message: string, lat?: number, lng?: number, sport?: string): Observable<ChatbotResponseModel>;

@@ -198,6 +198,10 @@ export class ClubRepository extends ClubRepositoryPort {
       `${this.baseUrl}/${clubId}/members/${membershipId}/role`, { role })
       .pipe(map(response => response.data));
   }
+  override shareTournament(clubId: string, tournamentId: string, title: string, content: string | null): Observable<string> {
+    return this.http.post<BaseResponse<{ postId: string }>>(`${this.baseUrl}/${clubId}/tournaments/${tournamentId}/share`,
+      { title, content }).pipe(map(response => response.data.postId));
+  }
   override unbanMember(clubId: string, membershipId: string): Observable<void> {
     return this.http.post(`${this.baseUrl}/${clubId}/members/${membershipId}/unban`, {}).pipe(map(() => void 0));
   }

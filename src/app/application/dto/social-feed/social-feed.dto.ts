@@ -51,6 +51,22 @@ export interface SaveSocialPostRequest {
   playerCall?: SavePlayerCallRequest | null;
 }
 
+/** The "khoe" tran dau / giai dau. Dich vu so huu du lieu (ai-service, club-service) dung va xac nhan. */
+export interface PostHighlight {
+  kind: 'MATCH' | 'TOURNAMENT';
+  refId: string;
+  title: string;
+  headline: string | null;
+  subtitle: string | null;
+  result: string | null;
+  sides: ReadonlyArray<{ name: string; score: number | null; winner: boolean }>;
+  stats: ReadonlyArray<{ label: string; value: string }>;
+  clubId: string | null;
+  clubName: string | null;
+  /** Nguoi duoc gan the; ten va anh tra qua CommunityStore. */
+  tagged: readonly string[];
+}
+
 export interface SocialPost {
   postId: string;
   authorId: string;
@@ -64,6 +80,8 @@ export interface SocialPost {
   sharedPost: SocialPost | null;
   sharedPostUnavailable: boolean;
   playerCall?: PlayerCall | null;
+  /** The \"khoe\" tran dau / giai dau; null voi bai thuong. */
+  highlight?: PostHighlight | null;
   createdAt: string;
   updatedAt: string;
   publishedAt: string;

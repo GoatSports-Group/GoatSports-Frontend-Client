@@ -1,4 +1,6 @@
 import { NgModule } from '@angular/core';
+import { HighlightShareDialogComponent } from '@presentation/pages/client/feed/highlight-share-dialog.component';
+import { PostHighlightComponent } from '@presentation/pages/client/feed/post-highlight.component';
 import { CommonModule } from '@angular/common';
 import { SharedModule } from '@shared/shared.module';
 import { ClientRoutingModule } from './routes/client-routing.module';
@@ -108,6 +110,8 @@ import { AiAssistantModalComponent } from '@presentation/shared/components/ai-as
     SocialFeedComponent,
     PostCardComponent,
     PlayerCallComponent,
+    PostHighlightComponent,
+    HighlightShareDialogComponent,
     PostComposerComponent,
     PostDetailComponent,
     CommunityFriendsComponent,

@@ -1231,6 +1231,12 @@ a {
   margin-bottom: 0;
 }
 
+.tournament-heading__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 // Các giải CLB đã tham gia: một hàng thẻ cuộn ngang, thẻ đang chọn viền primary.
 .club-tournament-list {
   display: flex;

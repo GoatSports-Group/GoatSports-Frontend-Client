@@ -1,0 +1,60 @@
+<div class="modal-backdrop" role="presentation" (click)="close()">
+  <section class="modal" appAccessibleDialog aria-labelledby="highlight-share-title" (dialogClosed)="close()" (click)="$event.stopPropagation()">
+    <header class="modal__header">
+      <div>
+        <h2 id="highlight-share-title">{{ heading }}</h2>
+        <p>Bài công khai trên Cộng đồng, kèm thẻ thành tích do GOAT Sports xác nhận.</p>
+      </div>
+      <button type="button" class="icon-btn" (click)="close()" aria-label="Đóng"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button>
+    </header>
+
+    @if (postId(); as id) {
+      <div class="modal__body share-done" role="status">
+        <span class="share-done__icon"><lucide-icon name="circle-check" class="w-7 h-7"></lucide-icon></span>
+        <strong>Đã đăng lên Cộng đồng</strong>
+        <p>{{ taggedNote || 'Mọi người đã có thể xem và bình luận.' }}</p>
+      </div>
+      <footer class="modal__footer">
+        <button type="button" class="btn btn--secondary" (click)="close()">Đóng</button>
+        <a class="btn btn--primary" [routerLink]="['/feed/posts', id]"><lucide-icon name="external-link" class="w-4 h-4"></lucide-icon>Xem bài viết</a>
+      </footer>
+    } @else {
+      <div class="modal__body">
+        <div class="share-card">
+          <span class="share-card__icon"><lucide-icon [name]="summary.icon" class="w-5 h-5"></lucide-icon></span>
+          <div class="share-card__copy">
+            <strong>{{ summary.headline }}</strong>
+            <span>{{ summary.line }}</span>
+          </div>
+          @if (summary.result) { <span class="share-card__result">{{ summary.result }}</span> }
+        </div>
+
+        <label class="field">
+          <span class="field__label">Tiêu đề</span>
+          <input class="field__control" type="text" cdkFocusInitial [maxlength]="titleMax" placeholder="Ví dụ: Trận cầu lông đã nhất tuần"
+            [ngModel]="title()" (ngModelChange)="title.set($event)" (keydown.enter)="publish()" />
+          <small class="field__hint">{{ title().length }}/{{ titleMax }}</small>
+        </label>
+        <label class="field">
+          <span class="field__label">Nội dung</span>
+          <textarea class="field__control" rows="4" [maxlength]="contentMax" placeholder="Kể vài dòng về trận đấu (không bắt buộc)…"
+            [ngModel]="content()" (ngModelChange)="content.set($event)"></textarea>
+        </label>
+
+        @if (taggedNote) {
+          <p class="share-note"><lucide-icon name="at-sign" class="w-4 h-4"></lucide-icon>{{ taggedNote }}</p>
+        }
+        @if (error(); as message) {
+          <p class="share-error" role="alert"><lucide-icon name="circle-alert" class="w-4 h-4"></lucide-icon>{{ message }}</p>
+        }
+      </div>
+      <footer class="modal__footer">
+        <button type="button" class="btn btn--secondary" [disabled]="busy()" (click)="close()">Hủy</button>
+        <button type="button" class="btn btn--primary" [disabled]="!canSubmit()" [attr.aria-busy]="busy()" (click)="publish()">
+          @if (busy()) { <span class="spinner" aria-hidden="true"></span> } @else { <lucide-icon name="send" class="w-4 h-4"></lucide-icon> }
+          Đăng lên Cộng đồng
+        </button>
+      </footer>
+    }
+  </section>
+</div>

@@ -90,6 +90,8 @@ export abstract class ClubRepositoryPort {
   abstract removeMember(clubId: string, membershipId: string, ban: boolean): Observable<void>;
   /** Go cam (BANNED -> REMOVED): nguoi choi lai xin vao hoac duoc moi nhu binh thuong. */
   abstract unbanMember(clubId: string, membershipId: string): Observable<void>;
+  /** Chu / quan tri CLB khoe thanh tich giai len Cong dong (gan the thanh vien); tra id bai viet. */
+  abstract shareTournament(clubId: string, tournamentId: string, title: string, content: string | null): Observable<string>;
   abstract updateClubActivity(clubId: string, activityId: string,
     payload: CreateClubActivityPayload): Observable<ClubActivityModel>;
   abstract deleteClubActivity(clubId: string, activityId: string): Observable<void>;

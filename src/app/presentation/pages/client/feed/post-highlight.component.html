@@ -1,0 +1,45 @@
+<section class="hl" [class.hl--tournament]="!isMatch" [attr.aria-label]="(isMatch ? 'Trận đấu: ' : 'Giải đấu: ') + (highlight.headline ?? '')">
+  <header class="hl__head">
+    <span class="hl__kind">
+      <lucide-icon [name]="isMatch ? 'swords' : 'trophy'" class="w-4 h-4"></lucide-icon>
+      {{ isMatch ? 'Trận đấu GOAT' : (highlight.clubName ? 'CLB ' + highlight.clubName : 'Giải đấu') }}
+    </span>
+    @if (highlight.result) { <span class="hl__result" [attr.data-tone]="tone">{{ highlight.result }}</span> }
+  </header>
+
+  @if (isMatch && highlight.sides.length === 2) {
+    <div class="hl__board">
+      <span class="hl__side" [class.is-winner]="highlight.sides[0].winner">{{ highlight.sides[0].name }}</span>
+      <span class="hl__score" [attr.aria-label]="scored ? 'Tỷ số ' + highlight.sides[0].score + ' – ' + highlight.sides[1].score : 'Chưa có tỷ số'">
+        @if (scored) {
+          <b [class.is-winner]="highlight.sides[0].winner">{{ highlight.sides[0].score }}</b><i>–</i><b [class.is-winner]="highlight.sides[1].winner">{{ highlight.sides[1].score }}</b>
+        } @else { <i>VS</i> }
+      </span>
+      <span class="hl__side hl__side--away" [class.is-winner]="highlight.sides[1].winner">{{ highlight.sides[1].name }}</span>
+    </div>
+    @if (highlight.headline) { <p class="hl__headline">{{ highlight.headline }}</p> }
+  } @else {
+    <p class="hl__name">{{ highlight.headline }}</p>
+  }
+
+  @if (highlight.subtitle) {
+    <p class="hl__sub"><lucide-icon [name]="isMatch ? 'calendar-days' : 'shield'" class="w-4 h-4"></lucide-icon>{{ highlight.subtitle }}</p>
+  }
+  @if (highlight.stats.length) {
+    <dl class="hl__stats">
+      @for (stat of highlight.stats; track stat.label) { <div><dt>{{ stat.label }}</dt><dd>{{ stat.value }}</dd></div> }
+    </dl>
+  }
+</section>
+
+@if (highlight.tagged.length) {
+  <p class="hl-tags">
+    <span class="hl-tags__label">{{ isMatch ? 'Cùng' : 'Gắn thẻ' }}</span>
+    @for (id of shownTags; track id) {
+      <a class="hl-tags__person" [routerLink]="['/feed']" [queryParams]="{ author: id }">
+        <img [src]="store.avatar(id)" alt="" width="24" height="24" />{{ store.authorName(id) }}
+      </a>
+    }
+    @if (moreTags) { <span class="hl-tags__more">+{{ moreTags }} người</span> }
+  </p>
+}

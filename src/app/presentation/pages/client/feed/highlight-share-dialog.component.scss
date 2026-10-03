@@ -1,0 +1,119 @@
+@use 'community-ui' as c;
+
+@include c.community-ui;
+
+.share-card {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--sports-navy);
+  color: #fff;
+}
+
+.share-card__icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 12px;
+  background: rgb(8 187 130 / 22%);
+  color: #08bb82;
+}
+
+.share-card__copy {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+
+  strong,
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  strong {
+    font-size: 15px;
+    font-weight: 800;
+  }
+
+  span {
+    color: rgb(255 255 255 / 75%);
+    font-size: 13px;
+  }
+}
+
+.share-card__result {
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgb(255 255 255 / 14%);
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.field__hint {
+  justify-self: end;
+  color: var(--body);
+  font-size: 13px;
+}
+
+.share-note,
+.share-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+
+  lucide-icon {
+    flex: none;
+    margin-top: 2px;
+  }
+}
+
+.share-note {
+  color: var(--body);
+}
+
+.share-error {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.share-done {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding-block: 28px;
+  text-align: center;
+
+  strong {
+    color: var(--ink);
+    font-size: 18px;
+    font-weight: 800;
+  }
+
+  p {
+    max-width: 40ch;
+    margin: 0;
+    color: var(--body);
+    font-size: 14px;
+  }
+}
+
+.share-done__icon {
+  display: grid;
+  width: 56px;
+  height: 56px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--primary-light);
+  color: var(--primary);
+}

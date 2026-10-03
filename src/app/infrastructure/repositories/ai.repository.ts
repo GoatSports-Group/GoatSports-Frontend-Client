@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { AiRepositoryPort } from '@application/ports/ai.repository.port';
 import {
   AcceptanceDecision,
@@ -103,6 +103,11 @@ export class AiRepository extends AiRepositoryPort {
       myScore,
       opponentScore
     });
+  }
+
+  override shareMatch(sessionId: string, title: string, content: string | null): Observable<string> {
+    return this.http.post<{ postId: string }>(`${this.baseUrl}/matchmaking/sessions/${sessionId}/share`, { title, content })
+      .pipe(map(response => response.postId));
   }
 
   override submitOpponentFeedback(

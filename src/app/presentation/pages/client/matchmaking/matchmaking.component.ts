@@ -1,4 +1,5 @@
 import { PAGE_SIZE } from '@shared/constants/page-size';
+import { HighlightSummary } from '@presentation/pages/client/feed/highlight-share-dialog.component';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
@@ -81,6 +82,11 @@ const DAY_INDEX: Record<PlayerDayOfWeek, number> = {
   [PlayerDayOfWeek.FRIDAY]: 5,
   [PlayerDayOfWeek.SATURDAY]: 6
 };
+
+/** Kèo khoe được lên Cộng đồng (ai-service kiểm tra lại). */
+const SHAREABLE_STATUSES: ReadonlySet<string> = new Set([
+  'ACCEPTED', 'VENUE_SELECTED', 'BOOKING_PENDING', 'CONFIRMED', 'CHECKED_IN', 'RESULT_PENDING', 'COMPLETED'
+]);
 
 @Component({
   selector: 'app-matchmaking',
@@ -256,6 +262,11 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   readonly sportIcon = computed(() => this.sports.find(item => item.value === this.selectedSport())?.icon ?? 'trophy');
   /** Kèo đang mở hộp thoại đánh giá đối thủ (chỉ mở khi bấm nút). */
   readonly feedbackTarget = signal<MatchmakingSession | null>(null);
+  /** Kèo đang mở hộp thoại "Khoe lên Cộng đồng". */
+  readonly shareTarget = signal<MatchmakingSession | null>(null);
+  /** Hộp thoại gọi lại để đăng: ai-service xác nhận người chơi và dựng thẻ trận. */
+  readonly shareMatchPost = (title: string, content: string | null) =>
+    this.aiRepository.shareMatch(this.shareTarget()!.sessionId, title, content);
   readonly ratingScale = [1, 2, 3, 4, 5] as const;
   readonly skills: ReadonlyArray<{
     label: string;
@@ -1025,6 +1036,45 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
       next: session => this.applySession(session),
       error: error => this.errorMessage.set(this.userMessage(error, 'Không thể gửi kết quả.'))
     });
+  }
+
+  /** Kèo đã chốt (hai bên nhận lời) hoặc đã đấu xong; bị từ chối / hết hạn / hủy / tranh chấp thì không khoe. */
+  canShare(match: MatchmakingSession): boolean {
+    return SHAREABLE_STATUSES.has(match.status) && !!this.currentParticipant(match) && !!this.opponent(match);
+  }
+
+  /** Tỷ số nhìn từ phía mình, null khi chưa có kết quả. */
+  myScoreLine(match: MatchmakingSession): string | null {
+    const result = match.status === 'COMPLETED' ? match.result : null;
+    const mine = this.currentParticipant(match);
+    if (!result || !mine) return null;
+    const first = match.participants[0]?.participantId === mine.participantId;
+    const [me, them] = first ? [result.participantOneScore, result.participantTwoScore]
+      : [result.participantTwoScore, result.participantOneScore];
+    const outcome = !result.winnerId ? 'Hòa' : result.winnerId === mine.participantId ? 'Thắng' : 'Thua';
+    return `${outcome} ${me}–${them}`;
+  }
+
+  shareSummary(match: MatchmakingSession): HighlightSummary {
+    return {
+      icon: 'swords',
+      headline: `${this.currentParticipant(match)?.name} vs ${this.opponent(match)?.name}`,
+      line: [this.sportLabel(match.sportType), this.matchDateLabel(match),
+        `${this.hhmm(match.startTime)}–${this.hhmm(match.endTime)}`].filter(Boolean).join(' · '),
+      result: this.myScoreLine(match) ?? (match.status === 'RESULT_PENDING' ? 'Chờ kết quả' : 'Sắp ra sân')
+    };
+  }
+
+  shareDefaultTitle(match: MatchmakingSession): string {
+    const opponent = this.opponent(match)?.name ?? 'đối thủ';
+    const line = this.myScoreLine(match);
+    if (line?.startsWith('Thắng')) return `${line} trước ${opponent}!`;
+    if (line) return `Trận ${this.sportLabel(match.sportType).toLowerCase()} với ${opponent}`;
+    return `Sắp ra sân ${this.sportLabel(match.sportType).toLowerCase()} với ${opponent}`;
+  }
+
+  shareTaggedNote(match: MatchmakingSession): string {
+    return `${this.opponent(match)?.name ?? 'Đối thủ'} được gắn thẻ và nhận thông báo; đồng đội của bạn (nếu có) cũng vậy.`;
   }
 
   openFeedback(match: MatchmakingSession): void {

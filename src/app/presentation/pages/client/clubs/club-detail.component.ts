@@ -1,4 +1,5 @@
 import { PAGE_SIZE } from '@shared/constants/page-size';
+import { HighlightSummary } from '@presentation/pages/client/feed/highlight-share-dialog.component';
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, HostListener, OnDestroy, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -166,6 +167,10 @@ export class ClubDetailComponent implements OnDestroy {
   readonly clubTournamentsLoading = signal(false);
   readonly clubTournamentsError = signal(false);
   readonly selectedTournamentId = signal<string | null>(null);
+  /** Hộp thoại "Khoe thành tích giải lên Cộng đồng" (chủ / quản trị CLB). */
+  readonly shareTournamentOpen = signal(false);
+  readonly shareTournamentPost = (title: string, content: string | null) =>
+    this.repository.shareTournament(this.club()!.clubId, this.selectedClubTournament()!.tournamentId, title, content);
   readonly selectedClubTournament = computed(() =>
     this.clubTournaments().find(item => item.tournamentId === this.selectedTournamentId()) ?? null);
   readonly tournamentMatches = signal<ReadonlyArray<ClubRecentMatchModel>>([]);
@@ -663,6 +668,19 @@ export class ClubDetailComponent implements OnDestroy {
   }
 
   /** "Vô địch" / "Hạng 2/5" / "3T · 1H · 2B" / "Chưa thi đấu" cho thẻ giải. */
+  /** Thẻ tóm tắt trong hộp thoại khoe giải; thẻ thật do club-service dựng sau khi kiểm tra quyền. */
+  tournamentShareSummary(item: ClubTournamentModel): HighlightSummary {
+    return { icon: 'trophy', headline: item.name, line: `${item.teamName || this.club()?.name || ''} · ${this.clubTournamentStatus(item.status)}`,
+      result: this.clubTournamentStanding(item) };
+  }
+
+  tournamentShareTitle(item: ClubTournamentModel): string {
+    const club = this.club()?.name ?? 'CLB';
+    if (item.champion) return `${club} vô địch ${item.name}!`;
+    if (item.rank) return `${club} đứng hạng ${item.rank} tại ${item.name}`;
+    return `${club} tại ${item.name}`;
+  }
+
   clubTournamentStanding(item: ClubTournamentModel): string {
     if (item.champion) return 'Vô địch';
     if (item.rank) return `Hạng ${item.rank}/${item.teamCount}`;

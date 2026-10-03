@@ -905,9 +905,21 @@
         <h2>{{ activeTournament.name }}</h2>
         <p>{{ activeTournament.description || 'Hành trình thi đấu và thành tích của câu lạc bộ.' }}</p>
       </div>
-      <a [routerLink]="['/tournaments', activeTournament.tournamentId]" class="button button--primary">Xem trang giải
-        đấu</a>
+      <div class="tournament-heading__actions">
+        @if (isManager()) {
+        <button type="button" class="button button--secondary" (click)="shareTournamentOpen.set(true)">
+          <lucide-icon name="share-2" class="w-4 h-4"></lucide-icon>Khoe lên Cộng đồng</button>
+        }
+        <a [routerLink]="['/tournaments', activeTournament.tournamentId]" class="button button--primary">Xem trang giải
+          đấu</a>
+      </div>
     </header>
+    @if (shareTournamentOpen() && selectedClubTournament(); as summary) {
+    <app-highlight-share-dialog heading="Khoe thành tích giải lên Cộng đồng" [summary]="tournamentShareSummary(summary)"
+      [taggedNote]="'Đội đã thi đấu và các thành viên CLB được gắn thẻ, nhận thông báo.'"
+      [defaultTitle]="tournamentShareTitle(summary)" [submit]="shareTournamentPost"
+      (closed)="shareTournamentOpen.set(false)"></app-highlight-share-dialog>
+    }
     <div class="tournament-summary">
       <div><span>Thể thức</span><strong>{{ activeTournament.format === 'ROUND_ROBIN' ? 'Vòng tròn' : 'Loại trực tiếp'
           }}</strong></div>
