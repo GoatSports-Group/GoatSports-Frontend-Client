@@ -495,17 +495,41 @@ button.media__cell:hover img {
   justify-self: start;
 }
 
-.thread {
+// Comment tree: each reply sits right under the comment it answers, indented up to two levels behind a rail.
+.comment-tree {
   display: grid;
   gap: 10px;
 }
 
-.thread__replies {
-  display: grid;
-  gap: 10px;
+.comment-node[data-depth='1'] {
   margin-left: 22px;
-  padding-left: 20px;
+  padding-left: 18px;
   border-left: 2px solid var(--hairline);
+}
+
+.comment-node[data-depth='2'] {
+  margin-left: 22px;
+  padding-left: 58px;
+  border-left: 2px solid var(--hairline);
+}
+
+.comment__reply-to {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 6px;
+  color: var(--body);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+// Inside the post dialog: the card is the dialog content, no second frame.
+:host-context(.modal--post) {
+  .post {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
 }
 
 .comment {

@@ -417,7 +417,36 @@
     position: sticky;
     bottom: 0;
     z-index: 1;
-    padding-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px 0 20px;
     background: var(--surface);
+  }
+
+  // Ảnh / video · môn · ai xem on one full-width row (selects share the space), then Hủy / Đăng on the right.
+  // Phones keep the composer's own two-row grid (≤720px).
+  @media (min-width: 721px) {
+    .composer__tools {
+      display: grid;
+      flex: 1 1 100%;
+      grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .composer__tools:not(:has(.tool)) {
+      grid-template-columns: minmax(0, 240px);
+    }
+
+    .tool-select {
+      width: auto;
+    }
+
+    .composer__submit {
+      flex: 1 1 100%;
+      justify-content: flex-end;
+
+      .btn {
+        min-height: 44px;
+      }
+    }
   }
 }

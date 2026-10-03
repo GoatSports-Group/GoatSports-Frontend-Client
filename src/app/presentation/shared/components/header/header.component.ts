@@ -1,4 +1,5 @@
 import { Component, EventEmitter, HostListener, OnInit, Output, inject } from '@angular/core';
+import { PostDialogService } from '@presentation/pages/client/feed/post-dialog.service';
 import { Router } from '@angular/router';
 import { AuthService } from '@presentation/services/auth.service';
 import { NotificationService } from '@presentation/services/notification.service';
@@ -22,6 +23,7 @@ export class HeaderComponent implements OnInit {
   readonly getRelativeTime = formatRelativeTime;
   public authService = inject(AuthService);
   public notificationService = inject(NotificationService);
+  private readonly postDialog = inject(PostDialogService);
   private router = inject(Router);
   private notify = inject(NotifyService);
 
@@ -149,7 +151,9 @@ export class HeaderComponent implements OnInit {
         void this.router.navigate(['/matchmaking']);
         break;
       case 'POST':
-        void this.router.navigate(referenceId ? ['/feed/posts', referenceId] : ['/feed']);
+        // Bai viet mo trong popup ngay tai trang dang xem.
+        if (referenceId) this.postDialog.open(referenceId);
+        else void this.router.navigate(['/feed']);
         break;
       case 'COMMUNITY_USER':
         void this.router.navigate(['/feed'], { queryParams: referenceId ? { author: referenceId } : {} });

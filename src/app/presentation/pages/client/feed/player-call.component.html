@@ -1,7 +1,7 @@
 @if (call(); as c) {
 <section class="call" [class.call--compact]="compact" [class.call--filled]="c.filled" [attr.aria-label]="'Kèo ' + title()">
   @if (compact) {
-    <a class="call__who" [routerLink]="['/feed/posts', post.postId]">
+    <a class="call__who" [href]="'/feed?post=' + post.postId" (click)="$event.preventDefault(); postDialog.open(post)">
       <img [src]="store.avatar(post.authorId)" alt="" width="36" height="36" />
       <span>
         <strong>{{ c.clubName ? 'CLB ' + c.clubName : store.authorName(post.authorId) }}</strong>

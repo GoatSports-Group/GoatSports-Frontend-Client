@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, EventEmitter, Input, Output, computed, inject, signal } from '@angular/core';
+import { PostDialogService } from './post-dialog.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
@@ -29,6 +30,7 @@ export class PlayerCallComponent {
   private readonly notify = inject(NotifyService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  readonly postDialog = inject(PostDialogService);
   readonly auth = inject(AuthService);
   readonly store = inject(CommunityStore);
 

@@ -1,8 +1,5 @@
 <main class="community">
-  <header class="community__identity">
-    <h1 class="page-title">Cộng đồng</h1>
-    <p>Tìm người chơi cho kèo của bạn, rủ kèo và chia sẻ khoảnh khắc thể thao với những người cùng môn.</p>
-  </header>
+  <h1 class="sr-only">Cộng đồng</h1>
 
   <div class="community__layout">
     <!-- Cot trai: cua rieng nguoi dang nhap (ho so, mon cua ban, keo cua toi). Duoi 1200px chuyen sang dau cot phai. -->
@@ -13,29 +10,9 @@
     <section class="feed" aria-labelledby="feed-heading">
       <h2 id="feed-heading" class="sr-only">Bảng tin</h2>
 
-      @if (authorId(); as viewedId) {
-        <section class="card author-card">
-          <button type="button" class="btn btn--ghost author-card__back" (click)="clearAuthor()">
-            <lucide-icon name="arrow-left" class="w-4 h-4"></lucide-icon>Toàn bộ bảng tin
-          </button>
-          <div class="author-card__main">
-            <img class="avatar" [src]="store.avatar(viewedId)" alt="" width="64" height="64" />
-            <div class="author-card__who">
-              <strong>{{ store.authorName(viewedId) }}</strong>
-              <span>{{ isMyAuthorView() ? 'Trang cá nhân của bạn: bài viết và kèo bạn đã đăng' : 'Bài viết bạn được phép xem' }}</span>
-            </div>
-            @if (!isMyAuthorView()) {
-              <button type="button" class="btn" [class.btn--primary]="!store.isFollowing(viewedId)"
-                [class.btn--secondary]="store.isFollowing(viewedId)" [disabled]="store.pendingFollowIds().has(viewedId)"
-                (click)="toggleAuthorFollow()">
-                <lucide-icon [name]="store.isFollowing(viewedId) ? 'user-check' : 'user-plus'" class="w-4 h-4"></lucide-icon>
-                {{ store.isFollowing(viewedId) ? 'Đang theo dõi' : 'Theo dõi' }}
-              </button>
-            }
-          </div>
-          <ng-container [ngTemplateOutlet]="statStrip" [ngTemplateOutletContext]="{ $implicit: authorStats() }"></ng-container>
-        </section>
-      } @else {
+      <!-- Phan dau cot giua dung yen (tab, bo loc); chi phan duoi cuon (>= 1024px). -->
+      <div class="feed__head">
+      @if (!authorId()) {
         <nav class="tabs" aria-label="Phạm vi bảng tin">
           @for (item of tabs; track item.value) {
             <button type="button" class="tab" [class.is-active]="tab() === item.value" [attr.aria-current]="tab() === item.value ? 'page' : null"
@@ -79,6 +56,32 @@
               (click)="selectSport(item)">{{ sportLabel(item) }}</button>
           }
         </div>
+      }
+      </div>
+
+      <div class="feed__scroll" #scroller>
+      @if (authorId(); as viewedId) {
+        <section class="card author-card">
+          <button type="button" class="btn btn--ghost author-card__back" (click)="clearAuthor()">
+            <lucide-icon name="arrow-left" class="w-4 h-4"></lucide-icon>Toàn bộ bảng tin
+          </button>
+          <div class="author-card__main">
+            <img class="avatar" [src]="store.avatar(viewedId)" alt="" width="64" height="64" />
+            <div class="author-card__who">
+              <strong>{{ store.authorName(viewedId) }}</strong>
+              <span>{{ isMyAuthorView() ? 'Trang cá nhân của bạn: bài viết và kèo bạn đã đăng' : 'Bài viết bạn được phép xem' }}</span>
+            </div>
+            @if (!isMyAuthorView()) {
+              <button type="button" class="btn" [class.btn--primary]="!store.isFollowing(viewedId)"
+                [class.btn--secondary]="store.isFollowing(viewedId)" [disabled]="store.pendingFollowIds().has(viewedId)"
+                (click)="toggleAuthorFollow()">
+                <lucide-icon [name]="store.isFollowing(viewedId) ? 'user-check' : 'user-plus'" class="w-4 h-4"></lucide-icon>
+                {{ store.isFollowing(viewedId) ? 'Đang theo dõi' : 'Theo dõi' }}
+              </button>
+            }
+          </div>
+          <ng-container [ngTemplateOutlet]="statStrip" [ngTemplateOutletContext]="{ $implicit: authorStats() }"></ng-container>
+        </section>
       }
 
       @if (showComposer() && auth.currentUser; as me) {
@@ -173,8 +176,11 @@
         } @else if (!hasMore()) {
           <p class="feed__end"><lucide-icon name="check-circle" class="w-4 h-4"></lucide-icon>{{ tab() === 'calls' && !authorId() ? 'Bạn đã xem hết kèo đang mở' : 'Bạn đã xem hết bài viết' }}</p>
         }
-        <div #sentinel class="feed__sentinel" aria-hidden="true"></div>
+        @if (hasMore() && !moreError()) {
+          <div class="list-sentinel" appInfiniteScroll (reached)="loadMore()" aria-hidden="true"></div>
+        }
       }
+      </div>
     </section>
 
     <aside class="rail rail--right" aria-label="Gợi ý cho bạn">
@@ -199,7 +205,10 @@
       }
 
       <section class="card rail-card">
-        <header class="card__head"><h3>Gợi ý theo dõi</h3></header>
+        <header class="card__head">
+          <h3>Gợi ý theo dõi</h3>
+          <button type="button" class="btn btn--ghost" (click)="showAllSuggestions()">Xem tất cả</button>
+        </header>
         @if (suggestions().loading) {
           <app-loading-skeleton variant="rows" [count]="3" [flush]="true" label="Đang tải gợi ý"></app-loading-skeleton>
         } @else if (suggestions().error) {
@@ -236,12 +245,15 @@
         </section>
       }
 
-      <section class="guideline">
-        <lucide-icon name="shield-check" class="w-5 h-5"></lucide-icon>
-        <p><strong>Chơi đẹp cả trên mạng.</strong> Tôn trọng người chơi khác; gặp nội dung xấu thì bấm “Báo cáo” trong menu ⋯ của bài.</p>
-      </section>
     </aside>
   </div>
+  <!-- Popup nam TRONG <main>, khong phai con truc tiep cua trang: hieu ung "troi len" cua trang (translate) ap cho
+       con truc tiep va se bien no thanh khung chua cua position: fixed, lam nen va popup nhay khi vua mo. -->
+  @if (followList(); as list) {
+    <app-follow-list-dialog [userId]="list.userId" [initialTab]="list.tab"
+      [followerCount]="authorStats().data?.followerCount ?? null" [followingCount]="authorStats().data?.followingCount ?? null"
+      (closed)="followList.set(null)"></app-follow-list-dialog>
+  }
 </main>
 
 <!-- Phan rieng cua nguoi dang nhap: ho so cong dong, mon cua ban, keo cua toi. -->
@@ -303,7 +315,7 @@
   <ul class="events">
     @for (post of items; track post.postId) {
       <li>
-        <a [routerLink]="['/feed/posts', post.postId]">
+        <a [href]="'/feed?post=' + post.postId" (click)="openPost($event, post)">
           <time [attr.datetime]="post.playerCall.playDate">
             <b>{{ callDate(post) | date:'dd' }}</b><span>TH{{ callDate(post) | date:'M' }}</span>
           </time>
@@ -318,13 +330,23 @@
   </ul>
 </ng-template>
 
+<!-- Bam "Nguoi theo doi" / "Dang theo doi" (ca o) mo popup danh sach hai tab. -->
 <ng-template #statStrip let-section>
   <dl class="stats" [attr.aria-busy]="section.loading">
     <div><dt>Bài viết</dt><dd>{{ section.data ? compactCount(section.data.postCount) : '–' }}</dd></div>
-    <div><dt>Người theo dõi</dt><dd>{{ section.data ? compactCount(section.data.followerCount) : '–' }}</dd></div>
-    <div><dt>Đang theo dõi</dt><dd>{{ section.data ? compactCount(section.data.followingCount) : '–' }}</dd></div>
+    <div class="stats__open">
+      <dt><button type="button" (click)="followList.set({ userId: authorId()!, tab: 'followers' })"
+        [attr.aria-label]="'Xem người theo dõi (' + (section.data?.followerCount ?? 0) + ')'">Người theo dõi</button></dt>
+      <dd>{{ section.data ? compactCount(section.data.followerCount) : '–' }}</dd>
+    </div>
+    <div class="stats__open">
+      <dt><button type="button" (click)="followList.set({ userId: authorId()!, tab: 'following' })"
+        [attr.aria-label]="'Xem đang theo dõi (' + (section.data?.followingCount ?? 0) + ')'">Đang theo dõi</button></dt>
+      <dd>{{ section.data ? compactCount(section.data.followingCount) : '–' }}</dd>
+    </div>
   </dl>
 </ng-template>
+
 
 <ng-template #trendingTags>
   @if (trending().loading) {
@@ -390,7 +412,7 @@
 </ng-template>
 
 <ng-template #callCard let-post>
-  <a class="event-card" [routerLink]="['/feed/posts', post.postId]">
+  <a class="event-card" [href]="'/feed?post=' + post.postId" (click)="openPost($event, post)">
     <span class="badge badge--sport">{{ sportLabel(post.playerCall.sport) }}</span>
     <strong>{{ callTitle(post) }}</strong>
     <small>{{ callDate(post) | date:'dd/MM' }} · {{ post.playerCall.startTime.slice(0, 5) }} · thiếu {{ post.playerCall.slots }}</small>

@@ -9,7 +9,7 @@
   display: contents;
 }
 
-// The composer brings its own author row and action bar; the dialog body only scrolls it.
-.modal--composer .modal__body {
-  padding-bottom: 0;
+// The post card brings its own sections; the dialog body only scrolls it (comments load as it scrolls).
+.post-dialog__body {
+  padding: 0;
 }

@@ -9,7 +9,7 @@
         @if (post.sharedPostId) { <span class="post__verb">đã chia sẻ một bài viết</span> }
       </a>
       <div class="meta">
-        <a class="post__time" [routerLink]="['/feed/posts', post.postId]" [title]="post.publishedAt | date:'HH:mm dd/MM/yyyy'">
+        <a class="post__time" [href]="'/feed?post=' + post.postId" (click)="openPost($event, post)" [title]="post.publishedAt | date:'HH:mm dd/MM/yyyy'">
           {{ relativeTime(post.publishedAt || post.createdAt) }}
         </a>
         @if (isEdited(post)) { <span class="meta__dot" aria-hidden="true"></span><span>Đã sửa</span> }
@@ -106,7 +106,7 @@
 
   @if (post.sharedPostId) {
     @if (post.sharedPost; as original) {
-      <a class="embed" [routerLink]="['/feed/posts', original.postId]" [attr.aria-label]="'Bài gốc của ' + store.authorName(original.authorId)">
+      <a class="embed" [href]="'/feed?post=' + original.postId" (click)="openPost($event, original)" [attr.aria-label]="'Bài gốc của ' + store.authorName(original.authorId)">
         <div class="embed__head">
           <img class="avatar" [src]="store.avatar(original.authorId)" alt="" width="32" height="32" />
           <div>
@@ -176,31 +176,22 @@
         <p class="comments__empty">Chưa có bình luận. Mở lời trước nhé.</p>
       }
 
-      @for (thread of threads(); track thread.comment.commentId) {
-        <div class="thread">
-          <ng-container [ngTemplateOutlet]="commentRow" [ngTemplateOutletContext]="{ $implicit: thread.comment }"></ng-container>
-          @if (thread.replies.length) {
-            <div class="thread__replies">
-              @for (reply of thread.replies; track reply.commentId) {
-                <ng-container [ngTemplateOutlet]="commentRow" [ngTemplateOutletContext]="{ $implicit: reply }"></ng-container>
-              }
-            </div>
-          }
-        </div>
-      }
+      <div class="comment-tree">
+        @for (node of commentNodes(); track node.comment.commentId) {
+          <div class="comment-node" [attr.data-depth]="node.depth">
+            <ng-container [ngTemplateOutlet]="commentRow"
+              [ngTemplateOutletContext]="{ $implicit: node.comment, replyTo: node.replyToAuthorId }"></ng-container>
+          </div>
+        }
+      </div>
 
-      @if (commentsHasMore() && openComments) {
-        <!-- Trang chi tiet bai viet: binh luan cuon vo han. Trong bang tin giu nut de khong gianh cuon voi feed. -->
+      <!-- Binh luan cuon vo han trong popup: moi lan 20, them khi cuon toi cuoi. -->
+      @if (commentsHasMore()) {
         @if (commentsLoading()) {
           <app-loading-skeleton variant="rows" [count]="2" [flush]="true" label="Đang tải thêm bình luận"></app-loading-skeleton>
         } @else {
           <div class="list-sentinel" appInfiniteScroll (reached)="commentsLoading() || loadComments(commentsPage() + 1)" aria-hidden="true"></div>
         }
-      } @else if (commentsHasMore()) {
-        <button type="button" class="link-btn comments__more" [disabled]="commentsLoading()" (click)="loadComments(commentsPage() + 1)">
-          @if (commentsLoading()) { <span class="spinner" aria-hidden="true"></span> }
-          Xem thêm bình luận
-        </button>
       }
 
       @if (auth.currentUser; as me) {
@@ -280,7 +271,7 @@
   }
 </ng-template>
 
-<ng-template #commentRow let-comment>
+<ng-template #commentRow let-comment let-replyTo="replyTo">
   <article class="comment">
     <img class="avatar" [src]="store.avatar(comment.authorId)" alt="" width="32" height="32" />
     <div class="comment__main">
@@ -302,6 +293,9 @@
       } @else {
         <div class="comment__bubble">
           <a [routerLink]="['/feed']" [queryParams]="{ author: comment.authorId }">{{ store.authorName(comment.authorId) }}</a>
+          @if (replyTo) {
+            <span class="comment__reply-to"><lucide-icon name="corner-down-right" class="w-3 h-3"></lucide-icon>Trả lời {{ store.authorName(replyTo) }}</span>
+          }
           <p><ng-container [ngTemplateOutlet]="richContent" [ngTemplateOutletContext]="{ $implicit: commentSegments(comment) }"></ng-container></p>
         </div>
         @if (confirm(); as pending) {

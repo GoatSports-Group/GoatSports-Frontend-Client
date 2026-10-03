@@ -2,6 +2,13 @@
 
 @include c.community-ui;
 
+// Overlay component: the host is only a wrapper. display: contents gives it no box, so a page entry animation
+// (translate on the routed page's direct children) can never turn it into the containing block of the fixed
+// backdrop and make the dialog jump while it opens.
+:host {
+  display: contents;
+}
+
 .share-card {
   display: grid;
   grid-template-columns: 40px minmax(0, 1fr) auto;

@@ -1,0 +1,66 @@
+<div class="modal-backdrop" role="presentation" (click)="closed.emit()">
+  <section class="modal follow-dialog" appAccessibleDialog aria-labelledby="follow-dialog-title"
+    (dialogClosed)="closed.emit()" (click)="$event.stopPropagation()">
+    <header class="modal__header">
+      <div>
+        <h2 id="follow-dialog-title">{{ store.authorName(userId) }}</h2>
+      </div>
+      <button type="button" class="icon-btn" (click)="closed.emit()" aria-label="Đóng"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button>
+    </header>
+
+    <nav class="tabs follow-dialog__tabs" role="tablist" aria-label="Danh sách theo dõi">
+      <button type="button" role="tab" class="tab" [class.is-active]="tab() === 'followers'" [attr.aria-selected]="tab() === 'followers'"
+        (click)="select('followers')">
+        Người theo dõi @if (followerCount !== null) { <span class="tab__count">{{ followerCount }}</span> }
+      </button>
+      <button type="button" role="tab" class="tab" [class.is-active]="tab() === 'following'" [attr.aria-selected]="tab() === 'following'"
+        (click)="select('following')">
+        Đang theo dõi @if (followingCount !== null) { <span class="tab__count">{{ followingCount }}</span> }
+      </button>
+    </nav>
+
+    <div class="modal__body follow-dialog__body" role="tabpanel">
+      @if (error() && !people().length) {
+        <div class="state state--error">
+          <span class="state__icon"><lucide-icon name="wifi-off" class="w-6 h-6"></lucide-icon></span>
+          <strong>Không tải được danh sách</strong>
+          <button type="button" class="btn btn--primary" (click)="loadMore()">Thử lại</button>
+        </div>
+      } @else if (loading() && !people().length) {
+        <app-loading-skeleton variant="rows" [count]="4" [flush]="true" label="Đang tải danh sách"></app-loading-skeleton>
+      } @else if (!people().length) {
+        <p class="follow-dialog__empty">{{ tab() === 'followers' ? 'Chưa có ai theo dõi' : 'Chưa theo dõi ai' }}</p>
+      } @else {
+        <ul class="people">
+          @for (person of people(); track person.userId) {
+            <li>
+              <button type="button" class="people__who" (click)="openProfile(person.userId)">
+                <img class="avatar" [src]="store.avatar(person.userId)" alt="" width="40" height="40" />
+                <span>
+                  <strong>{{ store.authorName(person.userId) }}</strong>
+                  <small>Theo dõi từ {{ person.followedAt | date:'dd/MM/yyyy' }}</small>
+                </span>
+              </button>
+              @if (person.userId !== auth.currentUser?.userId) {
+                <button type="button" class="btn" [class.btn--primary]="!store.isFollowing(person.userId)"
+                  [class.btn--secondary]="store.isFollowing(person.userId)" [disabled]="store.pendingFollowIds().has(person.userId)"
+                  (click)="toggleFollow(person.userId)">
+                  {{ store.isFollowing(person.userId) ? 'Đang theo dõi' : 'Theo dõi' }}
+                </button>
+              }
+            </li>
+          }
+        </ul>
+        @if (hasMore()) {
+          @if (loading()) {
+            <app-loading-skeleton variant="rows" [count]="2" [flush]="true" label="Đang tải thêm"></app-loading-skeleton>
+          } @else if (error()) {
+            <button type="button" class="btn btn--ghost follow-dialog__retry" (click)="loadMore()">Thử lại</button>
+          } @else {
+            <div class="list-sentinel" appInfiniteScroll (reached)="loadMore()" aria-hidden="true"></div>
+          }
+        }
+      }
+    </div>
+  </section>
+</div>

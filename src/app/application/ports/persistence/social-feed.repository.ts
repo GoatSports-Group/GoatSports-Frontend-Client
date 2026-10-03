@@ -12,6 +12,7 @@ import {
   PostVisibility,
   AuthorStats,
   FeedFilter,
+  FollowEntry,
   FollowSuggestion,
   Mention,
   TrendingTag,
@@ -25,7 +26,9 @@ export interface SocialFeedRepository {
   getAuthorStats(authorId: string): Observable<AuthorStats>;
   getFollowStatus(userId: string): Observable<UserFollowStatus>;
   /** Uu tien nguoi dang bai cac mon `sports` cua nguoi xem. */
-  getFollowSuggestions(limit: number, sports?: readonly PostSport[]): Observable<FollowSuggestion[]>;
+  getFollowSuggestions(limit: number, sports?: readonly PostSport[], offset?: number): Observable<FollowSuggestion[]>;
+  /** Nguoi theo doi / dang theo doi cua mot nguoi (trang dem tu 1). */
+  getFollowList(userId: string, kind: 'followers' | 'following', page: number, size: number): Observable<SpringPageResponse<FollowEntry>>;
   /** Chu de noi bat 7 ngay; `sports` (mon dang loc / mon cua toi) dung truoc. */
   getTrendingTags(limit: number, sports?: readonly PostSport[]): Observable<TrendingTag[]>;
   /** Chu de hay dung 30 ngay, cho goi y khi go "#". */

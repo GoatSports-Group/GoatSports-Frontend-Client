@@ -149,6 +149,12 @@ export interface FollowSuggestion {
   reason?: string | null;
 }
 
+/** Mot dong trong danh sach "Nguoi theo doi" / "Dang theo doi". */
+export interface FollowEntry {
+  userId: string;
+  followedAt: string;
+}
+
 export interface CreateContentReportRequest {
   targetType: ReportTargetType;
   targetId: string;

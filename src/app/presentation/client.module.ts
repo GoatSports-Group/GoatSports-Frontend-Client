@@ -1,4 +1,5 @@
 import { NgModule } from '@angular/core';
+import { FollowListDialogComponent } from '@presentation/pages/client/feed/follow-list-dialog.component';
 import { HashtagMenuComponent } from '@presentation/pages/client/feed/hashtag-menu.component';
 import { ComposerDialogComponent } from '@presentation/pages/client/feed/composer-dialog.component';
 import { HighlightShareDialogComponent } from '@presentation/pages/client/feed/highlight-share-dialog.component';
@@ -56,7 +57,7 @@ import { SocialFeedComponent } from '@presentation/pages/client/feed/social-feed
 import { PostCardComponent } from '@presentation/pages/client/feed/post-card.component';
 import { PlayerCallComponent } from '@presentation/pages/client/feed/player-call.component';
 import { PostComposerComponent } from '@presentation/pages/client/feed/post-composer.component';
-import { PostDetailComponent } from '@presentation/pages/client/feed/post-detail.component';
+import { PostDialogComponent } from '@presentation/pages/client/feed/post-dialog.component';
 import { CommunityFriendsComponent } from '@presentation/pages/client/feed/community-friends.component';
 import { MediaLightboxComponent } from '@presentation/pages/client/feed/media-lightbox.component';
 import { MentionMenuComponent } from '@presentation/pages/client/feed/mention-menu.component';
@@ -117,7 +118,8 @@ import { AiAssistantModalComponent } from '@presentation/shared/components/ai-as
     HashtagMenuComponent,
     HighlightShareDialogComponent,
     PostComposerComponent,
-    PostDetailComponent,
+    PostDialogComponent,
+    FollowListDialogComponent,
     CommunityFriendsComponent,
     MediaLightboxComponent,
     MentionMenuComponent,

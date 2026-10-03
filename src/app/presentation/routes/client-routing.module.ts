@@ -1,5 +1,5 @@
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { NgModule, inject } from '@angular/core';
+import { RouterModule, Routes, Router } from '@angular/router';
 import { ClientComponent } from '@shared/layouts/client/client.component';
 import { HomeComponent } from '@presentation/pages/client/home/home.component';
 import { SettingsComponent } from '@presentation/pages/client/settings/settings.component';
@@ -22,7 +22,6 @@ import { TournamentListComponent } from '@presentation/pages/client/tournaments/
 import { TournamentDetailComponent } from '@presentation/pages/client/tournaments/tournament-detail.component';
 import { MatchmakingComponent } from '@presentation/pages/client/matchmaking/matchmaking.component';
 import { SocialFeedComponent } from '@presentation/pages/client/feed/social-feed.component';
-import { PostDetailComponent } from '@presentation/pages/client/feed/post-detail.component';
 import { AuthGuard } from '@presentation/guards/auth.guard';
 
 const routes: Routes = [
@@ -63,7 +62,8 @@ const routes: Routes = [
       { path: 'tournaments/:id', component: TournamentDetailComponent, title: 'Chi tiết giải đấu | GOAT Sports' },
       { path: 'matchmaking', component: MatchmakingComponent, canActivate: [AuthGuard], title: 'AI ghép trận | GOAT Sports' },
       { path: 'feed', component: SocialFeedComponent, canActivate: [AuthGuard], title: 'Cộng đồng | GOAT Sports' },
-      { path: 'feed/posts/:postId', component: PostDetailComponent, canActivate: [AuthGuard], title: 'Bài viết | GOAT Sports' },
+      // Bai viet luon mo trong popup tren bang tin; link cu (thong bao, link da chia se) chuyen ve /feed?post=:id.
+      { path: 'feed/posts/:postId', redirectTo: ({ params }) => inject(Router).createUrlTree(['/feed'], { queryParams: { post: params['postId'] } }) },
       { path: 'ai-recommendation', redirectTo: 'matchmaking', pathMatch: 'full' },
       { path: 'chat', component: ChatComponent, canActivate: [AuthGuard], title: 'Tin nhắn | GOAT Sports' },
       { path: 'chat/:roomId', component: ChatComponent, canActivate: [AuthGuard], title: 'Cuộc trò chuyện | GOAT Sports' },

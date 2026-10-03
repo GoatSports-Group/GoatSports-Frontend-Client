@@ -16,7 +16,7 @@
       </div>
       <footer class="modal__footer">
         <button type="button" class="btn btn--secondary" (click)="close()">Đóng</button>
-        <a class="btn btn--primary" [routerLink]="['/feed/posts', id]"><lucide-icon name="external-link" class="w-4 h-4"></lucide-icon>Xem bài viết</a>
+        <button type="button" class="btn btn--primary" (click)="viewPost(id)"><lucide-icon name="external-link" class="w-4 h-4"></lucide-icon>Xem bài viết</button>
       </footer>
     } @else {
       <div class="modal__body">

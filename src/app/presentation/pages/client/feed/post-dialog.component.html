@@ -1,0 +1,30 @@
+@if (dialog.current(); as target) {
+  <div class="modal-backdrop" role="presentation" (click)="close()">
+    <section class="modal modal--wide modal--post" appAccessibleDialog aria-labelledby="post-dialog-title"
+      (dialogClosed)="close()" (click)="$event.stopPropagation()">
+      <header class="modal__header">
+        <div>
+          <h2 id="post-dialog-title">{{ post() ? 'Bài viết của ' + store.authorName(post()!.authorId) : 'Bài viết' }}</h2>
+        </div>
+        <button type="button" class="icon-btn" (click)="close()" aria-label="Đóng"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button>
+      </header>
+      <div class="modal__body post-dialog__body">
+        @if (post(); as current) {
+          <app-post-card [post]="current" [inDialog]="true" [focusComments]="target.focusComments"
+            (changed)="onChanged($event)" (removed)="onRemoved($event)" (authorBlocked)="close()"
+            (shared)="dialog.published.next($event)"></app-post-card>
+        } @else if (error(); as message) {
+          <div class="state state--error">
+            <span class="state__icon"><lucide-icon name="eye-off" class="w-6 h-6"></lucide-icon></span>
+            <strong>Không xem được bài viết</strong>
+            <p>{{ message }}</p>
+            <button type="button" class="btn btn--primary" (click)="load(target.postId)">
+              <lucide-icon name="refresh-cw" class="w-4 h-4"></lucide-icon>Thử lại</button>
+          </div>
+        } @else {
+          <app-loading-skeleton variant="cards" [count]="1" minWidth="100%" label="Đang tải bài viết"></app-loading-skeleton>
+        }
+      </div>
+    </section>
+  </div>
+}

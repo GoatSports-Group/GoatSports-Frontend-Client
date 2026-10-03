@@ -1,3 +1,10 @@
+// Overlay component: the host is only a wrapper. display: contents gives it no box, so a page entry animation
+// (translate on the routed page's direct children) can never turn it into the containing block of the fixed
+// backdrop and make the dialog jump while it opens.
+:host {
+  display: contents;
+}
+
 .request-overlay {
   position: fixed;
   inset: 0;

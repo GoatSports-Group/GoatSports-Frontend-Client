@@ -16,18 +16,6 @@
   padding: var(--page-block-start) 0 var(--page-block-end);
 }
 
-.community__identity {
-  display: grid;
-  gap: 8px;
-  margin-bottom: 24px;
-
-  p {
-    margin: 0;
-    color: var(--body);
-    font-size: 16px;
-    line-height: 1.6;
-  }
-}
 
 .community__layout {
   display: grid;
@@ -59,6 +47,118 @@
   grid-template-columns: minmax(0, 1fr);
   align-content: start;
   gap: 16px;
+}
+
+// Feed column = fixed head (tabs, banners, sport chips) + scrolling body (author card, composer row, posts).
+.feed__head,
+.feed__scroll {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 16px;
+}
+
+// Followers / following cells open the follow-list dialog: the whole cell is the button's hit area.
+.stats__open {
+  position: relative;
+  border-radius: 12px;
+  transition: background-color var(--transition-smooth);
+
+  button {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    cursor: pointer;
+
+    &::after {
+      position: absolute;
+      inset: 0;
+      border-radius: 12px;
+      content: '';
+    }
+
+    // The global press effect moves buttons with a transform; a transformed button becomes the containing block
+    // of its ::after, the hit area shrinks to the label and a click released over the number never reaches it.
+    &:active {
+      // Global rule is `translateY(1px) !important`.
+      transform: none !important;
+    }
+
+    &:focus-visible::after {
+      outline: 2px solid var(--primary);
+      outline-offset: -2px;
+    }
+  }
+
+  &:hover {
+    background: var(--surface-subtle);
+
+    dd {
+      color: var(--primary);
+    }
+  }
+
+  // Tactile feedback on the whole cell instead.
+  &:active {
+    background: var(--primary-light);
+  }
+}
+
+// Desktop: an app-like page. The page itself does not scroll; only the middle column's body does,
+// so the rails, tabs and filters stay put (GOAT-DESIGN Community › Layout).
+@media (min-width: 1024px) {
+  .community {
+    height: calc(100dvh - 64px);
+    padding-top: 20px;
+    padding-bottom: 0;
+    // clip, not hidden: focus / scrollIntoView must not be able to scroll the page frame and shift the columns.
+    position: relative;
+    overflow: clip;
+  }
+
+  .community__layout {
+    height: 100%;
+    align-items: stretch;
+  }
+
+  // Fixed-height grids: rows must keep their content height, or cards with overflow: hidden collapse to 0.
+  // position: relative on every scroll box: absolutely positioned bits inside (the .sr-only labels of each
+  // post) must be contained by it; otherwise they escape to the page frame and make the whole page scroll.
+  .rail {
+    position: relative;
+    max-height: none;
+    min-height: 0;
+    grid-auto-rows: max-content;
+  }
+
+  .feed {
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .feed__head {
+    flex: none;
+    padding-bottom: 16px;
+  }
+
+  // Side padding keeps card shadows from being clipped by the scroll box.
+  .feed__scroll {
+    flex: 1;
+    min-height: 0;
+    margin: 0 -8px;
+    padding: 2px 8px 24px;
+    position: relative;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    grid-auto-rows: max-content;
+  }
 }
 
 .feed__list {
@@ -558,31 +658,6 @@
 }
 
 // Community prompt uses the pale emerald callout gradient (GOAT-DESIGN §8 Gradients).
-.guideline {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 16px;
-  border: 1px solid var(--hairline);
-  border-radius: 16px;
-  background: linear-gradient(135deg, var(--primary-light), var(--surface) 70%);
-
-  lucide-icon {
-    flex: none;
-    color: var(--primary);
-  }
-
-  p {
-    margin: 0;
-    color: var(--body);
-    font-size: 13px;
-    line-height: 1.55;
-  }
-
-  strong {
-    color: var(--ink);
-  }
-}
 
 // ---- Hashtags ------------------------------------------------------------------------------------
 .tag-banner {
@@ -842,9 +917,6 @@
     }
   }
 
-  .community__identity {
-    margin-bottom: 16px;
-  }
 
   .author-card__main {
     grid-template-columns: 56px minmax(0, 1fr);

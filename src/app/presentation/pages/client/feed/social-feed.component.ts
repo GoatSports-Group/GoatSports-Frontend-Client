@@ -1,7 +1,8 @@
 import { PAGE_SIZE } from '@shared/constants/page-size';
+import { PostDialogService } from './post-dialog.service';
 import { foldText } from './rich-text';
 import {
-  ChangeDetectionStrategy, Component, DestroyRef, ElementRef, OnDestroy, OnInit, ViewChild, computed, inject, signal
+  ChangeDetectionStrategy, Component, DestroyRef, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, computed, inject, signal
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -64,6 +65,7 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly notify = inject(NotifyService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly postDialog = inject(PostDialogService);
   readonly auth = inject(AuthService);
   readonly store = inject(CommunityStore);
 
@@ -96,7 +98,6 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
   /** Bo loc cua lan tai gan nhat (tab, mon, tac gia, chu de). */
   private feedKey = '';
   private request?: Subscription;
-  private observer?: IntersectionObserver;
 
   readonly mySports = signal<Section<MySport[]>>({ loading: true, error: false, data: [] });
   readonly authorStats = signal<Section<ProfileStats | null>>({ loading: true, error: false, data: null });
@@ -125,15 +126,10 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
   readonly showSportFilter = computed(() => this.tab() !== 'saved' && !this.isFriendsTab());
   readonly pendingRequests = computed(() => this.store.connections().received.length);
 
-  @ViewChild('sentinel') set sentinel(element: ElementRef<HTMLElement> | undefined) {
-    this.observer?.disconnect();
-    if (!element || typeof IntersectionObserver === 'undefined') return;
-    // Tai trang tiep khi con ~600px nua la het danh sach.
-    this.observer = new IntersectionObserver(entries => {
-      if (entries.some(entry => entry.isIntersecting)) this.loadMore();
-    }, { rootMargin: '600px 0px' });
-    this.observer.observe(element.nativeElement);
-  }
+  /** Khung cuon cua cot giua (>= 1024px); doi bo loc thi dua ve dau. */
+  @ViewChild('scroller') private scroller?: ElementRef<HTMLElement>;
+  /** Popup "Nguoi theo doi / Dang theo doi" cua trang ca nhan dang xem. */
+  readonly followList = signal<{ userId: string; tab: 'followers' | 'following' } | null>(null);
 
   get me(): string | null {
     return this.auth.currentUser?.userId ?? null;
@@ -143,6 +139,12 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
     this.store.loadFollowing(this.me);
     this.store.loadConnections();
     this.loadMyCalls();
+    // Thich, binh luan, sua, xoa trong popup bai viet: cap nhat the tuong ung tren bang tin.
+    this.postDialog.changes.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(post => {
+      if (this.posts().some(item => item.postId === post.postId)) this.onChanged(post);
+    });
+    this.postDialog.published.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(post => this.onPublished(post));
+    this.postDialog.removals.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(postId => this.onRemoved(postId));
 
     // Bo loc mac dinh can biet mon cua nguoi xem, nen doc ho so the thao truoc roi moi theo doi URL.
     // Ho so cham / loi thi van mo bang tin (khong ca nhan hoa) thay vi de trang trong.
@@ -153,7 +155,6 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.observer?.disconnect();
     this.request?.unsubscribe();
   }
 
@@ -178,6 +179,9 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
       this.tag.set(params.get('tag')?.replace(/^#/, '').toLowerCase() || null);
       this.sport.set(sport && POST_SPORTS.includes(sport as PostSport) ? sport as PostSport : null);
       this.mineOnly.set(this.mySportSet().size > 0 && (sport === 'mine' || (!sport && this.defaultsToMine())));
+      // Link bai viet (/feed?post=:id, link cu /feed/posts/:id cung ve day): mo popup tren bang tin.
+      const postId = params.get('post');
+      if (postId && this.postDialog.current()?.postId !== postId) this.postDialog.open(postId);
       if (params.get('compose') === 'find-players') {
         this.callPrefill.set({ sport: this.sport(), format: params.get('format') });
         this.composerKind.set('CALL');
@@ -191,6 +195,8 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
       }
       if (key === this.feedKey) return;
       this.feedKey = key;
+      this.followList.set(null);
+      if (this.scroller) this.scroller.nativeElement.scrollTop = 0;
       if (!this.isFriendsTab()) this.reload();
       if (this.authorId()) this.loadAuthorStats(this.authorId()!);
     });
@@ -213,6 +219,33 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
   /** Chip chu de dang loc (so khop khong dau). */
   isActiveTag(tag: string): boolean {
     return !!this.tag() && foldText(this.tag()!) === foldText(tag);
+  }
+
+  /**
+   * Lan chuot o khoang trong hai ben, tren thanh tab / chip, hoac tren cot ben da het cho cuon: cuon bang tin,
+   * vi tren desktop chi cot giua cuon.
+   */
+  @HostListener('wheel', ['$event'])
+  forwardWheel(event: WheelEvent): void {
+    const scroller = this.scroller?.nativeElement;
+    const target = event.target as HTMLElement | null;
+    if (!scroller || getComputedStyle(scroller).overflowY !== 'auto') return;
+    if (target?.closest('.feed__scroll, .modal-backdrop')) return;
+    // Cot ben con cuon duoc theo huong nay thi de no tu cuon; het cho (hoac ngan) thi cuon bang tin.
+    const rail = target?.closest<HTMLElement>('.rail');
+    if (rail && (event.deltaY > 0 ? rail.scrollTop + rail.clientHeight < rail.scrollHeight - 1 : rail.scrollTop > 0)) return;
+    scroller.scrollBy({ top: event.deltaY });
+  }
+
+  /** Kèo / bai o cot ben: mo popup bai viet, khong roi trang. */
+  openPost(event: Event, post: SocialPost): void {
+    event.preventDefault();
+    this.postDialog.open(post);
+  }
+
+  /** "Xem tat ca" goi y theo doi: tab Ban be, muc Goi y (cuon vo han). */
+  showAllSuggestions(): void {
+    void this.router.navigate([], { queryParams: { tab: 'friends', list: 'suggestions', author: null, tag: null } , queryParamsHandling: 'merge' });
   }
 
   clearTag(): void {

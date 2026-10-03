@@ -1,6 +1,13 @@
 @use 'tournament-ui' as t;
 @include t.tournament-ui;
 
+// Overlay component: the host is only a wrapper. display: contents gives it no box, so a page entry animation
+// (translate on the routed page's direct children) can never turn it into the containing block of the fixed
+// backdrop and make the dialog jump while it opens.
+:host {
+  display: contents;
+}
+
 // Hộp thanh toán lệ phí: cùng bố cục với thẻ quét VietQR ở bước đặt sân.
 .modal--pay { width: min(100%, 440px); }
 

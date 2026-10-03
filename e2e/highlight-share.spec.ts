@@ -54,7 +54,7 @@ test('khoe trận đã đấu: thẻ tóm tắt tỷ số, gắn thẻ đối th
   await dialog.getByRole('button', { name: 'Đăng lên Cộng đồng' }).click();
 
   await expect(dialog.getByText('Đã đăng lên Cộng đồng')).toBeVisible();
-  await expect(dialog.getByRole('link', { name: 'Xem bài viết' })).toHaveAttribute('href', `/feed/posts/${postId}`);
+  await expect(dialog.getByRole('button', { name: 'Xem bài viết' })).toBeVisible();
   expect(shares).toEqual([{ title: 'Thắng 21–15 trước Thắng Đạt!', content: 'Cảm ơn kèo hay!' }]);
 });
 
@@ -113,7 +113,7 @@ test('chủ CLB khoe chức vô địch, thành viên CLB được gắn thẻ',
   await expect(dialog.locator('.share-card')).toContainText('Vô địch');
   await expect(dialog.getByLabel('Tiêu đề')).toHaveValue('Weekend Club vô địch Giải Phong Trào Mùa Thu!');
   await dialog.getByRole('button', { name: 'Đăng lên Cộng đồng' }).click();
-  await expect(dialog.getByRole('link', { name: 'Xem bài viết' })).toBeVisible();
+  await expect(dialog.getByRole('button', { name: 'Xem bài viết' })).toBeVisible();
   expect(shares).toEqual([{ title: 'Weekend Club vô địch Giải Phong Trào Mùa Thu!', content: null }]);
 });
 

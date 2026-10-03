@@ -1,4 +1,5 @@
 import { PAGE_SIZE } from '@shared/constants/page-size';
+import { PostDialogService } from '@presentation/pages/client/feed/post-dialog.service';
 import { Component, ElementRef, OnInit, inject, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
@@ -19,6 +20,7 @@ export class NotificationsComponent implements OnInit {
   readonly authService = inject(AuthService);
   readonly notificationService = inject(NotificationService);
   private readonly notifyService = inject(NotifyService);
+  private readonly postDialog = inject(PostDialogService);
   private readonly router = inject(Router);
 
   readonly activeFilter = signal<NotificationFilter>('ALL');
@@ -318,6 +320,10 @@ export class NotificationsComponent implements OnInit {
       void this.router.navigate(['/feed'], { queryParams: notification.referenceId ? { author: notification.referenceId } : {} });
       return;
     }
+    if ((notification.referenceType || '').toUpperCase() === 'POST' && notification.referenceId) {
+      this.postDialog.open(notification.referenceId);
+      return;
+    }
     const route = this.getNotificationRoute(notification);
     if (route) void this.router.navigate(route);
   }
@@ -331,7 +337,7 @@ export class NotificationsComponent implements OnInit {
       case 'CLUB_DISBANDED': return ['/clubs'];
       case 'TOURNAMENT': return id ? ['/tournaments', id] : ['/tournaments'];
       case 'MATCHMAKING_SESSION': return ['/matchmaking'];
-      case 'POST': return id ? ['/feed/posts', id] : ['/feed'];
+      case 'POST': return ['/feed'];
       default: return null;
     }
   }

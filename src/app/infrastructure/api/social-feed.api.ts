@@ -12,6 +12,7 @@ import {
   SocialPost,
   AuthorStats,
   FeedFilter,
+  FollowEntry,
   FollowSuggestion,
   Mention,
   TrendingTag,
@@ -68,8 +69,8 @@ export class SocialFeedApi {
     return this.http.get<BaseResponse<UserFollowStatus>>(`${this.followUrl}/${userId}`);
   }
 
-  getFollowSuggestions(limit: number, sports: readonly PostSport[] = []): Observable<BaseResponse<FollowSuggestion[]>> {
-    let params = new HttpParams().set('limit', limit);
+  getFollowSuggestions(limit: number, sports: readonly PostSport[] = [], offset = 0): Observable<BaseResponse<FollowSuggestion[]>> {
+    let params = new HttpParams().set('limit', limit).set('offset', offset);
     if (sports.length) params = params.set('sports', sports.join(','));
     return this.http.get<BaseResponse<FollowSuggestion[]>>(`${this.followUrl}/suggestions`, { params });
   }
@@ -148,6 +149,13 @@ export class SocialFeedApi {
 
   reportContent(request: CreateContentReportRequest): Observable<BaseResponse<ContentReport>> {
     return this.http.post<BaseResponse<ContentReport>>(this.reportUrl, request);
+  }
+
+  getFollowList(userId: string, kind: 'followers' | 'following', page: number, size: number)
+    : Observable<BaseResponse<SpringPageResponse<FollowEntry>>> {
+    return this.http.get<BaseResponse<SpringPageResponse<FollowEntry>>>(`${this.followUrl}/${userId}/${kind}`, {
+      params: this.pageParams(page, size)
+    });
   }
 
   private pageParams(page: number, size: number): HttpParams {

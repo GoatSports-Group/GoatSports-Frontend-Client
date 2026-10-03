@@ -236,7 +236,7 @@ a.row__who:hover strong {
     }
   }
 
-  .row__label {
+  .btn-label {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -244,7 +244,7 @@ a.row__who:hover strong {
     clip: rect(0 0 0 0);
   }
 
-  .row .btn--secondary:has(.row__label) {
+  .row .btn--secondary:has(.btn-label) {
     width: 44px;
     padding: 0;
   }

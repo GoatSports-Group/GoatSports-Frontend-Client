@@ -11,6 +11,7 @@ import {
   SocialPost,
   AuthorStats,
   FeedFilter,
+  FollowEntry,
   FollowSuggestion,
   Mention,
   TrendingTag,
@@ -52,8 +53,12 @@ export class SocialFeedRepositoryImpl implements SocialFeedRepository {
     return this.api.getFollowStatus(userId).pipe(map(response => response.data));
   }
 
-  getFollowSuggestions(limit: number, sports: readonly PostSport[] = []): Observable<FollowSuggestion[]> {
-    return this.api.getFollowSuggestions(limit, sports).pipe(map(response => response.data ?? []));
+  getFollowSuggestions(limit: number, sports: readonly PostSport[] = [], offset = 0): Observable<FollowSuggestion[]> {
+    return this.api.getFollowSuggestions(limit, sports, offset).pipe(map(response => response.data ?? []));
+  }
+
+  getFollowList(userId: string, kind: 'followers' | 'following', page: number, size: number): Observable<SpringPageResponse<FollowEntry>> {
+    return this.api.getFollowList(userId, kind, page, size).pipe(map(response => response.data));
   }
 
   getFollowingUserIds(): Observable<string[]> {

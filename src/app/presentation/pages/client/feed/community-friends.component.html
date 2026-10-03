@@ -53,7 +53,9 @@
       <button type="button" class="chip" [class.is-active]="list() === item.value" [attr.aria-pressed]="list() === item.value"
         (click)="selectList(item.value)">
         {{ item.label }}
-        <span class="chip__count" [class.chip__count--alert]="item.value === 'received' && counts().received > 0">{{ counts()[item.value] }}</span>
+        @if (item.value !== 'suggestions') {
+          <span class="chip__count" [class.chip__count--alert]="item.value === 'received' && counts().received > 0">{{ counts()[item.value] }}</span>
+        }
       </button>
     }
   </div>
@@ -81,7 +83,7 @@
                     <span><strong>{{ store.authorName(other) }}</strong><small>Bạn bè từ {{ (friendship.respondedAt || friendship.requestedAt) | date:'MM/yyyy' }}</small></span>
                   </a>
                   <button type="button" class="btn btn--secondary" [disabled]="isPending('chat-' + friendship.friendshipId)" (click)="message(friendship)">
-                    <lucide-icon name="message-circle" class="w-4 h-4"></lucide-icon><span class="row__label">Nhắn tin</span>
+                    <lucide-icon name="message-circle" class="w-4 h-4"></lucide-icon><span class="btn-label">Nhắn tin</span>
                   </button>
                   <button type="button" class="icon-btn" [matMenuTriggerFor]="friendMenu" [attr.aria-label]="'Tác vụ với ' + store.authorName(other)">
                     <lucide-icon name="ellipsis" class="w-5 h-5"></lucide-icon>
@@ -110,6 +112,48 @@
               <strong>Chưa có bạn bè</strong>
               <p>Tìm đồng đội ở ô phía trên, hoặc kết bạn với người bạn gặp trong trận gần nhất.</p>
             </div>
+          }
+        }
+        @case ('suggestions') {
+          @if (suggestError() && !suggestions().length) {
+            <div class="state state--error">
+              <span class="state__icon"><lucide-icon name="wifi-off" class="w-6 h-6"></lucide-icon></span>
+              <strong>Không tải được gợi ý</strong>
+              <button type="button" class="btn btn--primary" (click)="loadSuggestions()">Thử lại</button>
+            </div>
+          } @else if (suggestLoading() && !suggestions().length) {
+            <app-loading-skeleton variant="rows" [count]="4" [flush]="true" label="Đang tải gợi ý"></app-loading-skeleton>
+          } @else if (!suggestions().length) {
+            <div class="state">
+              <span class="state__icon"><lucide-icon name="sparkles" class="w-6 h-6"></lucide-icon></span>
+              <strong>Chưa có ai để gợi ý</strong>
+              <p>Khi bạn ghép trận, vào CLB hay kết bạn, những người liên quan sẽ hiện ở đây.</p>
+            </div>
+          } @else {
+            <ul class="rows goat-stagger">
+              @for (person of suggestions(); track person.authorId) {
+                <li class="row">
+                  <a class="row__who" [routerLink]="['/feed']" [queryParams]="{ author: person.authorId, tab: null, list: null }">
+                    <img class="avatar" [src]="store.avatar(person.authorId)" alt="" width="40" height="40" />
+                    <span><strong>{{ store.authorName(person.authorId) }}</strong>
+                      <small [title]="person.reason || ''">{{ person.reason || person.postCount + ' bài trong 30 ngày' }}</small></span>
+                  </a>
+                  <button type="button" class="btn" [class.btn--primary]="!store.isFollowing(person.authorId)"
+                    [class.btn--secondary]="store.isFollowing(person.authorId)" [disabled]="store.pendingFollowIds().has(person.authorId)"
+                    (click)="toggleFollowSuggestion(person.authorId)">
+                    <lucide-icon [name]="store.isFollowing(person.authorId) ? 'user-check' : 'user-plus'" class="w-4 h-4"></lucide-icon>
+                    <span class="btn-label">{{ store.isFollowing(person.authorId) ? 'Đang theo dõi' : 'Theo dõi' }}</span>
+                  </button>
+                </li>
+              }
+            </ul>
+            @if (suggestHasMore()) {
+              @if (suggestLoading()) {
+                <app-loading-skeleton variant="rows" [count]="2" [flush]="true" label="Đang tải thêm gợi ý"></app-loading-skeleton>
+              } @else if (!suggestError()) {
+                <div class="list-sentinel" appInfiniteScroll (reached)="loadSuggestions()" aria-hidden="true"></div>
+              }
+            }
           }
         }
         @case ('received') {

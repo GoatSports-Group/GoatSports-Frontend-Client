@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy, Component, DestroyRef, EventEmitter, Input, OnInit, Output, computed, inject, signal
 } from '@angular/core';
+import { PostDialogService } from './post-dialog.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Observable, finalize } from 'rxjs';
 import { errorMessage } from './community-view';
@@ -29,6 +30,7 @@ export const HIGHLIGHT_CONTENT_MAX = 2000;
 })
 export class HighlightShareDialogComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
+  private readonly postDialog = inject(PostDialogService);
 
   @Input({ required: true }) heading = '';
   @Input({ required: true }) summary!: HighlightSummary;
@@ -65,6 +67,12 @@ export class HighlightShareDialogComponent implements OnInit {
       next: postId => this.postId.set(postId),
       error: error => this.error.set(errorMessage(error, 'Chưa đăng được lên Cộng đồng. Thử lại sau ít phút.'))
     });
+  }
+
+  /** Dong hop thoai khoe va mo bai vua dang trong popup bai viet. */
+  viewPost(postId: string): void {
+    this.closed.emit();
+    this.postDialog.open(postId);
   }
 
   close(): void {

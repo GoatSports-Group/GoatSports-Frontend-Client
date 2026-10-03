@@ -1,4 +1,5 @@
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { PostDialogService } from '@presentation/pages/client/feed/post-dialog.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, forkJoin, map, of, switchMap } from 'rxjs';
 import { SocialPost } from '@application/dto/social-feed/social-feed.dto';
@@ -37,6 +38,7 @@ export class HomeCommunityComponent implements OnInit {
   private readonly tournamentRepo = inject(TournamentRepositoryPort);
   private readonly socialFeed = inject(SOCIAL_FEED_REPOSITORY_TOKEN);
   private readonly directory = inject(PlayerDirectoryService);
+  readonly postDialog = inject(PostDialogService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly sportLabel = sportLabel;

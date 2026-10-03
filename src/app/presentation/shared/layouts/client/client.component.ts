@@ -48,6 +48,7 @@ export class ClientComponent implements OnInit {
   }
 
   get showFooter(): boolean {
-    return !this.router.url.startsWith('/chat');
+    // Chat va Cong dong la trang kieu ung dung: chi phan noi dung giua cuon, khong co footer.
+    return !this.router.url.startsWith('/chat') && !this.router.url.startsWith('/feed');
   }
 }

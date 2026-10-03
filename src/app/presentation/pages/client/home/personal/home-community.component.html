@@ -125,7 +125,7 @@
       <ul class="row-list panel-scroll goat-stagger">
         @for (item of friendItems(); track item.post.postId) {
         <li>
-          <a class="post" [routerLink]="['/feed/posts', item.post.postId]">
+          <a class="post" [href]="'/feed?post=' + item.post.postId" (click)="$event.preventDefault(); postDialog.open(item.post)">
             @if (item.author?.avatarUrl) {
             <img class="row__avatar row__avatar--round" [src]="item.author!.avatarUrl" [alt]="authorName(item)" loading="lazy" />
             } @else {

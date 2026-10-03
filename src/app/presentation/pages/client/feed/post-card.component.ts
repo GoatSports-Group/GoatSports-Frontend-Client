@@ -1,4 +1,5 @@
 import { PAGE_SIZE } from '@shared/constants/page-size';
+import { PostDialogService } from './post-dialog.service';
 import {
   ChangeDetectionStrategy, Component, DestroyRef, EventEmitter, Input, OnInit, Output, computed, inject, signal
 } from '@angular/core';
@@ -18,10 +19,17 @@ import {
   REPORT_REASONS, VISIBILITY_META, VISIBILITY_OPTIONS, compactCount, errorMessage, relativeTime, richText, sportLabel
 } from './community-view';
 
-interface CommentThread {
+/** Mot binh luan trong cay tra loi, da xep theo thu tu hien thi (cha roi den cac tra loi cua no). */
+interface CommentNode {
   comment: SocialComment;
-  replies: SocialComment[];
+  /** Muc thut le: 0 goc, toi da {@link MAX_COMMENT_DEPTH}. */
+  depth: number;
+  /** Tac gia binh luan duoc tra loi khi da het muc thut le (hien "Tra loi Ten" de khong mat ngu canh). */
+  replyToAuthorId: string | null;
 }
+
+/** Thut toi 2 muc (goc → tra loi → tra loi cua tra loi); sau hon thi dung o muc 2 kem "Tra loi Ten". */
+const MAX_COMMENT_DEPTH = 2;
 
 type PendingConfirm = { kind: 'delete-post' } | { kind: 'block' } | { kind: 'delete-comment'; commentId: string };
 
@@ -45,6 +53,7 @@ export class PostCardComponent implements OnInit {
   private readonly friends = inject(FRIEND_REPOSITORY_TOKEN);
   private readonly notify = inject(NotifyService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly postDialog = inject(PostDialogService);
   readonly auth = inject(AuthService);
   readonly store = inject(CommunityStore);
 
@@ -52,7 +61,10 @@ export class PostCardComponent implements OnInit {
   @Input({ required: true }) set post(value: SocialPost) { this.postState.set(value); }
   get post(): SocialPost { return this.postState()!; }
   /** Trang chi tiet mo san binh luan. */
-  @Input() openComments = false;
+  /** The nam trong popup bai viet: binh luan mo san, cuon vo han trong popup. Ngoai bang tin thi mo popup. */
+  @Input() inDialog = false;
+  /** Mo popup bang nut "Binh luan": dua con tro vao o binh luan. */
+  @Input() focusComments = false;
 
   @Output() readonly changed = new EventEmitter<SocialPost>();
   @Output() readonly removed = new EventEmitter<string>();
@@ -94,14 +106,32 @@ export class PostCardComponent implements OnInit {
   readonly reportReason = signal('');
   readonly reporting = signal(false);
 
-  readonly threads = computed<CommentThread[]>(() => {
+  /**
+   * Cay binh luan theo chieu sau: moi binh luan theo sau la cac tra loi cua chinh no (cu den moi), roi moi den
+   * binh luan ke tiep. Server tra theo thoi gian tang dan nen cha luon co truoc con; tra loi cua binh luan da xoa
+   * dung thanh goc.
+   */
+  readonly commentNodes = computed<CommentNode[]>(() => {
     const all = this.comments();
     const ids = new Set(all.map(item => item.commentId));
-    const roots = all.filter(item => !item.parentCommentId || !ids.has(item.parentCommentId));
-    return roots.map(comment => ({
-      comment,
-      replies: all.filter(item => item.parentCommentId === comment.commentId)
-    }));
+    const children = new Map<string | null, SocialComment[]>();
+    for (const comment of all) {
+      const parent = comment.parentCommentId && ids.has(comment.parentCommentId) ? comment.parentCommentId : null;
+      children.set(parent, [...(children.get(parent) ?? []), comment]);
+    }
+    const nodes: CommentNode[] = [];
+    const walk = (parentId: string | null, depth: number, parentAuthorId: string | null): void => {
+      for (const comment of children.get(parentId) ?? []) {
+        nodes.push({
+          comment,
+          depth: Math.min(depth, MAX_COMMENT_DEPTH),
+          replyToAuthorId: depth > MAX_COMMENT_DEPTH ? parentAuthorId : null
+        });
+        walk(comment.commentId, depth + 1, comment.authorId);
+      }
+    };
+    walk(null, 0, null);
+    return nodes;
   });
 
   readonly lightbox = signal<{ items: LightboxItem[]; start: number } | null>(null);
@@ -143,7 +173,20 @@ export class PostCardComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if (this.openComments) this.toggleComments();
+    if (!this.inDialog) return;
+    this.commentsOpen.set(true);
+    this.loadComments(1);
+    if (this.focusComments) setTimeout(() => this.focusCommentBox(), 150);
+  }
+
+  /** Ngoai popup: mo bai trong popup. Trong popup: da o day roi, khong lam gi. */
+  openPost(event: Event, post: SocialPost): void {
+    if (this.inDialog && post.postId === this.post.postId) {
+      event.preventDefault();
+      return;
+    }
+    event.preventDefault();
+    this.postDialog.open(post);
   }
 
   // ---- post actions --------------------------------------------------------------------------
@@ -174,7 +217,7 @@ export class PostCardComponent implements OnInit {
   }
 
   copyLink(): void {
-    const url = `${location.origin}/feed/posts/${this.post.postId}`;
+    const url = `${location.origin}/feed?post=${this.post.postId}`;
     navigator.clipboard?.writeText(url).then(
       () => this.notify.success('Đã sao chép liên kết bài viết.'),
       () => this.notify.error('Không sao chép được liên kết.')
@@ -270,10 +313,17 @@ export class PostCardComponent implements OnInit {
 
   // ---- comments -------------------------------------------------------------------------------
 
+  /** Bang tin: binh luan xem trong popup bai viet. Trong popup: dua con tro vao o binh luan. */
   toggleComments(): void {
-    const open = !this.commentsOpen();
-    this.commentsOpen.set(open);
-    if (open && !this.comments().length) this.loadComments(1);
+    if (!this.inDialog) {
+      this.postDialog.open(this.post, true);
+      return;
+    }
+    this.focusCommentBox();
+  }
+
+  private focusCommentBox(): void {
+    document.getElementById(`comment-input-${this.post.postId}`)?.focus();
   }
 
   loadComments(page: number): void {
@@ -302,8 +352,8 @@ export class PostCardComponent implements OnInit {
     const content = this.commentDraft().trim();
     if (!content || this.sendingComment()) return;
     const parent = this.replyTo();
-    // Tra loi mot tra loi thi gan vao binh luan goc, giu luong mot cap.
-    const parentId = parent ? (parent.parentCommentId ?? parent.commentId) : null;
+    // Gan dung vao binh luan duoc tra loi: cay hien tra loi ngay duoi no.
+    const parentId = parent?.commentId ?? null;
     this.sendingComment.set(true);
     const mentions = this.commentMentions.mentionsFor(content);
     this.repository.createComment(this.post.postId, { parentCommentId: parentId, content, mentions }).pipe(
@@ -363,9 +413,8 @@ export class PostCardComponent implements OnInit {
   private deleteComment(commentId: string): void {
     this.repository.deleteComment(commentId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
-        // Xoa binh luan goc cung an luon cac tra loi cua no trong luong.
-        const removed = this.comments().filter(item => item.commentId === commentId || item.parentCommentId === commentId);
-        this.comments.update(items => items.filter(item => !removed.includes(item)));
+        // Cac tra loi cua no van con (server giu lai) va dung thanh goc, nhu khi tai lai.
+        this.comments.update(items => items.filter(item => item.commentId !== commentId));
         this.replace({ ...this.post, commentCount: Math.max(0, this.post.commentCount - 1) });
       },
       error: error => this.notify.error(errorMessage(error, 'Không thể xóa bình luận.'))

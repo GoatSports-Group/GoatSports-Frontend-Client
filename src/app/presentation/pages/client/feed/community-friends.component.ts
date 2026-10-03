@@ -1,4 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { SOCIAL_FEED_REPOSITORY_TOKEN } from '@application/ports/persistence/social-feed.repository';
+import { FollowSuggestion } from '@application/dto/social-feed/social-feed.dto';
 import { LIST_CHUNK } from '@shared/directives/infinite-scroll.directive';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -13,16 +15,20 @@ import { NotifyService } from '@shared/components/notify/notify.service';
 import { CommunityStore } from './community.store';
 import { errorMessage } from './community-view';
 
-export type FriendList = 'friends' | 'received' | 'sent' | 'blocked';
+export type FriendList = 'friends' | 'suggestions' | 'received' | 'sent' | 'blocked';
 type Relation = 'SELF' | 'FRIEND' | 'SENT' | 'RECEIVED' | 'BLOCKED' | 'NONE';
 type Confirm = { kind: 'unfriend' | 'block'; friendship: Friendship } | { kind: 'recall'; friendship: Friendship };
 
 const LISTS: ReadonlyArray<{ value: FriendList; label: string }> = [
   { value: 'friends', label: 'Bạn bè' },
+  { value: 'suggestions', label: 'Gợi ý' },
   { value: 'received', label: 'Lời mời' },
   { value: 'sent', label: 'Đã gửi' },
   { value: 'blocked', label: 'Đã chặn' }
 ];
+
+/** Goi y theo doi moi lan tai them. */
+const SUGGESTION_PAGE = 20;
 
 /** Tab "Bạn bè" trong Cộng đồng: tìm người chơi, lời mời, danh sách bạn và danh sách chặn. */
 @Component({
@@ -34,6 +40,7 @@ const LISTS: ReadonlyArray<{ value: FriendList; label: string }> = [
 })
 export class CommunityFriendsComponent implements OnInit {
   private readonly friendRepository = inject(FRIEND_REPOSITORY_TOKEN);
+  private readonly feedRepository = inject(SOCIAL_FEED_REPOSITORY_TOKEN);
   private readonly chatRepository = inject(CHAT_REPOSITORY_TOKEN);
   private readonly searchPlayers = inject(SearchPlayersUseCase);
   private readonly route = inject(ActivatedRoute);
@@ -50,6 +57,12 @@ export class CommunityFriendsComponent implements OnInit {
   readonly pending = signal<ReadonlySet<string>>(new Set());
   readonly confirm = signal<Confirm | null>(null);
 
+  /** Muc "Goi y": ai nen theo doi (da ghep tran, cung CLB, ban chung...), cuon vo han tung trang 20. */
+  readonly suggestions = signal<FollowSuggestion[]>([]);
+  readonly suggestLoading = signal(false);
+  readonly suggestError = signal(false);
+  readonly suggestHasMore = signal(true);
+
   readonly query = signal('');
   readonly results = signal<PlayerSummary[] | null>(null);
   readonly searching = signal(false);
@@ -63,7 +76,7 @@ export class CommunityFriendsComponent implements OnInit {
       received: connections.received.length,
       sent: connections.sent.length,
       blocked: connections.blocked.length
-    } satisfies Record<FriendList, number>;
+    } satisfies Record<Exclude<FriendList, 'suggestions'>, number>;
   });
 
   ngOnInit(): void {
@@ -72,6 +85,7 @@ export class CommunityFriendsComponent implements OnInit {
       const list = params.get('list') as FriendList | null;
       this.list.set(LISTS.some(item => item.value === list) ? list! : 'friends');
       this.shown.set(LIST_CHUNK);
+      if (this.list() === 'suggestions' && !this.suggestions().length) this.loadSuggestions();
     });
     this.search$.pipe(
       map(value => value.trim()),
@@ -81,6 +95,30 @@ export class CommunityFriendsComponent implements OnInit {
       switchMap(value => this.runSearch(value)),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(results => this.results.set(results));
+  }
+
+  loadSuggestions(): void {
+    if (this.suggestLoading()) return;
+    this.suggestLoading.set(true);
+    this.suggestError.set(false);
+    this.feedRepository.getFollowSuggestions(SUGGESTION_PAGE, [], this.suggestions().length).pipe(
+      finalize(() => this.suggestLoading.set(false)),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: page => {
+        const seen = new Set(this.suggestions().map(item => item.authorId));
+        this.suggestions.update(current => [...current, ...page.filter(item => !seen.has(item.authorId))]);
+        this.suggestHasMore.set(page.length === SUGGESTION_PAGE);
+        this.store.hydrateAuthors(page.map(item => item.authorId));
+      },
+      error: () => this.suggestError.set(true)
+    });
+  }
+
+  toggleFollowSuggestion(userId: string): void {
+    this.store.toggleFollow(userId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      error: error => this.notify.error(errorMessage(error, 'Không thể cập nhật theo dõi.'))
+    });
   }
 
   selectList(list: FriendList): void {
