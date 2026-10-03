@@ -4,24 +4,25 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, Subscription, catchError, finalize, forkJoin, map, of } from 'rxjs';
+import { Observable, Subscription, catchError, finalize, forkJoin, map, of, timeout } from 'rxjs';
 import { SpringPageResponse } from '@application/dto/base/base-response';
 import {
   FollowSuggestion, PostSport, SocialPost, TrendingTag, UserFollowStatus
 } from '@application/dto/social-feed/social-feed.dto';
+import { PlayerSportProfile } from '@application/dto/player-sport-profile/player-sport-profile.dto';
 import { SOCIAL_FEED_REPOSITORY_TOKEN } from '@application/ports/persistence/social-feed.repository';
-import { ClubRepositoryPort } from '@application/ports/club.repository.port';
-import { TournamentRepositoryPort } from '@application/ports/tournament.repository.port';
-import { ClubModel } from '@domain/models/club.model';
-import { TournamentModel } from '@domain/models/tournament.model';
+import { PLAYER_SPORT_PROFILE_REPOSITORY_TOKEN } from '@application/ports/persistence/player-sport-profile.repository';
+import { playFormatLabel } from '@domain/models/matchmaking.model';
 import { AuthService } from '@presentation/services/auth.service';
 import { NotifyService } from '@shared/components/notify/notify.service';
-import { DEFAULT_CLUB_LOGO } from '@presentation/pages/client/clubs/club-view.model';
+import { skillLabel } from '@presentation/pages/client/clubs/scouting-view.model';
 import { CommunityStore } from './community.store';
 import { FEED_TABS, FeedTab, POST_SPORTS, compactCount, errorMessage, sportLabel } from './community-view';
 import { PlayerCallPrefill } from './post-composer.component';
 
 const FEED_PAGE = PAGE_SIZE.stream;
+/** So keo trong cac the "Keo cua toi" / "Keo hop voi ban". */
+const CALL_PREVIEW = 3;
 
 interface ProfileStats {
   postCount: number;
@@ -36,6 +37,15 @@ interface Section<T> {
   data: T;
 }
 
+/** Mon cua nguoi xem (tu ho so the thao), da loc ve cac mon bang tin ho tro. */
+interface MySport {
+  sport: PostSport;
+  level: string;
+}
+
+/** Thanh tab: "Bai cua toi" la trang ca nhan (bam the ho so), khong chiem mot tab. */
+const BAR_TABS = FEED_TABS.filter(item => item.value !== 'mine');
+
 @Component({
   selector: 'app-social-feed',
   templateUrl: './social-feed.component.html',
@@ -45,8 +55,7 @@ interface Section<T> {
 })
 export class SocialFeedComponent implements OnInit, OnDestroy {
   private readonly repository = inject(SOCIAL_FEED_REPOSITORY_TOKEN);
-  private readonly tournaments = inject(TournamentRepositoryPort);
-  private readonly clubs = inject(ClubRepositoryPort);
+  private readonly profiles = inject(PLAYER_SPORT_PROFILE_REPOSITORY_TOKEN);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly notify = inject(NotifyService);
@@ -54,18 +63,21 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
   readonly auth = inject(AuthService);
   readonly store = inject(CommunityStore);
 
-  readonly tabs = FEED_TABS;
-  readonly sports = POST_SPORTS;
+  readonly tabs = BAR_TABS;
   readonly sportLabel = sportLabel;
   readonly compactCount = compactCount;
-  readonly defaultClubLogo = DEFAULT_CLUB_LOGO;
 
   readonly tab = signal<FeedTab>('explore');
+  /** Mot mon cu the; null = khong loc mot mon (xem {@link mineOnly}). */
   readonly sport = signal<PostSport | null>(null);
+  /** Loc "Mon cua ban" (moi mon trong ho so the thao). */
+  readonly mineOnly = signal(false);
   readonly authorId = signal<string | null>(null);
   readonly tag = signal<string | null>(null);
   /** Tu trang ghep tran ("Chua co ban cap? Dang tim nguoi choi"): mo o soan o che do keo, dien san mon/hinh thuc. */
   readonly callPrefill = signal<PlayerCallPrefill | null>(null);
+  /** O soan thu gon thanh mot dong; mo ra khi bam, dong lai sau khi dang. */
+  readonly composerKind = signal<'CALL' | 'POST' | null>(null);
 
   readonly posts = signal<SocialPost[]>([]);
   readonly loading = signal(true);
@@ -77,18 +89,27 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
   private request?: Subscription;
   private observer?: IntersectionObserver;
 
+  readonly mySports = signal<Section<MySport[]>>({ loading: true, error: false, data: [] });
   readonly myStats = signal<Section<ProfileStats | null>>({ loading: true, error: false, data: null });
   readonly authorStats = signal<Section<ProfileStats | null>>({ loading: true, error: false, data: null });
+  readonly myCalls = signal<Section<SocialPost[]>>({ loading: true, error: false, data: [] });
+  readonly matchingCalls = signal<Section<SocialPost[]>>({ loading: true, error: false, data: [] });
   readonly suggestions = signal<Section<FollowSuggestion[]>>({ loading: true, error: false, data: [] });
-  readonly openTournaments = signal<Section<TournamentModel[]>>({ loading: true, error: false, data: [] });
-  readonly sportClubs = signal<Section<ClubModel[]>>({ loading: true, error: false, data: [] });
   readonly trending = signal<Section<TrendingTag[]>>({ loading: true, error: false, data: [] });
   /** Duoi 1024px hai cot ben an; khoi kham pha chen vao giua bang tin sau bai thu 3. */
   readonly discoveryAfter = 3;
 
+  readonly mySportSet = computed(() => new Set(this.mySports().data.map(item => item.sport)));
+  /** Chip mon: mon cua toi dung truoc. */
+  readonly sportChips = computed(() => [
+    ...POST_SPORTS.filter(item => this.mySportSet().has(item)),
+    ...POST_SPORTS.filter(item => !this.mySportSet().has(item))
+  ]);
+  /** Mon mac dinh khi soan: mon dang loc, khong thi mon dau tien trong ho so. */
+  readonly composerSport = computed(() => this.sport() ?? this.mySports().data[0]?.sport ?? null);
+
   readonly isAuthorView = computed(() => !!this.authorId());
   readonly isMyAuthorView = computed(() => this.authorId() === this.me);
-  /** Bai moi / bai chia se chi chen vao dau danh sach neu no thuoc bo loc dang xem. */
   readonly isFriendsTab = computed(() => this.tab() === 'friends' && !this.isAuthorView());
   readonly showComposer = computed(() =>
     this.tab() !== 'saved' && !this.isFriendsTab() && (!this.isAuthorView() || this.isMyAuthorView()));
@@ -113,28 +134,55 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
     this.store.loadFollowing(this.me);
     this.store.loadConnections();
     this.loadMyStats();
-    this.loadSuggestions();
     this.loadTrending();
+    this.loadMyCalls();
 
-    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
-      const tab = params.get('tab') as FeedTab | null;
-      const sport = params.get('sport') as PostSport | null;
-      this.tab.set(FEED_TABS.some(item => item.value === tab) ? tab! : 'explore');
-      this.sport.set(sport && POST_SPORTS.includes(sport) ? sport : null);
-      this.authorId.set(params.get('author'));
-      this.tag.set(params.get('tag')?.replace(/^#/, '').toLowerCase() || null);
-      if (params.get('compose') === 'find-players') {
-        this.callPrefill.set({ sport: this.sport(), format: params.get('format') });
-      }
-      if (!this.isFriendsTab()) this.reload();
-      this.loadRails();
-      if (this.authorId()) this.loadAuthorStats(this.authorId()!);
+    // Bo loc mac dinh can biet mon cua nguoi xem, nen doc ho so the thao truoc roi moi theo doi URL.
+    // Ho so cham / loi thi van mo bang tin (khong ca nhan hoa) thay vi de trang trong.
+    this.profiles.getMyProfiles().pipe(timeout({ first: 5000 }), takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: profiles => this.startFeed(profiles, false),
+      error: () => this.startFeed([], true)
     });
   }
 
   ngOnDestroy(): void {
     this.observer?.disconnect();
     this.request?.unsubscribe();
+  }
+
+  private startFeed(profiles: PlayerSportProfile[] | null, failed: boolean): void {
+    const sports = (Array.isArray(profiles) ? profiles : [])
+      .filter(item => POST_SPORTS.includes(item.sportType as PostSport))
+      .map(item => ({ sport: item.sportType as PostSport, level: skillLabel(item.skillLevel as unknown as Parameters<typeof skillLabel>[0]) }));
+    this.mySports.set({ loading: false, error: failed, data: sports });
+    this.loadSuggestions();
+    this.loadMatchingCalls();
+
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
+      const tab = params.get('tab') as FeedTab | null;
+      // "Bai cua toi" cu (link cu, thong bao) → trang ca nhan cua toi.
+      if (tab === 'mine' && this.me) {
+        void this.router.navigate([], { queryParams: { tab: null, author: this.me }, queryParamsHandling: 'merge', replaceUrl: true });
+        return;
+      }
+      const sport = params.get('sport');
+      this.tab.set(FEED_TABS.some(item => item.value === tab) ? tab! : 'explore');
+      this.authorId.set(params.get('author'));
+      this.tag.set(params.get('tag')?.replace(/^#/, '').toLowerCase() || null);
+      this.sport.set(sport && POST_SPORTS.includes(sport as PostSport) ? sport as PostSport : null);
+      this.mineOnly.set(this.mySportSet().size > 0 && (sport === 'mine' || (!sport && this.defaultsToMine())));
+      if (params.get('compose') === 'find-players') {
+        this.callPrefill.set({ sport: this.sport(), format: params.get('format') });
+        this.composerKind.set('CALL');
+      }
+      if (!this.isFriendsTab()) this.reload();
+      if (this.authorId()) this.loadAuthorStats(this.authorId()!);
+    });
+  }
+
+  /** Ca nhan hoa: Tim nguoi choi va Kham pha mo san o "Mon cua ban"; Dang theo doi giu het vi da tu chon nguoi. */
+  private defaultsToMine(): boolean {
+    return !this.authorId() && !this.tag() && (this.tab() === 'calls' || this.tab() === 'explore');
   }
 
   // ---- navigation (state lives in the URL so back/forward and shared links work) --------------
@@ -150,12 +198,20 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
     void this.router.navigate([], { queryParams: { tag: null }, queryParamsHandling: 'merge' });
   }
 
-  selectSport(sport: PostSport | null): void {
-    void this.router.navigate([], { queryParams: { sport }, queryParamsHandling: 'merge' });
+  /** 'mine' = Mon cua ban, null = Tat ca mon, hoac mot mon. Ghi ro ra URL vi mac dinh co the la 'mine'. */
+  selectSport(sport: PostSport | 'mine' | null): void {
+    void this.router.navigate([], { queryParams: { sport: sport ?? 'all' }, queryParamsHandling: 'merge' });
   }
 
   clearAuthor(): void {
     void this.router.navigate([], { queryParams: { author: null }, queryParamsHandling: 'merge' });
+  }
+
+  /** "Dang keo" tu the Keo cua toi: sang tab Tim nguoi choi va mo o soan keo. */
+  composeCall(): void {
+    this.composerKind.set('CALL');
+    if (this.tab() !== 'calls' || this.authorId()) this.selectTab('calls');
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   // ---- feed -----------------------------------------------------------------------------------
@@ -202,11 +258,12 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
 
   private fetch(page: number): Observable<SpringPageResponse<SocialPost>> {
     if (this.tab() === 'saved' && !this.authorId()) return this.repository.getSavedPosts(page, FEED_PAGE);
-    const authorId = this.authorId() ?? (this.tab() === 'mine' ? this.me : null);
+    const authorId = this.authorId();
     return this.repository.getFeed(page, FEED_PAGE, {
       followingOnly: !authorId && this.tab() === 'following',
       playerCallsOnly: !authorId && this.tab() === 'calls',
       sport: this.sport(),
+      sports: this.mineOnly() ? [...this.mySportSet()] : null,
       tag: this.tag(),
       authorId
     });
@@ -215,7 +272,9 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
   // ---- card events ----------------------------------------------------------------------------
 
   onPublished(post: SocialPost): void {
+    this.composerKind.set(null);
     if (this.fits(post)) this.posts.update(items => [post, ...items]);
+    if (post.playerCall) this.loadMyCalls();
     this.bumpMyPosts(1);
   }
 
@@ -224,21 +283,38 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
       this.posts.update(items => items.filter(item => item.postId !== post.postId));
       return;
     }
+    // Keo vua danh dau du nguoi van o yen tai cho (de "Mo lai keo" ngay); lan tai sau tab Tim nguoi choi moi bo no.
     this.posts.update(items => items.map(item => item.postId === post.postId ? post : item));
+    if (post.playerCall && post.authorId === this.me) this.loadMyCalls();
   }
 
   onRemoved(postId: string): void {
     this.posts.update(items => items.filter(item => item.postId !== postId));
+    this.myCalls.update(section => ({ ...section, data: section.data.filter(item => item.postId !== postId) }));
     this.bumpMyPosts(-1);
   }
 
   onAuthorBlocked(authorId: string): void {
     this.posts.update(items => items.filter(item => item.authorId !== authorId && item.sharedPost?.authorId !== authorId));
     this.suggestions.update(section => ({ ...section, data: section.data.filter(item => item.authorId !== authorId) }));
+    this.matchingCalls.update(section => ({ ...section, data: section.data.filter(item => item.authorId !== authorId) }));
     if (this.authorId() === authorId) this.clearAuthor();
   }
 
   // ---- rails ----------------------------------------------------------------------------------
+
+  /** "Cau long · Doi" cho mot dong keo trong cot ben. */
+  callTitle(post: SocialPost): string {
+    const call = post.playerCall!;
+    const format = playFormatLabel(call.playFormat);
+    return format ? `${sportLabel(call.sport)} · ${format}` : sportLabel(call.sport);
+  }
+
+  /** Ngay choi yyyy-MM-dd → Date dia phuong cho pipe date (khong lech mui gio). */
+  callDate(post: SocialPost): Date {
+    const [year, month, day] = post.playerCall!.playDate.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  }
 
   followSuggestion(authorId: string): void {
     this.store.toggleFollow(authorId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
@@ -266,7 +342,7 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
 
   loadSuggestions(): void {
     this.suggestions.set({ loading: true, error: false, data: [] });
-    this.repository.getFollowSuggestions(5).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    this.repository.getFollowSuggestions(5, [...this.mySportSet()]).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: data => {
         this.suggestions.set({ loading: false, error: false, data });
         this.store.hydrateAuthors(data.map(item => item.authorId));
@@ -283,25 +359,34 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
     });
   }
 
-  loadRails(): void {
-    const sport = this.sport() ?? undefined;
-    this.openTournaments.set({ loading: true, error: false, data: [] });
-    this.tournaments.searchTournaments({ status: 'REGISTRATION_OPEN', sportType: sport, sort: 'registrationCloseDate,asc' }, 0, 3)
+  /** Keo con mo cua chinh toi, sap dien ra truoc. */
+  loadMyCalls(): void {
+    const me = this.me;
+    if (!me) return;
+    this.myCalls.update(section => ({ ...section, loading: true, error: false }));
+    this.repository.getFeed(1, CALL_PREVIEW, { authorId: me, playerCallsOnly: true })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: page => this.openTournaments.set({ loading: false, error: false, data: page.items }),
-        error: () => this.openTournaments.set({ loading: false, error: true, data: [] })
+        next: page => this.myCalls.set({ loading: false, error: false, data: page.content.filter(post => !!post.playerCall) }),
+        error: () => this.myCalls.set({ loading: false, error: true, data: [] })
       });
+  }
 
-    this.sportClubs.set({ loading: true, error: false, data: [] });
-    this.clubs.searchClubs(sport).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: clubs => this.sportClubs.set({
-        loading: false,
-        error: false,
-        data: [...clubs].sort((a, b) => b.memberCount - a.memberCount).slice(0, 3)
-      }),
-      error: () => this.sportClubs.set({ loading: false, error: true, data: [] })
-    });
+  /** Keo con mo cua nguoi khac o mon cua toi (khong co mon thi moi mon), sap dien ra truoc. */
+  loadMatchingCalls(): void {
+    this.matchingCalls.set({ loading: true, error: false, data: [] });
+    const sports = [...this.mySportSet()];
+    // Lay du hon mot keo phong khi keo cua chinh toi nam trong trang dau.
+    this.repository.getFeed(1, CALL_PREVIEW + 2, { playerCallsOnly: true, sports })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: page => {
+          const others = page.content.filter(post => post.playerCall && post.authorId !== this.me).slice(0, CALL_PREVIEW);
+          this.matchingCalls.set({ loading: false, error: false, data: others });
+          this.store.hydrate(others);
+        },
+        error: () => this.matchingCalls.set({ loading: false, error: true, data: [] })
+      });
   }
 
   loadMyStats(): void {
@@ -323,11 +408,6 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
     });
   }
 
-  useLogoFallback(event: Event): void {
-    const image = event.target as HTMLImageElement;
-    if (!image.src.endsWith(this.defaultClubLogo)) image.src = this.defaultClubLogo;
-  }
-
   private profileStats(userId: string): Observable<ProfileStats> {
     return forkJoin({
       stats: this.repository.getAuthorStats(userId),
@@ -345,7 +425,8 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
     if (this.isFriendsTab()) return false;
     if (this.authorId() && this.authorId() !== post.authorId) return false;
     if (this.tag() && !post.tags?.includes(this.tag()!)) return false;
-    if (this.tab() === 'calls' && !post.playerCall) return false;
+    if (this.tab() === 'calls' && !this.authorId() && !post.playerCall) return false;
+    if (this.mineOnly() && (!post.sport || !this.mySportSet().has(post.sport))) return false;
     return !this.sport() || this.sport() === post.sport;
   }
 

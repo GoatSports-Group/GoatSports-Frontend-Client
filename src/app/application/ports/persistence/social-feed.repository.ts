@@ -24,7 +24,8 @@ export interface SocialFeedRepository {
   getPost(postId: string): Observable<SocialPost>;
   getAuthorStats(authorId: string): Observable<AuthorStats>;
   getFollowStatus(userId: string): Observable<UserFollowStatus>;
-  getFollowSuggestions(limit: number): Observable<FollowSuggestion[]>;
+  /** Uu tien nguoi dang bai cac mon `sports` cua nguoi xem. */
+  getFollowSuggestions(limit: number, sports?: readonly PostSport[]): Observable<FollowSuggestion[]>;
   getTrendingTags(limit: number): Observable<TrendingTag[]>;
   getFollowingUserIds(): Observable<string[]>;
   followUser(userId: string): Observable<UserFollowStatus>;

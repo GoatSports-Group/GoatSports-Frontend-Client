@@ -48,8 +48,8 @@ export class SocialFeedRepositoryImpl implements SocialFeedRepository {
     return this.api.getFollowStatus(userId).pipe(map(response => response.data));
   }
 
-  getFollowSuggestions(limit: number): Observable<FollowSuggestion[]> {
-    return this.api.getFollowSuggestions(limit).pipe(map(response => response.data ?? []));
+  getFollowSuggestions(limit: number, sports: readonly PostSport[] = []): Observable<FollowSuggestion[]> {
+    return this.api.getFollowSuggestions(limit, sports).pipe(map(response => response.data ?? []));
   }
 
   getFollowingUserIds(): Observable<string[]> {

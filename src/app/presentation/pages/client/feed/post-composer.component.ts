@@ -67,6 +67,10 @@ export class PostComposerComponent implements OnInit, OnDestroy {
     if (value.sport) this.selectCallSport(value.sport);
     if (value.format && this.callFormats().some(item => item.value === value.format)) this.callFormat.set(value.format);
   }
+  /** Loai bai khi mo o soan moi (bang tin mo o soan tu thanh rut gon). */
+  @Input() initialKind: 'CALL' | 'POST' | null = null;
+  /** O soan moi co nut "Huy" de thu gon lai. */
+  @Input() closable = false;
   @Output() readonly saved = new EventEmitter<SocialPost>();
   @Output() readonly cancelled = new EventEmitter<void>();
   @ViewChild('textArea') private textArea?: ElementRef<HTMLTextAreaElement>;
@@ -164,6 +168,7 @@ export class PostComposerComponent implements OnInit, OnDestroy {
     } else {
       this.sport.set(this.defaultSport);
       if (!this.callSport()) this.selectCallSport(this.defaultSport);
+      if (this.initialKind && this.kind() !== this.initialKind) this.setKind(this.initialKind);
     }
   }
 

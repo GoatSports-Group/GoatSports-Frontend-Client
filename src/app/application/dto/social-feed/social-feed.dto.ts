@@ -101,7 +101,10 @@ export interface FeedFilter {
   sport?: PostSport | null;
   authorId?: string | null;
   tag?: string | null;
+  /** Chi keo con mo, sap dien ra truoc. */
   playerCallsOnly?: boolean;
+  /** "Mon cua ban": loc theo nhieu mon cung luc. */
+  sports?: readonly PostSport[] | null;
 }
 
 export interface AuthorStats {

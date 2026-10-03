@@ -33,6 +33,7 @@ export class SocialFeedApi {
     if (filter.authorId) params = params.set('authorId', filter.authorId);
     if (filter.tag) params = params.set('tag', filter.tag);
     if (filter.playerCallsOnly) params = params.set('playerCallsOnly', true);
+    if (filter.sports?.length) params = params.set('sports', filter.sports.join(','));
     return this.http.get<BaseResponse<SpringPageResponse<SocialPost>>>(this.postUrl, { params });
   }
 
@@ -60,10 +61,10 @@ export class SocialFeedApi {
     return this.http.get<BaseResponse<UserFollowStatus>>(`${this.followUrl}/${userId}`);
   }
 
-  getFollowSuggestions(limit: number): Observable<BaseResponse<FollowSuggestion[]>> {
-    return this.http.get<BaseResponse<FollowSuggestion[]>>(`${this.followUrl}/suggestions`, {
-      params: new HttpParams().set('limit', limit)
-    });
+  getFollowSuggestions(limit: number, sports: readonly PostSport[] = []): Observable<BaseResponse<FollowSuggestion[]>> {
+    let params = new HttpParams().set('limit', limit);
+    if (sports.length) params = params.set('sports', sports.join(','));
+    return this.http.get<BaseResponse<FollowSuggestion[]>>(`${this.followUrl}/suggestions`, { params });
   }
 
   getFollowingUserIds(): Observable<BaseResponse<string[]>> {

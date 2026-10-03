@@ -211,36 +211,107 @@
   }
 }
 
-.shortcuts {
+// ---- Collapsed composer: one row, opens the full composer in the chosen mode ------------------
+.compose-bar {
   display: grid;
-  padding: 8px;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
 
-  a {
+  .avatar {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+.compose-bar__prompt {
+  min-height: 44px;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0 16px;
+  border: 1px solid var(--hairline);
+  border-radius: 9999px;
+  background: var(--surface-subtle);
+  color: var(--body);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color var(--transition-smooth), background-color var(--transition-smooth);
+
+  &:hover {
+    border-color: var(--primary);
+    background: var(--primary-light);
+  }
+}
+
+.compose-bar__actions {
+  display: flex;
+  gap: 8px;
+
+  .btn {
+    min-height: 44px;
+  }
+}
+
+// ---- "Môn của bạn": one row per sport in the player's sport profiles; tap filters the feed -------
+.my-sports {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 12px 16px 16px;
+  list-style: none;
+
+  button {
     display: flex;
+    width: 100%;
     min-height: 44px;
     align-items: center;
-    gap: 12px;
-    padding: 0 12px;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0 14px;
+    border: 1px solid var(--hairline);
     border-radius: 12px;
+    background: var(--surface);
     color: var(--ink);
-    font-size: 14px;
-    font-weight: 700;
-    text-decoration: none;
-    transition: background-color var(--transition-smooth), color var(--transition-smooth);
+    font: inherit;
+    cursor: pointer;
+    transition: border-color var(--transition-smooth), background-color var(--transition-smooth);
 
-    lucide-icon {
-      color: var(--body);
+    strong {
+      font-size: 14px;
+      font-weight: 800;
     }
 
-    &:hover {
-      background: var(--primary-light);
-      color: var(--primary-strong);
+    small {
+      color: var(--body);
+      font-size: 13px;
+      font-weight: 600;
+    }
 
-      lucide-icon {
-        color: var(--primary);
-      }
+    &:hover,
+    &.is-active {
+      border-color: var(--primary);
+      background: var(--primary-light);
     }
   }
+}
+
+.rail-card__foot {
+  margin: 0;
+  padding: 12px 20px 16px;
+  border-top: 1px solid var(--hairline);
+  color: var(--body);
+  font-size: 13px;
+}
+
+.chip--mine {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 // ---- Author view header ----------------------------------------------------------------------
@@ -412,13 +483,6 @@
   &:hover strong {
     color: var(--primary);
   }
-}
-
-.club-logo {
-  flex: none;
-  border-radius: 12px;
-  background: var(--surface-strong);
-  object-fit: cover;
 }
 
 .icon-btn.is-on {
@@ -747,7 +811,7 @@
 }
 
 // Below 1024 the feed is an endless stream, so a rail stacked under it would never be reached.
-// The profile and shortcuts stay one tap away in the header menu; suggestions return on wider screens.
+// My calls, matching calls, suggestions and topics come back inside the feed as the discovery block.
 @media (max-width: 1023px) {
   .community__layout {
     grid-template-columns: minmax(0, 1fr);
@@ -770,6 +834,18 @@
 @media (max-width: 640px) {
   .community {
     padding-top: 16px;
+  }
+
+  .compose-bar {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+
+  .compose-bar__actions {
+    grid-column: 1 / -1;
+
+    .btn {
+      flex: 1;
+    }
   }
 
   .community__identity {

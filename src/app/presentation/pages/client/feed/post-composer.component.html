@@ -152,7 +152,7 @@
       @if (content().length > maxContent - 300) {
         <small class="counter" [class.is-over]="content().length > maxContent">{{ content().length }}/{{ maxContent }}</small>
       }
-      @if (isEdit) {
+      @if (isEdit || closable) {
         <button type="button" class="btn btn--secondary" [disabled]="publishing()" (click)="cancelled.emit()">Hủy</button>
       }
       <button type="button" class="btn btn--primary" [disabled]="!canPublish()" [attr.aria-busy]="publishing()" (click)="submit()">

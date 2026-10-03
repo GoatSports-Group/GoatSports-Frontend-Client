@@ -1,20 +1,13 @@
 <main class="community">
   <header class="community__identity">
     <h1 class="page-title">Cộng đồng</h1>
-    <p>Khoe trận đấu, rủ kèo và theo dõi những người chơi cùng nhịp với bạn.</p>
+    <p>Tìm người chơi cho kèo của bạn, rủ kèo và chia sẻ khoảnh khắc thể thao với những người cùng môn.</p>
   </header>
 
   <div class="community__layout">
-    <!-- Left rail: who I am + shortcuts (desktop wide only; the profile card moves into the right rail below 1200px) -->
-    <aside class="rail rail--left" aria-label="Hồ sơ cộng đồng của bạn">
-      <ng-container [ngTemplateOutlet]="profileCard"></ng-container>
-      <nav class="card shortcuts" aria-label="Lối tắt">
-        <a routerLink="/feed" [queryParams]="{ tab: 'friends' }"><lucide-icon name="users" class="w-5 h-5"></lucide-icon>Bạn bè</a>
-        <a routerLink="/chat"><lucide-icon name="messages-square" class="w-5 h-5"></lucide-icon>Tin nhắn</a>
-        <a routerLink="/clubs/my"><lucide-icon name="shield" class="w-5 h-5"></lucide-icon>Câu lạc bộ của tôi</a>
-        <a routerLink="/tournaments"><lucide-icon name="trophy" class="w-5 h-5"></lucide-icon>Giải đấu</a>
-        <a routerLink="/matchmaking"><lucide-icon name="target" class="w-5 h-5"></lucide-icon>Ghép kèo AI</a>
-      </nav>
+    <!-- Cot trai: cua rieng nguoi dang nhap (ho so, mon cua ban, keo cua toi). Duoi 1200px chuyen sang dau cot phai. -->
+    <aside class="rail rail--left" aria-label="Cộng đồng của bạn">
+      <ng-container [ngTemplateOutlet]="personal"></ng-container>
     </aside>
 
     <section class="feed" aria-labelledby="feed-heading">
@@ -29,7 +22,7 @@
             <img class="avatar" [src]="store.avatar(viewedId)" alt="" width="64" height="64" />
             <div class="author-card__who">
               <strong>{{ store.authorName(viewedId) }}</strong>
-              <span>{{ isMyAuthorView() ? 'Trang cá nhân của bạn trong cộng đồng' : 'Bài viết bạn được phép xem' }}</span>
+              <span>{{ isMyAuthorView() ? 'Trang cá nhân của bạn: bài viết và kèo bạn đã đăng' : 'Bài viết bạn được phép xem' }}</span>
             </div>
             @if (!isMyAuthorView()) {
               <button type="button" class="btn" [class.btn--primary]="!store.isFollowing(viewedId)"
@@ -66,16 +59,40 @@
 
       @if (showSportFilter()) {
         <div class="sport-filter" role="group" aria-label="Lọc theo môn">
-          <button type="button" class="chip" [class.is-active]="!sport()" [attr.aria-pressed]="!sport()" (click)="selectSport(null)">Tất cả môn</button>
-          @for (item of sports; track item) {
+          @if (mySportSet().size) {
+            <button type="button" class="chip chip--mine" [class.is-active]="mineOnly()" [attr.aria-pressed]="mineOnly()" (click)="selectSport('mine')">
+              <lucide-icon name="sparkles" class="w-4 h-4"></lucide-icon>Môn của bạn
+            </button>
+          }
+          <button type="button" class="chip" [class.is-active]="!sport() && !mineOnly()" [attr.aria-pressed]="!sport() && !mineOnly()"
+            (click)="selectSport(null)">Tất cả môn</button>
+          @for (item of sportChips(); track item) {
             <button type="button" class="chip" [class.is-active]="sport() === item" [attr.aria-pressed]="sport() === item"
               (click)="selectSport(item)">{{ sportLabel(item) }}</button>
           }
         </div>
       }
 
-      @if (showComposer()) {
-        <app-post-composer [defaultSport]="sport()" [prefill]="callPrefill()" (saved)="onPublished($event)"></app-post-composer>
+      @if (showComposer() && auth.currentUser; as me) {
+        @if (composerKind(); as kind) {
+          <app-post-composer [initialKind]="kind" [closable]="true" [defaultSport]="composerSport()" [prefill]="callPrefill()"
+            (saved)="onPublished($event)" (cancelled)="composerKind.set(null)"></app-post-composer>
+        } @else {
+          <section class="card compose-bar" aria-label="Đăng bài mới">
+            <img class="avatar" [src]="store.avatar(me.userId)" alt="" width="44" height="44" />
+            <button type="button" class="compose-bar__prompt" (click)="composerKind.set(tab() === 'calls' ? 'CALL' : 'POST')">
+              {{ tab() === 'calls' ? 'Kèo đang thiếu người?' : 'Bạn vừa chơi trận nào?' }}
+            </button>
+            <div class="compose-bar__actions">
+              <button type="button" class="btn btn--primary" (click)="composerKind.set('CALL')">
+                <lucide-icon name="megaphone" class="w-4 h-4"></lucide-icon>Tìm người chơi
+              </button>
+              <button type="button" class="btn btn--secondary" (click)="composerKind.set('POST')">
+                <lucide-icon name="pencil" class="w-4 h-4"></lucide-icon>Bài viết
+              </button>
+            </div>
+          </section>
+        }
       }
 
       @if (isFriendsTab()) {
@@ -92,24 +109,24 @@
       } @else if (!posts().length) {
         <div class="state">
           <span class="state__icon">
-            <lucide-icon [name]="tab() === 'saved' && !authorId() ? 'bookmark' : tab() === 'following' && !authorId() ? 'user-plus' : 'inbox'" class="w-6 h-6"></lucide-icon>
+            <lucide-icon [name]="tab() === 'saved' && !authorId() ? 'bookmark' : tab() === 'following' && !authorId() ? 'user-plus' : tab() === 'calls' ? 'megaphone' : 'inbox'" class="w-6 h-6"></lucide-icon>
           </span>
           @if (authorId()) {
             <strong>{{ isMyAuthorView() ? 'Bạn chưa đăng bài nào' : 'Chưa có bài viết để hiển thị' }}</strong>
-            <p>{{ isMyAuthorView() ? 'Kể về trận gần nhất của bạn ở ô phía trên.' : 'Người này chưa đăng bài công khai, hoặc bài chỉ dành cho bạn bè của họ.' }}</p>
+            <p>{{ isMyAuthorView() ? 'Đăng kèo tìm người hoặc kể về trận gần nhất ở ô phía trên.' : 'Người này chưa đăng bài công khai, hoặc bài chỉ dành cho bạn bè của họ.' }}</p>
           } @else if (tag()) {
             <strong>Chưa có bài nào gắn #{{ tag() }}</strong>
             <p>Đăng bài đầu tiên với chủ đề này, hoặc xem các chủ đề đang nổi.</p>
             <button type="button" class="btn btn--secondary" (click)="clearTag()">Bỏ lọc chủ đề</button>
-          } @else if (sport()) {
-            <strong>Chưa có bài {{ sportLabel(sport()) }} nào</strong>
-            <p>Thử môn khác hoặc bỏ bộ lọc để xem toàn bộ bảng tin.</p>
-            <button type="button" class="btn btn--secondary" (click)="selectSport(null)">Xóa bộ lọc</button>
+          } @else if (sport() || mineOnly()) {
+            <strong>{{ tab() === 'calls' ? 'Chưa có kèo nào đang tìm người' : 'Chưa có bài nào' }} {{ mineOnly() ? 'ở môn của bạn' : sportLabel(sport()) }}</strong>
+            <p>{{ tab() === 'calls' ? 'Đăng kèo của bạn để người cùng môn nhắn tin, hoặc xem kèo ở mọi môn.' : 'Thử môn khác hoặc xem toàn bộ bảng tin.' }}</p>
+            <button type="button" class="btn btn--secondary" (click)="selectSport(null)">Xem tất cả môn</button>
           } @else {
             @switch (tab()) {
               @case ('calls') {
                 <strong>Chưa có kèo nào đang tìm người</strong>
-                <p>Kèo đang thiếu người? Điền môn, giờ và khu vực ở ô phía trên. Ai quan tâm sẽ nhắn tin cho bạn.</p>
+                <p>Kèo đang thiếu người? Bấm “Tìm người chơi” ở ô phía trên. Ai quan tâm sẽ nhắn tin cho bạn.</p>
               }
               @case ('following') {
                 <strong>Bảng tin theo dõi đang trống</strong>
@@ -119,10 +136,6 @@
               @case ('saved') {
                 <strong>Chưa lưu bài nào</strong>
                 <p>Bấm “Lưu” dưới một bài viết để đọc lại sau, ví dụ lịch kèo hay mẹo tập luyện.</p>
-              }
-              @case ('mine') {
-                <strong>Bạn chưa đăng bài nào</strong>
-                <p>Kể về trận gần nhất, hoặc rủ đồng đội cho kèo cuối tuần.</p>
               }
               @default {
                 <strong>Chưa có bài viết nào</strong>
@@ -150,14 +163,32 @@
             <button type="button" class="btn btn--ghost" (click)="retryMore()">Thử lại</button>
           </div>
         } @else if (!hasMore()) {
-          <p class="feed__end"><lucide-icon name="check-circle" class="w-4 h-4"></lucide-icon>Bạn đã xem hết bài viết</p>
+          <p class="feed__end"><lucide-icon name="check-circle" class="w-4 h-4"></lucide-icon>{{ tab() === 'calls' && !authorId() ? 'Bạn đã xem hết kèo đang mở' : 'Bạn đã xem hết bài viết' }}</p>
         }
         <div #sentinel class="feed__sentinel" aria-hidden="true"></div>
       }
     </section>
 
-    <aside class="rail rail--right" aria-label="Gợi ý cộng đồng">
-      <div class="rail__profile"><ng-container [ngTemplateOutlet]="profileCard"></ng-container></div>
+    <aside class="rail rail--right" aria-label="Gợi ý cho bạn">
+      <div class="rail__profile"><ng-container [ngTemplateOutlet]="personal"></ng-container></div>
+
+      @if (tab() !== 'calls' || authorId()) {
+        <section class="card rail-card">
+          <header class="card__head">
+            <h3>Kèo hợp với bạn</h3>
+            <button type="button" class="btn btn--ghost" (click)="selectTab('calls')">Xem tất cả</button>
+          </header>
+          @if (matchingCalls().loading) {
+            <app-loading-skeleton variant="rows" [count]="2" [flush]="true" label="Đang tải kèo"></app-loading-skeleton>
+          } @else if (matchingCalls().error) {
+            <div class="rail-card__state">Không tải được kèo. <button type="button" class="btn btn--ghost" (click)="loadMatchingCalls()">Thử lại</button></div>
+          } @else if (!matchingCalls().data.length) {
+            <p class="rail-card__state">{{ mySportSet().size ? 'Chưa có kèo nào ở môn của bạn đang tìm người.' : 'Chưa có kèo nào đang tìm người.' }}</p>
+          } @else {
+            <ng-container [ngTemplateOutlet]="callRows" [ngTemplateOutletContext]="{ $implicit: matchingCalls().data }"></ng-container>
+          }
+        </section>
+      }
 
       <section class="card rail-card">
         <header class="card__head"><h3>Gợi ý theo dõi</h3></header>
@@ -186,71 +217,13 @@
               </li>
             }
           </ul>
+          @if (mySportSet().size) { <p class="rail-card__foot">Ưu tiên người hay đăng bài về môn của bạn.</p> }
         }
       </section>
 
       <section class="card rail-card">
         <header class="card__head"><h3>Chủ đề nổi bật</h3></header>
         <ng-container [ngTemplateOutlet]="trendingTags"></ng-container>
-      </section>
-
-      <section class="card rail-card">
-        <header class="card__head">
-          <h3>Giải đang mở đăng ký</h3>
-          <a class="btn btn--ghost" routerLink="/tournaments">Tất cả</a>
-        </header>
-        @if (openTournaments().loading) {
-          <app-loading-skeleton variant="rows" [count]="2" [flush]="true" label="Đang tải giải đấu"></app-loading-skeleton>
-        } @else if (openTournaments().error) {
-          <div class="rail-card__state">Không tải được giải đấu. <button type="button" class="btn btn--ghost" (click)="loadRails()">Thử lại</button></div>
-        } @else if (!openTournaments().data.length) {
-          <p class="rail-card__state">Chưa có giải {{ sport() ? sportLabel(sport()) + ' ' : '' }}nào đang mở đăng ký.</p>
-        } @else {
-          <ul class="events">
-            @for (item of openTournaments().data; track item.tournamentId) {
-              <li>
-                <a [routerLink]="['/tournaments', item.tournamentId]">
-                  <time [attr.datetime]="item.registrationCloseDate">
-                    <b>{{ item.registrationCloseDate | date:'dd' }}</b><span>TH{{ item.registrationCloseDate | date:'M' }}</span>
-                  </time>
-                  <span class="events__text">
-                    <strong>{{ item.name }}</strong>
-                    <small>{{ sportLabel(item.sportType) }} · {{ item.currentParticipants }}/{{ item.maxParticipants }} suất · hạn đăng ký</small>
-                  </span>
-                  <lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon>
-                </a>
-              </li>
-            }
-          </ul>
-        }
-      </section>
-
-      <section class="card rail-card">
-        <header class="card__head">
-          <h3>{{ sport() ? 'CLB ' + sportLabel(sport()) : 'Câu lạc bộ nổi bật' }}</h3>
-          <a class="btn btn--ghost" routerLink="/clubs">Khám phá</a>
-        </header>
-        @if (sportClubs().loading) {
-          <app-loading-skeleton variant="rows" [count]="2" [flush]="true" label="Đang tải câu lạc bộ"></app-loading-skeleton>
-        } @else if (sportClubs().error) {
-          <div class="rail-card__state">Không tải được câu lạc bộ. <button type="button" class="btn btn--ghost" (click)="loadRails()">Thử lại</button></div>
-        } @else if (!sportClubs().data.length) {
-          <p class="rail-card__state">Chưa có câu lạc bộ nào. Lập CLB đầu tiên cho môn này?</p>
-        } @else {
-          <ul class="people">
-            @for (club of sportClubs().data; track club.clubId) {
-              <li>
-                <a class="people__who" [routerLink]="['/clubs', club.clubId]">
-                  <img class="club-logo" [src]="club.logoUrl || defaultClubLogo" (error)="useLogoFallback($event)" alt="" width="40" height="40" />
-                  <span>
-                    <strong>{{ club.name }}</strong>
-                    <small>{{ sportLabel(club.sportType) }} · {{ club.memberCount }} thành viên</small>
-                  </span>
-                </a>
-              </li>
-            }
-          </ul>
-        }
       </section>
 
       <section class="guideline">
@@ -261,19 +234,79 @@
   </div>
 </main>
 
-<ng-template #profileCard>
+<!-- Phan rieng cua nguoi dang nhap: ho so cong dong, mon cua ban, keo cua toi. -->
+<ng-template #personal>
   @if (auth.currentUser; as me) {
     <section class="card profile">
       <a class="profile__who" [routerLink]="['/feed']" [queryParams]="{ author: me.userId }">
         <img class="avatar" [src]="store.avatar(me.userId)" alt="" width="56" height="56" />
         <span>
           <strong>{{ me.fullName }}</strong>
-          <small>Xem trang cá nhân cộng đồng</small>
+          <small>Bài viết và kèo của bạn</small>
         </span>
       </a>
       <ng-container [ngTemplateOutlet]="statStrip" [ngTemplateOutletContext]="{ $implicit: myStats() }"></ng-container>
     </section>
   }
+
+  <section class="card rail-card">
+    <header class="card__head">
+      <h3>Môn của bạn</h3>
+      <a class="btn btn--ghost" routerLink="/settings" [queryParams]="{ tab: 'sports' }">{{ mySports().data.length ? 'Sửa' : 'Thêm' }}</a>
+    </header>
+    @if (mySports().loading) {
+      <app-loading-skeleton variant="rows" [count]="2" [flush]="true" label="Đang tải môn của bạn"></app-loading-skeleton>
+    } @else if (!mySports().data.length) {
+      <p class="rail-card__state">{{ mySports().error ? 'Không tải được hồ sơ thể thao.' : 'Thêm môn bạn chơi để Cộng đồng ưu tiên kèo và bài đúng môn.' }}</p>
+    } @else {
+      <ul class="my-sports">
+        @for (item of mySports().data; track item.sport) {
+          <li>
+            <button type="button" [class.is-active]="sport() === item.sport" [attr.aria-pressed]="sport() === item.sport"
+              (click)="selectSport(sport() === item.sport ? 'mine' : item.sport)">
+              <strong>{{ sportLabel(item.sport) }}</strong><small>{{ item.level }}</small>
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+
+  <section class="card rail-card">
+    <header class="card__head">
+      <h3>Kèo của tôi</h3>
+      <button type="button" class="btn btn--ghost" (click)="composeCall()">Tạo kèo</button>
+    </header>
+    @if (myCalls().loading && !myCalls().data.length) {
+      <app-loading-skeleton variant="rows" [count]="1" [flush]="true" label="Đang tải kèo của bạn"></app-loading-skeleton>
+    } @else if (myCalls().error) {
+      <div class="rail-card__state">Không tải được kèo của bạn. <button type="button" class="btn btn--ghost" (click)="loadMyCalls()">Thử lại</button></div>
+    } @else if (!myCalls().data.length) {
+      <p class="rail-card__state">Bạn không có kèo nào đang tìm người. Thiếu người cho trận sắp tới? Bấm “Tạo kèo”.</p>
+    } @else {
+      <ng-container [ngTemplateOutlet]="callRows" [ngTemplateOutletContext]="{ $implicit: myCalls().data }"></ng-container>
+    }
+  </section>
+</ng-template>
+
+<!-- Mot dong keo: o ngay, mon · hinh thuc, gio · noi choi · so nguoi con thieu. -->
+<ng-template #callRows let-items>
+  <ul class="events">
+    @for (post of items; track post.postId) {
+      <li>
+        <a [routerLink]="['/feed/posts', post.postId]">
+          <time [attr.datetime]="post.playerCall.playDate">
+            <b>{{ callDate(post) | date:'dd' }}</b><span>TH{{ callDate(post) | date:'M' }}</span>
+          </time>
+          <span class="events__text">
+            <strong>{{ callTitle(post) }}</strong>
+            <small>{{ post.playerCall.startTime.slice(0, 5) }} · {{ post.playerCall.location }} · thiếu {{ post.playerCall.slots }}</small>
+          </span>
+          <lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon>
+        </a>
+      </li>
+    }
+  </ul>
 </ng-template>
 
 <ng-template #statStrip let-section>
@@ -302,9 +335,25 @@
   }
 </ng-template>
 
-<!-- Chi hien duoi 1024px, noi hai cot ben bi an: goi y theo doi, chu de va giai dang mo nam ngay trong bang tin. -->
+<!-- Chi hien duoi 1024px, noi hai cot ben bi an: keo hop voi ban, goi y theo doi va chu de nam ngay trong bang tin. -->
 <ng-template #discovery>
-  <section class="discovery" aria-label="Khám phá cộng đồng">
+  <section class="discovery" aria-label="Gợi ý cho bạn">
+    @if (myCalls().data.length) {
+      <h3>Kèo của tôi</h3>
+      <div class="discovery__row">
+        @for (post of myCalls().data; track post.postId) {
+          <ng-container [ngTemplateOutlet]="callCard" [ngTemplateOutletContext]="{ $implicit: post }"></ng-container>
+        }
+      </div>
+    }
+    @if (tab() !== 'calls' && matchingCalls().data.length) {
+      <h3>Kèo hợp với bạn</h3>
+      <div class="discovery__row">
+        @for (post of matchingCalls().data; track post.postId) {
+          <ng-container [ngTemplateOutlet]="callCard" [ngTemplateOutletContext]="{ $implicit: post }"></ng-container>
+        }
+      </div>
+    }
     @if (suggestions().data.length) {
       <h3>Gợi ý theo dõi</h3>
       <div class="discovery__row">
@@ -328,17 +377,13 @@
       <h3>Chủ đề nổi bật</h3>
       <ng-container [ngTemplateOutlet]="trendingTags"></ng-container>
     }
-    @if (openTournaments().data.length) {
-      <h3>Giải đang mở đăng ký</h3>
-      <div class="discovery__row">
-        @for (item of openTournaments().data; track item.tournamentId) {
-          <a class="event-card" [routerLink]="['/tournaments', item.tournamentId]">
-            <span class="badge badge--sport">{{ sportLabel(item.sportType) }}</span>
-            <strong>{{ item.name }}</strong>
-            <small>Hạn {{ item.registrationCloseDate | date:'dd/MM' }} · {{ item.currentParticipants }}/{{ item.maxParticipants }} suất</small>
-          </a>
-        }
-      </div>
-    }
   </section>
+</ng-template>
+
+<ng-template #callCard let-post>
+  <a class="event-card" [routerLink]="['/feed/posts', post.postId]">
+    <span class="badge badge--sport">{{ sportLabel(post.playerCall.sport) }}</span>
+    <strong>{{ callTitle(post) }}</strong>
+    <small>{{ callDate(post) | date:'dd/MM' }} · {{ post.playerCall.startTime.slice(0, 5) }} · thiếu {{ post.playerCall.slots }}</small>
+  </a>
 </ng-template>
