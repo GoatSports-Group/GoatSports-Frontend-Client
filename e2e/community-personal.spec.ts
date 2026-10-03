@@ -153,3 +153,16 @@ test('link cũ "Bài của tôi" chuyển sang trang cá nhân', async ({ page }
   await expect(page).toHaveURL(new RegExp(`author=${me}`));
   await expect(page.getByRole('button', { name: 'Toàn bộ bảng tin' })).toBeVisible();
 });
+
+test('gợi ý theo dõi hiện lý do: đã ghép trận, cùng CLB, bạn chung', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name.startsWith('mobile'), 'Cột phải ẩn dưới 1024px.');
+  await openCommunity(page, '/feed');
+  await page.route(url => url.pathname.endsWith('/follows/users/suggestions'), route => route.fulfill(ok([
+    { authorId: poster, postCount: 0, reason: 'Đã ghép trận với bạn · 1 bạn chung' }
+  ])));
+  await page.reload();
+  const card = page.locator('.rail--right .rail-card').filter({ hasText: 'Gợi ý theo dõi' });
+  await expect(card.locator('.people li')).toHaveCount(1);
+  await expect(card).toContainText('Đã ghép trận với bạn · 1 bạn chung');
+  await expect(card).not.toContainText('bài trong 30 ngày');
+});

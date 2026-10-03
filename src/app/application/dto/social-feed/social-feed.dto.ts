@@ -140,7 +140,10 @@ export interface TrendingTag {
 /** Tac gia dang bai cong khai nhieu nhat trong 30 ngay qua. */
 export interface FollowSuggestion {
   authorId: string;
+  /** So bai cong khai 30 ngay qua (0 neu khong biet). */
   postCount: number;
+  /** Vi sao goi y: "Da ghep tran voi ban · 2 ban chung", "Cung CLB Weekend Club"... */
+  reason?: string | null;
 }
 
 export interface CreateContentReportRequest {

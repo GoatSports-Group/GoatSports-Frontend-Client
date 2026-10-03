@@ -205,7 +205,7 @@
         } @else if (suggestions().error) {
           <div class="rail-card__state">Không tải được gợi ý. <button type="button" class="btn btn--ghost" (click)="loadSuggestions()">Thử lại</button></div>
         } @else if (!suggestions().data.length) {
-          <p class="rail-card__state">Chưa có ai để gợi ý: đây là những người đăng bài công khai nhiều nhất 30 ngày qua mà bạn chưa theo dõi.</p>
+          <p class="rail-card__state">Chưa có ai để gợi ý. Khi bạn ghép trận, vào CLB hay kết bạn, những người liên quan sẽ hiện ở đây.</p>
         } @else {
           <ul class="people">
             @for (person of suggestions().data; track person.authorId) {
@@ -214,7 +214,7 @@
                   <img class="avatar" [src]="store.avatar(person.authorId)" alt="" width="40" height="40" />
                   <span>
                     <strong>{{ store.authorName(person.authorId) }}</strong>
-                    <small>{{ person.postCount }} bài trong 30 ngày</small>
+                    <small [title]="person.reason || ''">{{ person.reason || person.postCount + ' bài trong 30 ngày' }}</small>
                   </span>
                 </a>
                 <button type="button" class="icon-btn" [class.is-on]="store.isFollowing(person.authorId)"
@@ -225,7 +225,6 @@
               </li>
             }
           </ul>
-          @if (mySportSet().size) { <p class="rail-card__foot">Ưu tiên người hay đăng bài về môn của bạn.</p> }
         }
       </section>
 
@@ -369,7 +368,7 @@
             <a [routerLink]="['/feed']" [queryParams]="{ author: person.authorId }">
               <img class="avatar" [src]="store.avatar(person.authorId)" alt="" width="56" height="56" />
               <strong>{{ store.authorName(person.authorId) }}</strong>
-              <small>{{ person.postCount }} bài / 30 ngày</small>
+              <small [title]="person.reason || ''">{{ person.reason || person.postCount + ' bài / 30 ngày' }}</small>
             </a>
             <button type="button" class="btn" [class.btn--primary]="!store.isFollowing(person.authorId)"
               [class.btn--secondary]="store.isFollowing(person.authorId)" [disabled]="store.pendingFollowIds().has(person.authorId)"
