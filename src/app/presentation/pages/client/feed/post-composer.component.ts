@@ -10,7 +10,7 @@ import {
 } from '@application/dto/social-feed/social-feed.dto';
 import { MyClubMembership } from '@application/dto/club/club.dto';
 import { ClubRepositoryPort } from '@application/ports/club.repository.port';
-import { PLAY_FORMATS } from '@domain/models/matchmaking.model';
+import { PLAY_FORMATS } from '@application/dto/matchmaking/matchmaking.dto';
 import { SelectOption } from '@shared/components/ui/select/select.component';
 import { SOCIAL_FEED_REPOSITORY_TOKEN } from '@application/ports/persistence/social-feed.repository';
 import { STORAGE_REPOSITORY_TOKEN } from '@application/ports/persistence/storage.repository';

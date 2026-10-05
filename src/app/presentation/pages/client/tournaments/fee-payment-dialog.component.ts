@@ -4,7 +4,7 @@ import { catchError, of, switchMap, takeWhile, timer } from 'rxjs';
 import { PaymentStatus } from '@application/dto/payment/payment.dto';
 import { PAYMENT_REPOSITORY_TOKEN } from '@application/ports/persistence/payment.repository';
 import { TournamentRepositoryPort } from '@application/ports/tournament.repository.port';
-import { FeeCheckoutModel } from '@domain/models/tournament.model';
+import { FeeCheckout as FeeCheckoutModel } from '@application/dto/tournament/tournament.dto';
 import { PendingBookingPaymentService } from '@presentation/services/pending-booking-payment.service';
 import { NotifyService } from '@shared/components/notify/notify.service';
 

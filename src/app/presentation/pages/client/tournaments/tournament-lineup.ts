@@ -1,5 +1,5 @@
-import { SportType } from '@domain/models/club.model';
-import { TournamentLineupModel } from '@domain/models/tournament.model';
+import { SportType } from '@application/dto/club/club.dto';
+import { TournamentLineup as TournamentLineupModel } from '@application/dto/tournament/tournament.dto';
 
 /** Mặt sân vẽ theo môn: cỏ (bóng đá), sàn gỗ (bóng rổ), sàn (bóng chuyền, cầu lông, tennis, pickleball). */
 export type SurfaceKind = 'pitch' | 'hardwood' | 'court';

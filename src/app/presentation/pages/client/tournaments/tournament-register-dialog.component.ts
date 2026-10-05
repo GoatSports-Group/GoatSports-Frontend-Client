@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { ClubRepositoryPort } from '@application/ports/club.repository.port';
 import { FRIEND_REPOSITORY_TOKEN } from '@application/ports/persistence/friend.repository';
 import { TournamentRepositoryPort } from '@application/ports/tournament.repository.port';
-import { MyClubMembership } from '@domain/models/club.model';
+import { MyClubMembership } from '@application/dto/club/club.dto';
 import {
   LineupRole, SkillLevel, TeamInvitee, Tournament as TournamentModel, TournamentEligibilityRule,
   TournamentRegistration

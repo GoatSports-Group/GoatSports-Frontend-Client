@@ -7,8 +7,8 @@ import { User } from '@application/dto/user/user.dto';
 import { ClubRepositoryPort } from '@application/ports/club.repository.port';
 import { SOCIAL_FEED_REPOSITORY_TOKEN } from '@application/ports/persistence/social-feed.repository';
 import { TournamentRepositoryPort } from '@application/ports/tournament.repository.port';
-import { ClubActivityModel, MyClubMembership } from '@domain/models/club.model';
-import { TournamentModel } from '@domain/models/tournament.model';
+import { ClubActivity as ClubActivityModel, MyClubMembership } from '@application/dto/club/club.dto';
+import { Tournament as TournamentModel } from '@application/dto/tournament/tournament.dto';
 import { PlayerDirectoryService } from '@presentation/services/player-directory.service';
 import { dayLabel, hhmm, localDateTime, sportLabel, valid } from './home-personal.utils';
 

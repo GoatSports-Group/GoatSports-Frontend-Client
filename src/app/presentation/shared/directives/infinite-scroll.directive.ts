@@ -29,11 +29,13 @@ export class InfiniteScrollDirective implements OnInit, OnDestroy {
 
   private start(): void {
     if (this.destroyed) return;
+    this.observer?.disconnect();
     this.observer = new IntersectionObserver(entries => {
       if (!entries.some(entry => entry.isIntersecting)) return;
       this.reached.emit();
-      this.observer?.unobserve(this.element.nativeElement);
-      requestAnimationFrame(() => this.observer?.observe(this.element.nativeElement));
+      // Quan sat lai o frame sau, tim lai khung cuon (danh sach vua dai ra co the da bat dau cuon).
+      this.observer?.disconnect();
+      requestAnimationFrame(() => this.start());
     }, { root: scrollParent(this.element.nativeElement), rootMargin: '400px 0px' });
     this.observer.observe(this.element.nativeElement);
   }
@@ -47,11 +49,15 @@ export class InfiniteScrollDirective implements OnInit, OnDestroy {
   }
 }
 
-/** Phan tu to tien gan nhat tu cuon theo chieu doc; null = cua so. */
+/**
+ * Phan tu to tien gan nhat THUC SU cuon doc; null = cua so. Chi xet overflow-y la chua du: phan tu chi cuon ngang
+ * (overflow-x: auto) cung bi tinh overflow-y = auto, va mot khung chua bi gioi han chieu cao thi luon "thay" sentinel,
+ * khien danh sach tai het mot lan.
+ */
 function scrollParent(element: HTMLElement): HTMLElement | null {
   for (let node = element.parentElement; node; node = node.parentElement) {
     const overflow = getComputedStyle(node).overflowY;
-    if (overflow === 'auto' || overflow === 'scroll') return node;
+    if ((overflow === 'auto' || overflow === 'scroll') && node.scrollHeight > node.clientHeight + 1) return node;
   }
   return null;
 }

@@ -6,7 +6,7 @@ import { finalize } from 'rxjs';
 import { SocialPost } from '@application/dto/social-feed/social-feed.dto';
 import { CHAT_REPOSITORY_TOKEN } from '@application/ports/persistence/chat.repository';
 import { SOCIAL_FEED_REPOSITORY_TOKEN } from '@application/ports/persistence/social-feed.repository';
-import { playFormatLabel } from '@domain/models/matchmaking.model';
+import { playFormatLabel } from '@application/dto/matchmaking/matchmaking.dto';
 import { AuthService } from '@presentation/services/auth.service';
 import { NotifyService } from '@shared/components/notify/notify.service';
 import { CommunityStore } from './community.store';

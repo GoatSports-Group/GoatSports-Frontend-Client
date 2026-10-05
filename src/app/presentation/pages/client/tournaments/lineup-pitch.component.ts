@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, Input, computed, signal } from '@angular/core';
-import { SportType } from '@domain/models/club.model';
-import { TournamentLineupModel } from '@domain/models/tournament.model';
+import { SportType } from '@application/dto/club/club.dto';
+import { TournamentLineup as TournamentLineupModel } from '@application/dto/tournament/tournament.dto';
 import { Formation, LineupSplit, formationOf, shortName, splitLineup, surfaceOf } from './tournament-lineup';
 
 export interface PitchTeam {

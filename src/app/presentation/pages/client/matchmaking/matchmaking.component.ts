@@ -49,7 +49,7 @@ import { ClubRepositoryPort } from '@application/ports/club.repository.port';
 import { FRIEND_REPOSITORY_TOKEN } from '@application/ports/persistence/friend.repository';
 import { MyClubMembership } from '@application/dto/club/club.dto';
 import { PlayerDirectoryService } from '@presentation/services/player-directory.service';
-import { PLAY_FORMATS } from '@domain/models/matchmaking.model';
+import { PLAY_FORMATS } from '@application/dto/matchmaking/matchmaking.dto';
 import { SelectOption } from '@shared/components/ui/select/select.component';
 import { AuthService } from '@presentation/services/auth.service';
 import { NotificationService } from '@presentation/services/notification.service';

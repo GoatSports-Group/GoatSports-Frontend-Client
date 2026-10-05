@@ -1,9 +1,9 @@
 import { SelectOption } from '@shared/components/ui/select/select.component';
-import { SportType } from '@domain/models/club.model';
+import { SportType } from '@application/dto/club/club.dto';
 import {
   EligibilityRuleOperator, EligibilityRuleType, FeePaymentStatus, LineupMemberStatus, LineupRole, RegistrationStatus,
-  SkillLevel, TournamentFormat, TournamentModel, TournamentStatus
-} from '@domain/models/tournament.model';
+  SkillLevel, TournamentFormat, Tournament as TournamentModel, TournamentStatus
+} from '@application/dto/tournament/tournament.dto';
 
 /** Tong mau theo GOAT-DESIGN §3 (status tone pairs). */
 export type Tone = 'success' | 'warning' | 'danger' | 'info' | 'primary' | 'neutral';

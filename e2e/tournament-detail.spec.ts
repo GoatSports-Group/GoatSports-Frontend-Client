@@ -26,8 +26,8 @@ const teams = [
   { registrationId: 'r-solo', tournamentId: ID, type: 'INDIVIDUAL', playerId: 's1', registeredBy: 's1', status: 'CONFIRMED', lineups: [] }
 ];
 
-// 30 tran trong 3 ngay (10 tran/ngay), du lon de cuon vo han (moi lan 20).
-const reservations = Array.from({ length: 30 }, (_, index) => ({
+// 80 tran trong 8 ngay (10 tran/ngay), du lon de cuon vo han (moi lan 20, tai truoc 400px).
+const reservations = Array.from({ length: 80 }, (_, index) => ({
   reservationId: `res-${index}`, tournamentId: ID, venueId: 'v1', courtId: 'c1', bookingId: null,
   playDate: day(5 + Math.floor(index / 10)), startTime: `${String(7 + index % 10).padStart(2, '0')}:00:00`,
   endTime: `${String(8 + index % 10).padStart(2, '0')}:00:00`, status: 'CONFIRMED'
@@ -96,11 +96,17 @@ test('lịch thi đấu hiện dần khi cuộn', async ({ page }) => {
   await openDetail(page, 'IN_PROGRESS');
   await page.getByRole('tab', { name: /Lịch thi đấu/ }).click();
   const matches = page.locator('.fixture');
-  await expect(matches).toHaveCount(20);
-  await expect(page.locator('.match-day')).toHaveCount(2);
-  await page.locator('.list-sentinel').scrollIntoViewIfNeeded();
-  await expect(matches).toHaveCount(30);
-  await expect(page.locator('.match-day')).toHaveCount(3);
+  await expect(matches.first()).toBeVisible();
+  // Luc dau chi mot phan (20, co the them mot dot tai truoc), chua phai ca 80.
+  expect(await matches.count()).toBeGreaterThanOrEqual(20);
+  expect(await matches.count()).toBeLessThan(80);
+  // Cuon toi sentinel, cho tai, lap lai toi khi het (moi lan them 20).
+  await expect.poll(async () => {
+    const sentinel = page.locator('.list-sentinel');
+    if (await sentinel.count()) await sentinel.scrollIntoViewIfNeeded();
+    return matches.count();
+  }, { timeout: 30_000 }).toBe(80);
+  await expect(page.locator('.match-day')).toHaveCount(8);
   await expect(page.locator('.list-sentinel')).toHaveCount(0);
 });
 

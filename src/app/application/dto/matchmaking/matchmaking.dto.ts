@@ -26,3 +26,4 @@ export {
   type ParticipantType,
   type VenueRecommendationModel as VenueRecommendation
 } from '@domain/models/matchmaking.model';
+export { PLAY_FORMATS, playFormatLabel, type PlayFormatOption } from '@domain/models/matchmaking.model';

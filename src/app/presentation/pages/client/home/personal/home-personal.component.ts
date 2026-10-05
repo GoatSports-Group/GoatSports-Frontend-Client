@@ -24,9 +24,9 @@ import { BOOKING_REPOSITORY_TOKEN } from '@application/ports/persistence/booking
 import { FRIEND_REPOSITORY_TOKEN } from '@application/ports/persistence/friend.repository';
 import { PLAYER_SPORT_PROFILE_REPOSITORY_TOKEN } from '@application/ports/persistence/player-sport-profile.repository';
 import { TournamentRepositoryPort } from '@application/ports/tournament.repository.port';
-import { ClubActivityModel, ClubInvitationModel, MyClubMembership } from '@domain/models/club.model';
-import { MatchmakingSessionModel } from '@domain/models/matchmaking.model';
-import { TeamInvitationModel, TournamentModel } from '@domain/models/tournament.model';
+import { ClubActivity as ClubActivityModel, ClubInvitation as ClubInvitationModel, MyClubMembership } from '@application/dto/club/club.dto';
+import { MatchmakingSession as MatchmakingSessionModel } from '@application/dto/matchmaking/matchmaking.dto';
+import { TeamInvitation as TeamInvitationModel, Tournament as TournamentModel } from '@application/dto/tournament/tournament.dto';
 import { AuthService } from '@presentation/services/auth.service';
 import {
   AgendaItem,

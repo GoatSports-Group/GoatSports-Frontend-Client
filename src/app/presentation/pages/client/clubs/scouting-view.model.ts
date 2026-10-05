@@ -1,4 +1,4 @@
-import { PLAYER_DAY_OPTIONS } from '@domain/enums/player-day-of-week.enum';
+import { PLAYER_DAY_OPTIONS } from '@application/dto/player-sport-profile/player-sport-profile.dto';
 import { ScoutingAvailabilityModel, ScoutingWeekDay, SkillLevel } from '@application/dto/club/club.dto';
 
 /** Nhan hien thi dung chung cho bang tuyen thanh vien (trang + panel ho so). */

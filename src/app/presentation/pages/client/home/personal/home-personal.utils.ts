@@ -1,8 +1,8 @@
 import { Booking, BookingStatus, BOOKING_STATUS_LABELS } from '@application/dto/booking/booking.dto';
 import { SPORT_TYPE_OPTIONS } from '@application/dto/venue/venue.dto';
-import { ClubActivityModel, ClubInvitationModel } from '@domain/models/club.model';
-import { MatchmakingPlayer, MatchmakingSessionModel } from '@domain/models/matchmaking.model';
-import { TeamInvitationModel, TournamentModel } from '@domain/models/tournament.model';
+import { ClubActivity as ClubActivityModel, ClubInvitation as ClubInvitationModel } from '@application/dto/club/club.dto';
+import { MatchmakingPlayer, MatchmakingSession as MatchmakingSessionModel } from '@application/dto/matchmaking/matchmaking.dto';
+import { TeamInvitation as TeamInvitationModel, Tournament as TournamentModel } from '@application/dto/tournament/tournament.dto';
 
 /** Trang chủ khi đã đăng nhập: gộp lịch và việc cần làm từ đặt sân, kèo AI, CLB và giải đấu. */
 

@@ -10,8 +10,8 @@ import {
 import { ClubRepositoryPort } from '@application/ports/club.repository.port';
 import { FRIEND_REPOSITORY_TOKEN } from '@application/ports/persistence/friend.repository';
 import { PlayerDirectoryService } from '@presentation/services/player-directory.service';
-import { PLAYER_DAY_OPTIONS } from '@domain/enums/player-day-of-week.enum';
-import { SKILL_LEVEL_OPTIONS } from '@domain/enums/skill-level.enum';
+import { PLAYER_DAY_OPTIONS } from '@application/dto/player-sport-profile/player-sport-profile.dto';
+import { SKILL_LEVEL_OPTIONS } from '@application/dto/player-sport-profile/player-sport-profile.dto';
 import { AuthService } from '@presentation/services/auth.service';
 import { NotifyService } from '@shared/components/notify/notify.service';
 import { DEFAULT_CLUB_LOGO, sportLabel } from './club-view.model';
