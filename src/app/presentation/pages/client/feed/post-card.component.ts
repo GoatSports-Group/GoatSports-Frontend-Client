@@ -98,6 +98,8 @@ export class PostCardComponent implements OnInit {
   readonly editDraft = signal('');
 
   readonly shareOpen = signal(false);
+  /** Popup "n nguoi khac" duoc gan the. */
+  readonly taggedOpen = signal(false);
   readonly shareCaption = signal('');
   readonly shareVisibility = signal<PostVisibility>('PUBLIC');
   readonly sharing = signal(false);
@@ -159,6 +161,11 @@ export class PostCardComponent implements OnInit {
 
   get isOwn(): boolean {
     return this.me === this.post.authorId;
+  }
+
+  /** Nguoi duoc gan the trong the khoe (tran / giai), hien o dong ten tac gia. */
+  get tagged(): readonly string[] {
+    return this.post.highlight?.tagged.filter(id => id !== this.post.authorId) ?? [];
   }
 
   get isLong(): boolean {

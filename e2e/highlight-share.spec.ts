@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { mockGoatSportsApi } from './fixtures/api.fixture';
 
 // Khoe len Cong dong: tran ghep AI (nguoi choi trong tran) va thanh tich giai (chu / quan tri CLB).
@@ -122,7 +122,7 @@ test('thành viên thường không thấy nút khoe thành tích giải', async
   await expect(page.getByRole('button', { name: 'Khoe lên Cộng đồng' })).toHaveCount(0);
 });
 
-test('bài khoe trên bảng tin: bảng tỷ số và người được gắn thẻ', async ({ page }) => {
+async function openHighlightPost(page: Page, tagged: string[]) {
   await mockGoatSportsApi(page);
   await page.route(url => url.pathname.endsWith('/social/posts'), route => {
     if (route.request().method() !== 'GET') return route.fallback();
@@ -137,18 +137,37 @@ test('bài khoe trên bảng tin: bảng tỷ số và người được gắn t
           subtitle: 'Thứ Sáu, 02/10/2026 · 17:00–18:00', result: 'Thắng 21–15',
           sides: [{ name: 'Minh Đạt', score: 21, winner: true }, { name: 'Thắng Đạt', score: 15, winner: false }],
           stats: [{ label: 'Độ phù hợp', value: '93%' }, { label: 'ELO', value: '+16' }],
-          clubId: null, clubName: null, tagged: [opponentId]
+          clubId: null, clubName: null, tagged
         }
       }],
       number: 0, size: 10, totalElements: 1, totalPages: 1, first: true, last: true, numberOfElements: 1, empty: false
     }));
   });
-
   await page.goto('/feed?tab=explore&sport=all');
-  const card = page.locator('app-post-highlight');
   await expect(page.getByRole('heading', { name: 'Thắng 21–15 trước Thắng Đạt!' })).toBeVisible();
+}
+
+test('bài khoe trên bảng tin: bảng tỷ số, người được gắn thẻ nằm ở dòng tên như Facebook', async ({ page }) => {
+  await openHighlightPost(page, [opponentId]);
+  const card = page.locator('app-post-highlight');
   await expect(card.locator('.hl__score')).toHaveAttribute('aria-label', 'Tỷ số 21 – 15');
   await expect(card.locator('.hl__result')).toHaveText('Thắng 21–15');
   await expect(card.locator('.hl__stats')).toContainText('+16');
-  await expect(card.locator('.hl-tags__person')).toHaveAttribute('href', `/feed?author=${opponentId}`);
+  const line = page.locator('app-post-card .post__line');
+  await expect(line).toContainText('cùng với');
+  await expect(line.locator('a.post__tag')).toHaveAttribute('href', `/feed?author=${opponentId}`);
+  await expect(page.getByText('Gắn thẻ', { exact: true })).toHaveCount(0);
+});
+
+test('gắn thẻ hơn 2 người: "A và n người khác", bấm mở popup danh sách', async ({ page }) => {
+  const others = ['a1111111-1111-4111-8111-111111111111', 'a2222222-2222-4222-8222-222222222222'];
+  await openHighlightPost(page, [opponentId, ...others]);
+  const line = page.locator('app-post-card .post__line');
+  await expect(line.locator('a.post__tag')).toHaveCount(1);
+  await line.getByRole('button', { name: '2 người khác' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Người được gắn thẻ' });
+  await expect(dialog.locator('li')).toHaveCount(3);
+  await expect(dialog.locator('li a').first()).toHaveAttribute('href', `/feed?author=${opponentId}`);
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
 });

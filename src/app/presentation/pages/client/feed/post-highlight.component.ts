@@ -1,13 +1,9 @@
-import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { PostHighlight } from '@application/dto/social-feed/social-feed.dto';
-import { CommunityStore } from './community.store';
-
-/** So nguoi duoc gan the hien ten; con lai gom thanh "+N". */
-const SHOWN_TAGS = 5;
 
 /**
- * The "khoe" trong bai viet: tran ghep bang AI (bang ty so hai ben) hoac thanh tich giai cua CLB, kem nguoi duoc
- * gan the. Du lieu do ai-service / club-service dung, client chi hien thi.
+ * The "khoe" trong bai viet: tran ghep bang AI (bang ty so hai ben) hoac thanh tich giai cua CLB. Nguoi duoc gan the
+ * hien o dong ten tac gia cua the bai viet. Du lieu do ai-service / club-service dung, client chi hien thi.
  */
 @Component({
   selector: 'app-post-highlight',
@@ -17,7 +13,6 @@ const SHOWN_TAGS = 5;
   standalone: false
 })
 export class PostHighlightComponent {
-  readonly store = inject(CommunityStore);
   @Input({ required: true }) highlight!: PostHighlight;
 
   get isMatch(): boolean {
@@ -34,13 +29,5 @@ export class PostHighlightComponent {
 
   get scored(): boolean {
     return this.highlight.sides.length === 2 && this.highlight.sides.every(side => side.score !== null);
-  }
-
-  get shownTags(): readonly string[] {
-    return this.highlight.tagged.slice(0, SHOWN_TAGS);
-  }
-
-  get moreTags(): number {
-    return Math.max(0, this.highlight.tagged.length - SHOWN_TAGS);
   }
 }

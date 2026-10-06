@@ -31,15 +31,3 @@
     </dl>
   }
 </section>
-
-@if (highlight.tagged.length) {
-  <p class="hl-tags">
-    <span class="hl-tags__label">{{ isMatch ? 'Cùng' : 'Gắn thẻ' }}</span>
-    @for (id of shownTags; track id) {
-      <a class="hl-tags__person" [routerLink]="['/feed']" [queryParams]="{ author: id }">
-        <img [src]="store.avatar(id)" alt="" width="24" height="24" />{{ store.authorName(id) }}
-      </a>
-    }
-    @if (moreTags) { <span class="hl-tags__more">+{{ moreTags }} người</span> }
-  </p>
-}

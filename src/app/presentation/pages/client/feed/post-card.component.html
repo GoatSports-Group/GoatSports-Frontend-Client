@@ -4,10 +4,22 @@
       <img class="avatar" [src]="store.avatar(post.authorId)" alt="" width="44" height="44" />
     </a>
     <div class="post__who">
-      <a class="post__name" [id]="'post-author-' + post.postId" [routerLink]="['/feed']" [queryParams]="{ author: post.authorId }">
-        {{ store.authorName(post.authorId) }}
-        @if (post.sharedPostId) { <span class="post__verb">đã chia sẻ một bài viết</span> }
-      </a>
+      <!-- Kieu Facebook: "A cung voi B va C" / "A cung voi B va n nguoi khac" (bam mo popup danh sach). -->
+      <p class="post__line">
+        <a class="post__name" [id]="'post-author-' + post.postId" [routerLink]="['/feed']" [queryParams]="{ author: post.authorId }">{{ store.authorName(post.authorId) }}</a>
+        @if (post.sharedPostId) { <span class="post__verb"> đã chia sẻ một bài viết</span> }
+        @if (tagged.length) {
+          <span class="post__verb"> cùng với </span>
+          <a class="post__tag" [routerLink]="['/feed']" [queryParams]="{ author: tagged[0] }">{{ store.authorName(tagged[0]) }}</a>
+          @if (tagged.length === 2) {
+            <span class="post__verb"> và </span>
+            <a class="post__tag" [routerLink]="['/feed']" [queryParams]="{ author: tagged[1] }">{{ store.authorName(tagged[1]) }}</a>
+          } @else if (tagged.length > 2) {
+            <span class="post__verb"> và </span>
+            <button type="button" class="post__tag" aria-haspopup="dialog" (click)="taggedOpen.set(true)">{{ tagged.length - 1 }} người khác</button>
+          }
+        }
+      </p>
       <div class="meta">
         <a class="post__time" [href]="'/feed?post=' + post.postId" (click)="openPost($event, post)" [title]="post.publishedAt | date:'HH:mm dd/MM/yyyy'">
           {{ relativeTime(post.publishedAt || post.createdAt) }}
@@ -354,6 +366,40 @@
           Chia sẻ
         </button>
       </footer>
+    </section>
+  </div>
+}
+
+@if (taggedOpen()) {
+  <div class="modal-backdrop" role="presentation" (click)="taggedOpen.set(false)">
+    <section class="modal tagged-dialog" appAccessibleDialog aria-labelledby="tagged-title" (dialogClosed)="taggedOpen.set(false)" (click)="$event.stopPropagation()">
+      <header class="modal__header">
+        <div><h2 id="tagged-title">Người được gắn thẻ</h2></div>
+        <button type="button" class="icon-btn" (click)="taggedOpen.set(false)" aria-label="Đóng"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button>
+      </header>
+      <ul class="modal__body tagged-list">
+        @for (id of tagged; track id) {
+          <li>
+            <a [routerLink]="['/feed']" [queryParams]="{ author: id }" (click)="taggedOpen.set(false)">
+              <img class="avatar" [src]="store.avatar(id)" alt="" width="40" height="40" /><strong>{{ store.authorName(id) }}</strong>
+            </a>
+            @switch (store.relation(id)) {
+              @case ('NONE') {
+                <button type="button" class="btn btn--secondary" [disabled]="store.pendingFriendIds().has(id)" (click)="store.addFriend(id)">
+                  <lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon>Kết bạn
+                </button>
+              }
+              @case ('RECEIVED') {
+                <button type="button" class="btn btn--secondary" [disabled]="store.pendingFriendIds().has(id)" (click)="store.addFriend(id)">
+                  <lucide-icon name="user-check" class="w-4 h-4"></lucide-icon>Chấp nhận
+                </button>
+              }
+              @case ('SENT') { <span class="badge badge--warning">Đã gửi lời mời</span> }
+              @case ('FRIEND') { <span class="badge badge--success">Bạn bè</span> }
+            }
+          </li>
+        }
+      </ul>
     </section>
   </div>
 }
