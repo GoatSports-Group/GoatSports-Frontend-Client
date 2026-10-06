@@ -1,3 +1,4 @@
+import { ChatDockService } from '@presentation/services/chat-dock.service';
 import { PAGE_SIZE } from '@shared/constants/page-size';
 import { isPlatformBrowser } from '@angular/common';
 import { Component, DestroyRef, OnInit, PLATFORM_ID, inject } from '@angular/core';
@@ -42,6 +43,7 @@ export class VenueDetailComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private platformId = inject(PLATFORM_ID);
   private dialog = inject(MatDialog);
+  readonly chatDock = inject(ChatDockService);
 
   readonly today = this.toLocalDate(new Date());
   readonly maxBookingDate = this.toLocalDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
@@ -285,6 +287,21 @@ export class VenueDetailComponent implements OnInit {
     if (!this.venue) return '';
     return this.venue.address
       || [this.venue.ward, this.venue.district, this.venue.city].filter(Boolean).join(', ');
+  }
+
+  /** Chu san (khong phai chinh minh) thi co nut Nhan tin. */
+  get canMessageOwner(): boolean {
+    const ownerId = this.venue?.ownerId;
+    return !!ownerId && ownerId !== this.authService.currentUser?.userId;
+  }
+
+  messageOwner(): void {
+    if (!this.venue?.ownerId) return;
+    if (!this.authService.isAuthenticated) {
+      this.authService.notifyAuthenticationRequired('Vui lòng đăng nhập để nhắn tin cho chủ sân.');
+      return;
+    }
+    this.chatDock.messageUser(this.venue.ownerId);
   }
 
   goToBooking(court: VenueCourt, slot: TimeSlot): void {

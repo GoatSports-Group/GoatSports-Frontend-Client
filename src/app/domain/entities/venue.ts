@@ -56,6 +56,8 @@ export interface VenueCancellationPolicy {
 
 export interface Venue {
   venueId: string;
+  /** Chu san: nut "Nhan tin" mo chat 1-1 voi nguoi nay. */
+  ownerId?: string;
   name: string;
   description: string;
   openTime: string;

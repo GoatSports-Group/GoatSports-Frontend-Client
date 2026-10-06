@@ -65,6 +65,12 @@
               </div>
             </div>
             <div class="heading-actions">
+              @if (canMessageOwner) {
+                <button type="button" class="heading-actions__message" [disabled]="chatDock.pendingUserId() === venue.ownerId" (click)="messageOwner()">
+                  <lucide-icon name="message-circle" class="w-5 h-5"></lucide-icon>
+                  Nhắn tin
+                </button>
+              }
               <button type="button" [class.active]="isFavorite" [disabled]="favoriteLoading" (click)="toggleFavorite()">
                 <lucide-icon name="heart" class="w-5 h-5" [class.fill-current]="isFavorite"></lucide-icon>
                 {{ isFavorite ? 'Đã lưu' : 'Lưu sân' }}

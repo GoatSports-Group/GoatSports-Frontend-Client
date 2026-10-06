@@ -29,6 +29,12 @@
         <span class="badge badge--neutral">{{ formatLabel[t.format] }}</span>
       </div>
       <div class="identity__actions">
+        <!-- Nhan tin truc tiep voi ban to chuc (thuong cung la chu san); khong hien voi chinh ban to chuc. -->
+        @if (me && t.organizerId !== me) {
+        <button type="button" class="btn btn--secondary" [disabled]="chatDock.pendingUserId() === t.organizerId" (click)="chatDock.messageUser(t.organizerId)">
+          <lucide-icon name="message-circle" class="w-4 h-4"></lucide-icon>Nhắn tin ban tổ chức
+        </button>
+        }
         @if (canRegister()) {
         <button type="button" class="btn btn--primary" (click)="openRegister()">
           <lucide-icon [name]="isTeamEvent() ? 'users' : 'user-plus'" class="w-4 h-4"></lucide-icon>{{ isTeamEvent() ? 'Lập đội tham gia' : 'Đăng ký tham gia' }}

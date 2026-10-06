@@ -136,10 +136,19 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   private shouldScrollBottom = false;
   /** Chieu cao cu cua khung tin nhan khi chen tin cu len dau; giu nguyen vi tri dang doc. */
   private keepScrollFrom: { height: number; top: number } | null = null;
-  private messagesPage = 0;
   private roomsPage = 0;
   readonly hasOlderMessages = signal(false);
   readonly loadingOlderMessages = signal(false);
+  /** Dang xem mot doan giua lich su (mo tai tin chua doc): con tin moi hon o duoi, cuon xuong de tai. */
+  readonly hasNewerMessages = signal(false);
+  readonly loadingNewerMessages = signal(false);
+  /** Tin chua doc dau tien luc mo doan chat: vach "Tin nhan chua doc" dat truoc no. */
+  readonly firstUnreadId = signal<string | null>(null);
+  /** Tin den qua WebSocket khi nguoi dung chua o cuoi lich su (chua chen vao danh sach). */
+  readonly newBelow = signal(0);
+  /** Nut ↓ ve tin moi nhat: hien khi cuon xa day hoac con tin moi hon chua tai. */
+  readonly showJump = signal(false);
+  private scrollToUnread = false;
   readonly hasMoreRooms = signal(false);
   readonly loadingMoreRooms = signal(false);
   private requestedRoomId: string | null = null;
@@ -175,6 +184,16 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     if (this.keepScrollFrom && element) {
       element.scrollTop = element.scrollHeight - this.keepScrollFrom.height + this.keepScrollFrom.top;
       this.keepScrollFrom = null;
+    }
+    if (this.scrollToUnread && element) {
+      const divider = element.querySelector<HTMLElement>('.unread-divider');
+      if (divider) {
+        // Dat vach gan dau khung (cach 24px), do bang toa do thuc te de khong phu thuoc offsetParent.
+        element.scrollTop += divider.getBoundingClientRect().top - element.getBoundingClientRect().top - 24;
+        this.scrollToUnread = false;
+        this.shouldScrollBottom = false;
+        return;
+      }
     }
     if (!this.shouldScrollBottom) return;
     this.scrollToBottom();
@@ -290,12 +309,9 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.loadCounterpartContext(room);
     this.loadClubRoles(room);
     this.wsService.subscribeToRoom(room.roomId);
-    this.loadMessages(room.roomId);
-
-    if (room.unreadCount > 0) {
-      this.updateRoom(room.roomId, { unreadCount: 0 });
-      this.chatRepo.markRoomAsRead(room.roomId).subscribe({ error: () => undefined });
-    }
+    // Danh dau da doc SAU khi tai xong: server can biet tin chua doc dau tien de mo dung cho do.
+    this.loadMessages(room.roomId, room.unreadCount > 0);
+    if (room.unreadCount > 0) this.updateRoom(room.roomId, { unreadCount: 0 });
     if (updateRoute) void this.router.navigate(['/chat', room.roomId]);
   }
 
@@ -320,7 +336,11 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.contextPanelOpen.update(open => !open);
   }
 
-  loadMessages(roomId: string): void {
+  /**
+   * Mo doan chat. Co tin chua doc thi mo tai tin chua doc dau tien (vach "Tin nhan chua doc", vai tin cu lam ngu
+   * canh), khong thi tai trang moi nhat. Cuon len tai tin cu hon, cuon xuong tai tin moi hon (khi dang o giua).
+   */
+  loadMessages(roomId: string, atUnread = false): void {
     const sequence = ++this.messageRequestSequence;
     const localPending = this.messages().filter(message =>
       message.roomId === roomId && message.deliveryState !== 'SENT'
@@ -328,56 +348,109 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.loadingMessages.set(true);
     this.messagesLoadFailed.set(false);
     this.messages.set([]);
-
-    this.messagesPage = 0;
     this.hasOlderMessages.set(false);
+    this.hasNewerMessages.set(false);
+    this.firstUnreadId.set(null);
+    this.newBelow.set(0);
+    this.showJump.set(false);
     this.keepScrollFrom = null;
-    this.chatRepo.getRoomMessages(roomId, 0, MESSAGE_PAGE).pipe(
+
+    const window$ = atUnread
+      ? this.chatRepo.getUnreadWindow(roomId, MESSAGE_PAGE)
+      : this.chatRepo.getMessagesByCursor(roomId, {}, MESSAGE_PAGE).pipe(map(messages => ({
+        messages, firstUnreadMessageId: null, hasOlder: messages.length === MESSAGE_PAGE, hasNewer: false
+      })));
+    window$.pipe(
       finalize(() => {
         if (sequence === this.messageRequestSequence) this.loadingMessages.set(false);
       })
     ).subscribe({
-      next: response => {
+      next: window => {
         if (sequence !== this.messageRequestSequence || this.activeRoom()?.roomId !== roomId) return;
-        const savedMessages = [...(response.data || [])].reverse();
-        this.hasOlderMessages.set(savedMessages.length === MESSAGE_PAGE);
-        const unmatchedPending = localPending.filter(pending =>
+        const savedMessages = [...window.messages].reverse();
+        this.hasOlderMessages.set(window.hasOlder);
+        this.hasNewerMessages.set(window.hasNewer);
+        this.showJump.set(window.hasNewer);
+        this.firstUnreadId.set(window.firstUnreadMessageId);
+        const unmatchedPending = window.hasNewer ? [] : localPending.filter(pending =>
           !savedMessages.some(saved => saved.clientMessageId === pending.clientMessageId)
         );
         this.messages.set(this.sortMessages([...savedMessages, ...unmatchedPending]));
-        this.shouldScrollBottom = true;
+        if (window.firstUnreadMessageId) this.scrollToUnread = true;
+        else this.shouldScrollBottom = true;
+        if (atUnread) this.chatRepo.markRoomAsRead(roomId).subscribe({ error: () => undefined });
       },
       error: () => {
         if (sequence === this.messageRequestSequence) this.messagesLoadFailed.set(true);
       }
     });
   }
-  /** Cuon len dau khung tin nhan: tai trang tin cu hon (trang 0 la moi nhat) va giu nguyen cho dang doc. */
+
+  /** Cuon len dau khung tin nhan: tai tin cu hon tin dau tien dang co va giu nguyen cho dang doc. */
   loadOlderMessages(): void {
     const room = this.activeRoom();
-    if (!room || this.loadingOlderMessages() || !this.hasOlderMessages()) return;
+    const oldest = this.messages().find(message => message.deliveryState !== 'SENDING' && message.deliveryState !== 'FAILED');
+    if (!room || !oldest || this.loadingOlderMessages() || !this.hasOlderMessages()) return;
     this.loadingOlderMessages.set(true);
     const sequence = this.messageRequestSequence;
-    const page = this.messagesPage + 1;
-    this.chatRepo.getRoomMessages(room.roomId, page, MESSAGE_PAGE).pipe(
+    this.chatRepo.getMessagesByCursor(room.roomId, { before: oldest.createdAt }, MESSAGE_PAGE).pipe(
       finalize(() => this.loadingOlderMessages.set(false))
     ).subscribe({
-      next: response => {
+      next: page => {
         if (sequence !== this.messageRequestSequence) return;
-        const older = [...(response.data || [])].reverse();
-        // Tin moi den lam lech offset nen trang sau co the lap lai vai tin da co: bo trung theo id.
         const known = new Set(this.messages().map(message => message.messageId));
-        const fresh = older.filter(message => !known.has(message.messageId));
+        const fresh = [...page].reverse().filter(message => !known.has(message.messageId));
         const element = this.scrollContainer?.nativeElement;
         if (element) this.keepScrollFrom = { height: element.scrollHeight, top: element.scrollTop };
-        this.messagesPage = page;
-        this.hasOlderMessages.set(older.length === MESSAGE_PAGE);
+        this.hasOlderMessages.set(page.length === MESSAGE_PAGE);
         this.messages.update(current => this.sortMessages([...fresh, ...current]));
       },
       error: () => this.hasOlderMessages.set(false)
     });
   }
 
+  /** Cuon xuong cuoi khi dang xem giua lich su: tai tin moi hon tin cuoi dang co. */
+  loadNewerMessages(): void {
+    const room = this.activeRoom();
+    const list = this.messages();
+    const newest = list[list.length - 1];
+    if (!room || !newest || this.loadingNewerMessages() || !this.hasNewerMessages()) return;
+    this.loadingNewerMessages.set(true);
+    const sequence = this.messageRequestSequence;
+    this.chatRepo.getMessagesByCursor(room.roomId, { after: newest.createdAt }, MESSAGE_PAGE).pipe(
+      finalize(() => this.loadingNewerMessages.set(false))
+    ).subscribe({
+      next: page => {
+        if (sequence !== this.messageRequestSequence) return;
+        const known = new Set(this.messages().map(message => message.messageId));
+        const fresh = [...page].reverse().filter(message => !known.has(message.messageId));
+        const reachedEnd = page.length < MESSAGE_PAGE;
+        this.hasNewerMessages.set(!reachedEnd);
+        if (reachedEnd) this.newBelow.set(0);
+        this.messages.update(current => this.sortMessages([...current, ...fresh]));
+        this.onMessagesScroll();
+      },
+      error: () => this.hasNewerMessages.set(false)
+    });
+  }
+
+  /** Nut ↓: con tin moi hon chua tai thi tai lai trang moi nhat, khong thi cuon xuong day. */
+  jumpToLatest(): void {
+    const room = this.activeRoom();
+    if (!room) return;
+    if (this.hasNewerMessages()) {
+      this.loadMessages(room.roomId);
+      return;
+    }
+    this.scrollContainer?.nativeElement.scrollTo({ top: this.scrollContainer.nativeElement.scrollHeight, behavior: 'smooth' });
+  }
+
+  onMessagesScroll(): void {
+    const element = this.scrollContainer?.nativeElement;
+    if (!element) return;
+    const farFromBottom = element.scrollHeight - element.scrollTop - element.clientHeight > 480;
+    this.showJump.set(this.hasNewerMessages() || farFromBottom);
+  }
 
   get canSend(): boolean {
     return !this.preparingImages() && (!!this.messageInput.trim() || this.draftImages().length > 0);
@@ -418,7 +491,13 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.messageInput = '';
     this.draftImages.set([]);
     this.onTypingStop();
-    this.insertMessage(optimisticMessage);
+    // Dang xem giua lich su: ve trang moi nhat; tin dang gui duoc giu lai (loadMessages giu tin chua luu).
+    if (this.hasNewerMessages()) {
+      this.messages.update(items => [...items, optimisticMessage]);
+      this.loadMessages(room.roomId);
+    } else {
+      this.insertMessage(optimisticMessage);
+    }
     this.updateRoomFromMessage(optimisticMessage);
     this.dispatchMessage(optimisticMessage);
   }
@@ -1039,7 +1118,10 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   private listenToWebSocket(): void {
     this.subscriptions.push(this.wsService.chatMessages$.subscribe(message => {
       this.removeTypingParticipant(message.roomId, message.senderId);
-      if (this.activeRoom()?.roomId === message.roomId) {
+      if (this.activeRoom()?.roomId === message.roomId && this.hasNewerMessages() && message.senderId !== this.currentUserId) {
+        this.newBelow.update(count => count + 1);
+        this.chatRepo.markRoomAsRead(message.roomId).subscribe({ error: () => undefined });
+      } else if (this.activeRoom()?.roomId === message.roomId) {
         this.reconcileMessage(message);
         if (message.senderId !== this.currentUserId) {
           this.chatRepo.markRoomAsRead(message.roomId).subscribe({ error: () => undefined });

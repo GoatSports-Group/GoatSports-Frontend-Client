@@ -5,6 +5,7 @@ import { map } from 'rxjs/operators';
 import {
   ChatRoom,
   ChatMessage,
+  ChatMessageWindow,
   ChatPresenceEvent,
   CreateDirectRoomRequest,
   CreateGroupRoomRequest,
@@ -140,6 +141,25 @@ export class ChatApi {
         attachments: request.attachments ?? []
       }
     ).pipe(map(response => ({ ...response, data: this.toChatMessage(response.data) })));
+  }
+
+  getMessagesByCursor(roomId: string, cursor: { before?: string | null; after?: string | null }, size: number): Observable<ChatMessage[]> {
+    let params = new HttpParams().set('size', size);
+    if (cursor.after) params = params.set('after', cursor.after);
+    else if (cursor.before) params = params.set('before', cursor.before);
+    return this.http.get<BaseResponse<MessageApiResponse[]>>(`${this.apiBase}/${roomId}/messages/cursor`, { params })
+      .pipe(map(response => (response.data ?? []).map(item => this.toChatMessage(item))));
+  }
+
+  getUnreadWindow(roomId: string, size: number): Observable<ChatMessageWindow> {
+    return this.http.get<BaseResponse<{ messages: MessageApiResponse[]; firstUnreadMessageId: string | null; hasOlder: boolean; hasNewer: boolean }>>(
+      `${this.apiBase}/${roomId}/messages/unread-window`, { params: new HttpParams().set('size', size) }
+    ).pipe(map(response => ({
+      messages: (response.data?.messages ?? []).map(item => this.toChatMessage(item)),
+      firstUnreadMessageId: response.data?.firstUnreadMessageId ?? null,
+      hasOlder: !!response.data?.hasOlder,
+      hasNewer: !!response.data?.hasNewer
+    })));
   }
 
   markRoomAsRead(roomId: string): Observable<BaseResponse<void>> {

@@ -158,6 +158,56 @@ test('bong bóng chat kiểu Facebook: tin mới hiện avatar, bấm mở cửa
   await expect(page.locator('app-chat-heads .head')).toHaveCount(0);
 });
 
+test('cuộn vô hạn hai chiều: mở tại tin chưa đọc, cuộn lên tải tin cũ, cuộn xuống tải tin mới', async ({ page }) => {
+  // 150 tin cach nhau 1 phut; tin 100 la tin chua doc dau tien.
+  const base = Date.UTC(2026, 9, 6, 1, 0, 0);
+  const all = Array.from({ length: 150 }, (_, index) => ({
+    messageId: `x${String(index).padStart(3, '0')}`, conversationId: DIRECT_ROOM, senderId: index % 3 ? friend : me,
+    content: `Tin số ${index}`, type: 'TEXT', status: 'READ', attachments: [], receipts: [],
+    sentAt: new Date(base + index * 60_000).toISOString().slice(0, 19)
+  }));
+  const cursors: string[] = [];
+  await page.route(url => url.pathname.endsWith('/messages/unread-window'), route => route.fulfill(ok({
+    messages: all.slice(90, 150).reverse().slice(10), firstUnreadMessageId: 'x100', hasOlder: true, hasNewer: true
+  })));
+  await page.route(url => url.pathname.endsWith('/messages/cursor'), route => {
+    const params = new URL(route.request().url()).searchParams;
+    const size = Number(params.get('size'));
+    const after = params.get('after');
+    const before = params.get('before');
+    cursors.push(after ? `after ${after}` : `before ${before}`);
+    const picked = after
+      ? all.filter(item => item.sentAt > after).slice(0, size)
+      : all.filter(item => item.sentAt < before!).slice(-size);
+    return route.fulfill(ok([...picked].reverse()));
+  });
+
+  await page.goto(`/chat/${DIRECT_ROOM}`);
+  const divider = page.locator('.unread-divider');
+  await expect(divider).toBeVisible();
+  await expect(page.locator('.msg').filter({ hasText: 'Tin số 100' })).toBeInViewport();
+  // Vach nam gan dau khung tin nhan (khong bi day xuong day).
+  const gap = await page.evaluate(() => document.querySelector('.unread-divider')!.getBoundingClientRect().top
+    - document.querySelector('.messages')!.getBoundingClientRect().top);
+  expect(gap).toBeLessThan(160);
+
+  // Cuon xuong cuoi: tai tin moi hon cho toi tin cuoi cung.
+  const scroller = page.locator('.messages');
+  await expect(async () => {
+    await scroller.evaluate(element => element.scrollTo(0, element.scrollHeight));
+    await expect(page.getByText('Tin số 149', { exact: true })).toBeAttached({ timeout: 1000 });
+  }).toPass();
+  expect(cursors.some(item => item.startsWith('after'))).toBe(true);
+
+  // Cuon len dau: tai tin cu hon cho toi tin dau tien.
+  await expect(async () => {
+    await scroller.evaluate(element => element.scrollTo(0, 0));
+    await expect(page.getByText('Tin số 0', { exact: true })).toBeAttached({ timeout: 1000 });
+  }).toPass();
+  expect(cursors.some(item => item.startsWith('before'))).toBe(true);
+  await expect(page.locator('.msg')).toHaveCount(150);
+});
+
 test('/chat không có lỗi WCAG A/AA tự động', async ({ page }) => {
   await page.goto('/chat');
   await roomRow(page, /Trần Hoàng Nam/).click();

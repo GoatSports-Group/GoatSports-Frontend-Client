@@ -124,7 +124,7 @@
           </button>
         </header>
 
-        <section class="messages" #messagesScroll aria-label="Tin nhắn" aria-live="polite">
+        <section class="messages" #messagesScroll aria-label="Tin nhắn" aria-live="polite" (scroll)="onMessagesScroll()">
           @if (loadingMessages()) {
             <div class="bubbles-skeleton" role="status" aria-label="Đang tải tin nhắn">
               @for (placeholder of [1, 2, 3, 4, 5, 6]; track placeholder) {
@@ -158,6 +158,9 @@
               @for (message of messages(); track message.clientMessageId || message.messageId; let index = $index) {
                 @if (getDaySeparator(index); as day) {
                   <div class="day"><span>{{ day }}</span></div>
+                }
+                @if (message.messageId === firstUnreadId()) {
+                  <div class="unread-divider" role="separator"><span>Tin nhắn chưa đọc</span></div>
                 }
                 @let mine = message.senderId === currentUserId;
                 <article class="msg" [class.is-mine]="mine" [class.is-sending]="message.deliveryState === 'SENDING'"
@@ -215,6 +218,14 @@
                 </article>
               }
 
+              @if (hasNewerMessages()) {
+                @if (loadingNewerMessages()) {
+                  <div class="stream__older" role="status"><lucide-icon name="loader-2" class="w-4 h-4 animate-spin"></lucide-icon>Đang tải tin mới hơn</div>
+                } @else {
+                  <div class="list-sentinel" appInfiniteScroll (reached)="loadNewerMessages()" aria-hidden="true"></div>
+                }
+              }
+
               @if (getTypingParticipants(room.roomId).length) {
                 <div class="typing" role="status">
                   @for (participant of getTypingParticipants(room.roomId).slice(0, 2); track participant.senderId) {
@@ -227,6 +238,12 @@
             </div>
           }
         </section>
+        @if (showJump() && !loadingMessages()) {
+          <button type="button" class="jump" (click)="jumpToLatest()" aria-label="Về tin nhắn mới nhất">
+            <lucide-icon name="arrow-down" class="w-4 h-4"></lucide-icon>
+            @if (newBelow()) { <span>{{ newBelow() }} tin mới</span> }
+          </button>
+        }
 
         @if (room.blockState) {
           <footer class="blocked" role="status">

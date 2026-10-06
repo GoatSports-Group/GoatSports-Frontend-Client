@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import {
   ChatRoom,
   ChatMessage,
+  ChatMessageWindow,
   ChatPresenceEvent,
   CreateDirectRoomRequest,
   CreateGroupRoomRequest,
@@ -17,6 +18,10 @@ export interface ChatRepository {
   getRoomDetails(roomId: string): Observable<BaseResponse<ChatRoom>>;
   getRoomMessages(roomId: string, page?: number, size?: number): Observable<BaseResponse<ChatMessage[]>>;
   sendMessage(roomId: string, request: SendMessageRequest): Observable<BaseResponse<ChatMessage>>;
+  /** Cuon hai chieu theo moc thoi gian (moi nhat truoc): `after` = tin moi hon, khong thi tin cu hon `before`. */
+  getMessagesByCursor(roomId: string, cursor: { before?: string | null; after?: string | null }, size: number): Observable<ChatMessage[]>;
+  /** Mo doan chat tai tin chua doc dau tien (moi nhat truoc). */
+  getUnreadWindow(roomId: string, size: number): Observable<ChatMessageWindow>;
   markRoomAsRead(roomId: string): Observable<BaseResponse<void>>;
   /** Xoa doan chat phia minh: nguoi khac van giu nguyen; tin moi sau do lam doan chat hien lai. */
   clearRoom(roomId: string): Observable<void>;

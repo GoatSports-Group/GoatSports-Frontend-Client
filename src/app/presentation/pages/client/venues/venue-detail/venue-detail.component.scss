@@ -240,6 +240,12 @@
   color: var(--primary);
 }
 
+// Nhan tin chu san: hanh dong chinh trong nhom, nen xanh nhat.
+.heading-actions button.heading-actions__message {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
 .heading-actions button:disabled {
   opacity: .55;
 }

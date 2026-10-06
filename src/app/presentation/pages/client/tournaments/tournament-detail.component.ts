@@ -1,3 +1,4 @@
+import { ChatDockService } from '@presentation/services/chat-dock.service';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -57,6 +58,7 @@ export class TournamentDetailComponent {
   private readonly auth = inject(AuthService);
   private readonly directory = inject(PlayerDirectoryService);
   private readonly notify = inject(NotifyService);
+  readonly chatDock = inject(ChatDockService);
   readonly tournamentId = this.route.snapshot.paramMap.get('id') ?? '';
   readonly me = this.auth.currentUser?.userId ?? null;
 

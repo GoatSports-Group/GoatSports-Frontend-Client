@@ -1,4 +1,4 @@
-import { ChatParticipant } from '@domain/entities/chat';
+import { ChatMessage, ChatParticipant } from '@domain/entities/chat';
 export { ChatRoom, ChatMessage, ChatParticipant, ChatMessageAttachment, ChatMessageReceipt } from '@domain/entities/chat';
 export { ChatRoomType } from '@domain/enums/chat-room-type.enum';
 export { MessageType } from '@domain/enums/message-type.enum';
@@ -20,6 +20,14 @@ export interface SendMessageRequest {
   metadata?: string;
   /** Ca nhom anh cua mot lan gui; khoa R2 do storage cap khi tai len. */
   attachments?: Array<{ storageKey: string; type: 'IMAGE'; fileName?: string; fileSize?: number }>;
+}
+
+/** Doan tin quanh tin chua doc dau tien; `firstUnreadMessageId` null = khong co tin chua doc. */
+export interface ChatMessageWindow {
+  messages: ChatMessage[];
+  firstUnreadMessageId: string | null;
+  hasOlder: boolean;
+  hasNewer: boolean;
 }
 
 export interface ChatTypingEvent {

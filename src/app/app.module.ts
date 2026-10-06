@@ -222,7 +222,9 @@ import {
   LucideChevronUp,
   LucideSplit,
   LucideSlice,
-  LucideCornerDownRight
+  LucideCornerDownRight,
+  LucideMaximize2,
+  LucideMinus
 } from '@lucide/angular';
 
 @NgModule({
@@ -434,7 +436,9 @@ import {
       LucideChevronUp,
       LucideSplit,
       LucideSlice,
-      LucideCornerDownRight
+      LucideCornerDownRight,
+      LucideMaximize2,
+      LucideMinus
     )
   ],
   bootstrap: [AppComponent]

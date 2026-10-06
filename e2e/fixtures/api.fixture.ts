@@ -79,6 +79,21 @@ async function handleChat(route: Route, path: string): Promise<void> {
     await route.fulfill({ json: baseResponse({ ...emptySpringPage, content: rooms, totalElements: rooms.length, empty: false }) });
     return;
   }
+  if (path.endsWith('/messages/unread-window')) {
+    // Hai tin cuoi chua doc (khop unreadCount 2 cua phong dau).
+    await route.fulfill({ json: baseResponse({
+      messages: [...messages].reverse(), firstUnreadMessageId: messages[messages.length - 2].messageId, hasOlder: false, hasNewer: false
+    }) });
+    return;
+  }
+  if (path.endsWith('/messages/cursor')) {
+    const params = new URL(route.request().url()).searchParams;
+    const after = params.get('after');
+    const before = params.get('before');
+    const picked = messages.filter(item => after ? item.sentAt > after : !before || item.sentAt < before);
+    await route.fulfill({ json: baseResponse([...picked].reverse()) });
+    return;
+  }
   if (path.endsWith('/messages') && route.request().method() === 'GET') {
     await route.fulfill({ json: baseResponse({ ...emptySpringPage, content: [...messages].reverse(), totalElements: messages.length, empty: false }) });
     return;

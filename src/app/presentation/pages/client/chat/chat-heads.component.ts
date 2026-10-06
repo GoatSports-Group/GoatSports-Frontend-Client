@@ -1,4 +1,4 @@
-import { Component, DestroyRef, ElementRef, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, ElementRef, OnInit, ViewChild, computed, effect, inject, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter, map } from 'rxjs';
@@ -7,6 +7,7 @@ import { CHAT_REPOSITORY_TOKEN } from '@application/ports/persistence/chat.repos
 import { CURRENT_USER_PROVIDER_TOKEN } from '@application/ports/current-user.provider';
 import { WEBSOCKET_SERVICE_TOKEN } from '@application/ports/websocket.service';
 import { PlayerDirectoryService } from '@presentation/services/player-directory.service';
+import { ChatDockService } from '@presentation/services/chat-dock.service';
 
 /** Mot bong bong: doan chat co tin moi ma nguoi dung chua mo. */
 interface ChatHead {
@@ -40,6 +41,7 @@ export class ChatHeadsComponent implements OnInit {
   private readonly currentUser = inject(CURRENT_USER_PROVIDER_TOKEN);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly dock = inject(ChatDockService);
 
   @ViewChild('windowBody') private windowBody?: ElementRef<HTMLElement>;
 
@@ -52,6 +54,18 @@ export class ChatHeadsComponent implements OnInit {
   readonly onChatPage = signal(this.router.url.startsWith('/chat'));
   readonly visibleHeads = computed(() => this.heads().filter(head => head.roomId !== this.openRoom()?.roomId));
   draft = '';
+
+  constructor() {
+    // Nut "Nhan tin" o trang khac (giai dau, san): mo doan chat 1-1 trong cua so nho ngay tai cho.
+    effect(() => {
+      const roomId = this.dock.openRequest();
+      if (!roomId) return;
+      untracked(() => {
+        this.dock.openRequest.set(null);
+        this.openRoomById(roomId);
+      });
+    });
+  }
 
   get me(): string {
     return this.currentUser.getCurrentUserId() || '';
@@ -143,22 +157,32 @@ export class ChatHeadsComponent implements OnInit {
 
   open(head: ChatHead): void {
     this.heads.update(items => items.map(item => item.roomId === head.roomId ? { ...item, unread: 0 } : item));
-    this.openRoom.set(head.room ?? this.placeholderRoom(head.roomId));
-    if (!head.room) this.loadRoom(head.roomId);
+    this.openRoomById(head.roomId, head.room);
+  }
+
+  /** Mo cua so nho cho mot doan chat; them bong bong cho no de thu nho xong van mo lai duoc. */
+  openRoomById(roomId: string, known: ChatRoom | null = null): void {
+    const head = this.heads().find(item => item.roomId === roomId);
+    if (!head) {
+      this.heads.update(items => [{ roomId, room: known, unread: 0, preview: '', senderId: '' }, ...items].slice(0, MAX_HEADS));
+    }
+    const room = known ?? head?.room ?? null;
+    this.openRoom.set(room ?? this.placeholderRoom(roomId));
+    if (!room) this.loadRoom(roomId);
     this.draft = '';
     this.windowMessages.set([]);
     this.windowLoading.set(true);
-    this.ws.subscribeToRoom(head.roomId);
-    this.chatRepo.getRoomMessages(head.roomId, 0, WINDOW_PAGE).subscribe({
+    this.ws.subscribeToRoom(roomId);
+    this.chatRepo.getRoomMessages(roomId, 0, WINDOW_PAGE).subscribe({
       next: response => {
-        if (this.openRoom()?.roomId !== head.roomId) return;
+        if (this.openRoom()?.roomId !== roomId) return;
         this.windowMessages.set([...(response.data ?? [])].reverse());
         this.windowLoading.set(false);
         this.scrollToBottom();
       },
       error: () => this.windowLoading.set(false)
     });
-    this.chatRepo.markRoomAsRead(head.roomId).subscribe({ error: () => undefined });
+    this.chatRepo.markRoomAsRead(roomId).subscribe({ error: () => undefined });
   }
 
   /** Thu nho: cua so dong lai, bong bong van con de mo lai. */

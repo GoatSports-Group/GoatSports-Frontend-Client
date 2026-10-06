@@ -583,6 +583,62 @@
   z-index: 1;
 }
 
+// Vach "Tin nhan chua doc": duong primary mong + nhan, dat truoc tin chua doc dau tien luc mo doan chat.
+.unread-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+
+  &::before,
+  &::after {
+    flex: 1;
+    height: 1px;
+    background: var(--primary);
+    content: '';
+    opacity: .4;
+  }
+}
+
+// Nut ↓ ve tin moi nhat: tron 40px noi giua day khung tin; co tin moi chua tai thi thanh vien thuoc "n tin moi".
+.jump {
+  position: absolute;
+  bottom: 96px;
+  left: 50%;
+  z-index: 2;
+  display: inline-flex;
+  min-width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 12px;
+  border: 1px solid var(--hairline);
+  border-radius: 9999px;
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+  color: var(--primary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  translate: -50% 0;
+
+  &:hover {
+    background: var(--primary-light);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+}
+
 .day {
   display: flex;
   justify-content: center;
