@@ -28,7 +28,7 @@
                   <img class="avatar" [src]="player.avatarUrl || store.avatar(player.userId)" alt="" width="40" height="40" />
                   <span><strong>{{ player.fullName }}</strong><small>&#64;{{ player.username }}</small></span>
                 </a>
-                @switch (relation(player.userId)) {
+                @switch (store.relation(player.userId)) {
                   @case ('SELF') { <span class="badge badge--neutral">Bạn</span> }
                   @case ('FRIEND') { <span class="badge badge--success">Bạn bè</span> }
                   @case ('SENT') { <span class="badge badge--warning">Đã gửi lời mời</span> }
@@ -138,12 +138,17 @@
                     <span><strong>{{ store.authorName(person.authorId) }}</strong>
                       <small [title]="person.reason || ''">{{ person.reason || person.postCount + ' bài trong 30 ngày' }}</small></span>
                   </a>
-                  <button type="button" class="btn" [class.btn--primary]="!store.isFollowing(person.authorId)"
-                    [class.btn--secondary]="store.isFollowing(person.authorId)" [disabled]="store.pendingFollowIds().has(person.authorId)"
-                    (click)="toggleFollowSuggestion(person.authorId)">
-                    <lucide-icon [name]="store.isFollowing(person.authorId) ? 'user-check' : 'user-plus'" class="w-4 h-4"></lucide-icon>
-                    <span class="btn-label">{{ store.isFollowing(person.authorId) ? 'Đang theo dõi' : 'Theo dõi' }}</span>
-                  </button>
+                  @switch (store.relation(person.authorId)) {
+                    @case ('FRIEND') { <span class="badge badge--success">Bạn bè</span> }
+                    @case ('SENT') { <span class="badge badge--warning">Đã gửi lời mời</span> }
+                    @default {
+                      <button type="button" class="btn btn--primary" [disabled]="store.pendingFriendIds().has(person.authorId)"
+                        (click)="store.addFriend(person.authorId)">
+                        <lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon>
+                        <span class="btn-label">{{ store.relation(person.authorId) === 'RECEIVED' ? 'Chấp nhận' : 'Kết bạn' }}</span>
+                      </button>
+                    }
+                  }
                 </li>
               }
             </ul>

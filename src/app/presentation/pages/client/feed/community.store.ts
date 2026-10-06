@@ -1,13 +1,15 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Observable, catchError, finalize, forkJoin, map, of, tap } from 'rxjs';
+import { Observable, catchError, finalize, forkJoin, map, of } from 'rxjs';
 import { Friendship, UserBlock } from '@application/dto/friend/friend.dto';
 import { FRIEND_REPOSITORY_TOKEN } from '@application/ports/persistence/friend.repository';
-import { SocialPost, UserFollowStatus } from '@application/dto/social-feed/social-feed.dto';
+import { SocialPost } from '@application/dto/social-feed/social-feed.dto';
 import { User } from '@application/dto/user/user.dto';
 import { SOCIAL_FEED_REPOSITORY_TOKEN } from '@application/ports/persistence/social-feed.repository';
 import { STORAGE_REPOSITORY_TOKEN } from '@application/ports/persistence/storage.repository';
 import { AuthService } from '@presentation/services/auth.service';
 import { PlayerDirectoryService } from '@presentation/services/player-directory.service';
+import { NotifyService } from '@shared/components/notify/notify.service';
+import { errorMessage } from './community-view';
 
 export interface Connections {
   friends: Friendship[];
@@ -18,10 +20,13 @@ export interface Connections {
 
 const NO_CONNECTIONS: Connections = { friends: [], received: [], sent: [], blocked: [] };
 
+/** Quan he cua nguoi dang nhap voi mot nguoi khac (nut "Ket ban" o moi noi trong Cong dong doc chung). */
+export type Relation = 'SELF' | 'FRIEND' | 'SENT' | 'RECEIVED' | 'BLOCKED' | 'NONE';
+
 /**
  * Trang thai dung chung giua bang tin, the bai viet va trang chi tiet: ten/anh tac gia,
- * URL media da ky, va danh sach dang theo doi. Mot nguoi xuat hien o nhieu bai nen nut
- * "Theo doi" o moi the phai cung doc mot nguon.
+ * URL media da ky, va ban be / loi moi. Mot nguoi xuat hien o nhieu bai nen nut
+ * "Ket ban" o moi the phai cung doc mot nguon.
  */
 @Injectable({ providedIn: 'root' })
 export class CommunityStore {
@@ -30,18 +35,18 @@ export class CommunityStore {
   private readonly directory = inject(PlayerDirectoryService);
   private readonly auth = inject(AuthService);
   private readonly friendRepository = inject(FRIEND_REPOSITORY_TOKEN);
+  private readonly notify = inject(NotifyService);
 
   readonly authors = signal<ReadonlyMap<string, User>>(new Map());
   readonly mediaUrls = signal<ReadonlyMap<string, string>>(new Map());
-  readonly followingSet = signal<ReadonlySet<string>>(new Set());
-  readonly pendingFollowIds = signal<ReadonlySet<string>>(new Set());
+  /** Nguoi dang duoc gui / chap nhan loi moi ket ban (khoa nut trong luc cho). */
+  readonly pendingFriendIds = signal<ReadonlySet<string>>(new Set());
 
   /** Ban be, loi moi, da chan: tab Ban be, huy hieu so loi moi va goi y @nhac ten cung doc. */
   readonly connections = signal<Connections>(NO_CONNECTIONS);
   readonly connectionsLoading = signal(false);
   readonly connectionsError = signal(false);
 
-  /** Nap lai moi lan vao trang: tai khoan co the da doi tu lan truoc. */
   /** Chu de hay dung 30 ngay qua (goi y khi go "#"); tai mot lan khi nguoi dung go "#" lan dau. */
   readonly tagPool = signal<readonly string[]>([]);
   private tagPoolRequested = false;
@@ -53,14 +58,6 @@ export class CommunityStore {
       next: tags => this.tagPool.set(tags.map(item => item.tag)),
       // Loi thi lan go "#" sau thu lai.
       error: () => { this.tagPoolRequested = false; }
-    });
-  }
-
-  loadFollowing(currentUserId?: string | null): void {
-    if (currentUserId) this.hydrateAuthors([currentUserId]);
-    this.repository.getFollowingUserIds().subscribe({
-      next: ids => this.followingSet.set(new Set(ids)),
-      error: () => this.followingSet.set(new Set())
     });
   }
 
@@ -98,37 +95,40 @@ export class CommunityStore {
     return friendship.requesterId === me ? friendship.addresseeId : friendship.requesterId;
   }
 
-  followingIds(): string[] {
-    return [...this.followingSet()];
-  }
-
   friendIds(): string[] {
     return this.connections().friends.map(item => this.otherParty(item));
   }
 
-  isFollowing(userId: string): boolean {
-    return this.followingSet().has(userId);
+  relation(userId: string): Relation {
+    if (userId === this.auth.currentUser?.userId) return 'SELF';
+    const connections = this.connections();
+    if (connections.blocked.some(item => item.blockedUserId === userId)) return 'BLOCKED';
+    if (connections.friends.some(item => this.otherParty(item) === userId)) return 'FRIEND';
+    if (connections.sent.some(item => item.addresseeId === userId)) return 'SENT';
+    if (connections.received.some(item => item.requesterId === userId)) return 'RECEIVED';
+    return 'NONE';
   }
 
-  toggleFollow(userId: string): Observable<UserFollowStatus> {
-    const request$ = this.isFollowing(userId)
-      ? this.repository.unfollowUser(userId)
-      : this.repository.followUser(userId);
-    this.pendingFollowIds.update(ids => new Set(ids).add(userId));
-    return request$.pipe(
-      tap({
-        next: status => this.followingSet.update(ids => {
-          const next = new Set(ids);
-          if (status.followed) next.add(userId); else next.delete(userId);
-          return next;
-        }),
-        finalize: () => this.pendingFollowIds.update(ids => {
-          const next = new Set(ids);
-          next.delete(userId);
-          return next;
-        })
-      })
-    );
+  /** Gui loi moi, hoac chap nhan loi moi nguoi kia da gui; xong thi tai lai ban be de moi nut cap nhat. */
+  addFriend(userId: string): void {
+    if (this.pendingFriendIds().has(userId)) return;
+    const received = this.connections().received.find(item => item.requesterId === userId);
+    const request$: Observable<unknown> = received
+      ? this.friendRepository.respondFriendRequest(received.friendshipId, { accepted: true })
+      : this.friendRepository.sendFriendRequest({ targetUserId: userId });
+    const name = this.authorName(userId);
+    this.pendingFriendIds.update(ids => new Set(ids).add(userId));
+    request$.pipe(finalize(() => this.pendingFriendIds.update(ids => {
+      const next = new Set(ids);
+      next.delete(userId);
+      return next;
+    }))).subscribe({
+      next: () => {
+        this.notify.success(received ? `Bạn và ${name} đã là bạn bè.` : `Đã gửi lời mời kết bạn tới ${name}.`);
+        this.loadConnections();
+      },
+      error: error => this.notify.error(errorMessage(error, 'Không thể gửi lời mời kết bạn.'))
+    });
   }
 
   /** Nap tac gia va URL media cua cac bai (ca bai goc duoc chia se). */

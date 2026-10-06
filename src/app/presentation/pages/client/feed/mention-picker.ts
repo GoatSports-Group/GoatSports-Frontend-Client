@@ -29,8 +29,7 @@ export class MentionPicker {
     if (query === null) return [];
     const me = this.selfId();
     const folded = foldText(query.trim());
-    const pool = new Set([...this.store.friendIds(), ...this.store.followingIds()]);
-    return [...pool]
+    return this.store.friendIds()
       .filter(id => id !== me)
       .map(userId => ({ userId, name: this.store.authorName(userId), avatar: this.store.avatar(userId) }))
       .filter(person => !folded || foldText(person.name).includes(folded))
@@ -65,7 +64,7 @@ export class MentionPicker {
     }
     if (!this.namesLoaded) {
       this.namesLoaded = true;
-      this.store.hydrateAuthors([...this.store.friendIds(), ...this.store.followingIds()]);
+      this.store.hydrateAuthors(this.store.friendIds());
     }
     this.start = before.length - match[2].length - 1;
     this.query.set(match[2]);

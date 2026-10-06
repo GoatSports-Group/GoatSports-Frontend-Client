@@ -206,16 +206,6 @@ export class PostCardComponent implements OnInit {
       }, 'Không thể lưu bài viết.');
   }
 
-  toggleFollow(): void {
-    const authorId = this.post.authorId;
-    this.store.toggleFollow(authorId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: status => this.notify.success(status.followed
-        ? `Đang theo dõi ${this.store.authorName(authorId)}.`
-        : `Đã bỏ theo dõi ${this.store.authorName(authorId)}.`),
-      error: error => this.notify.error(errorMessage(error, 'Không thể cập nhật theo dõi.'))
-    });
-  }
-
   copyLink(): void {
     const url = `${location.origin}/feed?post=${this.post.postId}`;
     navigator.clipboard?.writeText(url).then(

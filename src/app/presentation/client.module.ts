@@ -1,5 +1,4 @@
 import { NgModule } from '@angular/core';
-import { FollowListDialogComponent } from '@presentation/pages/client/feed/follow-list-dialog.component';
 import { HashtagMenuComponent } from '@presentation/pages/client/feed/hashtag-menu.component';
 import { ComposerDialogComponent } from '@presentation/pages/client/feed/composer-dialog.component';
 import { HighlightShareDialogComponent } from '@presentation/pages/client/feed/highlight-share-dialog.component';
@@ -119,7 +118,6 @@ import { AiAssistantModalComponent } from '@presentation/shared/components/ai-as
     HighlightShareDialogComponent,
     PostComposerComponent,
     PostDialogComponent,
-    FollowListDialogComponent,
     CommunityFriendsComponent,
     MediaLightboxComponent,
     MentionMenuComponent,

@@ -3,7 +3,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription, finalize } from 'rxjs';
 import { SocialPost } from '@application/dto/social-feed/social-feed.dto';
 import { SOCIAL_FEED_REPOSITORY_TOKEN } from '@application/ports/persistence/social-feed.repository';
-import { AuthService } from '@presentation/services/auth.service';
 import { CommunityStore } from './community.store';
 import { errorMessage } from './community-view';
 import { PostDialogService } from './post-dialog.service';
@@ -23,7 +22,6 @@ export class PostDialogComponent {
   private readonly repository = inject(SOCIAL_FEED_REPOSITORY_TOKEN);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
-  private readonly auth = inject(AuthService);
   readonly dialog = inject(PostDialogService);
   readonly store = inject(CommunityStore);
 
@@ -42,7 +40,7 @@ export class PostDialogComponent {
         this.post.set(null);
         return;
       }
-      this.store.loadFollowing(this.auth.currentUser?.userId);
+      this.store.loadConnections();
       if (target.post) {
         this.post.set(target.post);
         this.store.hydrate([target.post]);

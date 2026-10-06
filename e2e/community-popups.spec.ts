@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { mockGoatSportsApi } from './fixtures/api.fixture';
 
 // Cong dong kieu ung dung: bai viet luon mo trong popup, binh luan tra loi nhieu cap + cuon vo han,
-// danh sach theo doi / goi y cuon vo han, chi cot giua cuon tren desktop.
+// goi y ket ban cuon vo han, chi cot giua cuon tren desktop.
 const ok = (data: unknown) => ({ json: { statusCode: 200, message: 'OK', data } });
 const me = '11111111-1111-4111-8111-111111111111';
 const poster = '33333333-3333-4333-8333-333333333333';
@@ -125,48 +125,6 @@ test('bảng tin cuộn vô hạn trong cột giữa; tab và cột bên đứng
   expect(await page.evaluate(() => document.querySelector('mat-sidenav-content')!.scrollTop)).toBe(0);
 });
 
-test('Người theo dõi / Đang theo dõi mở popup hai tab, cuộn vô hạn', async ({ page }) => {
-  await setup(page);
-  const lists: string[] = [];
-  await page.route(url => /\/follows\/users\/[^/]+\/(followers|following)$/.test(url.pathname), route => {
-    const url = new URL(route.request().url());
-    const kind = url.pathname.split('/').pop()!;
-    const number = Number(url.searchParams.get('page') ?? 0);
-    lists.push(`${kind}:${number}`);
-    const people = Array.from({ length: number === 0 ? 20 : 2 }, (_, index) =>
-      ({ userId: `${kind === 'followers' ? 'a' : 'b'}${number}${String(index).padStart(6, '0')}-0000-4000-8000-000000000000`,
-        followedAt: '2026-09-20T10:00:00' }));
-    return route.fulfill(ok(springPage(people, number, number > 0)));
-  });
-
-  await page.goto(`/feed?author=${poster}`);
-  await page.getByRole('button', { name: /Xem người theo dõi/ }).waitFor();
-  // Bam chuot vao con so (khong phai chu cua nut): ca o phai la vung bam, ke ca khi nut "lun" xuong luc nhan.
-  const number = (await page.locator('.stats__open dd').first().boundingBox())!;
-  await page.mouse.click(number.x + number.width / 2, number.y + number.height / 2);
-  const dialog = page.getByRole('dialog');
-  await expect(dialog.getByRole('tab', { name: /Người theo dõi/ })).toHaveAttribute('aria-selected', 'true');
-  await expect(dialog.locator('.people li')).toHaveCount(20);
-  await dialog.locator('.follow-dialog__body').evaluate(element => element.scrollTo(0, element.scrollHeight));
-  await expect(dialog.locator('.people li')).toHaveCount(22);
-
-  await dialog.getByRole('tab', { name: /Đang theo dõi/ }).click();
-  await expect.poll(() => lists).toContain('following:0');
-  await expect(dialog.locator('.people li')).toHaveCount(20);
-});
-
-test('tab trống của popup theo dõi chỉ là một dòng chữ', async ({ page }) => {
-  await setup(page);
-  await page.route(url => /\/follows\/users\/[^/]+\/(followers|following)$/.test(url.pathname), route =>
-    route.fulfill(ok(springPage([]))));
-  await page.goto(`/feed?author=${poster}`);
-  await page.getByRole('button', { name: /Xem đang theo dõi/ }).click();
-  const dialog = page.getByRole('dialog');
-  await expect(dialog.locator('.follow-dialog__empty')).toHaveText('Chưa theo dõi ai');
-  await expect(dialog.locator('.state')).toHaveCount(0);
-  await expect(dialog.locator('.follow-dialog__empty')).toHaveCSS('border-top-width', '0px');
-});
-
 test('"Xem tất cả" gợi ý chuyển sang Bạn bè › Gợi ý, cuộn vô hạn theo offset', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name.startsWith('mobile'), 'Cột phải ẩn dưới 1024px.');
   await setup(page);
@@ -184,7 +142,7 @@ test('"Xem tất cả" gợi ý chuyển sang Bạn bè › Gợi ý, cuộn vô
   });
 
   await page.goto('/feed?sport=all');
-  await page.locator('.rail--right .rail-card').filter({ hasText: 'Gợi ý theo dõi' })
+  await page.locator('.rail--right .rail-card').filter({ hasText: 'Gợi ý kết bạn' })
     .getByRole('button', { name: 'Xem tất cả' }).click();
   await expect(page).toHaveURL(/tab=friends/);
   await expect(page).toHaveURL(/list=suggestions/);
@@ -214,17 +172,15 @@ test('popup soạn bài: công cụ một hàng, nút Hủy / Đăng ở hàng d
   expect(widths[0]).toBeGreaterThan(150);
 });
 
-test('popup theo dõi không giật khi mở: nền tối phủ đúng màn hình ngay từ frame đầu', async ({ page }) => {
+test('popup soạn bài không giật khi mở: nền tối phủ đúng màn hình ngay từ frame đầu', async ({ page }) => {
   await setup(page);
-  await page.goto(`/feed?author=${poster}`);
-  const open = page.getByRole('button', { name: /Xem người theo dõi/ });
-  await open.waitFor();
-  await open.click();
+  await page.goto('/feed?sport=all');
+  await page.getByRole('region', { name: 'Đăng bài mới' }).getByRole('button', { name: 'Bài viết' }).click();
   // Do nhieu frame lien tiep trong luc hieu ung con chay.
   const frames = await page.evaluate(() => new Promise<number[][]>(resolve => {
     const rects: number[][] = [];
     const tick = () => {
-      const backdrop = document.querySelector('app-follow-list-dialog .modal-backdrop');
+      const backdrop = document.querySelector('app-composer-dialog .modal-backdrop');
       if (backdrop) {
         const r = backdrop.getBoundingClientRect();
         rects.push([Math.round(r.top), Math.round(r.height)]);

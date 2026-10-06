@@ -23,11 +23,19 @@
 
     <div class="post__tools">
       @if (post.sport) { <span class="badge badge--sport">{{ sportLabel(post.sport) }}</span> }
-      @if (!isOwn && !store.isFollowing(post.authorId)) {
-        <button type="button" class="btn btn--ghost post__follow" [disabled]="store.pendingFollowIds().has(post.authorId)"
-          (click)="toggleFollow()">
-          <lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon>Theo dõi
-        </button>
+      @switch (store.relation(post.authorId)) {
+        @case ('NONE') {
+          <button type="button" class="btn btn--ghost post__follow" [disabled]="store.pendingFriendIds().has(post.authorId)"
+            (click)="store.addFriend(post.authorId)">
+            <lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon>Kết bạn
+          </button>
+        }
+        @case ('RECEIVED') {
+          <button type="button" class="btn btn--ghost post__follow" [disabled]="store.pendingFriendIds().has(post.authorId)"
+            (click)="store.addFriend(post.authorId)">
+            <lucide-icon name="user-check" class="w-4 h-4"></lucide-icon>Chấp nhận kết bạn
+          </button>
+        }
       }
       <button type="button" class="icon-btn" [matMenuTriggerFor]="postMenu" aria-label="Tác vụ bài viết">
         <lucide-icon name="ellipsis" class="w-5 h-5"></lucide-icon>
@@ -44,11 +52,6 @@
             <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon>Xóa bài viết
           </button>
         } @else {
-          @if (store.isFollowing(post.authorId)) {
-            <button mat-menu-item type="button" (click)="toggleFollow()">
-              <lucide-icon name="user-minus" class="w-4 h-4"></lucide-icon>Bỏ theo dõi {{ store.authorName(post.authorId) }}
-            </button>
-          }
           <button mat-menu-item type="button" (click)="openReport('POST', post.postId)">
             <lucide-icon name="flag" class="w-4 h-4"></lucide-icon>Báo cáo bài viết
           </button>

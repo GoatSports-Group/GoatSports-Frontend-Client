@@ -69,18 +69,12 @@
             <img class="avatar" [src]="store.avatar(viewedId)" alt="" width="64" height="64" />
             <div class="author-card__who">
               <strong>{{ store.authorName(viewedId) }}</strong>
-              <span>{{ isMyAuthorView() ? 'Trang cá nhân của bạn: bài viết và kèo bạn đã đăng' : 'Bài viết bạn được phép xem' }}</span>
+              <span>
+                {{ isMyAuthorView() ? 'Trang cá nhân của bạn: bài viết và kèo bạn đã đăng' : 'Bài viết bạn được phép xem' }}@if (authorPostCount() !== null) { · {{ authorPostCount() }} bài viết }
+              </span>
             </div>
-            @if (!isMyAuthorView()) {
-              <button type="button" class="btn" [class.btn--primary]="!store.isFollowing(viewedId)"
-                [class.btn--secondary]="store.isFollowing(viewedId)" [disabled]="store.pendingFollowIds().has(viewedId)"
-                (click)="toggleAuthorFollow()">
-                <lucide-icon [name]="store.isFollowing(viewedId) ? 'user-check' : 'user-plus'" class="w-4 h-4"></lucide-icon>
-                {{ store.isFollowing(viewedId) ? 'Đang theo dõi' : 'Theo dõi' }}
-              </button>
-            }
+            <ng-container [ngTemplateOutlet]="friendButton" [ngTemplateOutletContext]="{ $implicit: viewedId }"></ng-container>
           </div>
-          <ng-container [ngTemplateOutlet]="statStrip" [ngTemplateOutletContext]="{ $implicit: authorStats() }"></ng-container>
         </section>
       }
 
@@ -120,7 +114,7 @@
       } @else if (!posts().length) {
         <div class="state">
           <span class="state__icon">
-            <lucide-icon [name]="tab() === 'saved' && !authorId() ? 'bookmark' : tab() === 'following' && !authorId() ? 'user-plus' : tab() === 'calls' ? 'megaphone' : 'inbox'" class="w-6 h-6"></lucide-icon>
+            <lucide-icon [name]="tab() === 'saved' && !authorId() ? 'bookmark' : tab() === 'calls' ? 'megaphone' : 'inbox'" class="w-6 h-6"></lucide-icon>
           </span>
           @if (authorId()) {
             <strong>{{ isMyAuthorView() ? 'Bạn chưa đăng bài nào' : 'Chưa có bài viết để hiển thị' }}</strong>
@@ -138,11 +132,6 @@
               @case ('calls') {
                 <strong>Chưa có kèo nào đang tìm người</strong>
                 <p>Kèo đang thiếu người? Bấm “Tìm người chơi” ở ô phía trên. Ai quan tâm sẽ nhắn tin cho bạn.</p>
-              }
-              @case ('following') {
-                <strong>Bảng tin theo dõi đang trống</strong>
-                <p>Bài của những người chơi bạn theo dõi sẽ xuất hiện ở đây. Theo dõi vài người ở mục gợi ý nhé.</p>
-                <button type="button" class="btn btn--secondary" (click)="selectTab('explore')">Sang Khám phá</button>
               }
               @case ('saved') {
                 <strong>Chưa lưu bài nào</strong>
@@ -206,7 +195,7 @@
 
       <section class="card rail-card">
         <header class="card__head">
-          <h3>Gợi ý theo dõi</h3>
+          <h3>Gợi ý kết bạn</h3>
           <button type="button" class="btn btn--ghost" (click)="showAllSuggestions()">Xem tất cả</button>
         </header>
         @if (suggestions().loading) {
@@ -226,10 +215,12 @@
                     <small [title]="person.reason || ''">{{ person.reason || person.postCount + ' bài trong 30 ngày' }}</small>
                   </span>
                 </a>
-                <button type="button" class="icon-btn" [class.is-on]="store.isFollowing(person.authorId)"
-                  [disabled]="store.pendingFollowIds().has(person.authorId)" (click)="followSuggestion(person.authorId)"
-                  [attr.aria-label]="(store.isFollowing(person.authorId) ? 'Bỏ theo dõi ' : 'Theo dõi ') + store.authorName(person.authorId)">
-                  <lucide-icon [name]="store.isFollowing(person.authorId) ? 'user-check' : 'user-plus'" class="w-5 h-5"></lucide-icon>
+                @let relation = store.relation(person.authorId);
+                <button type="button" class="icon-btn" [class.is-on]="relation === 'FRIEND' || relation === 'SENT'"
+                  [disabled]="relation === 'FRIEND' || relation === 'SENT' || store.pendingFriendIds().has(person.authorId)"
+                  (click)="store.addFriend(person.authorId)"
+                  [attr.aria-label]="(relation === 'FRIEND' ? 'Đã là bạn bè với ' : relation === 'SENT' ? 'Đã gửi lời mời tới ' : relation === 'RECEIVED' ? 'Chấp nhận lời mời của ' : 'Kết bạn với ') + store.authorName(person.authorId)">
+                  <lucide-icon [name]="relation === 'FRIEND' || relation === 'SENT' ? 'user-check' : 'user-plus'" class="w-5 h-5"></lucide-icon>
                 </button>
               </li>
             }
@@ -247,13 +238,6 @@
 
     </aside>
   </div>
-  <!-- Popup nam TRONG <main>, khong phai con truc tiep cua trang: hieu ung "troi len" cua trang (translate) ap cho
-       con truc tiep va se bien no thanh khung chua cua position: fixed, lam nen va popup nhay khi vua mo. -->
-  @if (followList(); as list) {
-    <app-follow-list-dialog [userId]="list.userId" [initialTab]="list.tab"
-      [followerCount]="authorStats().data?.followerCount ?? null" [followingCount]="authorStats().data?.followingCount ?? null"
-      (closed)="followList.set(null)"></app-follow-list-dialog>
-  }
 </main>
 
 <!-- Phan rieng cua nguoi dang nhap: ho so cong dong, mon cua ban, keo cua toi. -->
@@ -330,21 +314,26 @@
   </ul>
 </ng-template>
 
-<!-- Bam "Nguoi theo doi" / "Dang theo doi" (ca o) mo popup danh sach hai tab. -->
-<ng-template #statStrip let-section>
-  <dl class="stats" [attr.aria-busy]="section.loading">
-    <div><dt>Bài viết</dt><dd>{{ section.data ? compactCount(section.data.postCount) : '–' }}</dd></div>
-    <div class="stats__open">
-      <dt><button type="button" (click)="followList.set({ userId: authorId()!, tab: 'followers' })"
-        [attr.aria-label]="'Xem người theo dõi (' + (section.data?.followerCount ?? 0) + ')'">Người theo dõi</button></dt>
-      <dd>{{ section.data ? compactCount(section.data.followerCount) : '–' }}</dd>
-    </div>
-    <div class="stats__open">
-      <dt><button type="button" (click)="followList.set({ userId: authorId()!, tab: 'following' })"
-        [attr.aria-label]="'Xem đang theo dõi (' + (section.data?.followingCount ?? 0) + ')'">Đang theo dõi</button></dt>
-      <dd>{{ section.data ? compactCount(section.data.followingCount) : '–' }}</dd>
-    </div>
-  </dl>
+<!-- Nut ket ban theo quan he: Ket ban / Chap nhan / Da gui / Ban be; chinh minh va nguoi da chan thi khong co nut. -->
+<ng-template #friendButton let-userId>
+  @switch (store.relation(userId)) {
+    @case ('NONE') {
+      <button type="button" class="btn btn--primary" [disabled]="store.pendingFriendIds().has(userId)" (click)="store.addFriend(userId)">
+        <lucide-icon name="user-plus" class="w-4 h-4"></lucide-icon>Kết bạn
+      </button>
+    }
+    @case ('RECEIVED') {
+      <button type="button" class="btn btn--primary" [disabled]="store.pendingFriendIds().has(userId)" (click)="store.addFriend(userId)">
+        <lucide-icon name="user-check" class="w-4 h-4"></lucide-icon>Chấp nhận
+      </button>
+    }
+    @case ('SENT') {
+      <button type="button" class="btn btn--secondary" disabled><lucide-icon name="send" class="w-4 h-4"></lucide-icon>Đã gửi lời mời</button>
+    }
+    @case ('FRIEND') {
+      <button type="button" class="btn btn--secondary" disabled><lucide-icon name="user-check" class="w-4 h-4"></lucide-icon>Bạn bè</button>
+    }
+  }
 </ng-template>
 
 
@@ -386,7 +375,7 @@
       </div>
     }
     @if (suggestions().data.length) {
-      <h3>Gợi ý theo dõi</h3>
+      <h3>Gợi ý kết bạn</h3>
       <div class="discovery__row">
         @for (person of suggestions().data; track person.authorId) {
           <div class="person-card">
@@ -395,11 +384,7 @@
               <strong>{{ store.authorName(person.authorId) }}</strong>
               <small [title]="person.reason || ''">{{ person.reason || person.postCount + ' bài / 30 ngày' }}</small>
             </a>
-            <button type="button" class="btn" [class.btn--primary]="!store.isFollowing(person.authorId)"
-              [class.btn--secondary]="store.isFollowing(person.authorId)" [disabled]="store.pendingFollowIds().has(person.authorId)"
-              (click)="followSuggestion(person.authorId)">
-              {{ store.isFollowing(person.authorId) ? 'Đang theo dõi' : 'Theo dõi' }}
-            </button>
+            <ng-container [ngTemplateOutlet]="friendButton" [ngTemplateOutletContext]="{ $implicit: person.authorId }"></ng-container>
           </div>
         }
       </div>

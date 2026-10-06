@@ -59,56 +59,6 @@
   gap: 16px;
 }
 
-// Followers / following cells open the follow-list dialog: the whole cell is the button's hit area.
-.stats__open {
-  position: relative;
-  border-radius: 12px;
-  transition: background-color var(--transition-smooth);
-
-  button {
-    padding: 0;
-    border: 0;
-    background: none;
-    color: inherit;
-    font: inherit;
-    letter-spacing: inherit;
-    text-transform: inherit;
-    cursor: pointer;
-
-    &::after {
-      position: absolute;
-      inset: 0;
-      border-radius: 12px;
-      content: '';
-    }
-
-    // The global press effect moves buttons with a transform; a transformed button becomes the containing block
-    // of its ::after, the hit area shrinks to the label and a click released over the number never reaches it.
-    &:active {
-      // Global rule is `translateY(1px) !important`.
-      transform: none !important;
-    }
-
-    &:focus-visible::after {
-      outline: 2px solid var(--primary);
-      outline-offset: -2px;
-    }
-  }
-
-  &:hover {
-    background: var(--surface-subtle);
-
-    dd {
-      color: var(--primary);
-    }
-  }
-
-  // Tactile feedback on the whole cell instead.
-  &:active {
-    background: var(--primary-light);
-  }
-}
-
 // Desktop: an app-like page. The page itself does not scroll; only the middle column's body does,
 // so the rails, tabs and filters stay put (GOAT-DESIGN Community › Layout).
 @media (min-width: 1024px) {
@@ -230,84 +180,6 @@
 
   &:hover strong {
     color: var(--primary);
-  }
-}
-
-// Narrow rail: one row per stat (label left, number right) so labels never truncate.
-.stats {
-  display: grid;
-  margin: 0;
-  padding: 4px 0;
-  border-top: 1px solid var(--hairline);
-
-  div {
-    display: flex;
-    min-height: 40px;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 0 20px;
-  }
-
-  dt {
-    color: var(--body);
-    font-size: 14px;
-    font-weight: 600;
-    white-space: nowrap;
-  }
-
-  dd {
-    margin: 0;
-    color: var(--ink);
-    font-size: 16px;
-    font-variant-numeric: tabular-nums;
-    font-weight: 900;
-  }
-
-  &[aria-busy='true'] dd {
-    width: 36px;
-    border-radius: 6px;
-    background: linear-gradient(90deg, var(--surface-strong), var(--surface-subtle), var(--surface-strong));
-    background-size: 200% 100%;
-    color: transparent;
-    animation: stat-shimmer 1.35s linear infinite;
-  }
-}
-
-// Wide author card: a 3-cell KPI strip (caption label over a numeric value).
-.author-card .stats {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  padding: 0;
-
-  div {
-    display: grid;
-    justify-content: stretch;
-    gap: 2px;
-    padding: 12px 8px;
-    text-align: center;
-
-    +div {
-      box-shadow: -1px 0 0 var(--hairline);
-    }
-  }
-
-  dt {
-    overflow: hidden;
-    color: var(--body);
-    font-size: 12px;
-    font-weight: 800;
-    letter-spacing: .04em;
-    text-overflow: ellipsis;
-    text-transform: uppercase;
-    white-space: nowrap;
-  }
-
-  dd {
-    font-size: 22px;
-  }
-
-  &[aria-busy='true'] dd {
-    justify-self: center;
   }
 }
 
@@ -850,18 +722,6 @@
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
-  }
-}
-
-@keyframes stat-shimmer {
-  to {
-    background-position: -200% 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .stats[aria-busy='true'] dd {
-    animation: none;
   }
 }
 

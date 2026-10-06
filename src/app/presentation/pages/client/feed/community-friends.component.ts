@@ -10,13 +10,11 @@ import { PlayerSummary } from '@application/dto/user/user.dto';
 import { CHAT_REPOSITORY_TOKEN } from '@application/ports/persistence/chat.repository';
 import { FRIEND_REPOSITORY_TOKEN } from '@application/ports/persistence/friend.repository';
 import { SearchPlayersUseCase } from '@application/usecase/user/search-players.usecase';
-import { AuthService } from '@presentation/services/auth.service';
 import { NotifyService } from '@shared/components/notify/notify.service';
 import { CommunityStore } from './community.store';
 import { errorMessage } from './community-view';
 
 export type FriendList = 'friends' | 'suggestions' | 'received' | 'sent' | 'blocked';
-type Relation = 'SELF' | 'FRIEND' | 'SENT' | 'RECEIVED' | 'BLOCKED' | 'NONE';
 type Confirm = { kind: 'unfriend' | 'block'; friendship: Friendship } | { kind: 'recall'; friendship: Friendship };
 
 const LISTS: ReadonlyArray<{ value: FriendList; label: string }> = [
@@ -27,7 +25,7 @@ const LISTS: ReadonlyArray<{ value: FriendList; label: string }> = [
   { value: 'blocked', label: 'Đã chặn' }
 ];
 
-/** Goi y theo doi moi lan tai them. */
+/** Goi y ket ban moi lan tai them. */
 const SUGGESTION_PAGE = 20;
 
 /** Tab "Bạn bè" trong Cộng đồng: tìm người chơi, lời mời, danh sách bạn và danh sách chặn. */
@@ -46,7 +44,6 @@ export class CommunityFriendsComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly notify = inject(NotifyService);
-  private readonly auth = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
   readonly store = inject(CommunityStore);
 
@@ -57,7 +54,7 @@ export class CommunityFriendsComponent implements OnInit {
   readonly pending = signal<ReadonlySet<string>>(new Set());
   readonly confirm = signal<Confirm | null>(null);
 
-  /** Muc "Goi y": ai nen theo doi (da ghep tran, cung CLB, ban chung...), cuon vo han tung trang 20. */
+  /** Muc "Goi y": ai nen ket ban (da ghep tran, cung CLB, ban chung...), cuon vo han tung trang 20. */
   readonly suggestions = signal<FollowSuggestion[]>([]);
   readonly suggestLoading = signal(false);
   readonly suggestError = signal(false);
@@ -115,12 +112,6 @@ export class CommunityFriendsComponent implements OnInit {
     });
   }
 
-  toggleFollowSuggestion(userId: string): void {
-    this.store.toggleFollow(userId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      error: error => this.notify.error(errorMessage(error, 'Không thể cập nhật theo dõi.'))
-    });
-  }
-
   selectList(list: FriendList): void {
     this.confirm.set(null);
     void this.router.navigate([], { queryParams: { list: list === 'friends' ? null : list }, queryParamsHandling: 'merge' });
@@ -137,17 +128,6 @@ export class CommunityFriendsComponent implements OnInit {
 
   clearSearch(): void {
     this.onQuery('');
-  }
-
-  relation(userId: string): Relation {
-    const me = this.auth.currentUser?.userId;
-    if (userId === me) return 'SELF';
-    const connections = this.store.connections();
-    if (connections.blocked.some(item => item.blockedUserId === userId)) return 'BLOCKED';
-    if (connections.friends.some(item => this.store.otherParty(item) === userId)) return 'FRIEND';
-    if (connections.sent.some(item => item.addresseeId === userId)) return 'SENT';
-    if (connections.received.some(item => item.requesterId === userId)) return 'RECEIVED';
-    return 'NONE';
   }
 
   // ---- actions --------------------------------------------------------------------------------

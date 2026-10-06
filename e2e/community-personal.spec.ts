@@ -6,6 +6,8 @@ import { mockGoatSportsApi } from './fixtures/api.fixture';
 const ok = (data: unknown) => ({ json: { statusCode: 200, message: 'OK', data } });
 const me = '11111111-1111-4111-8111-111111111111';
 const poster = '33333333-3333-4333-8333-333333333333';
+// Fixture chung: poster da la ban; stranger chua quen.
+const stranger = '88888888-8888-4888-8888-888888888888';
 
 function day(offset: number): string {
   const value = new Date(Date.now() + offset * 86_400_000);
@@ -46,9 +48,10 @@ async function openCommunity(page: Page, path: string) {
     if (route.request().method() !== 'GET') return route.fallback();
     const params = new URL(route.request().url()).searchParams;
     feed.push(params);
+    // Nhu server: trang ca nhan cua minh co keo cua minh; danh sach keo (khong loc tac gia) bo keo cua minh.
+    if (params.get('authorId') === me) return route.fulfill(ok(page0([myCall])));
     if (params.get('playerCallsOnly') !== 'true') return route.fallback();
-    const mine = params.get('authorId') === me;
-    return route.fulfill(ok(page0(mine ? [myCall] : [myCall, theirCall])));
+    return route.fulfill(ok(page0([theirCall])));
   });
   await page.route(url => url.pathname.endsWith('/follows/users/suggestions'), route => {
     suggestions.push(new URL(route.request().url()).searchParams);
@@ -67,8 +70,9 @@ test('chỉ những gì phục vụ tìm người chơi và chia sẻ; không c�
   await expect(community.getByText('Câu lạc bộ nổi bật')).toHaveCount(0);
 
   const tabs = page.getByRole('navigation', { name: 'Phạm vi bảng tin' });
-  // "Tim nguoi choi" khong con la tab; the ho so khong con 3 dong thong ke (trang ca nhan da co).
-  await expect(tabs.getByRole('button')).toHaveText([/Khám phá/, /Đang theo dõi/, /Đã lưu/, /Bạn bè/]);
+  // "Tim nguoi choi" khong con la tab; Cong dong chi co ket ban, khong co theo doi.
+  await expect(tabs.getByRole('button')).toHaveText([/Khám phá/, /Đã lưu/, /Bạn bè/]);
+  await expect(community.getByText(/theo dõi/i)).toHaveCount(0);
   await expect(page.locator('.profile .stats')).toHaveCount(0);
 });
 
@@ -80,7 +84,9 @@ test('tab Tìm người chơi mở sẵn ở môn của bạn, chỉ kèo còn m
   await expect.poll(() => feed.some(params => params.get('playerCallsOnly') === 'true' && params.get('sports') === 'BADMINTON'
     && !params.get('authorId'))).toBe(true);
   await expect.poll(() => suggestions.some(params => params.get('sports') === 'BADMINTON')).toBe(true);
-  await expect(page.locator('app-player-call')).toHaveCount(2);
+  // Chi keo cua nguoi khac; keo cua minh nam o "Keo cua toi".
+  await expect(page.locator('app-player-call')).toHaveCount(1);
+  await expect(page.locator('.feed__list app-post-card').filter({ hasText: 'Sân Chảo Lửa' })).toHaveCount(0);
 
   if (!testInfo.project.name.startsWith('mobile')) {
     const rail = page.locator('.rail--left');
@@ -123,7 +129,8 @@ test('soạn kèo / bài viết và chỉnh sửa bài đều mở trong hộp t
     await dialog.getByRole('button', { name: 'Đóng' }).click();
   }
 
-  // Chinh sua kèo cua minh: hop thoai, form dien san.
+  // Chinh sua kèo cua minh (o trang ca nhan, danh sach keo khong co keo cua minh): hop thoai, form dien san.
+  await page.goto(`/feed?author=${me}`);
   const mine = page.locator('app-post-card').filter({ hasText: 'Sân Chảo Lửa' });
   await mine.getByRole('button', { name: 'Tác vụ bài viết' }).click();
   await page.getByRole('menuitem', { name: 'Chỉnh sửa bài viết' }).click();
@@ -132,9 +139,10 @@ test('soạn kèo / bài viết và chỉnh sửa bài đều mở trong hộp t
   await expect(edit.getByRole('button', { name: 'Lưu thay đổi' })).toBeVisible();
 });
 
-test('Đang theo dõi chỉ xin bài của người mình theo dõi, bài mới của mình không chen vào', async ({ page }) => {
+test('link cũ "Đang theo dõi" mở Khám phá, không còn bảng tin theo dõi', async ({ page }) => {
   const { feed } = await openCommunity(page, '/feed?tab=following');
-  await expect.poll(() => feed.some(params => params.get('followingOnly') === 'true' && !params.get('withFriends'))).toBe(true);
+  await expect.poll(() => feed.length).toBeGreaterThan(0);
+  expect(feed.some(params => params.get('followingOnly') === 'true')).toBe(false);
 });
 
 test('Khám phá: thẻ "Kèo hợp với bạn" chỉ có kèo của người khác', async ({ page }, testInfo) => {
@@ -154,17 +162,24 @@ test('link cũ "Bài của tôi" chuyển sang trang cá nhân', async ({ page }
   await expect(page.getByRole('button', { name: 'Toàn bộ bảng tin' })).toBeVisible();
 });
 
-test('gợi ý theo dõi hiện lý do: đã ghép trận, cùng CLB, bạn chung', async ({ page }, testInfo) => {
+test('gợi ý kết bạn hiện lý do; bấm thì gửi lời mời kết bạn', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name.startsWith('mobile'), 'Cột phải ẩn dưới 1024px.');
   await openCommunity(page, '/feed');
   await page.route(url => url.pathname.endsWith('/follows/users/suggestions'), route => route.fulfill(ok([
-    { authorId: poster, postCount: 0, reason: 'Đã ghép trận với bạn · 1 bạn chung' }
+    { authorId: stranger, postCount: 0, reason: 'Đã ghép trận với bạn · 1 bạn chung' }
   ])));
   await page.reload();
-  const card = page.locator('.rail--right .rail-card').filter({ hasText: 'Gợi ý theo dõi' });
+  const requests: unknown[] = [];
+  await page.route(url => url.pathname.endsWith('/social/friends/requests'), route => {
+    requests.push(route.request().postDataJSON());
+    return route.fulfill(ok({ friendshipId: 'f1', requesterId: me, addresseeId: stranger, status: 'PENDING', requestedAt: '' }));
+  });
+  const card = page.locator('.rail--right .rail-card').filter({ hasText: 'Gợi ý kết bạn' });
   await expect(card.locator('.people li')).toHaveCount(1);
   await expect(card).toContainText('Đã ghép trận với bạn · 1 bạn chung');
   await expect(card).not.toContainText('bài trong 30 ngày');
+  await card.getByRole('button', { name: /^Kết bạn với/ }).click();
+  await expect.poll(() => requests).toEqual([{ requesterId: me, addresseeId: stranger }]);
 });
 
 test('chủ đề nổi bật theo môn đang lọc, đếm theo số người; trống thì ẩn thẻ', async ({ page }, testInfo) => {
