@@ -16,7 +16,8 @@
     gap: 24px;
     width: min(100%, 1480px);
     margin-inline: auto;
-    padding: var(--page-block-start) 0 var(--page-block-end);
+    // Le ngang chuan (§7 Container): truoc day bang 0 nen noi dung cham sat mep man hinh.
+    padding: var(--page-block-start) clamp(16px, 2vw, 28px) var(--page-block-end);
   }
 
   .account-layout--single {

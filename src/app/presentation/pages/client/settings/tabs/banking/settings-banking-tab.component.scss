@@ -1,6 +1,7 @@
 @use '../../settings-ui' as ui;
 
 @include ui.settings-ui;
+@include ui.modal-ui;
 
 .stack {
   display: grid;
@@ -58,44 +59,28 @@
   }
 }
 
-.link-form {
+// Popup lien ket: ngan hang mot hang, so tai khoan + ten chu tai khoan hai cot (xep doc duoi 520px).
+.link-fields {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
-  padding: 20px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
 
-  .field__hint {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-
-    lucide-icon {
-      flex: none;
-      color: var(--primary);
-    }
+  .form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-}
 
-.link-form__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-
-  h3 {
+  .note {
     margin: 0;
-    color: var(--text-dark);
-    font-size: 18px;
-    font-weight: 800;
   }
 }
 
-.link-form__actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border-color);
+@media (max-width: 520px) {
+  .link-fields .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .continue-btn {
@@ -108,7 +93,19 @@
   h3 { margin: 0; color: var(--ink); font-size: 16px; font-weight: 800; }
   p { margin: 4px 0 0; color: var(--body); font-size: 13px; }
 }
-.refunds__list { display: grid; margin: 0; padding: 0; list-style: none; }
+// Luong doc trong mot muc cua trang: cuon trong khung rieng, mep duoi mo dan (GOAT-DESIGN §6 Infinite scroll).
+.refunds__list {
+  display: grid;
+  max-height: 440px;
+  grid-auto-rows: max-content;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
+  padding-bottom: 20px;
+}
 .refund {
   display: grid;
   grid-template-columns: 36px minmax(0, 1fr) auto;

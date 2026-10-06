@@ -4,7 +4,7 @@
       <h2 id="banking-tab-title">Ngân hàng &amp; hoàn tiền</h2>
       <p>Tài khoản nhận hoàn tiền đặt sân và doanh thu khi bạn là chủ sân.</p>
     </div>
-    @if (!showForm() && !loading()) {
+    @if (!loading()) {
       <button type="button" class="btn btn--primary" (click)="showForm.set(true)">
         <lucide-icon name="plus" class="w-4 h-4"></lucide-icon>Liên kết tài khoản
       </button>
@@ -66,7 +66,7 @@
           </div>
         }
       </div>
-    } @else if (!showForm()) {
+    } @else {
       <div class="state">
         <span class="state__icon"><lucide-icon name="credit-card" class="w-6 h-6"></lucide-icon></span>
         <strong>Chưa có tài khoản nhận tiền</strong>
@@ -75,52 +75,13 @@
       </div>
     }
 
-    @if (showForm()) {
-      <form class="panel link-form" (ngSubmit)="submit()">
-        <header class="link-form__head">
-          <h3>Liên kết tài khoản mới</h3>
-          <button type="button" class="icon-btn" aria-label="Đóng" [disabled]="saving()" (click)="showForm.set(false)">
-            <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
-          </button>
-        </header>
-        <div class="form-grid form-grid--3">
-          <div class="field">
-            <span class="field__label">Ngân hàng <b>*</b></span>
-            <app-select name="bankBin" [options]="bankOptions()" [(ngModel)]="bankBin" [searchable]="true"
-              leadingIcon="building-2" placeholder="Chọn ngân hàng" searchPlaceholder="Tìm ngân hàng..."
-              ariaLabel="Ngân hàng"></app-select>
-          </div>
-          <label class="field">
-            <span class="field__label">Số tài khoản <b>*</b></span>
-            <input id="account-number" class="field__control" name="accountNumber" inputmode="numeric" maxlength="19"
-              autocomplete="off" placeholder="Nhập số tài khoản" [(ngModel)]="accountNumber" />
-          </label>
-          <label class="field">
-            <span class="field__label">Tên chủ tài khoản <b>*</b></span>
-            <input id="account-name" class="field__control" name="accountName" maxlength="255" autocomplete="off"
-              placeholder="NGUYEN VAN A" [(ngModel)]="accountName" />
-          </label>
-        </div>
-        <p class="field__hint">
-          <lucide-icon name="info" class="w-4 h-4"></lucide-icon>
-          Không trừ tiền khi liên kết. payOS kiểm tra tài khoản ở lần chuyển tiền đầu tiên.
-        </p>
-        <footer class="link-form__actions">
-          <button type="button" class="btn btn--secondary" [disabled]="saving()" (click)="showForm.set(false)">Để sau</button>
-          <button type="submit" class="btn btn--primary" [disabled]="saving()" [attr.aria-busy]="saving()">
-            @if (saving()) { <lucide-icon name="loader-2" class="w-4 h-4 animate-spin"></lucide-icon> }
-            {{ saving() ? 'Đang liên kết...' : 'Xác nhận liên kết' }}
-          </button>
-        </footer>
-      </form>
-    }
-
     @if (!loading() && refunds().length) {
       <section class="panel refunds" aria-labelledby="refunds-title">
         <header class="refunds__head">
           <h3 id="refunds-title">Khoản hoàn tiền</h3>
           <p>Tiền hoàn chuyển về tài khoản mặc định ở trên. Lần chuyển lỗi có thể thử lại.</p>
         </header>
+        <!-- Cuon trong khung rieng (toi da 440px), khong keo dai trang; render dan LIST_CHUNK dong khi cham day khung. -->
         <ul class="refunds__list">
           @for (refund of refunds() | slice:0:refundsShown(); track refund.refundId) {
           <li class="refund">
@@ -144,10 +105,10 @@
             </div>
           </li>
           }
+          @if (refunds().length > refundsShown()) {
+          <li class="list-sentinel" appInfiniteScroll (reached)="refundsShown.update(count => count + listChunk)" aria-hidden="true"></li>
+          }
         </ul>
-        @if (refunds().length > refundsShown()) {
-        <div class="list-sentinel" appInfiniteScroll (reached)="refundsShown.update(count => count + listChunk)" aria-hidden="true"></div>
-        }
       </section>
     }
 
@@ -158,3 +119,53 @@
     }
   </div>
 </section>
+
+@if (showForm()) {
+  <div class="modal-backdrop" role="presentation" (click)="closeForm()">
+    <form class="modal" appAccessibleDialog aria-labelledby="link-bank-title" (dialogClosed)="closeForm()"
+      (click)="$event.stopPropagation()" (ngSubmit)="submit()">
+      <header class="modal__header">
+        <div>
+          <h2 id="link-bank-title">Liên kết tài khoản ngân hàng</h2>
+          <p>Tài khoản nhận hoàn tiền đặt sân và doanh thu khi bạn là chủ sân.</p>
+        </div>
+        <button type="button" class="icon-btn" aria-label="Đóng" [disabled]="saving()" (click)="closeForm()">
+          <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+        </button>
+      </header>
+      <div class="modal__body">
+        <fieldset class="link-fields" [disabled]="saving()">
+          <div class="field">
+            <span class="field__label">Ngân hàng <b>*</b></span>
+            <app-select name="bankBin" [options]="bankOptions()" [(ngModel)]="bankBin" [searchable]="true"
+              leadingIcon="building-2" placeholder="Chọn ngân hàng" searchPlaceholder="Tìm ngân hàng..."
+              ariaLabel="Ngân hàng"></app-select>
+          </div>
+          <div class="form-grid">
+            <label class="field">
+              <span class="field__label">Số tài khoản <b>*</b></span>
+              <input id="account-number" class="field__control" name="accountNumber" inputmode="numeric" maxlength="19"
+                autocomplete="off" placeholder="Nhập số tài khoản" [(ngModel)]="accountNumber" />
+            </label>
+            <label class="field">
+              <span class="field__label">Tên chủ tài khoản <b>*</b></span>
+              <input id="account-name" class="field__control" name="accountName" maxlength="255" autocomplete="off"
+                placeholder="NGUYEN VAN A" [(ngModel)]="accountName" />
+            </label>
+          </div>
+          <p class="note">
+            <lucide-icon name="info" class="w-4 h-4"></lucide-icon>
+            <span>Không trừ tiền khi liên kết. payOS kiểm tra tài khoản ở lần chuyển tiền đầu tiên. Số tài khoản được mã hóa, chỉ hiện 4 số cuối.</span>
+          </p>
+        </fieldset>
+      </div>
+      <footer class="modal__footer">
+        <button type="button" class="btn btn--secondary" [disabled]="saving()" (click)="closeForm()">Để sau</button>
+        <button type="submit" class="btn btn--primary" [disabled]="saving()" [attr.aria-busy]="saving()">
+          @if (saving()) { <lucide-icon name="loader-2" class="w-4 h-4 animate-spin"></lucide-icon> }
+          {{ saving() ? 'Đang liên kết...' : 'Xác nhận liên kết' }}
+        </button>
+      </footer>
+    </form>
+  </div>
+}

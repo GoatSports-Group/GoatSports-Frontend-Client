@@ -632,125 +632,6 @@
   }
 }
 
-// Custom Menu Styling
-::ng-deep .custom-menu {
-  background-color: var(--bg-card) !important;
-  border-radius: var(--border-radius) !important;
-  box-shadow: var(--shadow-lg) !important;
-  border: 1px solid var(--border-color) !important;
-  padding: 0 0 !important;
-  min-width: 240px !important;
-  max-width: 280px !important;
-  overflow: hidden !important;
-
-  .mat-mdc-menu-content {
-    padding: 0 !important;
-    overflow-x: hidden !important;
-  }
-
-  .menu-header {
-    padding: 1rem !important;
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-    max-width: 100% !important;
-    overflow: hidden !important;
-
-    .menu-header-info {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.5rem;
-      max-width: 100% !important;
-      overflow: hidden !important;
-    }
-
-    .menu-name {
-      margin: 0;
-      font-weight: 700;
-      font-family: var(--font-heading);
-      color: var(--text-dark) !important;
-      font-size: 0.95rem;
-      letter-spacing: -0.2px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 160px;
-    }
-
-    .menu-email {
-      margin: 0;
-      font-size: 0.8rem;
-      color: var(--text-muted) !important;
-      font-family: var(--font-body);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 100%;
-    }
-
-    .menu-role-badge {
-      display: inline-block;
-      align-self: flex-start;
-      flex-shrink: 0;
-      background-color: var(--primary-light) !important;
-      color: var(--primary) !important;
-      font-size: 0.7rem;
-      font-weight: 750;
-      padding: 0.2rem 0.6rem;
-      border-radius: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-      border: 1px solid var(--primary) !important;
-    }
-  }
-
-  .mat-mdc-menu-item {
-    font-family: var(--font-body) !important;
-    font-weight: 600 !important;
-    font-size: 0.88rem !important;
-    color: var(--text-dark) !important;
-    height: 44px !important;
-    padding: 1rem !important;
-    transition: var(--transition-smooth) !important;
-
-    &:hover {
-      background-color: var(--primary-light) !important;
-      color: var(--primary) !important;
-    }
-
-    mat-icon {
-      margin-right: 0.75rem !important;
-      color: var(--text-muted) !important;
-      font-size: 20px !important;
-      width: 20px !important;
-      height: 20px !important;
-    }
-
-    &:hover mat-icon {
-      color: var(--primary) !important;
-    }
-
-    &.logout-btn-menu {
-      color: var(--danger) !important;
-
-      mat-icon {
-        color: var(--danger) !important;
-      }
-
-      &:hover {
-        background-color: rgba(239, 68, 68, 0.08) !important;
-        color: var(--danger) !important;
-      }
-    }
-  }
-
-  mat-divider {
-    border-top-color: var(--border-color) !important;
-  }
-}
-
 // Notification Dropdown Component (matches goat-sports-admin)
 .notif-dropdown-container {
   position: relative;
@@ -1119,11 +1000,6 @@
   }
 }
 
-::ng-deep .custom-menu {
-  border-radius: var(--border-radius) !important;
-  box-shadow: var(--shadow-lg) !important;
-}
-
 @media (max-width: 680px) {
 
   .main-header,
@@ -1144,3 +1020,144 @@
   }
 }
 
+// ---- Menu tai khoan (GOAT-DESIGN §7 Consumer shell › Account menu) ------------------------------------------------
+// 300px, radius 16, shadow-lg. Dau menu la mot dong lien ket toi trang ca nhan; ba nhom co nhan 12px uppercase.
+::ng-deep .mat-mdc-menu-panel.account-menu {
+  width: 300px;
+  max-width: calc(100vw - 24px);
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+
+  .mat-mdc-menu-content {
+    padding: 6px;
+  }
+
+  .mat-mdc-menu-item {
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: 10px;
+    color: var(--ink);
+
+    .mat-mdc-menu-item-text {
+      display: flex;
+      width: 100%;
+      min-width: 0;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    lucide-icon {
+      flex: none;
+      color: var(--body);
+    }
+
+    span {
+      min-width: 0;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    &:hover,
+    &.cdk-keyboard-focused {
+      background: var(--surface-subtle);
+      color: var(--primary);
+
+      lucide-icon {
+        color: var(--primary);
+      }
+    }
+  }
+
+  .account-menu__profile {
+    min-height: 64px;
+    margin-bottom: 2px;
+
+    img {
+      width: 44px;
+      height: 44px;
+      flex: none;
+      border-radius: 9999px;
+      object-fit: cover;
+    }
+  }
+
+  .account-menu__who {
+    display: grid;
+    gap: 2px;
+
+    strong {
+      overflow: hidden;
+      color: var(--ink);
+      font-size: 15px;
+      font-weight: 800;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    small {
+      color: var(--primary);
+      font-size: 13px;
+      font-weight: 700;
+    }
+  }
+
+  .account-menu__role {
+    flex: none !important;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: var(--primary-light);
+    color: var(--primary-strong);
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .account-menu__label {
+    margin: 0;
+    padding: 12px 12px 4px;
+    border-top: 1px solid var(--hairline);
+    color: var(--body);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+
+  .account-menu__count {
+    display: grid;
+    min-width: 22px;
+    height: 22px;
+    flex: none;
+    place-items: center;
+    padding: 0 6px;
+    border-radius: 9999px;
+    background: var(--primary-light);
+    color: var(--primary-strong);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 800;
+  }
+
+  .account-menu__logout {
+    margin-top: 4px;
+    color: var(--danger);
+
+    lucide-icon {
+      color: var(--danger);
+    }
+
+    &:hover {
+      background: var(--danger-soft);
+      color: var(--danger);
+
+      lucide-icon {
+        color: var(--danger);
+      }
+    }
+  }
+}

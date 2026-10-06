@@ -115,7 +115,8 @@
 
       <!-- User Menu -->
       @if (authService.isAuthenticated$ | async) {
-      <button type="button" [matMenuTriggerFor]="userMenu" class="user-avatar-btn" aria-label="Mở menu tài khoản">
+      <button type="button" [matMenuTriggerFor]="userMenu" class="user-avatar-btn" aria-label="Mở menu tài khoản"
+        (menuOpened)="loadUpcomingCount()">
         <img [src]="fallbackAvatar" [alt]="authService.currentUser?.fullName || 'User Avatar'" class="user-avatar"
           (error)="onAvatarImgError($event)">
         <span class="user-trigger-copy">
@@ -124,43 +125,61 @@
         </span>
         <lucide-icon name="chevron-down" class="w-4 h-4"></lucide-icon>
       </button>
-      <mat-menu #userMenu="matMenu" xPosition="before" class="custom-menu">
-        <div class="menu-header">
-          <div class="menu-header-info">
-            <p class="menu-name">{{ authService.currentUser?.fullName }}</p>
-            <span class="menu-role-badge">{{ getRoleLabel(authService.currentUser?.role?.name) }}</span>
-          </div>
-          <p class="menu-email">{{ authService.currentUser?.email }}</p>
-        </div>
-        <mat-divider></mat-divider>
-        <button type="button" mat-menu-item routerLink="/booking/history">
-          <lucide-icon name="history" class="w-4 h-4 mr-2"></lucide-icon>
-          <span>Vé đặt sân của tôi</span>
-        </button>
-        <button type="button" mat-menu-item routerLink="/venues/saved">
-          <lucide-icon name="heart" class="w-4 h-4 mr-2"></lucide-icon>
-          <span>Sân đã lưu</span>
-        </button>
+      <!-- Menu tai khoan: nhom "Cua toi" (trang cua rieng nguoi choi), "Quan ly" (chu san / admin), "Tai khoan". -->
+      <mat-menu #userMenu="matMenu" xPosition="before" class="account-menu">
+        <a mat-menu-item class="account-menu__profile" [routerLink]="['/feed']" [queryParams]="{ author: authService.currentUser?.userId }">
+          <img [src]="fallbackAvatar" alt="" width="44" height="44" (error)="onAvatarImgError($event)" />
+          <span class="account-menu__who">
+            <strong>{{ authService.currentUser?.fullName || authService.currentUser?.username }}</strong>
+            <small>Xem trang cá nhân</small>
+          </span>
+          @if (roleBadge(authService.currentUser?.role?.name); as badge) {
+            <span class="account-menu__role">{{ badge }}</span>
+          }
+        </a>
+
+        <p class="account-menu__label" aria-hidden="true">Của tôi</p>
+        <a mat-menu-item routerLink="/booking/history">
+          <lucide-icon name="ticket" class="w-5 h-5"></lucide-icon><span>Vé đặt sân của tôi</span>
+          @if (upcomingCount()) {
+            <b class="account-menu__count" [attr.aria-label]="upcomingCount() + ' lượt sắp diễn ra'">{{ upcomingCount() }}</b>
+          }
+        </a>
+        <a mat-menu-item routerLink="/venues/saved">
+          <lucide-icon name="heart" class="w-5 h-5"></lucide-icon><span>Sân đã lưu</span>
+        </a>
+        <a mat-menu-item routerLink="/clubs/my">
+          <lucide-icon name="shield" class="w-5 h-5"></lucide-icon><span>CLB của tôi</span>
+        </a>
+        <a mat-menu-item routerLink="/tournaments" [queryParams]="{ tab: 'joined' }">
+          <lucide-icon name="trophy" class="w-5 h-5"></lucide-icon><span>Giải đấu của tôi</span>
+        </a>
+        <a mat-menu-item routerLink="/settings" [queryParams]="{ tab: 'sports' }">
+          <lucide-icon name="activity" class="w-5 h-5"></lucide-icon><span>Hồ sơ thể thao & ELO</span>
+        </a>
+
         @if (authService.currentUser?.role?.name === 'VENUE_OWNER' || authService.currentUser?.role?.name === 'ADMIN') {
-        <a mat-menu-item [href]="adminUrl + '/admin/dashboard'">
-          <lucide-icon name="layout-dashboard" class="w-4 h-4 mr-2 text-emerald-600"></lucide-icon>
-          <span>Bảng điều khiển {{ authService.currentUser?.role?.name === 'VENUE_OWNER' ? 'Chủ Sân' : 'Quản Trị'
-            }}</span>
-        </a>
+          <p class="account-menu__label" aria-hidden="true">Quản lý</p>
+          <a mat-menu-item [href]="adminUrl + '/admin/dashboard'">
+            <lucide-icon name="layout-dashboard" class="w-5 h-5"></lucide-icon>
+            <span>{{ authService.currentUser?.role?.name === 'VENUE_OWNER' ? 'Bảng điều khiển chủ sân' : 'Bảng điều khiển' }}</span>
+          </a>
+          @if (authService.currentUser?.role?.name === 'ADMIN') {
+            <a mat-menu-item [href]="adminUrl + '/admin'">
+              <lucide-icon name="shield-check" class="w-5 h-5"></lucide-icon><span>Quản trị hệ thống</span>
+            </a>
+          }
         }
-        @if (authService.currentUser?.role?.name === 'ADMIN') {
-        <a mat-menu-item [href]="adminUrl + '/admin'">
-          <lucide-icon name="shield-check" class="w-4 h-4 mr-2 text-primary"></lucide-icon>
-          <span>Quản trị hệ thống</span>
+
+        <p class="account-menu__label" aria-hidden="true">Tài khoản</p>
+        <a mat-menu-item routerLink="/settings">
+          <lucide-icon name="settings" class="w-5 h-5"></lucide-icon><span>Cài đặt</span>
         </a>
-        }
-        <button type="button" mat-menu-item routerLink="/settings">
-          <lucide-icon name="settings" class="w-4 h-4 mr-2"></lucide-icon>
-          <span>Cài đặt</span>
-        </button>
-        <button type="button" mat-menu-item (click)="logout()" class="logout-btn-menu">
-          <lucide-icon name="log-out" class="w-4 h-4 mr-2"></lucide-icon>
-          <span>Đăng xuất</span>
+        <a mat-menu-item routerLink="/policy/contact-support">
+          <lucide-icon name="help-circle" class="w-5 h-5"></lucide-icon><span>Trợ giúp & chính sách</span>
+        </a>
+        <button type="button" mat-menu-item class="account-menu__logout" (click)="logout()">
+          <lucide-icon name="log-out" class="w-5 h-5"></lucide-icon><span>Đăng xuất</span>
         </button>
       </mat-menu>
       } @else {

@@ -1,4 +1,6 @@
-import { Component, EventEmitter, HostListener, OnInit, Output, inject } from '@angular/core';
+import { BOOKING_REPOSITORY_TOKEN } from '@application/ports/persistence/booking.repository';
+import { BookingStatus } from '@application/dto/booking/booking.dto';
+import { Component, EventEmitter, HostListener, OnInit, Output, inject, signal } from '@angular/core';
 import { PostDialogService } from '@presentation/pages/client/feed/post-dialog.service';
 import { Router } from '@angular/router';
 import { AuthService } from '@presentation/services/auth.service';
@@ -26,6 +28,8 @@ export class HeaderComponent implements OnInit {
   private readonly postDialog = inject(PostDialogService);
   private router = inject(Router);
   private notify = inject(NotifyService);
+  private readonly bookingRepository = inject(BOOKING_REPOSITORY_TOKEN);
+  readonly upcomingCount = signal(0);
 
   @Output() menuToggle = new EventEmitter<void>();
 
@@ -86,17 +90,30 @@ export class HeaderComponent implements OnInit {
 
   getRoleLabel(roleName?: string): string {
     if (!roleName) return 'Khách';
-    const normalized = roleName.toUpperCase();
-    switch (normalized) {
-      case 'ADMIN':
-        return RoleEnum.ADMIN;
-      case 'PLAYER':
-        return RoleEnum.PLAYER;
-      case 'VENUE_OWNER':
-        return RoleEnum.VENUE_OWNER;
+    switch (roleName.toUpperCase()) {
+      case RoleEnum.ADMIN:
+        return 'Quản trị viên';
+      case RoleEnum.PLAYER:
+        return 'Người chơi';
+      case RoleEnum.VENUE_OWNER:
+        return 'Chủ sân';
       default:
         return roleName;
     }
+  }
+
+  /** Nhan vai tro trong menu: an voi nguoi choi (ai cung la nguoi choi), chi hien chu san / quan tri. */
+  roleBadge(roleName?: string): string {
+    const role = roleName?.toUpperCase();
+    return role === RoleEnum.ADMIN || role === RoleEnum.VENUE_OWNER ? this.getRoleLabel(role) : '';
+  }
+
+  /** So luot sap dien ra canh "Ve dat san cua toi", doc moi lan mo menu (truy van size 1, lay meta.total). */
+  loadUpcomingCount(): void {
+    this.bookingRepository.getMyBookingHistory('UPCOMING' as BookingStatus, 0, 1).subscribe({
+      next: response => this.upcomingCount.set(response.data?.meta?.total ?? 0),
+      error: () => this.upcomingCount.set(0)
+    });
   }
 
   onNotificationClick(notification: Notification): void {

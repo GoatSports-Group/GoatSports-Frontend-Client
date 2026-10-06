@@ -52,7 +52,8 @@ export class SettingsBankingTabComponent {
     }).pipe(finalize(() => this.loading.set(false)), takeUntilDestroyed(this.destroyRef)).subscribe({
         next: result => {
           this.banks.set(result.banks); this.accounts.set(result.accounts); this.refunds.set(result.refunds);
-          this.showForm.set(result.accounts.length === 0);
+          // Chi tu mo popup khi den tu luong nhan hoan tien; vao Cai dat binh thuong thi thay trang thai trong + nut.
+          this.showForm.set(this.refundContext && result.accounts.length === 0);
         },
         error: error => this.notify.error(error?.error?.message || 'Không thể tải thông tin ngân hàng.')
       });
@@ -137,5 +138,9 @@ export class SettingsBankingTabComponent {
       switchMap(publicKey => from(this.cryptoService.encryptPayload(payload, publicKey)))
     );
   }
+  closeForm(): void {
+    if (!this.saving()) this.showForm.set(false);
+  }
+
   private resetForm(): void { this.bankBin = ''; this.accountNumber = ''; this.accountName = ''; this.showForm.set(false); }
 }
