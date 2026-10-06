@@ -38,7 +38,6 @@ import { FormFieldComponent } from '@shared/components/ui/form-field/form-field.
 import { SelectComponent } from '@shared/components/ui/select/select.component';
 import { DatePickerComponent } from '@shared/components/ui/date-picker/date-picker.component';
 import { FileUploadComponent } from '@shared/components/file-upload/file-upload.component';
-import { PolicyLayoutComponent } from '@shared/layouts/policy/policy-layout.component';
 import { ScreenLoaderComponent } from '@shared/components/screen-loader/screen-loader.component';
 import { QrCodeComponent } from '@shared/components/qr-code/qr-code.component';
 import { AccessibleDialogDirective } from '@shared/directives/accessible-dialog.directive';
@@ -74,7 +73,6 @@ const COMPONENT_DECLARATIONS = [
   ConfirmDialogComponent,
   SelectComponent,
   FileUploadComponent,
-  PolicyLayoutComponent,
   ScreenLoaderComponent,
   QrCodeComponent,
   AccessibleDialogDirective,

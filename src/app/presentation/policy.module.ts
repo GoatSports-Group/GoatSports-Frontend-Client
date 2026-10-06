@@ -7,13 +7,15 @@ import { BookingPolicyComponent } from '@presentation/pages/policy/booking-polic
 import { CancellationPolicyComponent } from '@presentation/pages/policy/cancellation-policy/cancellation-policy.component';
 import { CourtStandardsComponent } from '@presentation/pages/policy/court-standards/court-standards.component';
 import { ContactSupportComponent } from '@presentation/pages/policy/contact-support/contact-support.component';
+import { PolicyTabsComponent } from '@presentation/pages/policy/policy-tabs.component';
 
 @NgModule({
   declarations: [
     BookingPolicyComponent,
     CancellationPolicyComponent,
     CourtStandardsComponent,
-    ContactSupportComponent
+    ContactSupportComponent,
+    PolicyTabsComponent
   ],
   imports: [
     CommonModule,

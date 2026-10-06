@@ -1,86 +1,84 @@
-<app-policy-layout>
-  <article class="policy-page">
-    <div class="policy-container">
-      <header class="policy-hero">
-        <div class="policy-hero__icon"><lucide-icon name="calendar-x"></lucide-icon></div>
-        <div>
-          <p class="policy-hero__eyebrow">Quyền lợi người chơi</p>
-          <h1>Chính sách đổi và hủy sân</h1>
-          <p class="policy-hero__description">
-            Các mốc thời gian, điều kiện thay đổi lịch và phương thức hoàn tiền được trình bày rõ ràng để bạn chủ động kế hoạch thi đấu.
-          </p>
-        </div>
-      </header>
+<article class="policy-page">
+  <div class="policy-container">
+    <header class="policy-hero">
+      <div>
+        <h1>Chính sách đổi và hủy sân</h1>
+        <p class="policy-hero__description">
+          Các mốc thời gian, điều kiện thay đổi lịch và phương thức hoàn tiền được trình bày rõ ràng để bạn chủ động kế hoạch thi đấu.
+        </p>
+      </div>
+    </header>
 
-      <aside class="policy-alert policy-alert--warning">
-        <lucide-icon name="alert-triangle"></lucide-icon>
-        <p><strong>Lưu ý quan trọng:</strong> Yêu cầu hủy hoặc đổi lịch nên được thực hiện trước ít nhất 6 giờ. Yêu cầu muộn hơn có thể không được hoàn tiền cọc.</p>
-      </aside>
+    <app-policy-tabs></app-policy-tabs>
 
-      <section class="policy-section">
-        <div class="policy-section__heading"><span>01</span><h2>Quy định hủy sân và đổi giờ</h2></div>
-        <div class="policy-grid">
-          <article class="policy-list-card">
-            <h3>Hủy lịch đặt sân</h3>
-            <ul>
-              <li><strong>Trước 6 giờ:</strong> hoàn 100% số tiền đủ điều kiện vào ví tài khoản.</li>
-              <li><strong>Dưới 6 giờ:</strong> có thể tính phí 50% hoặc không hoàn tiền tùy quy định của từng cụm sân.</li>
-            </ul>
-          </article>
-          <article class="policy-list-card">
-            <h3>Thay đổi giờ chơi</h3>
-            <ul>
-              <li>Có thể đổi sang khung giờ còn trống trong 7 ngày tiếp theo và thanh toán phần chênh lệch nếu có.</li>
-              <li>Yêu cầu đổi giờ cần gửi trước giờ chơi tối thiểu 3 giờ.</li>
-            </ul>
-          </article>
-        </div>
-      </section>
+    <aside class="policy-alert policy-alert--warning">
+      <lucide-icon name="alert-triangle"></lucide-icon>
+      <p><strong>Lưu ý quan trọng:</strong> Yêu cầu hủy hoặc đổi lịch nên được thực hiện trước ít nhất 6 giờ. Yêu cầu muộn hơn có thể không được hoàn tiền cọc.</p>
+    </aside>
 
-      <section class="policy-section">
-        <div class="policy-section__heading"><span>02</span><h2>Thay đổi lịch trong 3 bước</h2></div>
-        <div class="policy-steps">
-          <article class="policy-step">
-            <span class="policy-step__number">1</span>
-            <div><h3>Kiểm tra lịch trống</h3><p>Chọn ngày thi đấu mới và kiểm tra những khung giờ hiện còn khả dụng.</p></div>
-          </article>
-          <article class="policy-step">
-            <span class="policy-step__number">2</span>
-            <div><h3>Gửi yêu cầu hỗ trợ</h3><p>Cung cấp mã booking và khung giờ muốn đổi qua hotline hoặc trang <a routerLink="/policy/contact-support">Liên hệ hỗ trợ</a>.</p></div>
-          </article>
-          <article class="policy-step">
-            <span class="policy-step__number">3</span>
-            <div><h3>Nhận lịch cập nhật</h3><p>Đội ngũ GOAT Sports xác minh và cập nhật thông tin đặt sân mới trên hệ thống.</p></div>
-          </article>
-        </div>
-      </section>
+    <section class="policy-section">
+      <div class="policy-section__heading"><span>01</span><h2>Quy định hủy sân và đổi giờ</h2></div>
+      <div class="policy-grid">
+        <article class="policy-list-card">
+          <h3>Hủy lịch đặt sân</h3>
+          <ul>
+            <li><strong>Trước 6 giờ:</strong> hoàn 100% số tiền đủ điều kiện vào ví tài khoản.</li>
+            <li><strong>Dưới 6 giờ:</strong> có thể tính phí 50% hoặc không hoàn tiền tùy quy định của từng cụm sân.</li>
+          </ul>
+        </article>
+        <article class="policy-list-card">
+          <h3>Thay đổi giờ chơi</h3>
+          <ul>
+            <li>Có thể đổi sang khung giờ còn trống trong 7 ngày tiếp theo và thanh toán phần chênh lệch nếu có.</li>
+            <li>Yêu cầu đổi giờ cần gửi trước giờ chơi tối thiểu 3 giờ.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
 
-      <section class="policy-section">
-        <div class="policy-section__heading"><span>03</span><h2>Phương thức hoàn tiền</h2></div>
-        <p class="policy-section__intro">Các yêu cầu hủy đúng điều kiện có thể lựa chọn một trong các hình thức hoàn tiền sau.</p>
-        <div class="policy-grid policy-grid--three">
-          <article class="policy-highlight">
-            <div class="policy-highlight__icon"><lucide-icon name="building-2"></lucide-icon></div>
-            <h3>Chuyển khoản ngân hàng</h3>
-            <p>Hoàn trực tiếp vào tài khoản ngân hàng trong 1–2 ngày làm việc.</p>
-          </article>
-          <article class="policy-highlight">
-            <div class="policy-highlight__icon"><lucide-icon name="wallet"></lucide-icon></div>
-            <h3>Ví điện tử</h3>
-            <p>Hoàn qua ví liên kết với số điện thoại của bạn trong vòng 24 giờ.</p>
-          </article>
-          <article class="policy-highlight">
-            <div class="policy-highlight__icon"><lucide-icon name="coins"></lucide-icon></div>
-            <h3>Ví GOAT Sports</h3>
-            <p>Nhận điểm vào tài khoản để sử dụng ngay cho lần đặt sân tiếp theo.</p>
-          </article>
-        </div>
-      </section>
+    <section class="policy-section">
+      <div class="policy-section__heading"><span>02</span><h2>Thay đổi lịch trong 3 bước</h2></div>
+      <div class="policy-steps">
+        <article class="policy-step">
+          <span class="policy-step__number">1</span>
+          <div><h3>Kiểm tra lịch trống</h3><p>Chọn ngày thi đấu mới và kiểm tra những khung giờ hiện còn khả dụng.</p></div>
+        </article>
+        <article class="policy-step">
+          <span class="policy-step__number">2</span>
+          <div><h3>Gửi yêu cầu hỗ trợ</h3><p>Cung cấp mã booking và khung giờ muốn đổi qua hotline hoặc trang <a routerLink="/policy/contact-support">Liên hệ hỗ trợ</a>.</p></div>
+        </article>
+        <article class="policy-step">
+          <span class="policy-step__number">3</span>
+          <div><h3>Nhận lịch cập nhật</h3><p>Đội ngũ GOAT Sports xác minh và cập nhật thông tin đặt sân mới trên hệ thống.</p></div>
+        </article>
+      </div>
+    </section>
 
-      <aside class="policy-alert">
-        <lucide-icon name="phone"></lucide-icon>
-        <p>Cần hỗ trợ khẩn cấp? Gọi <strong>1900 6868</strong> từ 07:00 đến 22:00 hằng ngày.</p>
-      </aside>
-    </div>
-  </article>
-</app-policy-layout>
+    <section class="policy-section">
+      <div class="policy-section__heading"><span>03</span><h2>Phương thức hoàn tiền</h2></div>
+      <p class="policy-section__intro">Các yêu cầu hủy đúng điều kiện có thể lựa chọn một trong các hình thức hoàn tiền sau.</p>
+      <div class="policy-grid policy-grid--three">
+        <article class="policy-highlight">
+          <div class="policy-highlight__icon"><lucide-icon name="building-2"></lucide-icon></div>
+          <h3>Chuyển khoản ngân hàng</h3>
+          <p>Hoàn trực tiếp vào tài khoản ngân hàng trong 1–2 ngày làm việc.</p>
+        </article>
+        <article class="policy-highlight">
+          <div class="policy-highlight__icon"><lucide-icon name="wallet"></lucide-icon></div>
+          <h3>Ví điện tử</h3>
+          <p>Hoàn qua ví liên kết với số điện thoại của bạn trong vòng 24 giờ.</p>
+        </article>
+        <article class="policy-highlight">
+          <div class="policy-highlight__icon"><lucide-icon name="coins"></lucide-icon></div>
+          <h3>Ví GOAT Sports</h3>
+          <p>Nhận điểm vào tài khoản để sử dụng ngay cho lần đặt sân tiếp theo.</p>
+        </article>
+      </div>
+    </section>
+
+    <aside class="policy-alert">
+      <lucide-icon name="phone"></lucide-icon>
+      <p>Cần hỗ trợ khẩn cấp? Gọi <strong>1900 6868</strong> từ 07:00 đến 22:00 hằng ngày.</p>
+    </aside>
+  </div>
+</article>

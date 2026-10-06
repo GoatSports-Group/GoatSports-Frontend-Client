@@ -20,6 +20,8 @@ import { PAYMENT_REPOSITORY_TOKEN } from '@application/ports/persistence/payment
 import { BANK_ACCOUNT_REPOSITORY_TOKEN } from '@application/ports/persistence/bank-account.repository';
 import { CHAT_REPOSITORY_TOKEN } from '@application/ports/persistence/chat.repository';
 import { FRIEND_REPOSITORY_TOKEN } from '@application/ports/persistence/friend.repository';
+import { SUPPORT_REPOSITORY_TOKEN } from '@application/ports/persistence/support.repository';
+import { SupportRepositoryImpl } from '@infrastructure/repositories/support.repository.impl';
 import { REVIEW_REPOSITORY_TOKEN } from '@application/ports/persistence/review.repository';
 import { PLAYER_SPORT_PROFILE_REPOSITORY_TOKEN } from '@application/ports/persistence/player-sport-profile.repository';
 import { SOCIAL_FEED_REPOSITORY_TOKEN } from '@application/ports/persistence/social-feed.repository';
@@ -257,6 +259,7 @@ import {
     { provide: BANK_ACCOUNT_REPOSITORY_TOKEN, useClass: BankAccountRepositoryImpl },
     { provide: CHAT_REPOSITORY_TOKEN, useClass: ChatRepositoryImpl },
     { provide: FRIEND_REPOSITORY_TOKEN, useClass: FriendRepositoryImpl },
+    { provide: SUPPORT_REPOSITORY_TOKEN, useClass: SupportRepositoryImpl },
     { provide: REVIEW_REPOSITORY_TOKEN, useClass: ReviewRepositoryImpl },
     { provide: PLAYER_SPORT_PROFILE_REPOSITORY_TOKEN, useClass: PlayerSportProfileRepositoryImpl },
     { provide: SOCIAL_FEED_REPOSITORY_TOKEN, useClass: SocialFeedRepositoryImpl },

@@ -72,6 +72,8 @@ const routes: Routes = [
       { path: 'settings', component: SettingsComponent, canActivate: [AuthGuard], title: 'Cài đặt tài khoản | GOAT Sports' },
       { path: 'notifications', component: NotificationsComponent, canActivate: [AuthGuard], title: 'Thông báo | GOAT Sports' },
       { path: 'profile', redirectTo: 'settings', pathMatch: 'full' },
+      // Tro giup & chinh sach: trong layout client nen dung header, footer va le chuan nhu moi trang.
+      { path: 'policy', loadChildren: () => import('../policy.module').then(m => m.PolicyModule) },
       { path: '', redirectTo: 'home', pathMatch: 'full' }
     ]
   }

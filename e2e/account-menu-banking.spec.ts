@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { mockGoatSportsApi } from './fixtures/api.fixture';
 
-// Menu tai khoan chia nhom (Cua toi / Tai khoan), dau menu dan toi trang ca nhan, so luot sap dien ra.
+// Menu tai khoan chia nhom (Hoat dong / Tai khoan), dau menu dan toi trang ca nhan, so luot sap dien ra.
 // Cai dat › Ngan hang: lien ket tai khoan la popup; khoan hoan tien cuon trong khung rieng (vo han).
 const ok = (data: unknown) => ({ json: { data, statusCode: 200, message: null, error: null } });
 
@@ -18,7 +18,7 @@ async function mockBanking(page: Page, refundCount: number) {
   })))));
 }
 
-test('menu tài khoản: trang cá nhân ở đầu, nhóm Của tôi / Tài khoản, số lượt sắp diễn ra', async ({ page }) => {
+test('menu tài khoản: trang cá nhân ở đầu, nhóm Hoạt động / Tài khoản, số lượt sắp diễn ra', async ({ page }) => {
   await mockGoatSportsApi(page);
   await page.route(url => url.pathname.endsWith('/bookings/my-history'), route => {
     const upcoming = new URL(route.request().url()).searchParams.get('status') === 'UPCOMING';
@@ -32,7 +32,7 @@ test('menu tài khoản: trang cá nhân ở đầu, nhóm Của tôi / Tài kho
   await expect(menu.getByRole('menuitem', { name: /Xem trang cá nhân/ })).toHaveAttribute('href', /^\/feed\?author=[0-9a-f-]{36}$/);
   // Nguoi choi thuong khong co nhan vai tro tieng Anh "PLAYER".
   await expect(menu).not.toContainText('PLAYER');
-  await expect(menu.locator('.account-menu__label')).toHaveText(['Của tôi', 'Tài khoản']);
+  await expect(menu.locator('.account-menu__label')).toHaveText(['Hoạt động', 'Tài khoản']);
   await expect(menu.getByRole('menuitem')).toHaveText([
     /Xem trang cá nhân/, /Vé đặt sân của tôi\s*2/, 'Sân đã lưu', 'CLB của tôi', 'Giải đấu của tôi', 'Hồ sơ thể thao & ELO',
     'Cài đặt', 'Trợ giúp & chính sách', 'Đăng xuất'

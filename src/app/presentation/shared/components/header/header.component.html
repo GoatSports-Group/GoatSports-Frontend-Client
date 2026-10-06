@@ -125,7 +125,7 @@
         </span>
         <lucide-icon name="chevron-down" class="w-4 h-4"></lucide-icon>
       </button>
-      <!-- Menu tai khoan: nhom "Cua toi" (trang cua rieng nguoi choi), "Quan ly" (chu san / admin), "Tai khoan". -->
+      <!-- Menu tai khoan: nhom "Hoat dong" (trang cua rieng nguoi choi), "Quan ly" (chu san / admin), "Tai khoan". -->
       <mat-menu #userMenu="matMenu" xPosition="before" class="account-menu">
         <a mat-menu-item class="account-menu__profile" [routerLink]="['/feed']" [queryParams]="{ author: authService.currentUser?.userId }">
           <img [src]="fallbackAvatar" alt="" width="44" height="44" (error)="onAvatarImgError($event)" />
@@ -138,7 +138,7 @@
           }
         </a>
 
-        <p class="account-menu__label" aria-hidden="true">Của tôi</p>
+        <p class="account-menu__label" aria-hidden="true">Hoạt động</p>
         <a mat-menu-item routerLink="/booking/history">
           <lucide-icon name="ticket" class="w-5 h-5"></lucide-icon><span>Vé đặt sân của tôi</span>
           @if (upcomingCount()) {

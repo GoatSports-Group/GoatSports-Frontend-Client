@@ -1,1 +1,5 @@
+// Nut, field, spinner dung chung (partial Cong dong boc partial Settings); khung trang tu partial chinh sach.
+@use '../../client/feed/community-ui' as c;
 @use '../policy-page';
+
+@include c.community-ui;

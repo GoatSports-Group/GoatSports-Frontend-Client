@@ -9,10 +9,6 @@ const routes: Routes = [
     canActivate: [ClientAccessGuard]
   },
   {
-    path: 'policy',
-    loadChildren: () => import('./presentation/policy.module').then(m => m.PolicyModule)
-  },
-  {
     path: '**',
     redirectTo: 'home',
     pathMatch: 'full'
