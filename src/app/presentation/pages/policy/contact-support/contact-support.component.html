@@ -4,7 +4,8 @@
       <div>
         <h1>Liên hệ hỗ trợ</h1>
         <p class="policy-hero__description">
-          Gửi câu hỏi, góp ý hoặc phản hồi về đặt sân, hoàn tiền, câu lạc bộ và giải đấu. Đội ngũ GOAT Sports trả lời qua email trong 24 giờ làm việc.
+          Gửi câu hỏi, góp ý hoặc phản hồi về đặt sân, hoàn tiền, câu lạc bộ và giải đấu. Đội ngũ GOAT Sports trả lời
+          qua email trong 24 giờ làm việc.
         </p>
       </div>
     </header>
@@ -13,73 +14,103 @@
 
     <div class="contact-grid">
       <section class="contact-card" aria-labelledby="support-form-title">
-        @if (sentTo(); as email) {
-          <!-- Da gui: thay form bang mot trang thai ro rang, kem lua chon gui them. -->
-          <div class="contact-sent" role="status">
-            <span class="contact-sent__icon"><lucide-icon name="circle-check" class="w-7 h-7"></lucide-icon></span>
+        @if (sent(); as request) {
+        <!-- Da gui: khoi gon o giua the (the cao bang cot phai), tom tat yeu cau va buoc tiep theo. -->
+        <div class="contact-sent" role="status">
+          <span class="contact-sent__icon" aria-hidden="true"><lucide-icon name="circle-check"
+              class="w-8 h-8"></lucide-icon></span>
+          <div class="contact-sent__copy">
             <h2 id="support-form-title">Đã gửi yêu cầu hỗ trợ</h2>
-            <p>Đội ngũ GOAT Sports sẽ trả lời tới <strong>{{ email }}</strong> trong 24 giờ làm việc. Hãy kiểm tra cả hộp thư rác.</p>
-            <button type="button" class="btn btn--secondary" (click)="sendAnother()">
-              <lucide-icon name="send" class="w-4 h-4"></lucide-icon>Gửi yêu cầu khác
-            </button>
+            <p>Chúng tôi sẽ trả lời tới <strong>{{ request.email }}</strong> trong 24 giờ làm việc.</p>
           </div>
+
+          <dl class="contact-sent__recap">
+            <div>
+              <dt>Chủ đề</dt>
+              <dd>{{ request.topic }}</dd>
+            </div>
+            <div>
+              <dt>Tiêu đề</dt>
+              <dd>{{ request.subject }}</dd>
+            </div>
+          </dl>
+
+          <ul class="contact-sent__next">
+            <li><lucide-icon name="mail" class="w-4 h-4"></lucide-icon>Thư trả lời gửi từ goatsports1312&#64;gmail.com,
+              nhớ xem cả mục Thư rác.</li>
+            <li><lucide-icon name="clock" class="w-4 h-4"></lucide-icon>Cần gấp trong giờ làm việc? Gọi hotline
+              0867684603.</li>
+          </ul>
+
+          <button type="button" class="btn btn--secondary" (click)="sendAnother()">
+            <lucide-icon name="send" class="w-4 h-4"></lucide-icon>Gửi yêu cầu khác
+          </button>
+        </div>
         } @else {
-          <header class="contact-card__head">
-            <h2 id="support-form-title">Gửi yêu cầu hỗ trợ</h2>
-            <p>Mô tả càng rõ (mã đặt sân, ngày giờ, ảnh chụp lỗi), chúng tôi càng xử lý nhanh.</p>
-          </header>
+        <header class="contact-card__head">
+          <h2 id="support-form-title">Gửi yêu cầu hỗ trợ</h2>
+          <p>Mô tả càng rõ (mã đặt sân, ngày giờ, ảnh chụp lỗi), chúng tôi càng xử lý nhanh.</p>
+        </header>
 
-          <form class="support-form" [formGroup]="contactForm" (ngSubmit)="onSubmit()" novalidate>
-            <div class="form-grid">
-              <label class="field" [class.is-invalid]="invalid('fullName')">
-                <span class="field__label">Họ và tên <b>*</b></span>
-                <input class="field__control" type="text" formControlName="fullName" placeholder="Nhập họ và tên" autocomplete="name" />
-                @if (invalid('fullName')) { <small class="field__error">Họ và tên từ 2 đến 120 ký tự.</small> }
-              </label>
-              <label class="field" [class.is-invalid]="invalid('email')">
-                <span class="field__label">Email nhận phản hồi <b>*</b></span>
-                <input class="field__control" type="email" formControlName="email" placeholder="ban@email.com" autocomplete="email" />
-                @if (invalid('email')) { <small class="field__error">Vui lòng nhập địa chỉ email hợp lệ.</small> }
-              </label>
-            </div>
-
-            <div class="form-grid">
-              <div class="field" [class.is-invalid]="invalid('topic')">
-                <span class="field__label">Chủ đề <b>*</b></span>
-                <app-select formControlName="topic" [options]="topicOptions" placeholder="Chọn chủ đề" leadingIcon="layout-grid"
-                  ariaLabel="Chủ đề"></app-select>
-                @if (invalid('topic')) { <small class="field__error">Chọn chủ đề gần nhất với vấn đề của bạn.</small> }
-              </div>
-              <label class="field" [class.is-invalid]="invalid('subject')">
-                <span class="field__label">Tiêu đề <b>*</b></span>
-                <input class="field__control" type="text" formControlName="subject" placeholder="Ví dụ: Chưa nhận được tiền hoàn cọc" maxlength="160" />
-                @if (invalid('subject')) { <small class="field__error">Tiêu đề từ 5 đến 160 ký tự.</small> }
-              </label>
-            </div>
-
-            <label class="field" [class.is-invalid]="invalid('message')">
-              <span class="field__label">Nội dung chi tiết <b>*</b></span>
-              <textarea class="field__control" formControlName="message" rows="7" maxlength="4000"
-                placeholder="Bạn gặp vấn đề gì, lúc nào, ở sân / lượt đặt nào?"></textarea>
-              <span class="field__foot">
-                @if (invalid('message')) { <small class="field__error">Nội dung từ 10 ký tự trở lên.</small> } @else { <span></span> }
-                <small class="field__hint">{{ messageLength }}/4000</small>
-              </span>
+        <form class="support-form" [formGroup]="contactForm" (ngSubmit)="onSubmit()" novalidate>
+          <div class="form-grid">
+            <label class="field" [class.is-invalid]="invalid('fullName')">
+              <span class="field__label">Họ và tên <b>*</b></span>
+              <input class="field__control" type="text" formControlName="fullName" placeholder="Nhập họ và tên"
+                autocomplete="name" />
+              @if (invalid('fullName')) { <small class="field__error">Họ và tên từ 2 đến 120 ký tự.</small> }
             </label>
+            <label class="field" [class.is-invalid]="invalid('email')">
+              <span class="field__label">Email nhận phản hồi <b>*</b></span>
+              <input class="field__control" type="email" formControlName="email" placeholder="ban@email.com"
+                autocomplete="email" />
+              @if (invalid('email')) { <small class="field__error">Vui lòng nhập địa chỉ email hợp lệ.</small> }
+            </label>
+          </div>
 
-            <footer class="support-form__footer">
-              <p><lucide-icon name="shield-check" class="w-4 h-4"></lucide-icon>Thông tin chỉ dùng để trả lời yêu cầu này.</p>
-              <button type="submit" class="btn btn--primary" [disabled]="submitting()" [attr.aria-busy]="submitting()">
-                @if (submitting()) { <span class="spinner" aria-hidden="true"></span>Đang gửi } @else { <lucide-icon name="send" class="w-4 h-4"></lucide-icon>Gửi yêu cầu }
-              </button>
-            </footer>
-          </form>
+          <div class="form-grid">
+            <div class="field" [class.is-invalid]="invalid('topic')">
+              <span class="field__label">Chủ đề <b>*</b></span>
+              <app-select formControlName="topic" [options]="topicOptions" placeholder="Chọn chủ đề"
+                leadingIcon="layout-grid" ariaLabel="Chủ đề"></app-select>
+              @if (invalid('topic')) { <small class="field__error">Chọn chủ đề gần nhất với vấn đề của bạn.</small> }
+            </div>
+            <label class="field" [class.is-invalid]="invalid('subject')">
+              <span class="field__label">Tiêu đề <b>*</b></span>
+              <input class="field__control" type="text" formControlName="subject"
+                placeholder="Ví dụ: Chưa nhận được tiền hoàn cọc" maxlength="160" />
+              @if (invalid('subject')) { <small class="field__error">Tiêu đề từ 5 đến 160 ký tự.</small> }
+            </label>
+          </div>
+
+          <label class="field" [class.is-invalid]="invalid('message')">
+            <span class="field__label">Nội dung chi tiết <b>*</b></span>
+            <textarea class="field__control" formControlName="message" rows="7" maxlength="4000"
+              placeholder="Bạn gặp vấn đề gì, lúc nào, ở sân / lượt đặt nào?"></textarea>
+            <span class="field__foot">
+              @if (invalid('message')) { <small class="field__error">Nội dung từ 10 ký tự trở lên.</small> } @else {
+              <span></span> }
+              <small class="field__hint">{{ messageLength }}/4000</small>
+            </span>
+          </label>
+
+          <footer class="support-form__footer">
+            <p><lucide-icon name="shield-check" class="w-4 h-4"></lucide-icon>Thông tin chỉ dùng để trả lời yêu cầu này.
+            </p>
+            <button type="submit" class="btn btn--primary" [disabled]="submitting()" [attr.aria-busy]="submitting()">
+              @if (submitting()) { <span class="spinner" aria-hidden="true"></span>Đang gửi } @else { <lucide-icon
+                name="send" class="w-4 h-4"></lucide-icon>Gửi yêu cầu }
+            </button>
+          </footer>
+        </form>
         }
       </section>
 
       <aside class="contact-aside">
         <section class="contact-card" aria-labelledby="contact-info-title">
-          <header class="contact-card__head"><h2 id="contact-info-title">Thông tin liên hệ</h2></header>
+          <header class="contact-card__head">
+            <h2 id="contact-info-title">Thông tin liên hệ</h2>
+          </header>
           <ul class="contact-items">
             <li class="contact-item">
               <span class="contact-item__icon"><lucide-icon name="mail" class="w-5 h-5"></lucide-icon></span>
@@ -87,7 +118,7 @@
             </li>
             <li class="contact-item">
               <span class="contact-item__icon"><lucide-icon name="phone" class="w-5 h-5"></lucide-icon></span>
-              <span><small>Hotline</small><a href="tel:19006868">1900 6868</a></span>
+              <span><small>Hotline</small><a href="tel:0867684603">0867684603</a></span>
             </li>
             <li class="contact-item">
               <span class="contact-item__icon"><lucide-icon name="clock" class="w-5 h-5"></lucide-icon></span>
@@ -101,11 +132,9 @@
         </section>
 
         <div class="contact-map" aria-label="Bản đồ trụ sở GOAT Sports">
-          <iframe
-            title="Bản đồ GOAT Sports"
+          <iframe title="Bản đồ GOAT Sports"
             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3899.7208889988166!2d109.18663807584102!3d12.203023029964177!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3170675865239a51%3A0xe54d6decf25be7d4!2zMTIzIFBoxrDhu5tjIExvbmcsIFBoxrDhu5tjIExvbmcsIE5oYSBUcmFuZywgS2jDoW5oIEjDsmEgNjUwMDAwLCBWaWV0bmFt!5e0!3m2!1sen!2s!4v1717512292000!5m2!1sen!2s"
-            loading="lazy"
-            referrerpolicy="no-referrer-when-downgrade">
+            loading="lazy" referrerpolicy="no-referrer-when-downgrade">
           </iframe>
         </div>
       </aside>

@@ -36,8 +36,8 @@ export class ContactSupportComponent implements OnInit {
   readonly supportEmail = SUPPORT_EMAIL;
   readonly topicOptions: SelectOption[] = TOPICS.map(topic => ({ value: topic.value, label: topic.label }));
   readonly submitting = signal(false);
-  /** Email vua gui thanh cong; khac null thi hien trang thai "Da gui" thay cho form. */
-  readonly sentTo = signal<string | null>(null);
+  /** Yeu cau vua gui thanh cong; khac null thi hien trang thai "Da gui" thay cho form. */
+  readonly sent = signal<{ email: string; topic: string; subject: string } | null>(null);
 
   contactForm!: FormGroup;
 
@@ -80,14 +80,18 @@ export class ContactSupportComponent implements OnInit {
       this.submitting.set(false);
       this.contactForm.enable();
     })).subscribe({
-      next: () => this.sentTo.set(value.email.trim()),
+      next: () => this.sent.set({
+        email: value.email.trim(),
+        topic: TOPICS.find(topic => topic.value === value.topic)?.label ?? '',
+        subject: value.subject.trim()
+      }),
       error: error => this.notify.error(error?.error?.message || 'Chưa gửi được yêu cầu. Vui lòng thử lại sau ít phút.')
     });
   }
 
   /** Gui them yeu cau: giu ten va email, xoa phan noi dung. */
   sendAnother(): void {
-    this.sentTo.set(null);
+    this.sent.set(null);
     this.contactForm.patchValue({ topic: null, subject: '', message: '' });
     this.contactForm.markAsUntouched();
   }

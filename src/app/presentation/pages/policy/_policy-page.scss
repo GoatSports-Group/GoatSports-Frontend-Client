@@ -10,7 +10,7 @@
   width: min(100%, 1480px);
   gap: 24px;
   margin: 0 auto;
-  padding: var(--page-block-start) clamp(16px, 2vw, 28px) var(--page-block-end);
+  padding: var(--page-block-start) 0 var(--page-block-end);
 }
 
 // Danh tinh trang: page-title (nghieng, in hoa, 900) + mot dong body-md; khong kicker, khong the hero.
@@ -54,10 +54,36 @@
   box-shadow: var(--shadow-sm);
 }
 
-.policy-highlight { padding: 20px; border-radius: 16px; }
-.policy-highlight__icon { display: grid; width: 42px; height: 42px; place-items: center; margin-bottom: 15px; border-radius: 13px; background: var(--primary-light); color: var(--primary); }
-.policy-highlight h3 { margin: 0 0 7px; color: var(--ink); font-size: 16px; font-weight: 800; line-height: 1.45; }
-.policy-highlight p { margin: 0; color: var(--body); font-size: 14px; line-height: 1.6; }
+.policy-highlight {
+  padding: 20px;
+  border-radius: 16px;
+}
+
+.policy-highlight__icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  margin-bottom: 15px;
+  border-radius: 13px;
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.policy-highlight h3 {
+  margin: 0 0 7px;
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.policy-highlight p {
+  margin: 0;
+  color: var(--body);
+  font-size: 14px;
+  line-height: 1.6;
+}
 
 .policy-section {
   padding: 24px;
@@ -84,9 +110,25 @@
   font-weight: 800;
 }
 
-.policy-section h2 { margin: 0; color: var(--ink); font-size: 20px; font-weight: 800; line-height: 1.3; }
-.policy-section__intro { margin: -10px 0 22px; color: var(--body); font-size: 14px; line-height: 1.7; }
-.policy-stack { display: grid; gap: 14px; }
+.policy-section h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.policy-section__intro {
+  margin: -10px 0 22px;
+  color: var(--body);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.policy-stack {
+  display: grid;
+  gap: 14px;
+}
 
 .policy-row {
   display: flex;
@@ -99,27 +141,138 @@
   background: var(--surface-subtle);
 }
 
-.policy-row__content { min-width: 0; }
-.policy-row h3, .policy-list-card h3, .policy-step h3 { margin: 0 0 6px; color: var(--ink); font-size: 15px; font-weight: 800; line-height: 1.5; }
-.policy-row p, .policy-step p { margin: 0; color: var(--body); font-size: 14px; line-height: 1.6; }
-.policy-pill { flex: 0 0 auto; padding: 8px 12px; border: 1px solid var(--primary-light); border-radius: 99px; background: var(--surface); color: var(--primary-hover); font-size: 13px; font-weight: 700; white-space: nowrap; }
+.policy-row__content {
+  min-width: 0;
+}
 
-.policy-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-.policy-grid--three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.policy-list-card { padding: 20px; border: 1px solid var(--hairline); border-radius: 16px; background: var(--surface-subtle); }
-.policy-list-card ul { display: grid; gap: 12px; margin: 12px 0 0; padding-left: 19px; color: var(--body); font-size: 13px; line-height: 1.7; }
-.policy-list-card p { margin: 8px 0 0; color: var(--body); font-size: 13px; line-height: 1.7; }
+.policy-row h3,
+.policy-list-card h3,
+.policy-step h3 {
+  margin: 0 0 6px;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.5;
+}
 
-.policy-table-wrap { overflow-x: auto; border: 1px solid var(--hairline); border-radius: 14px; }
-.policy-table { width: 100%; min-width: 760px; border-collapse: collapse; text-align: left; }
-.policy-table th, .policy-table td { padding: 15px 17px; border-bottom: 1px solid var(--hairline); color: var(--body); font-size: 13px; line-height: 1.55; }
-.policy-table th { background: var(--surface-subtle); color: var(--ink-2); font-size: 12px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; }
-.policy-table tr:last-child td { border-bottom: 0; }
-.policy-table strong, .policy-table .is-primary { color: var(--primary-hover); font-weight: 800; }
+.policy-row p,
+.policy-step p {
+  margin: 0;
+  color: var(--body);
+  font-size: 14px;
+  line-height: 1.6;
+}
 
-.policy-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
-.policy-step { display: flex; gap: 13px; }
-.policy-step__number { display: grid; width: 38px; height: 38px; flex: 0 0 auto; place-items: center; border-radius: 50%; background: var(--primary-fill); color: #fff; font-size: 12px; font-weight: 800; }
+.policy-pill {
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  border: 1px solid var(--primary-light);
+  border-radius: 99px;
+  background: var(--surface);
+  color: var(--primary-hover);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.policy-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.policy-grid--three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.policy-list-card {
+  padding: 20px;
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  background: var(--surface-subtle);
+}
+
+.policy-list-card ul {
+  display: grid;
+  gap: 12px;
+  margin: 12px 0 0;
+  padding-left: 19px;
+  color: var(--body);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.policy-list-card p {
+  margin: 8px 0 0;
+  color: var(--body);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.policy-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+}
+
+.policy-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.policy-table th,
+.policy-table td {
+  padding: 15px 17px;
+  border-bottom: 1px solid var(--hairline);
+  color: var(--body);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.policy-table th {
+  background: var(--surface-subtle);
+  color: var(--ink-2);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+
+.policy-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.policy-table strong,
+.policy-table .is-primary {
+  color: var(--primary-hover);
+  font-weight: 800;
+}
+
+.policy-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.policy-step {
+  display: flex;
+  gap: 13px;
+}
+
+.policy-step__number {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--primary-fill);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+}
 
 .policy-alert {
   display: flex;
@@ -134,27 +287,123 @@
   line-height: 1.7;
 }
 
-.policy-alert--warning { border-color: #fde68a; background: var(--warning-soft); color: var(--warning); }
-.policy-alert lucide-icon { width: 20px; height: 20px; flex: 0 0 auto; margin-top: 1px; }
-.policy-alert p { margin: 0; color: inherit; }
-
-.policy-feature { display: grid; grid-template-columns: 92px minmax(0, 1fr); align-items: center; gap: 22px; padding: 24px; border-radius: 16px; }
-.policy-feature__icon { display: grid; width: 92px; height: 92px; place-items: center; border-radius: 20px; background: var(--primary-light); color: var(--primary); }
-.policy-feature h2 { margin: 0 0 8px; color: var(--ink); font-size: 20px; font-weight: 800; }
-.policy-feature p { margin: 0; color: var(--body); font-size: 14px; line-height: 1.7; }
-.policy-badges { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
-.policy-badges span { padding: 8px 13px; border: 1px solid var(--primary-light); border-radius: 99px; background: var(--primary-light); color: var(--primary-hover); font-size: 12px; font-weight: 700; }
-
-// Lien he: form 3/5 | thong tin + ban do 2/5; cot phai dinh khi cuon tren desktop.
-.contact-grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: start; gap: 24px; }
-.contact-card { display: grid; gap: 20px; padding: 24px; border-radius: 16px; }
-.contact-card__head {
-  h2 { margin: 0; color: var(--ink); font-size: 20px; font-weight: 800; }
-  p { margin: 6px 0 0; color: var(--body); font-size: 14px; line-height: 1.6; }
+.policy-alert--warning {
+  border-color: #fde68a;
+  background: var(--warning-soft);
+  color: var(--warning);
 }
-.support-form { display: grid; gap: 16px; }
-.support-form textarea.field__control { min-height: 168px; padding-top: 12px; line-height: 1.6; resize: vertical; }
-.field__foot { display: flex; justify-content: space-between; gap: 12px; }
+
+.policy-alert lucide-icon {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.policy-alert p {
+  margin: 0;
+  color: inherit;
+}
+
+.policy-feature {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  align-items: center;
+  gap: 22px;
+  padding: 24px;
+  border-radius: 16px;
+}
+
+.policy-feature__icon {
+  display: grid;
+  width: 92px;
+  height: 92px;
+  place-items: center;
+  border-radius: 20px;
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.policy-feature h2 {
+  margin: 0 0 8px;
+  color: var(--ink);
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.policy-feature p {
+  margin: 0;
+  color: var(--body);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.policy-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.policy-badges span {
+  padding: 8px 13px;
+  border: 1px solid var(--primary-light);
+  border-radius: 99px;
+  background: var(--primary-light);
+  color: var(--primary-hover);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+// Lien he: form 3/5 | thong tin + ban do 2/5; hai cot cao bang nhau (§7 No dead space).
+.contact-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  align-items: stretch;
+  gap: 24px;
+}
+
+.contact-card {
+  display: grid;
+  gap: 20px;
+  padding: 24px;
+  border-radius: 16px;
+}
+
+.contact-card__head {
+  h2 {
+    margin: 0;
+    color: var(--ink);
+    font-size: 20px;
+    font-weight: 800;
+  }
+
+  p {
+    margin: 6px 0 0;
+    color: var(--body);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+}
+
+.support-form {
+  display: grid;
+  gap: 16px;
+}
+
+.support-form textarea.field__control {
+  min-height: 168px;
+  padding-top: 12px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.field__foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .support-form__footer {
   display: flex;
   flex-wrap: wrap;
@@ -164,23 +413,151 @@
   padding-top: 16px;
   border-top: 1px solid var(--hairline);
 
-  p { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--body); font-size: 13px; }
-  lucide-icon { color: var(--primary); }
+  p {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    color: var(--body);
+    font-size: 13px;
+  }
+
+  // Chi icon o dong chu thich; icon trong nut giu mau trang cua nut.
+  p lucide-icon {
+    color: var(--primary);
+  }
 }
+
+// Trang thai "Da gui": the trai cao bang cot phai nen khoi nay can giua theo chieu doc; cac hang chi cao theo
+// noi dung (align-content: center), nut giu 44px thay vi bi gian ra.
 .contact-sent {
   display: grid;
+  height: 100%;
+  align-content: center;
   justify-items: center;
-  gap: 10px;
-  padding: 32px 12px;
+  gap: 20px;
+  padding: 24px 8px;
   text-align: center;
 
-  h2 { margin: 6px 0 0; color: var(--ink); font-size: 20px; font-weight: 800; }
-  p { max-width: 460px; margin: 0; color: var(--body); font-size: 14px; line-height: 1.6; text-wrap: balance; }
-  strong { color: var(--ink); }
+  .btn {
+    align-self: center;
+  }
 }
-.contact-sent__icon { display: grid; width: 64px; height: 64px; place-items: center; border-radius: 9999px; background: var(--success-soft); color: var(--success); }
-.contact-aside { position: sticky; top: 24px; display: grid; gap: 16px; }
-.contact-items { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+
+.contact-sent__icon {
+  display: grid;
+  width: 64px;
+  height: 64px;
+  place-items: center;
+  border-radius: 9999px;
+  background: var(--success-soft);
+  color: var(--success);
+  box-shadow: 0 0 0 8px color-mix(in srgb, var(--success-soft) 45%, transparent);
+}
+
+.contact-sent__copy {
+  display: grid;
+  gap: 6px;
+
+  h2 {
+    margin: 0;
+    color: var(--ink);
+    font-size: 22px;
+    font-weight: 800;
+  }
+
+  p {
+    max-width: 460px;
+    margin: 0;
+    color: var(--body);
+    font-size: 15px;
+    line-height: 1.6;
+    text-wrap: balance;
+  }
+
+  strong {
+    color: var(--ink);
+  }
+}
+
+// Tom tat yeu cau: hai dong nhan | gia tri tren nen surface-subtle.
+.contact-sent__recap {
+  display: grid;
+  width: min(100%, 460px);
+  margin: 0;
+  padding: 4px 16px;
+  border-radius: 12px;
+  background: var(--surface-subtle);
+  text-align: left;
+
+  div {
+    display: grid;
+    grid-template-columns: 80px minmax(0, 1fr);
+    gap: 12px;
+    padding: 10px 0;
+
+    + div {
+      border-top: 1px solid var(--hairline);
+    }
+  }
+
+  dt {
+    color: var(--body);
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  dd {
+    overflow: hidden;
+    margin: 0;
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.contact-sent__next {
+  display: grid;
+  width: min(100%, 460px);
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    color: var(--body);
+    font-size: 13px;
+    line-height: 1.5;
+    text-wrap: pretty;
+  }
+
+  lucide-icon {
+    flex: none;
+    margin-top: 2px;
+    color: var(--primary);
+  }
+}
+
+.contact-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.contact-items {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
 .contact-item {
   display: grid;
   grid-template-columns: 40px minmax(0, 1fr);
@@ -190,27 +567,110 @@
   border-radius: 12px;
   background: var(--surface-subtle);
 
-  > span:last-child { display: grid; min-width: 0; gap: 2px; }
-  small { color: var(--body); font-size: 13px; font-weight: 600; }
-  strong, a { overflow: hidden; color: var(--ink); font-size: 15px; font-weight: 700; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
-  a:hover { color: var(--primary); text-decoration: underline; }
+  >span:last-child {
+    display: grid;
+    min-width: 0;
+    gap: 2px;
+  }
+
+  small {
+    color: var(--body);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  strong,
+  a {
+    overflow: hidden;
+    color: var(--ink);
+    font-size: 15px;
+    font-weight: 700;
+    text-decoration: none;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  a:hover {
+    color: var(--primary);
+    text-decoration: underline;
+  }
 }
-.contact-item__icon { display: grid; width: 40px; height: 40px; place-items: center; border-radius: 12px; background: var(--primary-light); color: var(--primary); }
-.contact-map { overflow: hidden; height: 240px; border: 1px solid var(--hairline); border-radius: 16px; background: var(--surface-strong); box-shadow: var(--shadow-sm); }
-.contact-map iframe { width: 100%; height: 100%; border: 0; }
+
+.contact-item__icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+// Ban do lap phan con lai cua cot phai, nen day cot phai trung day the form.
+.contact-map {
+  overflow: hidden;
+  flex: 1 1 auto;
+  min-height: 240px;
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  background: var(--surface-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.contact-map iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
 
 @media (max-width: 1024px) {
-  .policy-highlights, .policy-grid--three, .policy-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .contact-grid { grid-template-columns: minmax(0, 1fr); }
-  .contact-aside { position: static; }
+
+  .policy-highlights,
+  .policy-grid--three,
+  .policy-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .contact-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
 }
 
 @media (max-width: 680px) {
-  .policy-highlights, .policy-grid, .policy-grid--three, .policy-steps { grid-template-columns: minmax(0, 1fr); }
-  .policy-section, .contact-card { padding: 22px 18px; }
-  .policy-row { flex-direction: column; gap: 12px; }
-  .policy-feature { grid-template-columns: minmax(0, 1fr); padding: 22px 18px; }
-  .policy-feature__icon { width: 64px; height: 64px; }
-  .support-form .form-grid { grid-template-columns: minmax(0, 1fr); }
-  .support-form__footer .btn { width: 100%; }
+
+  .policy-highlights,
+  .policy-grid,
+  .policy-grid--three,
+  .policy-steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .policy-section,
+  .contact-card {
+    padding: 22px 18px;
+  }
+
+  .policy-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .policy-feature {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 22px 18px;
+  }
+
+  .policy-feature__icon {
+    width: 64px;
+    height: 64px;
+  }
+
+  .support-form .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .support-form__footer .btn {
+    width: 100%;
+  }
 }
