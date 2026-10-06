@@ -1,107 +1,98 @@
-<div class="booking-history-page">
-  <div class="container py-8">
-    <div class="header-section mb-6">
-      <div>
-        <h1 class="page-title athletic-title">Vé đặt sân của tôi</h1>
-        <p class="page-subtitle">Theo dõi vé điện tử, yêu cầu hủy và trạng thái hoàn tiền.</p>
-      </div>
-      @if (!loading()) {
-        <div class="booking-total">
-          <strong>{{ total() }}</strong>
-          <span>lượt đặt sân</span>
-        </div>
-      }
+<main class="tickets">
+  <header class="tickets__head">
+    <div>
+      <h1 class="page-title">Vé đặt sân của tôi</h1>
+      <p>Vé điện tử để nhận sân, yêu cầu hủy và tiến độ hoàn tiền của mọi lượt đặt.</p>
     </div>
+    <a class="btn btn--secondary" routerLink="/venues">
+      <lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>Đặt sân mới
+    </a>
+  </header>
 
-    <div class="status-tabs-bar mb-6" role="tablist" aria-label="Lọc lịch sử đặt sân">
-      @for (tab of statusTabs; track tab.value) {
-        <button
-          type="button"
-          role="tab"
-          class="status-tab"
-          [attr.aria-selected]="selectedStatus() === tab.value"
-          [class.active]="selectedStatus() === tab.value"
-          (click)="onTabChange(tab.value)"
-        >
-          {{ tab.label }}
-        </button>
-      }
-    </div>
-
-    @if (loading()) {
-      <app-loading-skeleton variant="rows" [count]="6" label="Đang tải lịch sử đặt sân"></app-loading-skeleton>
-    } @else if (error()) {
-      <div class="state-card state-card--error" role="alert">
-        <lucide-icon name="alert-triangle" class="w-10 h-10"></lucide-icon>
-        <h2>Chưa tải được lịch sử đặt sân</h2>
-        <p>{{ error() }}</p>
-        <button type="button" class="neo-btn" (click)="retry()">Thử lại</button>
-      </div>
-    } @else if (bookings().length > 0) {
-      <div class="tickets-grid goat-stagger" #listTop [class.is-paging]="paging()" [attr.aria-busy]="paging()">
-        @for (booking of bookings(); track booking.bookingId) {
-          <article
-            class="ticket-card neo-card"
-            tabindex="0"
-            role="button"
-            (click)="viewDetail(booking.bookingId)"
-            (keydown.enter)="viewDetail(booking.bookingId)"
-          >
-            <div class="ticket-header">
-              <div class="code-badge">
-                <lucide-icon name="receipt" class="w-4 h-4 mr-1 text-emerald-600"></lucide-icon>
-                <span>{{ booking.bookingCode }}</span>
-              </div>
-              <span class="status-pill" [class]="'status-' + (statusColors[booking.status] || 'slate')">
-                {{ statusLabels[booking.status] || booking.status }}
-              </span>
-            </div>
-
-            <div class="ticket-body">
-              <p class="venue-name">{{ booking.venueName || 'Cơ sở thể thao' }}</p>
-              <h2 class="court-title">{{ booking.courtName || 'Sân thể thao' }}</h2>
-
-              <div class="info-row">
-                <lucide-icon name="calendar" class="w-4 h-4 text-slate-400 mr-2"></lucide-icon>
-                <span>Ngày: <strong>{{ booking.playDate | date:'dd/MM/yyyy' }}</strong></span>
-              </div>
-
-              <div class="info-row">
-                <lucide-icon name="clock" class="w-4 h-4 text-slate-400 mr-2"></lucide-icon>
-                <span>Giờ: <strong>{{ booking.startTime.slice(0, 5) }} – {{ booking.endTime.slice(0, 5) }}</strong></span>
-              </div>
-
-              @if (booking.cancellation) {
-                <div class="cancellation-summary">
-                  <lucide-icon name="rotate-cw" class="w-4 h-4"></lucide-icon>
-                  <span>{{ cancellationStatusLabels[booking.cancellation.status] }}</span>
-                  <strong>{{ formatPrice(booking.cancellation.refundAmount) }}</strong>
-                </div>
-              } @else {
-                <div class="info-row price-row">
-                  <span class="text-slate-500 text-xs">Tiền cọc:</span>
-                  <span class="font-bold text-emerald-600">{{ formatPrice(booking.depositAmount) }}</span>
-                </div>
-              }
-            </div>
-
-            <div class="ticket-footer">
-              <span class="view-detail-text">Xem vé và chi tiết</span>
-              <lucide-icon name="arrow-right" class="w-4 h-4 text-emerald-600"></lucide-icon>
-            </div>
-          </article>
+  <nav class="tabs" role="tablist" aria-label="Lọc vé theo trạng thái">
+    @for (tab of statusTabs; track tab.value) {
+      <button type="button" role="tab" class="tab" [class.is-active]="selectedStatus() === tab.value"
+        [attr.aria-selected]="selectedStatus() === tab.value" (click)="onTabChange(tab.value)">
+        <lucide-icon [name]="tab.icon" class="w-4 h-4"></lucide-icon>{{ tab.label }}
+        @if (counts()[tab.value] !== undefined) {
+          <span class="tab__count" [class.tab__count--alert]="tab.value === 'REFUND_PENDING' && counts()[tab.value]! > 0">{{ counts()[tab.value] }}</span>
         }
-      </div>
-
-      <app-pagination [pageIndex]="page()" [pageSize]="pageSize" [totalItems]="total()" itemLabel="vé"
-        (pageChange)="changePage($event)"></app-pagination>
-    } @else {
-      <div class="empty-tickets neo-card text-center py-12">
-        <lucide-icon name="receipt" class="w-12 h-12 text-slate-300 mx-auto mb-3"></lucide-icon>
-        <h2 class="text-lg font-bold text-slate-800">Không có vé phù hợp</h2>
-        <p class="text-sm text-slate-500 mt-1 mb-4">Thử chọn trạng thái khác hoặc khám phá một sân mới.</p>
-        <button mat-flat-button color="primary" routerLink="/venues" class="neo-btn">Khám phá sân</button>
-      </div>
+      </button>
     }
-  </div>
-</div>
+  </nav>
+
+  @if (loading()) {
+    <app-loading-skeleton variant="cards" [count]="8" [media]="false" minWidth="300px" label="Đang tải vé đặt sân"></app-loading-skeleton>
+  } @else if (error()) {
+    <div class="state state--error" role="alert">
+      <span class="state__icon"><lucide-icon name="wifi-off" class="w-6 h-6"></lucide-icon></span>
+      <strong>Không tải được vé đặt sân</strong>
+      <p>{{ error() }}</p>
+      <button type="button" class="btn btn--primary" (click)="retry()"><lucide-icon name="refresh-cw" class="w-4 h-4"></lucide-icon>Thử lại</button>
+    </div>
+  } @else if (bookings().length) {
+    <p class="tickets__count" #listTop>{{ total() }} vé · {{ activeTab.label }}</p>
+    <ul class="grid goat-stagger" [class.is-paging]="paging()" [attr.aria-busy]="paging()">
+      @for (booking of bookings(); track booking.bookingId) {
+        @let day = playDay(booking);
+        <li>
+          <a class="ticket" [class.is-active]="isActive(booking)" [routerLink]="['/booking/detail', booking.bookingId]"
+            [attr.aria-label]="(booking.courtName || 'Sân thể thao') + ', ' + weekdayLabel(day) + ' ' + (day | date:'dd/MM/yyyy') + ', ' + statusLabels[booking.status]">
+            <!-- Cuong ve: ngay choi. Luot con hieu luc to xanh nhat, da qua / huy thi xam. -->
+            <span class="ticket__stub" aria-hidden="true">
+              <small>TH {{ day | date:'M' }}</small>
+              <b>{{ day | date:'dd' }}</b>
+              <small>{{ weekdayLabel(day) }}</small>
+            </span>
+
+            <span class="ticket__main">
+              <span class="ticket__top">
+                <span class="badge" [ngClass]="'badge--' + bookingTone[booking.status]">{{ statusLabels[booking.status] }}</span>
+                @if (countdownLabel(booking); as when) { <span class="ticket__when">{{ when }}</span> }
+              </span>
+              <strong class="ticket__court">{{ booking.courtName || 'Sân thể thao' }}</strong>
+              <span class="ticket__venue">{{ booking.venueName || 'Cơ sở thể thao' }}</span>
+              <span class="ticket__time">
+                <lucide-icon name="clock" class="w-4 h-4"></lucide-icon>
+                {{ booking.startTime.slice(0, 5) }} – {{ booking.endTime.slice(0, 5) }}
+              </span>
+
+              <!-- Dong tien: khoan hoan (neu da yeu cau huy) hoac tien coc. -->
+              @if (booking.cancellation; as cancellation) {
+                @if (cancellation.refundAmount > 0) {
+                  <span class="ticket__money" [ngClass]="'is-' + cancellationTone[cancellation.status]">
+                    <span>{{ cancellationLabels[cancellation.status] }}</span>
+                    <b>{{ formatPrice(cancellation.refundAmount) }}</b>
+                  </span>
+                } @else {
+                  <!-- Huy duoc duyet nhung khong hoan: noi thang, khong hien "0 ₫". -->
+                  <span class="ticket__money"><span>Đã hủy · không hoàn cọc</span></span>
+                }
+              } @else {
+                <span class="ticket__money">
+                  <span>Tiền cọc</span>
+                  <b>{{ formatPrice(booking.depositAmount) }}</b>
+                </span>
+              }
+            </span>
+
+            <span class="ticket__code" aria-hidden="true">
+              <span>{{ booking.bookingCode }}</span>
+              <lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon>
+            </span>
+          </a>
+        </li>
+      }
+    </ul>
+
+    <app-pagination [pageIndex]="page()" [pageSize]="pageSize" [totalItems]="total()" itemLabel="vé"
+      (pageChange)="changePage($event)"></app-pagination>
+  } @else {
+    <div class="state">
+      <span class="state__icon"><lucide-icon [name]="activeTab.icon" class="w-6 h-6"></lucide-icon></span>
+      <strong>{{ activeTab.empty.title }}</strong>
+      <p>{{ activeTab.empty.text }}</p>
+      <a class="btn btn--primary" routerLink="/venues"><lucide-icon name="search" class="w-4 h-4"></lucide-icon>Tìm sân</a>
+    </div>
+  }
+</main>

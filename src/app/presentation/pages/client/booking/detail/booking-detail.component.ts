@@ -16,7 +16,6 @@ import { REVIEW_REPOSITORY_TOKEN } from '@application/ports/persistence/review.r
 import {
   Booking,
   BookingStatus,
-  BOOKING_STATUS_COLORS,
   BOOKING_STATUS_LABELS,
   CancellationStatus,
   CANCELLATION_STATUS_LABELS
@@ -24,6 +23,19 @@ import {
 import { NotifyService } from '@shared/components/notify/notify.service';
 import { QrCodeComponent } from '@shared/components/qr-code/qr-code.component';
 import { BANK_ACCOUNT_REPOSITORY_TOKEN } from '@application/ports/persistence/bank-account.repository';
+import { VENUE_SEARCH_REPOSITORY_TOKEN } from '@application/ports/persistence/venue-search.repository';
+import { ChatDockService } from '@presentation/services/chat-dock.service';
+import {
+  BOOKING_TONE, CANCELLATION_TONE, Tone, countdownLabel, durationLabel, formatPrice, playDay, startsAt, weekdayLabel
+} from '../booking-view';
+
+/** Thong bao thay cho ma QR khi ve khong dung de nhan san duoc. */
+interface TicketNote {
+  icon: string;
+  tone: Tone;
+  title: string;
+  text: string;
+}
 
 @Component({
   selector: 'app-booking-detail',
@@ -40,6 +52,8 @@ export class BookingDetailComponent {
   private readonly reviewRepository = inject(REVIEW_REPOSITORY_TOKEN);
   private readonly notifyService = inject(NotifyService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly venues = inject(VENUE_SEARCH_REPOSITORY_TOKEN);
+  readonly chatDock = inject(ChatDockService);
 
   @ViewChild('ticketQr') private ticketQr?: QrCodeComponent;
 
@@ -58,7 +72,14 @@ export class BookingDetailComponent {
   readonly reviewing = signal(false);
 
   readonly statusLabels = BOOKING_STATUS_LABELS;
-  readonly statusColors = BOOKING_STATUS_COLORS;
+  readonly bookingTone = BOOKING_TONE;
+  readonly cancellationTone = CANCELLATION_TONE;
+  readonly playDay = playDay;
+  readonly weekdayLabel = weekdayLabel;
+  readonly durationLabel = durationLabel;
+  readonly countdownLabel = countdownLabel;
+  /** Chu san (doc tu chi tiet san): nut "Nhan tin chu san". */
+  readonly ownerId = signal<string | null>(null);
   readonly cancellationStatusLabels = CANCELLATION_STATUS_LABELS;
   readonly cancellationStatus = CancellationStatus;
 
@@ -92,6 +113,40 @@ export class BookingDetailComponent {
       BookingStatus.CHECKED_IN,
       BookingStatus.COMPLETED
     ].includes(booking.status);
+  });
+
+  /** Ve khong dung de nhan san: noi ro vi sao, theo tung trang thai. */
+  readonly ticketNote = computed<TicketNote | null>(() => {
+    const booking = this.booking();
+    if (!booking || this.hasValidTicket()) return null;
+    switch (booking.status) {
+      case BookingStatus.PENDING_PAYMENT:
+        return { icon: 'hourglass', tone: 'warning', title: 'Vé phát hành sau khi nhận tiền cọc',
+          text: 'Thanh toán cọc trong thời gian giữ chỗ. Vé QR hiện ở đây ngay khi hệ thống xác nhận khoản cọc.' };
+      case BookingStatus.CANCELLED:
+        return { icon: 'circle-x', tone: 'danger', title: 'Vé đã hủy',
+          text: 'Lượt đặt này đã hủy nên vé không còn dùng để nhận sân.' };
+      case BookingStatus.REFUND_PENDING:
+      case BookingStatus.REFUNDED:
+        return { icon: 'rotate-ccw', tone: 'info', title: 'Vé đã hủy để hoàn cọc',
+          text: 'Theo dõi khoản hoàn ở cột bên phải. Vé không còn dùng để nhận sân.' };
+      case BookingStatus.EXPIRED:
+        return { icon: 'timer', tone: 'neutral', title: 'Hết thời gian giữ chỗ',
+          text: 'Khoản cọc chưa về kịp nên sân đã được nhả cho người khác. Bạn có thể đặt lại khung giờ khác.' };
+      default:
+        return { icon: 'qr-code', tone: 'neutral', title: 'Mã QR chưa sẵn sàng', text: 'Tải lại trang sau ít phút.' };
+    }
+  });
+
+  /** Muc chinh sach dang ap dung neu huy luc nay (chi khi luot con hieu luc va chua toi gio choi). */
+  readonly policyTier = computed<'full' | 'partial' | 'none' | null>(() => {
+    const booking = this.booking();
+    const policy = booking?.cancellationPolicy;
+    if (!booking || !policy || !this.canCancel()) return null;
+    const hoursBefore = (startsAt(booking).getTime() - Date.now()) / 3_600_000;
+    if (hoursBefore >= policy.fullRefundHoursBefore) return 'full';
+    if (hoursBefore >= policy.partialRefundHoursBefore) return 'partial';
+    return 'none';
   });
 
   readonly estimatedRefund = computed(() => {
@@ -136,6 +191,7 @@ export class BookingDetailComponent {
       next: response => {
         this.applyBookingUpdate(response.data);
         this.loading.set(false);
+        this.loadOwner(response.data.venueId);
       },
       error: () => {
         this.booking.set(null);
@@ -277,8 +333,18 @@ export class BookingDetailComponent {
     }
   }
 
-  formatPrice(price: number | null | undefined): string {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' })
-      .format(price ?? 0);
+  readonly formatPrice = formatPrice;
+
+  messageOwner(): void {
+    const ownerId = this.ownerId();
+    if (ownerId) this.chatDock.messageUser(ownerId);
+  }
+
+  private loadOwner(venueId: string | undefined): void {
+    if (!venueId || this.ownerId()) return;
+    this.venues.getVenueDetails(venueId).subscribe({
+      next: response => this.ownerId.set(response.data?.ownerId ?? null),
+      error: () => undefined
+    });
   }
 }
