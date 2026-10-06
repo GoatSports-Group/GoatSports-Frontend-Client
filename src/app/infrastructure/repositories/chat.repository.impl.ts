@@ -46,6 +46,14 @@ export class ChatRepositoryImpl implements ChatRepository {
     return this.api.markRoomAsRead(roomId);
   }
 
+  clearRoom(roomId: string): Observable<void> {
+    return this.api.clearRoom(roomId);
+  }
+
+  setMuted(roomId: string, muted: boolean): Observable<void> {
+    return this.api.setMuted(roomId, muted);
+  }
+
   getPresence(userIds: string[]): Observable<BaseResponse<ChatPresenceEvent[]>> {
     return this.api.getPresence(userIds);
   }

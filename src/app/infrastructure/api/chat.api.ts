@@ -28,6 +28,8 @@ interface ConversationApiResponse {
   lastMessageAt?: string;
   lastSenderId?: string;
   unreadCount?: number;
+  muted?: boolean;
+  blockState?: 'BLOCKED_BY_ME' | 'BLOCKED_BY_THEM' | null;
   members?: Array<{
     userId: string;
     userName?: string;
@@ -148,6 +150,15 @@ export class ChatApi {
     );
   }
 
+  clearRoom(roomId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiBase}/${roomId}`).pipe(map(() => undefined));
+  }
+
+  setMuted(roomId: string, muted: boolean): Observable<void> {
+    return this.http.put<void>(`${this.apiBase}/${roomId}/mute`, {}, { params: new HttpParams().set('muted', muted) })
+      .pipe(map(() => undefined));
+  }
+
   getPresence(userIds: string[]): Observable<BaseResponse<ChatPresenceEvent[]>> {
     let params = new HttpParams();
     userIds.forEach(userId => {
@@ -185,6 +196,8 @@ export class ChatApi {
       lastMessageAt: item.lastMessageAt,
       lastSenderId: item.lastSenderId,
       unreadCount: item.unreadCount || 0,
+      muted: !!item.muted,
+      blockState: item.blockState ?? null,
       createdAt: item.createdAt,
       updatedAt: item.updatedAt
     };

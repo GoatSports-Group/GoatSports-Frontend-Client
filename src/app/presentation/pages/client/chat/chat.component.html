@@ -36,7 +36,7 @@
         } @else if (filteredRooms.length) {
           <ul class="room-list goat-stagger">
             @for (room of filteredRooms; track room.roomId) {
-              <li>
+              <li class="room-item">
                 <button type="button" class="room" [class.is-active]="activeRoom()?.roomId === room.roomId"
                   [class.is-unread]="room.unreadCount > 0" [attr.aria-current]="activeRoom()?.roomId === room.roomId ? 'true' : null"
                   (click)="selectRoom(room)">
@@ -58,16 +58,30 @@
                       } @else {
                         <span class="room__preview">{{ getRoomPreview(room) }}</span>
                       }
-                      @if (isRoomMuted(room.roomId)) { <lucide-icon name="bell-off" class="w-4 h-4 room__muted" aria-label="Đã tắt thông báo"></lucide-icon> }
+                      @if (isRoomMuted(room)) { <lucide-icon name="bell-off" class="w-4 h-4 room__muted" aria-label="Đã tắt thông báo"></lucide-icon> }
                       @if (room.unreadCount > 0) {
                         <b class="counter" [attr.aria-label]="room.unreadCount + ' tin chưa đọc'">{{ room.unreadCount > 99 ? '99+' : room.unreadCount }}</b>
                       }
                     </span>
                   </span>
                 </button>
+                <button type="button" class="room__more" [matMenuTriggerFor]="roomMenu" [matMenuTriggerData]="{ room }"
+                  [attr.aria-label]="'Tác vụ với ' + (room.name || 'đoạn chat')">
+                  <lucide-icon name="ellipsis" class="w-5 h-5"></lucide-icon>
+                </button>
               </li>
             }
           </ul>
+          <mat-menu #roomMenu="matMenu" xPosition="before" class="goat-action-menu">
+            <ng-template matMenuContent let-room="room">
+              <button mat-menu-item type="button" (click)="toggleRoomMute(room)">
+                <lucide-icon [name]="isRoomMuted(room) ? 'bell' : 'bell-off'" class="w-4 h-4"></lucide-icon>{{ isRoomMuted(room) ? 'Bật thông báo' : 'Tắt thông báo' }}
+              </button>
+              <button mat-menu-item type="button" class="is-danger" (click)="confirmDelete(room)">
+                <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon>Xóa đoạn chat
+              </button>
+            </ng-template>
+          </mat-menu>
           @if (loadingMoreRooms()) {
             <app-loading-skeleton variant="rows" [count]="2" [flush]="true" label="Đang tải thêm cuộc trò chuyện"></app-loading-skeleton>
           } @else if (hasMoreRooms()) {
@@ -128,7 +142,7 @@
               <img class="avatar" [src]="room.avatarUrl || 'assets/images/default-avatar.svg'" alt="" width="72" height="72" (error)="useDefaultAvatar($event)" />
               <strong>{{ room.name || 'Người chơi GOAT' }}</strong>
               <p>Chưa có tin nhắn nào. Gửi lời chào hoặc chốt luôn giờ ra sân.</p>
-              <div class="hello__replies">
+              <div class="hello__replies" [hidden]="!!room.blockState">
                 @for (reply of quickReplies; track reply) {
                   <button type="button" class="chip" (click)="sendQuickReply(reply)">{{ reply }}</button>
                 }
@@ -214,6 +228,20 @@
           }
         </section>
 
+        @if (room.blockState) {
+          <footer class="blocked" role="status">
+            @if (room.blockState === 'BLOCKED_BY_ME') {
+              <p><strong>Bạn đã chặn {{ room.name || 'người chơi này' }}.</strong> Hai bạn không thể nhắn tin cho nhau cho đến khi bạn bỏ chặn.</p>
+              @if (counterpart(); as person) {
+                <button type="button" class="btn btn--secondary" [disabled]="contextActionLoading()" (click)="unblockCounterpart(person)">
+                  <lucide-icon name="unlock" class="w-4 h-4"></lucide-icon>Bỏ chặn
+                </button>
+              }
+            } @else {
+              <p><strong>Bạn không thể trả lời cuộc trò chuyện này.</strong> Người này hiện không nhận tin nhắn từ bạn.</p>
+            }
+          </footer>
+        } @else {
         <footer class="compose" [class.has-draft]="draftImages().length > 0">
           @if (draftImages().length || preparingImages()) {
             <div class="draft" aria-label="Ảnh sẽ gửi">
@@ -253,6 +281,7 @@
             <small class="compose__hint"><span>Enter gửi · Shift + Enter xuống dòng</span><span>{{ messageInput.length }}/2000</span></small>
           }
         </footer>
+        }
       } @else {
         <div class="thread__empty">
           <span class="state__icon"><lucide-icon name="messages-square" class="w-6 h-6"></lucide-icon></span>
@@ -281,16 +310,18 @@
         <div class="context__body">
           <section class="identity">
             <span class="avatar-wrap">
-              <img class="avatar" [src]="room.avatarUrl || 'assets/images/default-avatar.svg'" alt="" width="72" height="72" (error)="useDefaultAvatar($event)" />
+              <img class="avatar" [src]="room.avatarUrl || 'assets/images/default-avatar.svg'" alt="" width="56" height="56" (error)="useDefaultAvatar($event)" />
               @if (isPairRoom(room)) { <span class="presence" [class.is-online]="isDirectRoomOnline(room)" aria-hidden="true"></span> }
             </span>
-            <strong>{{ room.name || 'Người chơi GOAT' }}</strong>
-            <span [class.is-online]="isPairRoom(room) && isDirectRoomOnline(room)">{{ getRoomHeaderMeta(room) }}</span>
-            @if (counterpart(); as person) {
-              <a class="btn btn--ghost" [routerLink]="['/feed']" [queryParams]="{ author: person.userId }">
-                <lucide-icon name="file-text" class="w-4 h-4"></lucide-icon>Xem bài viết
-              </a>
-            }
+            <span class="identity__text">
+              <strong>{{ room.name || 'Người chơi GOAT' }}</strong>
+              <span [class.is-online]="isPairRoom(room) && isDirectRoomOnline(room)">{{ getRoomHeaderMeta(room) }}</span>
+              @if (counterpart(); as person) {
+                <a class="identity__link" [routerLink]="['/feed']" [queryParams]="{ author: person.userId }">
+                  <lucide-icon name="file-text" class="w-4 h-4"></lucide-icon>Xem bài viết
+                </a>
+              }
+            </span>
           </section>
 
           @if (counterpartFacts().length) {
@@ -313,42 +344,39 @@
           }
 
           @if (room.type === ChatRoomType.MATCH && room.contextId) {
-            <section class="block">
-              <h3>Trận đấu</h3>
-              <a class="match-link" routerLink="/matchmaking">
-                <span class="match-link__icon"><lucide-icon name="swords" class="w-5 h-5"></lucide-icon></span>
-                <span><strong>Kèo đã ghép qua GOAT AI</strong><small>Xem tiến độ trong AI ghép trận</small></span>
-                <lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon>
-              </a>
-            </section>
+            <a class="match-link" routerLink="/matchmaking">
+              <span class="match-link__icon"><lucide-icon name="swords" class="w-4 h-4"></lucide-icon></span>
+              <span><strong>Kèo ghép qua GOAT AI</strong><small>Xem tiến độ trận</small></span>
+              <lucide-icon name="chevron-right" class="w-4 h-4"></lucide-icon>
+            </a>
           }
 
           <section class="block">
             <h3>Thành viên <span class="count">{{ room.participants.length }}</span></h3>
             <ul class="members">
-              @for (participant of room.participants; track participant.userId) {
-                <li>
-                  <span class="avatar-wrap">
-                    <img class="avatar" [src]="participant.userAvatar || 'assets/images/default-avatar.svg'" alt="" width="36" height="36" (error)="useDefaultAvatar($event)" />
-                    <span class="presence" [class.is-online]="isUserOnline(participant.userId)" aria-hidden="true"></span>
-                  </span>
-                  <span>
-                    <strong>{{ participant.userName || 'Thành viên' }}</strong>
-                    <small>{{ participant.userId === currentUserId ? 'Bạn' : getPresenceLabel(participant.userId) }}</small>
-                  </span>
-                </li>
+              @for (participant of sortedMembers(room).slice(0, memberPreview); track participant.userId) {
+                <ng-container [ngTemplateOutlet]="memberRow" [ngTemplateOutletContext]="{ $implicit: participant, room }"></ng-container>
               }
             </ul>
+            @if (room.participants.length > memberPreview) {
+              <button type="button" class="btn btn--ghost members__more" (click)="membersOpen.set(true)">
+                Xem tất cả {{ room.participants.length }} thành viên
+              </button>
+            }
           </section>
 
           <section class="block block--actions">
-            <button type="button" class="setting" role="switch" [attr.aria-checked]="isRoomMuted(room.roomId)" (click)="toggleRoomMute(room)">
-              <span class="setting__icon"><lucide-icon [name]="isRoomMuted(room.roomId) ? 'bell-off' : 'bell'" class="w-5 h-5"></lucide-icon></span>
-              <span class="setting__text"><strong>Tắt thông báo</strong><small>Chỉ trên thiết bị này</small></span>
-              <i class="switch" [class.is-on]="isRoomMuted(room.roomId)" aria-hidden="true"></i>
+            <button type="button" class="setting" role="switch" [attr.aria-checked]="isRoomMuted(room)" (click)="toggleRoomMute(room)">
+              <span class="setting__icon"><lucide-icon [name]="isRoomMuted(room) ? 'bell-off' : 'bell'" class="w-5 h-5"></lucide-icon></span>
+              <span class="setting__text"><strong>Tắt thông báo</strong><small>Ẩn bong bóng tin mới</small></span>
+              <i class="switch" [class.is-on]="isRoomMuted(room)" aria-hidden="true"></i>
             </button>
             @if (counterpart(); as person) {
-              @if (confirmBlock()) {
+              @if (room.blockState === 'BLOCKED_BY_ME') {
+                <button type="button" class="action" [disabled]="contextActionLoading()" (click)="unblockCounterpart(person)">
+                  <lucide-icon name="unlock" class="w-5 h-5"></lucide-icon>Bỏ chặn
+                </button>
+              } @else if (confirmBlock()) {
                 <div class="confirm" role="alertdialog" aria-label="Xác nhận chặn">
                   <p>Chặn <strong>{{ person.userName || 'người chơi này' }}</strong>? Hai bạn sẽ không nhắn tin và không thấy bài của nhau.</p>
                   <div class="confirm__actions">
@@ -361,10 +389,10 @@
                   <lucide-icon name="ban" class="w-5 h-5"></lucide-icon>Chặn người dùng
                 </button>
               }
-              <button type="button" class="action action--danger" [disabled]="contextActionLoading()" (click)="openReport(person)">
-                <lucide-icon name="flag" class="w-5 h-5"></lucide-icon>Báo cáo
-              </button>
             }
+            <button type="button" class="action action--danger" (click)="confirmDelete(room)">
+              <lucide-icon name="trash-2" class="w-5 h-5"></lucide-icon>Xóa đoạn chat
+            </button>
           </section>
         </div>
       </aside>
@@ -399,7 +427,7 @@
                     <input type="checkbox" [checked]="selectedMemberIds().has(getFriendId(friendship))" (change)="toggleGroupMember(friendship)" />
                     <img class="avatar" [src]="getFriendAvatar(friendship)" alt="" width="36" height="36" (error)="useDefaultAvatar($event)" />
                     <span>{{ getFriendName(friendship) }}</span>
-                    <lucide-icon name="check" class="w-4 h-4 pick__check"></lucide-icon>
+                    <span class="pick__check" aria-hidden="true"><lucide-icon name="check" class="w-3.5 h-3.5"></lucide-icon></span>
                   </label>
                 </li>
               }
@@ -420,42 +448,63 @@
   </div>
 }
 
-@if (reportTarget(); as person) {
-  <div class="modal-backdrop" role="presentation" (click)="closeReport()">
-    <section class="modal" appAccessibleDialog aria-labelledby="chat-report-title" (dialogClosed)="closeReport()" (click)="$event.stopPropagation()">
+@if (deleteTarget(); as target) {
+  <div class="modal-backdrop" role="presentation" (click)="closeDelete()">
+    <section class="modal" appAccessibleDialog aria-labelledby="chat-delete-title" (dialogClosed)="closeDelete()" (click)="$event.stopPropagation()">
       <header class="modal__header">
         <div>
-          <h2 id="chat-report-title">Báo cáo {{ person.userName || 'người chơi' }}</h2>
-          <p>Đội kiểm duyệt sẽ xem xét. Người bị báo cáo không biết ai đã gửi.</p>
+          <h2 id="chat-delete-title">Xóa đoạn chat?</h2>
+          <p>Lịch sử tin nhắn với {{ target.name || 'đoạn chat này' }} chỉ bị xóa ở phía bạn. Những người khác vẫn giữ nguyên. Khi có tin nhắn mới, đoạn chat sẽ hiện lại.</p>
         </div>
-        <button type="button" class="icon-btn" (click)="closeReport()" aria-label="Đóng"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button>
+        <button type="button" class="icon-btn" (click)="closeDelete()" aria-label="Đóng"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button>
       </header>
-      <div class="modal__body">
-        <div class="field">
-          <span class="field__label">Lý do thường gặp</span>
-          <div class="tags">
-            @for (reason of reportReasons; track reason) {
-              <button type="button" class="chip" (click)="pickReason(reason)">{{ reason }}</button>
-            }
-          </div>
-        </div>
-        <label class="field" [class.is-invalid]="reportReason().trim().length > 0 && reportReason().trim().length < 10">
-          <span class="field__label">Mô tả <b>*</b></span>
-          <textarea class="field__control" cdkFocusInitial rows="4" maxlength="2000" aria-describedby="chat-report-hint"
-            placeholder="Người này đã làm gì?" [ngModel]="reportReason()" (ngModelChange)="reportReason.set($event)"></textarea>
-          <small id="chat-report-hint" class="field__hint">{{ reportReason().trim().length }}/2000 · tối thiểu 10 ký tự</small>
-        </label>
-      </div>
       <footer class="modal__footer">
-        <button type="button" class="btn btn--secondary" [disabled]="contextActionLoading()" (click)="closeReport()">Hủy</button>
-        <button type="button" class="btn btn--danger" [disabled]="contextActionLoading() || reportReason().trim().length < 10" (click)="submitReport()">
-          @if (contextActionLoading()) { <span class="spinner" aria-hidden="true"></span> }
-          Gửi báo cáo
+        <button type="button" class="btn btn--secondary" cdkFocusInitial [disabled]="deleting()" (click)="closeDelete()">Hủy</button>
+        <button type="button" class="btn btn--danger" [disabled]="deleting()" [attr.aria-busy]="deleting()" (click)="deleteRoom()">
+          @if (deleting()) { <span class="spinner" aria-hidden="true"></span> }
+          Xóa đoạn chat
         </button>
       </footer>
     </section>
   </div>
 }
+
+@if (membersOpen() && activeRoom(); as room) {
+  <div class="modal-backdrop" role="presentation" (click)="membersOpen.set(false)">
+    <section class="modal members-dialog" appAccessibleDialog aria-labelledby="chat-members-title" (dialogClosed)="membersOpen.set(false)" (click)="$event.stopPropagation()">
+      <header class="modal__header">
+        <div><h2 id="chat-members-title">Thành viên · {{ room.participants.length }}</h2></div>
+        <button type="button" class="icon-btn" (click)="membersOpen.set(false)" aria-label="Đóng"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button>
+      </header>
+      <div class="modal__body">
+        <ul class="members">
+          @for (participant of sortedMembers(room); track participant.userId) {
+            <ng-container [ngTemplateOutlet]="memberRow" [ngTemplateOutletContext]="{ $implicit: participant, room }"></ng-container>
+          }
+        </ul>
+      </div>
+    </section>
+  </div>
+}
+
+<!-- Mot dong thanh vien: avatar + cham hoat dong, ten, vai tro CLB (neu la doan chat CLB), trang thai. -->
+<ng-template #memberRow let-participant let-room="room">
+  <li>
+    <span class="avatar-wrap">
+      <img class="avatar" [src]="participant.userAvatar || 'assets/images/default-avatar.svg'" alt="" width="36" height="36" (error)="useDefaultAvatar($event)" />
+      <span class="presence" [class.is-online]="isUserOnline(participant.userId)" aria-hidden="true"></span>
+    </span>
+    <span>
+      <span class="members__name">
+        <strong>{{ participant.userName || 'Thành viên' }}</strong>
+        @if (clubRoleLabel(room, participant.userId); as role) {
+          <span class="badge" [class.badge--sport]="isClubManager(participant.userId)" [class.badge--neutral]="!isClubManager(participant.userId)">{{ role }}</span>
+        }
+      </span>
+      <small>{{ participant.userId === currentUserId ? 'Bạn' : getPresenceLabel(participant.userId) }}</small>
+    </span>
+  </li>
+</ng-template>
 
 @if (cameraOpen()) {
   <app-camera-capture (captured)="onCaptured($event)" (closed)="cameraOpen.set(false)"></app-camera-capture>

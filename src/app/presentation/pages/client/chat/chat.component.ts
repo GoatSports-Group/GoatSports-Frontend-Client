@@ -19,13 +19,13 @@ import {
 import { Friendship } from '@application/dto/friend/friend.dto';
 import { User } from '@application/dto/user/user.dto';
 import { PLAYER_SPORT_PROFILE_REPOSITORY_TOKEN } from '@application/ports/persistence/player-sport-profile.repository';
-import { SOCIAL_FEED_REPOSITORY_TOKEN } from '@application/ports/persistence/social-feed.repository';
 import { STORAGE_REPOSITORY_TOKEN } from '@application/ports/persistence/storage.repository';
 import { LightboxItem } from '@presentation/pages/client/feed/media-lightbox.component';
 import { CHAT_MAX_BYTES, CHAT_MAX_IMAGES, CHAT_IMAGE_TYPES, prepareImage } from './image-prep';
 import { NotifyService } from '@shared/components/notify/notify.service';
 import { PlayerDirectoryService } from '@presentation/services/player-directory.service';
-import { REPORT_REASONS } from '@presentation/pages/client/feed/community-view';
+import { ClubRepositoryPort } from '@application/ports/club.repository.port';
+import { ClubRole } from '@domain/models/club.model';
 
 const SPORT_LABELS: Record<string, string> = {
   FOOTBALL: 'Bóng đá',
@@ -36,12 +36,14 @@ const SPORT_LABELS: Record<string, string> = {
   VOLLEYBALL: 'Bóng chuyền'
 };
 
-const MUTED_ROOMS_STORAGE_KEY = 'goat.chat.mutedRooms';
-
 type RoomFilter = 'ALL' | 'UNREAD' | 'GROUP' | 'CLUB';
 
 const MESSAGE_PAGE = PAGE_SIZE.chat;
 const ROOM_PAGE = PAGE_SIZE.streamLight;
+/** So thanh vien hien san trong khung thong tin; con lai mo popup "Xem tat ca". */
+const MEMBER_PREVIEW = 5;
+const CLUB_ROLE_LABEL: Record<ClubRole, string> = { OWNER: 'Chủ CLB', ADMIN: 'Quản trị viên', MEMBER: 'Thành viên' };
+const CLUB_ROLE_ORDER: Record<ClubRole, number> = { OWNER: 0, ADMIN: 1, MEMBER: 2 };
 
 @Component({
   selector: 'app-chat',
@@ -61,7 +63,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   private readonly notifyService = inject(NotifyService);
   private readonly playerDirectory = inject(PlayerDirectoryService);
   private readonly sportProfileRepo = inject(PLAYER_SPORT_PROFILE_REPOSITORY_TOKEN);
-  private readonly socialFeedRepo = inject(SOCIAL_FEED_REPOSITORY_TOKEN);
+  private readonly clubRepo = inject(ClubRepositoryPort);
   private readonly storageRepo = inject(STORAGE_REPOSITORY_TOKEN);
 
   // ---- anh ------------------------------------------------------------------------------------
@@ -104,13 +106,17 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   readonly counterpart = signal<ChatParticipant | null>(null);
   readonly counterpartProfile = signal<User | null>(null);
   readonly counterpartSports = signal<{ label: string; shared: boolean }[]>([]);
-  readonly mutedRoomIds = signal<ReadonlySet<string>>(new Set());
   readonly contextActionLoading = signal(false);
   /** Chan nguoi dung: xac nhan ngay trong khung thong tin thay cho window.confirm. */
   readonly confirmBlock = signal(false);
-  readonly reportTarget = signal<ChatParticipant | null>(null);
-  readonly reportReason = signal('');
-  readonly reportReasons = REPORT_REASONS;
+  /** Doan chat dang cho xac nhan "Xoa" (menu ⋯ o danh sach hoac khung thong tin). */
+  readonly deleteTarget = signal<ChatRoom | null>(null);
+  readonly deleting = signal(false);
+  /** Popup danh sach day du thanh vien. */
+  readonly membersOpen = signal(false);
+  /** Vai tro trong CLB (doan chat CLB): userId -> OWNER / ADMIN / MEMBER, lay tu club-service. */
+  readonly clubRoles = signal<ReadonlyMap<string, ClubRole>>(new Map());
+  readonly memberPreview = MEMBER_PREVIEW;
   readonly roomFilters: ReadonlyArray<{ value: RoomFilter; label: string }> = [
     { value: 'ALL', label: 'Tất cả' },
     { value: 'UNREAD', label: 'Chưa đọc' },
@@ -150,7 +156,6 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   ngOnInit(): void {
     this.currentUserId = this.userProvider.getCurrentUserId() || '';
-    this.restoreMutedRooms();
     this.loadMySportTypes();
     this.wsService.connect();
     this.listenToWebSocket();
@@ -281,7 +286,9 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.activeRoom.set(room);
     this.contextPanelOpen.set(false);
     this.confirmBlock.set(false);
+    this.membersOpen.set(false);
     this.loadCounterpartContext(room);
+    this.loadClubRoles(room);
     this.wsService.subscribeToRoom(room.roomId);
     this.loadMessages(room.roomId);
 
@@ -649,26 +656,28 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     return facts;
   });
 
-  isRoomMuted(roomId: string): boolean {
-    return this.mutedRoomIds().has(roomId);
+  isRoomMuted(room: ChatRoom): boolean {
+    return !!room.muted;
   }
 
-  /** Tắt thông báo là tuỳ chọn cục bộ của từng máy: backend chưa lưu trạng thái này. */
+  /** Luu o server: doan chat da tat thong bao khong day tin vao kenh rieng, nen khong hien bong bong chat. */
   toggleRoomMute(room: ChatRoom): void {
-    this.mutedRoomIds.update(items => {
-      const next = new Set(items);
-      next.has(room.roomId) ? next.delete(room.roomId) : next.add(room.roomId);
-      this.persistMutedRooms(next);
-      return next;
+    const muted = !room.muted;
+    this.updateRoom(room.roomId, { muted });
+    this.chatRepo.setMuted(room.roomId, muted).subscribe({
+      next: () => this.notifyService.success(muted
+        ? 'Đã tắt thông báo. Tin nhắn mới của đoạn chat này sẽ không hiện bong bóng.'
+        : 'Đã bật lại thông báo cho đoạn chat này.'),
+      error: () => {
+        this.updateRoom(room.roomId, { muted: !muted });
+        this.notifyService.error('Không cập nhật được thông báo. Vui lòng thử lại.');
+      }
     });
-    this.notifyService.success(
-      this.isRoomMuted(room.roomId)
-        ? 'Đã tắt thông báo cho cuộc trò chuyện này trên thiết bị hiện tại.'
-        : 'Đã bật lại thông báo cho cuộc trò chuyện này.'
-    );
   }
 
+  /** Chan xong van o lai doan chat: o soan tin doi thanh thong bao "Ban da chan…" kem nut Bo chan. */
   blockCounterpart(person: ChatParticipant): void {
+    const room = this.activeRoom();
     const name = person.userName || 'người chơi này';
     this.confirmBlock.set(false);
     this.contextActionLoading.set(true);
@@ -677,41 +686,73 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     ).subscribe({
       next: () => {
         this.notifyService.success(`Đã chặn ${name}.`);
-        this.backToRooms();
-        this.loadRooms();
+        if (room) this.updateRoom(room.roomId, { blockState: 'BLOCKED_BY_ME' });
       },
       error: () => this.notifyService.error('Không thể chặn người dùng này. Vui lòng thử lại.')
     });
   }
 
-  openReport(person: ChatParticipant): void {
-    this.reportReason.set('');
-    this.reportTarget.set(person);
-  }
-
-  closeReport(): void {
-    if (!this.contextActionLoading()) this.reportTarget.set(null);
-  }
-
-  pickReason(reason: string): void {
-    const current = this.reportReason().trim();
-    this.reportReason.set(current ? `${current}. ${reason}` : reason);
-  }
-
-  submitReport(): void {
-    const person = this.reportTarget();
-    const reason = this.reportReason().trim();
-    if (!person || reason.length < 10 || this.contextActionLoading()) return;
+  unblockCounterpart(person: ChatParticipant): void {
+    const room = this.activeRoom();
     this.contextActionLoading.set(true);
-    this.socialFeedRepo.reportContent({ targetType: 'USER', targetId: person.userId, reason, evidence: [] }).pipe(
+    this.friendRepo.getBlockedUsers().pipe(
+      switchMap(response => {
+        const block = (response.data ?? []).find(item => item.blockedUserId === person.userId);
+        return block ? this.friendRepo.unblockUser(block.blockId) : of(null);
+      }),
       finalize(() => this.contextActionLoading.set(false))
     ).subscribe({
       next: () => {
-        this.reportTarget.set(null);
-        this.notifyService.success('Đã gửi báo cáo. Đội kiểm duyệt sẽ xem xét sớm.');
+        this.notifyService.success(`Đã bỏ chặn ${person.userName || 'người chơi này'}.`);
+        if (room) this.updateRoom(room.roomId, { blockState: null });
       },
-      error: () => this.notifyService.error('Không gửi được báo cáo. Vui lòng thử lại.')
+      error: () => this.notifyService.error('Không bỏ chặn được. Vui lòng thử lại.')
     });
+  }
+
+  confirmDelete(room: ChatRoom): void {
+    this.deleteTarget.set(room);
+  }
+
+  closeDelete(): void {
+    if (!this.deleting()) this.deleteTarget.set(null);
+  }
+
+  /** Xoa phia minh: an khoi danh sach va xoa lich su voi minh; nguoi kia khong doi, tin moi lam doan chat hien lai. */
+  deleteRoom(): void {
+    const room = this.deleteTarget();
+    if (!room || this.deleting()) return;
+    this.deleting.set(true);
+    this.chatRepo.clearRoom(room.roomId).pipe(finalize(() => this.deleting.set(false))).subscribe({
+      next: () => {
+        this.deleteTarget.set(null);
+        this.rooms.update(items => items.filter(item => item.roomId !== room.roomId));
+        if (this.activeRoom()?.roomId === room.roomId) this.backToRooms();
+        this.notifyService.success('Đã xóa đoạn chat ở phía bạn.');
+      },
+      error: () => this.notifyService.error('Không xóa được đoạn chat. Vui lòng thử lại.')
+    });
+  }
+
+  /** Thanh vien da sap xep: CLB theo vai tro (chu, quan tri, thanh vien), roi nguoi dang hoat dong. */
+  sortedMembers(room: ChatRoom): ChatParticipant[] {
+    const roles = this.clubRoles();
+    return [...room.participants].sort((left, right) => {
+      const byRole = (CLUB_ROLE_ORDER[roles.get(left.userId) ?? 'MEMBER']) - (CLUB_ROLE_ORDER[roles.get(right.userId) ?? 'MEMBER']);
+      if (byRole) return byRole;
+      return Number(this.isUserOnline(right.userId)) - Number(this.isUserOnline(left.userId));
+    });
+  }
+
+  clubRoleLabel(room: ChatRoom, userId: string): string {
+    if (room.type !== ChatRoomType.CLUB) return '';
+    const role = this.clubRoles().get(userId);
+    return role ? CLUB_ROLE_LABEL[role] : '';
+  }
+
+  isClubManager(userId: string): boolean {
+    const role = this.clubRoles().get(userId);
+    return role === 'OWNER' || role === 'ADMIN';
   }
 
   /** Dòng phụ dưới tên ở header: bối cảnh của hội thoại, không phải trạng thái online. */
@@ -987,6 +1028,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       },
       error: () => {
         this.patchMessage(message, { deliveryState: 'FAILED' });
+        this.refreshBlockState(message.roomId);
         this.notifyService.error(files.length
           ? 'Ảnh chưa gửi được. Bạn có thể bấm "Gửi lại" ngay trên tin nhắn.'
           : 'Tin nhắn chưa gửi được. Bạn có thể thử lại ngay trên tin nhắn.');
@@ -1180,6 +1222,29 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     });
   }
 
+  /** Gui loi co the vi vua bi chan: doc lai trang thai chan de o soan tin doi thanh thong bao. */
+  private refreshBlockState(roomId: string): void {
+    this.chatRepo.getRoomDetails(roomId).subscribe({
+      next: response => {
+        if (response.data?.blockState) this.updateRoom(roomId, { blockState: response.data.blockState });
+      },
+      error: () => undefined
+    });
+  }
+
+  private loadClubRoles(room: ChatRoom): void {
+    this.clubRoles.set(new Map());
+    if (room.type !== ChatRoomType.CLUB || !room.contextId) return;
+    const roomId = room.roomId;
+    this.clubRepo.getClubMembers(room.contextId).subscribe({
+      next: members => {
+        if (this.activeRoom()?.roomId !== roomId) return;
+        this.clubRoles.set(new Map(members.map(member => [member.userId, member.role])));
+      },
+      error: () => undefined
+    });
+  }
+
   private loadMySportTypes(): void {
     this.sportProfileRepo.getMyProfiles().subscribe({
       next: profiles => {
@@ -1189,23 +1254,6 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       },
       error: () => undefined
     });
-  }
-
-  private restoreMutedRooms(): void {
-    try {
-      const stored = localStorage.getItem(MUTED_ROOMS_STORAGE_KEY);
-      if (stored) this.mutedRoomIds.set(new Set(JSON.parse(stored) as string[]));
-    } catch {
-      // Trình duyệt chặn storage thì coi như chưa tắt thông báo phòng nào.
-    }
-  }
-
-  private persistMutedRooms(roomIds: ReadonlySet<string>): void {
-    try {
-      localStorage.setItem(MUTED_ROOMS_STORAGE_KEY, JSON.stringify([...roomIds]));
-    } catch {
-      // Không lưu được thì tuỳ chọn chỉ có hiệu lực trong phiên hiện tại.
-    }
   }
 
   private genderLabel(gender?: string): string {

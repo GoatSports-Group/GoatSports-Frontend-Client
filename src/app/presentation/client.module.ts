@@ -29,6 +29,7 @@ import { BookingDetailComponent } from '@presentation/pages/client/booking/detai
 import { QrCheckinComponent } from '@presentation/pages/client/booking/checkin/qr-checkin.component';
 import { PaymentResultComponent } from '@presentation/pages/client/payment/payment-result.component';
 import { ChatComponent } from '@presentation/pages/client/chat/chat.component';
+import { ChatHeadsComponent } from '@presentation/pages/client/chat/chat-heads.component';
 import { ClubListComponent } from '@presentation/pages/client/clubs/club-list.component';
 import { ClubDetailComponent } from '@presentation/pages/client/clubs/club-detail.component';
 import { ClubFeaturedComponent } from '@presentation/pages/client/clubs/club-featured.component';
@@ -86,6 +87,7 @@ import { AiAssistantModalComponent } from '@presentation/shared/components/ai-as
     QrCheckinComponent,
     PaymentResultComponent,
     ChatComponent,
+    ChatHeadsComponent,
     ClubListComponent,
     ClubDetailComponent,
     ClubFeaturedComponent,

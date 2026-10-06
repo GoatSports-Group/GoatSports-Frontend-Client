@@ -1,0 +1,69 @@
+@if (!onChatPage()) {
+  @if (visibleHeads().length) {
+    <ul class="heads" aria-label="Tin nhắn mới">
+      @for (head of visibleHeads(); track head.roomId) {
+        <li class="head">
+          <button type="button" class="head__open" (click)="open(head)"
+            [attr.aria-label]="'Mở trò chuyện với ' + title(head.room) + (head.unread ? ', ' + head.unread + ' tin chưa đọc' : '')">
+            <img [src]="avatar(head.room, head.senderId)" alt="" width="52" height="52" (error)="useDefaultAvatar($event)" />
+            @if (head.unread) { <b class="head__count" aria-hidden="true">{{ head.unread > 9 ? '9+' : head.unread }}</b> }
+          </button>
+          <!-- The xem truoc khi re chuot: ten + tin cuoi. -->
+          <span class="head__peek" aria-hidden="true"><strong>{{ title(head.room) }}</strong><span>{{ head.preview }}</span></span>
+          <button type="button" class="head__dismiss" (click)="dismiss(head, $event)" [attr.aria-label]="'Ẩn bong bóng ' + title(head.room)">
+            <lucide-icon name="x" class="w-3.5 h-3.5"></lucide-icon>
+          </button>
+        </li>
+      }
+    </ul>
+  }
+
+  @if (openRoom(); as room) {
+    <section class="mini" role="dialog" aria-labelledby="mini-chat-title">
+      <header class="mini__head">
+        <img class="mini__avatar" [src]="avatar(room)" alt="" width="36" height="36" (error)="useDefaultAvatar($event)" />
+        <strong id="mini-chat-title">{{ title(room) }}</strong>
+        <button type="button" class="mini__tool" (click)="openInMessenger()" aria-label="Mở trong Tin nhắn" title="Mở trong Tin nhắn">
+          <lucide-icon name="maximize-2" class="w-4 h-4"></lucide-icon>
+        </button>
+        <button type="button" class="mini__tool" (click)="minimize()" aria-label="Thu nhỏ" title="Thu nhỏ">
+          <lucide-icon name="minus" class="w-4 h-4"></lucide-icon>
+        </button>
+        <button type="button" class="mini__tool" (click)="close()" aria-label="Đóng" title="Đóng">
+          <lucide-icon name="x" class="w-4 h-4"></lucide-icon>
+        </button>
+      </header>
+
+      <div class="mini__body" #windowBody aria-live="polite">
+        @if (windowLoading()) {
+          <p class="mini__note"><span class="spinner" aria-hidden="true"></span>Đang tải tin nhắn…</p>
+        } @else if (!windowMessages().length) {
+          <p class="mini__note">Chưa có tin nhắn nào.</p>
+        }
+        @for (message of windowMessages(); track message.clientMessageId || message.messageId; let index = $index) {
+          @let mine = message.senderId === me;
+          <div class="mini__msg" [class.is-mine]="mine" [class.is-failed]="message.deliveryState === 'FAILED'">
+            @if (!mine && isGroup(room) && startsRun(index)) { <small class="mini__sender">{{ senderName(room, message.senderId) }}</small> }
+            @if (imageCount(message)) {
+              <span class="mini__bubble mini__bubble--media"><lucide-icon name="image" class="w-4 h-4"></lucide-icon>{{ imageCount(message) }} ảnh</span>
+            }
+            @if (message.content) { <p class="mini__bubble">{{ message.content }}</p> }
+            @if (message.deliveryState === 'FAILED') { <small class="mini__failed">Chưa gửi được</small> }
+          </div>
+        }
+      </div>
+
+      @if (room.blockState) {
+        <p class="mini__blocked">{{ room.blockState === 'BLOCKED_BY_ME' ? 'Bạn đã chặn người này. Bỏ chặn trong Tin nhắn để nhắn tiếp.' : 'Bạn không thể trả lời cuộc trò chuyện này.' }}</p>
+      } @else {
+        <footer class="mini__compose">
+          <label class="sr-only" for="mini-chat-input">Nội dung tin nhắn</label>
+          <textarea id="mini-chat-input" rows="1" maxlength="2000" placeholder="Aa" [(ngModel)]="draft" (keydown)="onKeydown($event)"></textarea>
+          <button type="button" class="mini__send" [disabled]="!draft.trim()" (click)="send()" aria-label="Gửi">
+            <lucide-icon name="send" class="w-4 h-4"></lucide-icon>
+          </button>
+        </footer>
+      }
+    </section>
+  }
+}

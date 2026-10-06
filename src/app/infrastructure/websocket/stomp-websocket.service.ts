@@ -88,6 +88,8 @@ export class StompWebSocketService implements WebSocketService {
   public notifications$: Observable<Notification> = this.notificationSubject.asObservable();
   private chatMessageSubject = new Subject<ChatMessage>();
   public chatMessages$: Observable<ChatMessage> = this.chatMessageSubject.asObservable();
+  private inboxMessageSubject = new Subject<ChatMessage>();
+  public inboxMessages$: Observable<ChatMessage> = this.inboxMessageSubject.asObservable();
   private typingEventSubject = new Subject<ChatTypingEvent>();
   public typingEvents$: Observable<ChatTypingEvent> = this.typingEventSubject.asObservable();
   private presenceEventSubject = new Subject<ChatPresenceEvent>();
@@ -205,6 +207,7 @@ export class StompWebSocketService implements WebSocketService {
       if (this.isSocialConnected) {
         this.publishPresence(false);
         this.socialUnsubscribe('sub-social-presence');
+        this.socialUnsubscribe('sub-social-inbox');
         this.activeRoomSubscriptions.forEach(roomId => {
           this.socialUnsubscribe(`sub-social-room-${roomId}`);
           this.socialUnsubscribe(`sub-social-typing-${roomId}`);
@@ -452,6 +455,8 @@ export class StompWebSocketService implements WebSocketService {
       this.isSocialConnected = true;
       this.socialReconnectAttempts = 0;
       this.socialSubscribe('sub-social-presence', '/topic/presence');
+      const me = this.currentUserProvider.getCurrentUserId();
+      if (me) this.socialSubscribe('sub-social-inbox', `/topic/users/${me}/messages`);
       this.publishPresence(true);
       this.stopPresenceHeartbeat();
       this.presenceHeartbeatInterval = setInterval(() => this.publishPresence(true), 15_000);
@@ -479,6 +484,16 @@ export class StompWebSocketService implements WebSocketService {
       return;
     }
 
+    if (destination === `/topic/users/${this.currentUserProvider.getCurrentUserId()}/messages`) {
+      try {
+        const payload = JSON.parse(frame.body);
+        this.inboxMessageSubject.next(this.toChatMessage(payload, payload.conversationId));
+      } catch (error) {
+        console.error('Không thể chuyển đổi tin nhắn mới.', error);
+      }
+      return;
+    }
+
     const match = destination.match(/^\/topic\/conversations\/([^/]+)(\/typing)?$/);
     if (!match) return;
 
@@ -493,29 +508,33 @@ export class StompWebSocketService implements WebSocketService {
           isTyping: Boolean(payload.typing)
         });
       } else {
-        this.chatMessageSubject.next({
-          messageId: payload.messageId,
-          roomId: payload.conversationId || roomId,
-          senderId: payload.senderId,
-          senderName: payload.senderName,
-          senderAvatar: payload.senderAvatar,
-          content: payload.content,
-          type: payload.type,
-          status: payload.status,
-          deliveryState: 'SENT',
-          clientMessageId: payload.clientMessageId,
-          replyToMessageId: payload.replyToMessageId,
-          attachments: payload.attachments || [],
-          receipts: payload.receipts || [],
-          deleted: payload.deleted,
-          isRead: payload.status === 'READ',
-          createdAt: payload.sentAt,
-          editedAt: payload.editedAt
-        });
+        this.chatMessageSubject.next(this.toChatMessage(payload, roomId));
       }
     } catch (error) {
       console.error('Không thể chuyển đổi dữ liệu trò chuyện realtime.', error);
     }
+  }
+
+  private toChatMessage(payload: any, roomId: string): ChatMessage {
+    return {
+      messageId: payload.messageId,
+      roomId: payload.conversationId || roomId,
+      senderId: payload.senderId,
+      senderName: payload.senderName,
+      senderAvatar: payload.senderAvatar,
+      content: payload.content,
+      type: payload.type,
+      status: payload.status,
+      deliveryState: 'SENT',
+      clientMessageId: payload.clientMessageId,
+      replyToMessageId: payload.replyToMessageId,
+      attachments: payload.attachments || [],
+      receipts: payload.receipts || [],
+      deleted: payload.deleted,
+      isRead: payload.status === 'READ',
+      createdAt: payload.sentAt,
+      editedAt: payload.editedAt
+    };
   }
 
   private sendSocialFrame(frame: StompFrame): void {

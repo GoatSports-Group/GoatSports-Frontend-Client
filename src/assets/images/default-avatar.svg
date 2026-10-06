@@ -4,6 +4,4 @@
   <rect width="96" height="96" rx="48" fill="#dff5ed"/>
   <circle cx="48" cy="37" r="17" fill="#087f5b"/>
   <path d="M19 85c2-19 14-29 29-29s27 10 29 29" fill="#087f5b"/>
-  <circle cx="74" cy="74" r="12" fill="#071d2b" stroke="#fff" stroke-width="4"/>
-  <path d="M69 74l3 3 6-7" fill="none" stroke="#35d49a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

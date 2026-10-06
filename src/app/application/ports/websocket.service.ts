@@ -6,6 +6,8 @@ import { ChatMessage, ChatPresenceEvent, ChatTypingEvent } from '@application/dt
 export interface WebSocketService {
   notifications$: Observable<Notification>;
   chatMessages$: Observable<ChatMessage>;
+  /** Tin moi gui toi minh o moi doan chat chua tat thong bao (kenh rieng, khong can subscribe tung phong). */
+  inboxMessages$: Observable<ChatMessage>;
   typingEvents$: Observable<ChatTypingEvent>;
   presenceEvents$: Observable<ChatPresenceEvent>;
   connect(): void;

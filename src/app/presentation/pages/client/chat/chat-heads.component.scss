@@ -1,0 +1,401 @@
+// Bong bong chat + cua so chat nho (kieu Facebook). Cot bong bong nam ngay tren nut GOAT AI (62px, cach day 22px);
+// lop duoi cua so GOAT AI (1020) de khi mo tro ly thi bong bong khong de len.
+@use '../feed/community-ui' as c;
+
+@include c.community-ui;
+
+:host {
+  --heads-right: max(22px, env(safe-area-inset-right));
+  --heads-bottom: calc(max(22px, env(safe-area-inset-bottom)) + 62px + 16px);
+}
+
+.heads {
+  position: fixed;
+  right: calc(var(--heads-right) + 5px);
+  bottom: var(--heads-bottom);
+  z-index: 1005;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.head {
+  position: relative;
+  animation: head-in var(--motion-layout, 260ms) var(--ease-layout, ease-out) backwards;
+
+  &:hover .head__peek,
+  &:focus-within .head__peek {
+    opacity: 1;
+    translate: 0 -50%;
+  }
+
+  &:hover .head__dismiss,
+  &:focus-within .head__dismiss {
+    opacity: 1;
+  }
+}
+
+.head__open {
+  position: relative;
+  display: block;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  transition: translate var(--transition-smooth);
+
+  img {
+    width: 52px;
+    height: 52px;
+    border-radius: 9999px;
+    object-fit: cover;
+  }
+
+  &:hover {
+    translate: 0 -2px;
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+// So tin chua doc: do, goc tren phai, vien trang tach khoi avatar.
+.head__count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  display: grid;
+  min-width: 20px;
+  height: 20px;
+  place-items: center;
+  padding: 0 5px;
+  border: 2px solid var(--surface);
+  border-radius: 9999px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.head__peek {
+  position: absolute;
+  top: 50%;
+  right: calc(100% + 12px);
+  display: grid;
+  width: max-content;
+  max-width: 240px;
+  gap: 2px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-smooth), translate var(--transition-smooth);
+  translate: 6px -50%;
+
+  strong {
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 800;
+  }
+
+  span {
+    overflow: hidden;
+    color: var(--body);
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.head__dismiss {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  color: var(--body);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--transition-smooth);
+
+  &:hover {
+    color: var(--ink);
+  }
+
+  &:focus-visible {
+    opacity: 1;
+    outline: 2px solid var(--focus-ring);
+  }
+
+  @media (hover: none) {
+    opacity: 1;
+  }
+}
+
+// ---- Cua so chat nho: 328 x 440, ben trai cot bong bong ------------------------------------------
+.mini {
+  position: fixed;
+  right: calc(var(--heads-right) + 62px + 20px);
+  bottom: max(22px, env(safe-area-inset-bottom));
+  z-index: 1006;
+  display: flex;
+  width: 328px;
+  height: min(440px, calc(100dvh - 120px));
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  animation: mini-in var(--motion-layout, 260ms) var(--ease-layout, ease-out) backwards;
+}
+
+.mini__head {
+  display: flex;
+  min-height: 56px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 6px 0 12px;
+  border-bottom: 1px solid var(--hairline);
+
+  strong {
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+    color: var(--ink);
+    font-size: 15px;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.mini__avatar {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: 9999px;
+  object-fit: cover;
+}
+
+.mini__tool {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--primary);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--surface-subtle);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--focus-ring);
+  }
+}
+
+.mini__body {
+  display: flex;
+  flex: 1 1 0;
+  min-height: 0;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 12px;
+  background: var(--canvas);
+}
+
+.mini__note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: auto 0;
+  color: var(--body);
+  font-size: 13px;
+}
+
+.mini__msg {
+  display: grid;
+  max-width: 80%;
+  justify-items: start;
+  gap: 2px;
+
+  &.is-mine {
+    align-self: flex-end;
+    justify-items: end;
+  }
+}
+
+.mini__sender {
+  margin: 6px 0 0 10px;
+  color: var(--body);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.mini__bubble {
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+
+  .is-mine & {
+    border-color: transparent;
+    background: var(--primary-fill);
+    color: var(--on-primary, #fff);
+  }
+
+  .is-failed & {
+    opacity: .7;
+  }
+}
+
+.mini__bubble--media {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+}
+
+.mini__failed {
+  color: var(--danger);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.mini__blocked {
+  margin: 0;
+  padding: 12px 16px;
+  border-top: 1px solid var(--hairline);
+  color: var(--body);
+  font-size: 13px;
+  text-align: center;
+}
+
+.mini__compose {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--hairline);
+
+  textarea {
+    min-height: 40px;
+    max-height: 120px;
+    flex: 1;
+    padding: 9px 14px;
+    border: 0;
+    border-radius: 20px;
+    background: var(--surface-subtle);
+    color: var(--ink);
+    font: inherit;
+    font-size: 14px;
+    resize: none;
+
+    &:focus {
+      outline: 2px solid var(--focus-ring);
+      background: var(--surface);
+    }
+  }
+}
+
+.mini__send {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--primary-fill);
+  color: #fff;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+@keyframes head-in {
+  from {
+    opacity: 0;
+    scale: .6;
+  }
+}
+
+@keyframes mini-in {
+  from {
+    opacity: 0;
+    translate: 0 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .head,
+  .mini {
+    animation: none;
+  }
+}
+
+// Dien thoai: nut AI 56px cach day 16px; cua so chat la tam day day ngang man hinh.
+@media (max-width: 520px) {
+  :host {
+    --heads-right: max(16px, env(safe-area-inset-right));
+    --heads-bottom: calc(max(16px, env(safe-area-inset-bottom)) + 56px + 14px);
+  }
+
+  .heads {
+    right: calc(var(--heads-right) + 2px);
+  }
+
+  .mini {
+    inset: auto 8px max(8px, env(safe-area-inset-bottom));
+    z-index: 1015;
+    width: auto;
+    height: min(480px, calc(100dvh - 80px));
+  }
+
+  .head__peek {
+    display: none;
+  }
+}

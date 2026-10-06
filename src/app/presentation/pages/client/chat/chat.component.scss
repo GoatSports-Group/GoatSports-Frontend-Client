@@ -14,7 +14,7 @@
 .chat-page {
   width: min(100%, 1480px);
   margin: 0 auto;
-  padding: var(--page-block-start) clamp(16px, 2vw, 28px) var(--page-block-end);
+  padding: var(--page-block-start) 0 var(--page-block-end);
 }
 
 .chat-workspace {
@@ -133,8 +133,13 @@
     background: currentColor;
     animation: chat-dot 1.2s ease-in-out infinite;
 
-    &:nth-child(2) { animation-delay: 150ms; }
-    &:nth-child(3) { animation-delay: 300ms; }
+    &:nth-child(2) {
+      animation-delay: 150ms;
+    }
+
+    &:nth-child(3) {
+      animation-delay: 300ms;
+    }
   }
 }
 
@@ -180,7 +185,7 @@
     border-color: var(--border-strong);
   }
 
-  &:focus-within > lucide-icon {
+  &:focus-within>lucide-icon {
     color: var(--primary);
   }
 
@@ -255,10 +260,76 @@
     background: var(--surface-subtle);
   }
 
-  // Selected row: pale fill + 3px inset primary bar (GOAT-DESIGN §7 Workflow board).
+  // Selected row: pale fill only, no bar or border.
   &.is-active {
     background: var(--primary-light);
-    box-shadow: inset 3px 0 0 var(--primary);
+  }
+}
+
+// ⋯ (Tat thong bao, Xoa): hien khi re chuot / focus vao dong; man hinh cham thi luon hien.
+.room-item {
+  position: relative;
+
+  &:hover .room__more,
+  &:focus-within .room__more {
+    opacity: 1;
+  }
+
+  // Nut ⋯ nam cho gio va so chua doc: an chung di khi nut hien.
+  &:hover,
+  &:focus-within {
+    .room time,
+    .room .counter {
+      visibility: hidden;
+    }
+  }
+}
+
+.room__more {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm, 0 1px 3px rgb(0 0 0 / 12%));
+  color: var(--ink);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--transition-smooth), background-color var(--transition-smooth);
+  translate: 0 -50%;
+
+  &:hover {
+    background: var(--surface-subtle);
+  }
+
+  &:focus-visible {
+    opacity: 1;
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  @media (hover: none) {
+    opacity: 1;
+  }
+}
+
+// Man hinh cham: ⋯ luon hien nen danh rieng mot cot ben phai, khong de len gio / so chua doc.
+@media (hover: none) {
+  .room-item .room {
+    padding-right: 52px;
+  }
+
+  .room-item:hover,
+  .room-item:focus-within {
+    .room time,
+    .room .counter {
+      visibility: visible;
+    }
   }
 }
 
@@ -831,7 +902,8 @@
     opacity: 0;
   }
 
-  &:focus-within {
+  // Chi vien khi dung ban phim (sau khi bam chuot / dong hop chon tep thi khong con vien).
+  &:has(input:focus-visible) {
     outline: 3px solid var(--focus-ring);
     outline-offset: 3px;
   }
@@ -960,31 +1032,37 @@
 
 .identity {
   display: grid;
-  justify-items: center;
-  gap: 4px;
-  padding: 24px 20px 16px;
-  text-align: center;
+  grid-template-columns: 56px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
 
   .avatar {
-    width: 72px;
-    height: 72px;
-    box-shadow: 0 0 0 3px var(--primary-light);
+    width: 56px;
+    height: 56px;
   }
 
   .presence {
-    width: 16px;
-    height: 16px;
-    border-width: 3px;
+    width: 14px;
+    height: 14px;
   }
+}
 
-  > strong {
-    margin-top: 8px;
+.identity__text {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+
+  >strong {
+    overflow: hidden;
     color: var(--ink);
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  > span {
+  >span {
     color: var(--body);
     font-size: 13px;
     font-weight: 600;
@@ -992,6 +1070,22 @@
     &.is-online {
       color: var(--success);
     }
+  }
+}
+
+.identity__link {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
   }
 }
 
@@ -1047,30 +1141,29 @@
 
 .match-link {
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr) 16px;
+  min-height: 52px;
+  grid-template-columns: 32px minmax(0, 1fr) 16px;
   align-items: center;
   gap: 12px;
-  padding: 12px;
-  border: 1px solid var(--hairline);
+  margin: 0 8px 8px;
+  padding: 6px 12px;
   border-radius: 12px;
   color: inherit;
   text-decoration: none;
 
   &:hover {
-    border-color: var(--border-strong);
     background: var(--surface-subtle);
   }
 
   span:nth-child(2) {
     display: grid;
     min-width: 0;
-    gap: 2px;
   }
 
   strong {
     color: var(--ink);
     font-size: 14px;
-    font-weight: 800;
+    font-weight: 700;
   }
 
   small {
@@ -1081,10 +1174,10 @@
 
 .match-link__icon {
   display: grid;
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   place-items: center;
-  border-radius: 12px;
+  border-radius: 10px;
   background: var(--primary-light);
   color: var(--primary);
 }
@@ -1107,7 +1200,7 @@
       height: 36px;
     }
 
-    > span:last-child {
+    >span:last-child {
       display: grid;
       min-width: 0;
     }
@@ -1129,6 +1222,56 @@
   small {
     color: var(--body);
     font-size: 13px;
+  }
+
+  .badge {
+    flex: none;
+  }
+}
+
+// Ten + vai tro CLB tren mot hang; ten dai thi cat, vai tro luon hien.
+.members__name {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+}
+
+.members__more {
+  justify-self: start;
+  padding-left: 0;
+}
+
+.members-dialog {
+  width: min(440px, calc(100vw - 32px));
+
+  .modal__body {
+    padding-top: 8px;
+  }
+}
+
+// O soan tin khi bi chan: mot thong bao thay cho o nhap.
+.blocked {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--hairline);
+  background: var(--surface-subtle);
+  text-align: center;
+
+  p {
+    max-width: 520px;
+    margin: 0;
+    color: var(--body);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  strong {
+    color: var(--ink);
   }
 }
 
@@ -1265,24 +1408,25 @@
 // ---- Group picker (modal) -----------------------------------------------------------------------
 .pick-list {
   display: grid;
-  gap: 4px;
   max-height: 320px;
   margin: 0;
   overflow-y: auto;
-  padding: 0;
+  padding: 4px;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
   list-style: none;
 }
 
 .pick {
   display: grid;
   min-height: 52px;
-  grid-template-columns: 36px minmax(0, 1fr) 20px;
+  grid-template-columns: 36px minmax(0, 1fr) 22px;
   align-items: center;
   gap: 12px;
-  padding: 0 12px;
-  border: 1px solid var(--hairline);
-  border-radius: 12px;
+  padding: 0 10px;
+  border-radius: 10px;
   cursor: pointer;
+  transition: background-color var(--transition-smooth);
 
   input {
     position: absolute;
@@ -1305,36 +1449,67 @@
     white-space: nowrap;
   }
 
-  &:focus-within {
-    outline: 3px solid var(--focus-ring);
-    outline-offset: 2px;
+  &:hover {
+    background: var(--surface-subtle);
+  }
+
+  &:has(input:focus-visible) {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: -2px;
   }
 
   &.is-picked {
-    border-color: var(--primary);
     background: var(--primary-light);
   }
 }
 
+// O tron ben phai: vien xam khi chua chon, nen xanh + dau tick trang khi da chon.
 .pick__check {
-  color: var(--primary);
-  opacity: 0;
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border: 2px solid var(--border-strong);
+  border-radius: 9999px;
+  color: #fff;
+
+  lucide-icon {
+    opacity: 0;
+  }
 
   .is-picked & {
-    opacity: 1;
+    border-color: var(--primary-fill);
+    background: var(--primary-fill);
+
+    lucide-icon {
+      opacity: 1;
+    }
   }
 }
 
 @keyframes chat-dot {
-  0%, 60%, 100% { opacity: .35; translate: 0 0; }
-  30% { opacity: 1; translate: 0 -3px; }
+
+  0%,
+  60%,
+  100% {
+    opacity: .35;
+    translate: 0 0;
+  }
+
+  30% {
+    opacity: 1;
+    translate: 0 -3px;
+  }
 }
 
 @keyframes chat-shimmer {
-  to { background-position: -200% 0; }
+  to {
+    background-position: -200% 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .dots b,
   .bubbles-skeleton span,
   .gallery__cell--loading {

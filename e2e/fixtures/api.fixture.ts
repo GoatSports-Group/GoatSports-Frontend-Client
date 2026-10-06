@@ -57,6 +57,13 @@ const rooms = [
   }
 ];
 
+/** Ban sao danh sach doan chat (dang trang Spring), de test sua mot phong roi tra ve. */
+export function chatRoomsPage(edit: (items: typeof rooms) => void = () => undefined) {
+  const items = structuredClone(rooms);
+  edit(items);
+  return { ...emptySpringPage, content: items, totalElements: items.length, empty: false };
+}
+
 const messages = [
   { from: postAuthor, text: 'Chào bạn, cuối tuần rảnh đánh cầu không?', at: 50 },
   { from: currentUser, text: 'Rảnh nè! Mấy giờ vậy?', at: 45 },

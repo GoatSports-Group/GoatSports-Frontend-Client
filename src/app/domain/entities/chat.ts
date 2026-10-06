@@ -14,6 +14,10 @@ export interface ChatRoom {
   lastMessageAt?: string;
   lastSenderId?: string;
   unreadCount: number;
+  /** Rieng nguoi xem: da tat thong bao (khong hien bong bong chat). */
+  muted?: boolean;
+  /** Rieng nguoi xem, chat hai nguoi: minh chan ho / ho chan minh. */
+  blockState?: 'BLOCKED_BY_ME' | 'BLOCKED_BY_THEM' | null;
   createdAt: string;
   updatedAt: string;
 }

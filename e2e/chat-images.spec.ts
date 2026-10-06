@@ -15,7 +15,7 @@ test.beforeEach(async ({ page }) => {
   storageCalls.messages.length = 0;
   await mockGoatSportsApi(page);
   await page.goto('/chat');
-  await page.getByRole('button', { name: /Trần Hoàng Nam/ }).click();
+  await page.locator('.room').filter({ hasText: /Trần Hoàng Nam/ }).click();
   await expect(page.getByText('Mình đặt sân 2 rồi, bạn chỉ cần mang vợt.')).toBeVisible();
 });
 
