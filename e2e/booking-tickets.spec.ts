@@ -30,7 +30,9 @@ const refunded = {
     refundAmount: 135000, status: 'REFUNDED', reviewMode: 'AUTOMATIC', refundId: 'rf-1', createdAt: '2026-09-18T08:00:00',
     processedAt: '2026-09-18T08:00:01' }
 };
-const all = [upcoming, cancelled, refunded];
+// Da coc, het gio choi ma chua quet QR: server da chuyen sang NO_SHOW.
+const noShow = { ...base, bookingId: 'b4', bookingCode: 'GSLEOQDJ', playDate: day(-4), status: 'NO_SHOW', qrCode: 'GOAT-QR-GSLEOQDJ' };
+const all = [upcoming, cancelled, refunded, noShow];
 
 async function mockBookings(page: Page): Promise<URLSearchParams[]> {
   await mockGoatSportsApi(page);
@@ -39,7 +41,10 @@ async function mockBookings(page: Page): Promise<URLSearchParams[]> {
     const params = new URL(route.request().url()).searchParams;
     queries.push(params);
     const status = params.get('status');
-    const items = all.filter(item => !status || item.status === status);
+    // UPCOMING: con hieu luc va chua toi ngay choi (nhu server loc theo gio choi).
+    const items = all.filter(item => !status
+      || (status === 'UPCOMING' ? ['PENDING_PAYMENT', 'CONFIRMED', 'CHECKED_IN'].includes(item.status) && item.playDate >= day(0)
+        : item.status === status));
     const size = Number(params.get('size'));
     return route.fulfill(ok({ meta: { page: 0, pageSize: size, pages: 1, total: items.length }, result: items.slice(0, size) }));
   });
@@ -57,11 +62,15 @@ test('vé đặt sân: tab gạch chân có số đếm, thẻ vé có cuống n
   await expect(page.getByRole('heading', { name: 'Vé đặt sân của tôi', level: 1 })).toBeVisible();
 
   const tabs = page.getByRole('tablist', { name: 'Lọc vé theo trạng thái' });
-  await expect(tabs.getByRole('tab', { name: /Tất cả\s*3/ })).toHaveAttribute('aria-selected', 'true');
+  await expect(tabs.getByRole('tab', { name: /Tất cả\s*4/ })).toHaveAttribute('aria-selected', 'true');
+  await expect(tabs.getByRole('tab', { name: /Sắp diễn ra\s*1/ })).toBeVisible();
+  await expect(tabs.getByRole('tab', { name: /Không đến\s*1/ })).toBeVisible();
   await expect(tabs.getByRole('tab', { name: /Đã hủy\s*1/ })).toBeVisible();
 
   const tickets = page.locator('.ticket');
-  await expect(tickets).toHaveCount(3);
+  await expect(tickets).toHaveCount(4);
+  await expect(tickets.filter({ hasText: 'GSLEOQDJ' }).locator('.ticket__money')).toContainText('Không đến · mất cọc');
+  await expect(tickets.filter({ hasText: 'GSLEOQDJ' })).not.toHaveClass(/is-active/);
   const soon = tickets.filter({ hasText: 'GSLV8ZUP' });
   await expect(soon).toHaveClass(/is-active/);
   await expect(soon.locator('.badge--success')).toHaveText('Đã xác nhận');
@@ -70,6 +79,11 @@ test('vé đặt sân: tab gạch chân có số đếm, thẻ vé có cuống n
   // Huy duoc chap thuan nhung 0 dong: noi ro "Không hoàn cọc", khong phai "0 ₫".
   await expect(tickets.filter({ hasText: 'GSQHOOQ6' }).locator('.ticket__money')).toHaveText('Đã hủy · không hoàn cọc');
   await expect(tickets.filter({ hasText: 'GSZUXCRC' }).locator('.ticket__money.is-success')).toContainText('135.000');
+
+  // "Sap dien ra" hoi server theo gio choi (UPCOMING), khong theo trang thai CONFIRMED.
+  await tabs.getByRole('tab', { name: /Sắp diễn ra/ }).click();
+  await expect(tickets).toHaveCount(1);
+  expect(queries.some(params => params.get('status') === 'UPCOMING' && params.get('size') === '12')).toBe(true);
 
   await tabs.getByRole('tab', { name: /Đã hủy/ }).click();
   await expect(tickets).toHaveCount(1);
@@ -104,5 +118,15 @@ test('chi tiết vé đã hủy: thay QR bằng lời giải thích, tiến đ�
   await expect(page.locator('.pass app-qr-code')).toHaveCount(0);
   await expect(page.locator('.refund')).toContainText('Không hoàn cọc');
   await expect(page.locator('.steps li.is-done')).toHaveCount(2);
+  await expect(page.getByRole('button', { name: 'Yêu cầu hủy sân' })).toHaveCount(0);
+});
+
+test('chi tiết vé không đến: giải thích mất cọc thay cho QR, không thu khoản còn lại', async ({ page }) => {
+  await mockBookings(page);
+  await page.goto('/booking/detail/b4');
+  await expect(page.locator('.identity .badge')).toHaveText('Không đến');
+  await expect(page.locator('.pass__note')).toContainText('Bạn không đến nhận sân');
+  await expect(page.locator('.pass app-qr-code')).toHaveCount(0);
+  await expect(page.locator('.pass__money')).toContainText('Không thu');
   await expect(page.getByRole('button', { name: 'Yêu cầu hủy sân' })).toHaveCount(0);
 });

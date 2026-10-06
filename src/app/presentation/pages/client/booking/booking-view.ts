@@ -11,7 +11,8 @@ export const BOOKING_TONE: Record<BookingStatus, Tone> = {
   [BookingStatus.CANCELLED]: 'danger',
   [BookingStatus.REFUND_PENDING]: 'warning',
   [BookingStatus.REFUNDED]: 'info',
-  [BookingStatus.EXPIRED]: 'neutral'
+  [BookingStatus.EXPIRED]: 'neutral',
+  [BookingStatus.NO_SHOW]: 'neutral'
 };
 
 export const CANCELLATION_TONE: Record<CancellationStatus, Tone> = {

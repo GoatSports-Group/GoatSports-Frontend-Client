@@ -7,6 +7,8 @@ export enum BookingStatus {
   REFUND_PENDING = 'REFUND_PENDING',
   REFUNDED = 'REFUNDED',
   EXPIRED = 'EXPIRED',
+  /** Da coc nhung het gio choi ma chua quet QR: coc khong hoan. */
+  NO_SHOW = 'NO_SHOW',
 }
 
 export const BOOKING_STATUS_LABELS: Record<BookingStatus, string> = {
@@ -18,6 +20,7 @@ export const BOOKING_STATUS_LABELS: Record<BookingStatus, string> = {
   [BookingStatus.REFUND_PENDING]: 'Chờ hoàn cọc',
   [BookingStatus.REFUNDED]: 'Đã hoàn tiền',
   [BookingStatus.EXPIRED]: 'Đã hết hạn',
+  [BookingStatus.NO_SHOW]: 'Không đến',
 };
 
 export const BOOKING_STATUS_COLORS: Record<BookingStatus, string> = {
@@ -29,4 +32,5 @@ export const BOOKING_STATUS_COLORS: Record<BookingStatus, string> = {
   [BookingStatus.REFUND_PENDING]: 'purple',
   [BookingStatus.REFUNDED]: 'slate',
   [BookingStatus.EXPIRED]: 'slate',
+  [BookingStatus.NO_SHOW]: 'slate',
 };

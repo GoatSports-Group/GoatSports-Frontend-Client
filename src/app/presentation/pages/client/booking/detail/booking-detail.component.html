@@ -106,7 +106,7 @@
         <dl class="pass__money">
           <div><dt>Tổng tiền sân</dt><dd>{{ formatPrice(b.totalPrice) }}</dd></div>
           <div><dt>Đã cọc</dt><dd class="is-paid">{{ formatPrice(b.depositAmount) }}</dd></div>
-          <div><dt>Trả tại sân</dt><dd>{{ formatPrice(b.remainingAmount) }}</dd></div>
+          <div><dt>Trả tại sân</dt><dd>{{ b.status === 'NO_SHOW' ? 'Không thu' : formatPrice(b.remainingAmount) }}</dd></div>
         </dl>
 
         @if (canCancel()) {

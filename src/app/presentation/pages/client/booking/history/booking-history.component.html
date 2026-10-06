@@ -58,7 +58,12 @@
               </span>
 
               <!-- Dong tien: khoan hoan (neu da yeu cau huy) hoac tien coc. -->
-              @if (booking.cancellation; as cancellation) {
+              @if (booking.status === 'NO_SHOW') {
+                <span class="ticket__money">
+                  <span>Không đến · mất cọc</span>
+                  <b>{{ formatPrice(booking.depositAmount) }}</b>
+                </span>
+              } @else if (booking.cancellation; as cancellation) {
                 @if (cancellation.refundAmount > 0) {
                   <span class="ticket__money" [ngClass]="'is-' + cancellationTone[cancellation.status]">
                     <span>{{ cancellationLabels[cancellation.status] }}</span>

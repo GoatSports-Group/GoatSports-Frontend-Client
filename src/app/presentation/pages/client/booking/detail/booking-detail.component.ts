@@ -130,6 +130,9 @@ export class BookingDetailComponent {
       case BookingStatus.REFUNDED:
         return { icon: 'rotate-ccw', tone: 'info', title: 'Vé đã hủy để hoàn cọc',
           text: 'Theo dõi khoản hoàn ở cột bên phải. Vé không còn dùng để nhận sân.' };
+      case BookingStatus.NO_SHOW:
+        return { icon: 'user-x', tone: 'neutral', title: 'Bạn không đến nhận sân',
+          text: 'Lượt chơi đã hết giờ mà vé chưa được quét QR, nên tiền cọc không được hoàn và khoản còn lại không thu.' };
       case BookingStatus.EXPIRED:
         return { icon: 'timer', tone: 'neutral', title: 'Hết thời gian giữ chỗ',
           text: 'Khoản cọc chưa về kịp nên sân đã được nhả cho người khác. Bạn có thể đặt lại khung giờ khác.' };

@@ -12,7 +12,8 @@ import {
   BOOKING_TONE, CANCELLATION_TONE, countdownLabel, formatPrice, isActiveBooking, playDay, weekdayLabel
 } from '../booking-view';
 
-type BookingStatusFilter = BookingStatus | 'ALL';
+/** UPCOMING: luot con hieu luc chua toi gio ket thuc (server loc theo gio choi, khong chi trang thai). */
+type BookingStatusFilter = BookingStatus | 'ALL' | 'UPCOMING';
 
 interface StatusTab {
   value: BookingStatusFilter;
@@ -24,10 +25,12 @@ interface StatusTab {
 const STATUS_TABS: readonly StatusTab[] = [
   { value: 'ALL', label: 'Tất cả', icon: 'ticket',
     empty: { title: 'Bạn chưa đặt sân nào', text: 'Tìm một sân gần bạn, chọn khung giờ và giữ chỗ trong vài bước.' } },
-  { value: BookingStatus.CONFIRMED, label: 'Sắp diễn ra', icon: 'calendar-clock',
+  { value: 'UPCOMING', label: 'Sắp diễn ra', icon: 'calendar-clock',
     empty: { title: 'Chưa có trận nào sắp tới', text: 'Lượt đặt đã xác nhận sẽ nằm ở đây kèm vé QR để nhận sân.' } },
-  { value: BookingStatus.COMPLETED, label: 'Đã hoàn thành', icon: 'check-circle-2',
+  { value: BookingStatus.COMPLETED, label: 'Đã chơi', icon: 'check-circle-2',
     empty: { title: 'Chưa có lượt chơi hoàn thành', text: 'Sau mỗi lượt chơi, bạn có thể đánh giá sân ngay trên vé.' } },
+  { value: BookingStatus.NO_SHOW, label: 'Không đến', icon: 'user-x',
+    empty: { title: 'Không có lượt nào bỏ lỡ', text: 'Lượt đã cọc mà hết giờ chơi chưa nhận sân sẽ nằm ở đây.' } },
   { value: BookingStatus.REFUND_PENDING, label: 'Chờ hoàn tiền', icon: 'hourglass',
     empty: { title: 'Không có khoản nào chờ hoàn', text: 'Yêu cầu hủy được chấp thuận sẽ hiện ở đây cho tới khi tiền về tài khoản.' } },
   { value: BookingStatus.REFUNDED, label: 'Đã hoàn tiền', icon: 'rotate-ccw',
@@ -96,7 +99,7 @@ export class BookingHistoryComponent {
 
   private loadCounts(): void {
     forkJoin(STATUS_TABS.map(tab => this.bookingRepository
-      .getMyBookingHistory(tab.value === 'ALL' ? undefined : tab.value, 0, 1).pipe(
+      .getMyBookingHistory(tab.value === 'ALL' ? undefined : tab.value as BookingStatus, 0, 1).pipe(
         map(response => [tab.value, response.data.meta.total] as const),
         catchError(() => of(null))
       ))).subscribe(entries => this.counts.set(Object.fromEntries(entries.filter(entry => !!entry))));
@@ -107,6 +110,7 @@ export class BookingHistoryComponent {
     this.error.set(null);
 
     const status = this.selectedStatus() === 'ALL' ? undefined : this.selectedStatus() as BookingStatus;
+    // 'UPCOMING' khong phai BookingStatus nhung API nhan chuoi trang thai, server hieu bo loc nay.
     this.bookingRepository.getMyBookingHistory(status, page, this.pageSize).subscribe({
       next: response => {
         const pageData = response.data;
