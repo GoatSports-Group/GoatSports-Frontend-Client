@@ -4,7 +4,6 @@ import { Component, ElementRef, OnInit, inject, signal, viewChild } from '@angul
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 import { Notification, NotificationStatus, NotificationType } from '@application/dto/notification/notification.dto';
-import { AuthService } from '@presentation/services/auth.service';
 import { NotificationService } from '@presentation/services/notification.service';
 import { NotifyService } from '@shared/components/notify/notify.service';
 
@@ -17,7 +16,6 @@ type NotificationFilter = 'ALL' | 'UNREAD';
   standalone: false
 })
 export class NotificationsComponent implements OnInit {
-  readonly authService = inject(AuthService);
   readonly notificationService = inject(NotificationService);
   private readonly notifyService = inject(NotifyService);
   private readonly postDialog = inject(PostDialogService);
@@ -34,7 +32,6 @@ export class NotificationsComponent implements OnInit {
   readonly isMarkingAll = signal(false);
   readonly confirmingDeleteId = signal<string | null>(null);
   readonly pendingIds = signal<ReadonlySet<string>>(new Set());
-  readonly avatarLoadFailed = signal(false);
 
   readonly NotificationStatus = NotificationStatus;
   readonly notifications$ = this.notificationService.notifications$;
@@ -47,22 +44,6 @@ export class NotificationsComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadNotifications();
-  }
-
-  get avatarUrl(): string | null {
-    if (this.avatarLoadFailed()) return null;
-    return this.authService.currentUser?.avatarUrl || null;
-  }
-
-  get userInitials(): string {
-    const user = this.authService.currentUser;
-    const source = user?.fullName || user?.username || user?.email || 'GS';
-    return source
-      .trim()
-      .split(/\s+/)
-      .slice(-2)
-      .map(part => part.charAt(0).toUpperCase())
-      .join('') || 'GS';
   }
 
   setFilter(filter: NotificationFilter): void {
@@ -140,10 +121,6 @@ export class NotificationsComponent implements OnInit {
 
   canOpenNotification(notification: Notification): boolean {
     return notification.status === NotificationStatus.UNREAD || this.getNotificationRoute(notification) !== null;
-  }
-
-  onAvatarImgError(): void {
-    this.avatarLoadFailed.set(true);
   }
 
   getNotificationIcon(type?: NotificationType): string {

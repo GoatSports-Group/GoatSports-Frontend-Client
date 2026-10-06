@@ -23,29 +23,14 @@
         </div>
       </div>
 
-      <nav class="account-nav">
-        <a routerLink="/notifications" class="account-nav__item">
-          <lucide-icon name="bell" class="w-5 h-5"></lucide-icon>
-          <span>Thông báo</span>
-          @if (((notificationService.unreadCount$ | async) ?? 0) > 0) {
-            <span class="account-nav__count">{{ notificationService.unreadCount$ | async }}</span>
-          }
-        </a>
-        <a routerLink="/booking/history" class="account-nav__item">
-          <lucide-icon name="calendar" class="w-5 h-5"></lucide-icon><span>Lịch đặt sân</span>
-        </a>
-        <a routerLink="/venues/saved" class="account-nav__item">
-          <lucide-icon name="heart" class="w-5 h-5"></lucide-icon><span>Sân đã lưu</span>
-        </a>
-        <a routerLink="/feed" [queryParams]="{ tab: 'friends' }" class="account-nav__item">
-          <lucide-icon name="users" class="w-5 h-5"></lucide-icon><span>Bạn bè</span>
-        </a>
-        <a routerLink="/clubs" class="account-nav__item">
-          <lucide-icon name="swords" class="w-5 h-5"></lucide-icon><span>Thi đấu nhóm</span>
-        </a>
-        <a routerLink="/settings" class="account-nav__item is-active" aria-current="page">
-          <lucide-icon name="settings" class="w-5 h-5"></lucide-icon><span>Cài đặt</span>
-        </a>
+      <!-- Thanh ben chi gom cac muc cai dat; trang khac (ve, san da luu, ban be, CLB) o menu tai khoan / thanh dieu huong. -->
+      <nav class="account-nav" aria-label="Các mục cài đặt">
+        @for (tab of tabs; track tab.key) {
+          <button type="button" class="account-nav__item" [class.is-active]="activeTab === tab.key"
+            [attr.aria-current]="activeTab === tab.key ? 'page' : null" (click)="setActiveTab(tab.key)">
+            <lucide-icon [name]="tab.icon" class="w-5 h-5"></lucide-icon><span>{{ tab.label }}</span>
+          </button>
+        }
       </nav>
     </aside>
 
@@ -53,7 +38,7 @@
       <header class="account-head">
         <div>
           <h1 class="account-title">Cài đặt</h1>
-          <p class="account-subtitle">Quản lý hồ sơ, hồ sơ thể thao, tài khoản nhận tiền và bảo mật.</p>
+          <p class="account-subtitle">Hồ sơ, hồ sơ thể thao, tài khoản nhận tiền và bảo mật của bạn.</p>
         </div>
       </header>
 
@@ -65,14 +50,6 @@
         </div>
       }
 
-      <nav class="account-tabs" aria-label="Các mục cài đặt">
-        @for (tab of tabs; track tab.key) {
-          <button type="button" class="account-tab" [class.is-active]="activeTab === tab.key"
-            [attr.aria-current]="activeTab === tab.key ? 'page' : null" (click)="setActiveTab(tab.key)">
-            <lucide-icon [name]="tab.icon" class="w-4 h-4"></lucide-icon>{{ tab.label }}
-          </button>
-        }
-      </nav>
 
       <section class="settings-content">
         @if (isLoadingProfile && !user) {

@@ -4,7 +4,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { finalize, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { User } from '@application/dto/user/user.dto';
 import { AuthService } from '@presentation/services/auth.service';
-import { NotificationService } from '@presentation/services/notification.service';
 import { StorageService } from '@presentation/services/storage.service';
 import { UserService } from '@presentation/services/user.service';
 import { NotifyService } from '@shared/components/notify/notify.service';
@@ -18,7 +17,6 @@ import { SETTINGS_TABS, SettingsTabKey } from './settings.models';
 })
 export class SettingsComponent implements OnInit, OnDestroy {
   public authService = inject(AuthService);
-  public notificationService = inject(NotificationService);
   private storageService = inject(StorageService);
   private userService = inject(UserService);
   private notifyService = inject(NotifyService);

@@ -1,48 +1,5 @@
 <div class="account-page">
-  <div class="account-layout">
-    <aside class="account-sidebar" aria-label="Khu vực cá nhân">
-      <div class="account-user">
-        <a routerLink="/settings" class="account-avatar" aria-label="Mở cài đặt tài khoản">
-          @if (avatarUrl; as currentAvatarUrl) {
-            <img [src]="currentAvatarUrl"
-              [alt]="'Ảnh đại diện của ' + (authService.currentUser?.fullName || authService.currentUser?.username || 'người dùng')"
-              (error)="onAvatarImgError()" />
-          } @else {
-            <span aria-hidden="true">{{ userInitials }}</span>
-          }
-        </a>
-        <div class="account-user__meta">
-          <strong>{{ authService.currentUser?.fullName || authService.currentUser?.username || 'Người dùng' }}</strong>
-          <a routerLink="/settings">Xem hồ sơ</a>
-        </div>
-      </div>
-
-      <nav class="account-nav">
-        <a routerLink="/notifications" class="account-nav__item is-active" aria-current="page">
-          <lucide-icon name="bell" class="w-5 h-5"></lucide-icon>
-          <span>Thông báo</span>
-          @if (((unreadCount$ | async) ?? 0) > 0) {
-            <span class="account-nav__count">{{ unreadCount$ | async }}</span>
-          }
-        </a>
-        <a routerLink="/booking/history" class="account-nav__item">
-          <lucide-icon name="calendar" class="w-5 h-5"></lucide-icon><span>Lịch đặt sân</span>
-        </a>
-        <a routerLink="/venues/saved" class="account-nav__item">
-          <lucide-icon name="heart" class="w-5 h-5"></lucide-icon><span>Sân đã lưu</span>
-        </a>
-        <a routerLink="/feed" [queryParams]="{ tab: 'friends' }" class="account-nav__item">
-          <lucide-icon name="users" class="w-5 h-5"></lucide-icon><span>Bạn bè</span>
-        </a>
-        <a routerLink="/clubs" class="account-nav__item">
-          <lucide-icon name="swords" class="w-5 h-5"></lucide-icon><span>Thi đấu nhóm</span>
-        </a>
-        <a routerLink="/settings" class="account-nav__item">
-          <lucide-icon name="settings" class="w-5 h-5"></lucide-icon><span>Cài đặt</span>
-        </a>
-      </nav>
-    </aside>
-
+  <div class="account-layout account-layout--single">
     <main class="account-main">
       <header class="account-head">
         <div>
