@@ -25,7 +25,7 @@ import { CHAT_MAX_BYTES, CHAT_MAX_IMAGES, CHAT_IMAGE_TYPES, prepareImage } from 
 import { NotifyService } from '@shared/components/notify/notify.service';
 import { PlayerDirectoryService } from '@presentation/services/player-directory.service';
 import { ClubRepositoryPort } from '@application/ports/club.repository.port';
-import { ClubRole } from '@domain/models/club.model';
+import { ClubRole } from '@application/dto/club/club.dto';
 
 const SPORT_LABELS: Record<string, string> = {
   FOOTBALL: 'Bóng đá',
