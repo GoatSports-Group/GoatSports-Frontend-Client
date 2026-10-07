@@ -31,7 +31,7 @@
       <div class="identity__actions">
         <!-- Nhan tin truc tiep voi ban to chuc (thuong cung la chu san); khong hien voi chinh ban to chuc. -->
         @if (me && t.organizerId !== me) {
-        <button type="button" class="btn btn--secondary" [disabled]="chatDock.pendingUserId() === t.organizerId" (click)="chatDock.messageUser(t.organizerId)">
+        <button type="button" class="btn btn--secondary" [disabled]="chatDock.pendingUserId() === t.organizerId" (click)="chatDock.messageBusiness(t.organizerId, 'TOURNAMENT', tournamentId)">
           <lucide-icon name="message-circle" class="w-4 h-4"></lucide-icon>Nhắn tin ban tổ chức
         </button>
         }

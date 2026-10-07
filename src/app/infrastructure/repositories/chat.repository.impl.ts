@@ -7,6 +7,7 @@ import {
   ChatMessage,
   ChatMessageWindow,
   ChatPresenceEvent,
+  CreateBusinessRoomRequest,
   CreateDirectRoomRequest,
   CreateGroupRoomRequest,
   SendMessageRequest
@@ -25,6 +26,10 @@ export class ChatRepositoryImpl implements ChatRepository {
 
   getOrCreateDirectRoom(request: CreateDirectRoomRequest): Observable<BaseResponse<ChatRoom>> {
     return this.api.getOrCreateDirectRoom(request);
+  }
+
+  getOrCreateBusinessRoom(request: CreateBusinessRoomRequest): Observable<BaseResponse<ChatRoom>> {
+    return this.api.getOrCreateBusinessRoom(request);
   }
 
   createGroupRoom(request: CreateGroupRoomRequest): Observable<BaseResponse<ChatRoom>> {

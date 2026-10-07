@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, forwardRef, Input, ViewChild, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, forwardRef, Input, ViewChild, inject, EventEmitter, Output } from '@angular/core';
 import { ConnectedPosition } from '@angular/cdk/overlay';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
@@ -32,6 +32,9 @@ export class SelectComponent implements ControlValueAccessor {
   @Input() size: 'sm' | 'md' | 'lg' = 'md';
   @Input() leadingIcon = '';
   @Input() ariaLabel = 'Chọn giá trị';
+  /** Chi phat khi nguoi dung chon (chuot / ban phim), khong phat khi code goi setValue / patchValue.
+   *  Dung voi formControlName thay cho (ngModelChange): reactive forms phat ngModelChange ca khi patchValue, de gay vong lap. */
+  @Output() readonly selectionChange = new EventEmitter<any>();
 
   @ViewChild('searchInput') searchInput?: ElementRef<HTMLInputElement>;
 
@@ -87,6 +90,7 @@ export class SelectComponent implements ControlValueAccessor {
     this.searchQuery = '';
     this.onChange(this.value);
     this.onTouched();
+    this.selectionChange.emit(this.value);
   }
 
   handleKeydown(event: KeyboardEvent): void {
@@ -139,6 +143,7 @@ export class SelectComponent implements ControlValueAccessor {
     this.searchQuery = '';
     this.onChange(this.value);
     this.onTouched();
+    this.selectionChange.emit(this.value);
   }
 
   writeValue(value: any): void {

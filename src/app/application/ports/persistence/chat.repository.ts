@@ -5,6 +5,7 @@ import {
   ChatMessage,
   ChatMessageWindow,
   ChatPresenceEvent,
+  CreateBusinessRoomRequest,
   CreateDirectRoomRequest,
   CreateGroupRoomRequest,
   SendMessageRequest
@@ -14,6 +15,8 @@ import { BaseResponse } from '@application/dto/base/base-response';
 export interface ChatRepository {
   getUserRooms(page?: number, size?: number): Observable<BaseResponse<ChatRoom[]>>;
   getOrCreateDirectRoom(request: CreateDirectRoomRequest): Observable<BaseResponse<ChatRoom>>;
+  /** Chat cong viec voi chu san (dung lai doan chat cu cua cap nay, doi san / giai / ve dang hoi). */
+  getOrCreateBusinessRoom(request: CreateBusinessRoomRequest): Observable<BaseResponse<ChatRoom>>;
   createGroupRoom(request: CreateGroupRoomRequest): Observable<BaseResponse<ChatRoom>>;
   getRoomDetails(roomId: string): Observable<BaseResponse<ChatRoom>>;
   getRoomMessages(roomId: string, page?: number, size?: number): Observable<BaseResponse<ChatMessage[]>>;

@@ -1,26 +1,27 @@
 import { expect, test, type Page } from '@playwright/test';
 import { chatRoomsPage, mockGoatSportsApi } from './fixtures/api.fixture';
 
-// Nut "Nhan tin" o trang giai dau va trang san: mo chat 1-1 voi ban to chuc / chu san ngay tai trang dang xem.
+// Nut "Nhan tin" o trang giai dau va trang san: mo chat cong viec (BUSINESS) voi ban to chuc / chu san ngay tai trang
+// dang xem, kem giai / san dang hoi de ho thay trong hop thu cong viec ben admin.
 const ok = (data: unknown) => ({ json: { data, statusCode: 200, message: null, error: null } });
 const ME = '11111111-1111-4111-8111-111111111111';
 const HOST = '33333333-3333-4333-8333-333333333333';
 const TOURNAMENT = 't0000000-0000-4000-8000-000000000123';
 const VENUE = '17397670-2693-30f3-8188-baf3469fe5ec';
 
-/** POST /conversations/direct tra ve doan chat 1-1 co san cua fixture (voi HOST). */
-async function routeDirect(page: Page): Promise<string[]> {
-  const targets: string[] = [];
-  await page.route(url => url.pathname.endsWith('/social/conversations/direct'), route => {
-    targets.push(new URL(route.request().url()).searchParams.get('user2Id') ?? '');
-    return route.fulfill(ok(chatRoomsPage().content[0]));
+/** POST /conversations/business: chat cong viec voi chu san / ban to chuc, kem doi tuong dang hoi. */
+async function routeBusiness(page: Page): Promise<Array<{ ownerId: string; subjectType: string; subjectId: string }>> {
+  const requests: Array<{ ownerId: string; subjectType: string; subjectId: string }> = [];
+  await page.route(url => url.pathname.endsWith('/social/conversations/business'), route => {
+    requests.push(route.request().postDataJSON());
+    return route.fulfill(ok({ ...chatRoomsPage().content[0], type: 'BUSINESS' }));
   });
-  return targets;
+  return requests;
 }
 
 test('trang giải đấu: "Nhắn tin ban tổ chức" mở cửa sổ chat ngay tại trang', async ({ page }) => {
   await mockGoatSportsApi(page);
-  const targets = await routeDirect(page);
+  const requests = await routeBusiness(page);
   await page.route(`**/club-service/api/v1/tournaments/${TOURNAMENT}**`, route => {
     const path = new URL(route.request().url()).pathname;
     const list = /\/(teams|fixtures|reservations|standings|eligibility-rules)$/.test(path);
@@ -37,7 +38,7 @@ test('trang giải đấu: "Nhắn tin ban tổ chức" mở cửa sổ chat nga
   const mini = page.getByRole('dialog', { name: 'Trần Hoàng Nam' });
   await expect(mini).toBeVisible();
   await expect(mini.getByRole('textbox', { name: 'Nội dung tin nhắn' })).toBeVisible();
-  expect(targets).toEqual([HOST]);
+  expect(requests).toEqual([{ ownerId: HOST, subjectType: 'TOURNAMENT', subjectId: TOURNAMENT }]);
 });
 
 test('ban tổ chức xem giải của chính mình thì không có nút nhắn tin', async ({ page }) => {
@@ -59,7 +60,7 @@ test('ban tổ chức xem giải của chính mình thì không có nút nhắn 
 
 test('trang sân: "Nhắn tin" mở chat với chủ sân', async ({ page }) => {
   await mockGoatSportsApi(page);
-  const targets = await routeDirect(page);
+  const requests = await routeBusiness(page);
   await page.route(`**/venue-service/api/v1/venues/${VENUE}`, route => route.fulfill(ok({
     venueId: VENUE, ownerId: HOST, name: 'GOAT Arena', address: '137 Tân Xuân', city: 'Hà Nội', openTime: '06:00:00',
     closeTime: '22:00:00', active: true, minPrice: 150000, maxPrice: 200000, averageRating: 0, totalReviews: 0,
@@ -69,5 +70,5 @@ test('trang sân: "Nhắn tin" mở chat với chủ sân', async ({ page }) => 
   await page.goto(`/venues/${VENUE}`);
   await page.locator('.heading-actions').getByRole('button', { name: 'Nhắn tin' }).click();
   await expect(page.getByRole('dialog', { name: 'Trần Hoàng Nam' })).toBeVisible();
-  expect(targets).toEqual([HOST]);
+  expect(requests).toEqual([{ ownerId: HOST, subjectType: 'VENUE', subjectId: VENUE }]);
 });

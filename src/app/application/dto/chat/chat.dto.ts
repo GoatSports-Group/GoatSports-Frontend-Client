@@ -1,10 +1,17 @@
 import { ChatMessage, ChatParticipant } from '@domain/entities/chat';
-export { ChatRoom, ChatMessage, ChatParticipant, ChatMessageAttachment, ChatMessageReceipt } from '@domain/entities/chat';
+export { ChatRoom, ChatMessage, ChatParticipant, ChatMessageAttachment, ChatMessageReceipt, ChatSubjectType } from '@domain/entities/chat';
 export { ChatRoomType } from '@domain/enums/chat-room-type.enum';
 export { MessageType } from '@domain/enums/message-type.enum';
 
 export interface CreateDirectRoomRequest {
   targetUserId: string;
+}
+
+/** Nguoi choi hoi chu san / ban to chuc ve mot san, giai hoac ve dat san. */
+export interface CreateBusinessRoomRequest {
+  ownerId: string;
+  subjectType: 'VENUE' | 'TOURNAMENT' | 'BOOKING';
+  subjectId: string;
 }
 
 export interface CreateGroupRoomRequest {

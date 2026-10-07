@@ -836,6 +836,11 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   /** Dòng phụ dưới tên ở header: bối cảnh của hội thoại, không phải trạng thái online. */
   getRoomContextLine(room: ChatRoom): string {
+    if (room.type === ChatRoomType.BUSINESS) {
+      if (this.isBusinessOwner(room)) return 'Khách hỏi về sân, giải hoặc vé của bạn';
+      return room.subjectType === 'TOURNAMENT' ? 'Trao đổi với ban tổ chức giải' : 'Trao đổi với chủ sân';
+    }
+    if (room.type === ChatRoomType.SUPPORT) return 'Đội quản trị GOAT Sports';
     if (room.type === ChatRoomType.MATCH) return 'Kèo đấu đã ghép qua GOAT AI';
     if (room.type === ChatRoomType.CLUB) return 'Kênh trao đổi của câu lạc bộ';
     if (room.type === ChatRoomType.TOURNAMENT) return 'Kênh trao đổi của giải đấu';
@@ -850,11 +855,21 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   /** Hội thoại giữa đúng hai người: chat riêng hoặc kèo 1-1. */
   isPairRoom(room: ChatRoom): boolean {
-    return (room.type === ChatRoomType.DIRECT || room.type === ChatRoomType.MATCH)
+    return (room.type === ChatRoomType.DIRECT || room.type === ChatRoomType.MATCH || room.type === ChatRoomType.BUSINESS)
       && room.participants.length === 2;
   }
 
+  /** Chat cong viec ma minh la ben chu san (khach hoi minh). */
+  private isBusinessOwner(room: ChatRoom): boolean {
+    return room.participants.some(person => person.userId === this.currentUserId && person.role === 'OWNER');
+  }
+
   getRoomBadge(room: ChatRoom): string {
+    if (room.type === ChatRoomType.BUSINESS) {
+      if (this.isBusinessOwner(room)) return 'Khách';
+      return room.subjectType === 'TOURNAMENT' ? 'Giải' : room.subjectType === 'BOOKING' ? 'Vé' : 'Sân';
+    }
+    if (room.type === ChatRoomType.SUPPORT) return 'Hỗ trợ';
     if (room.type === ChatRoomType.MATCH) return 'Kèo';
     if (room.type === ChatRoomType.CLUB) return 'CLB';
     if (room.type === ChatRoomType.TOURNAMENT) return 'Giải';
@@ -1366,7 +1381,8 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       const counterpart = participants.length === 2
         ? participants.find(participant => participant.userId !== this.currentUserId)
         : undefined;
-      const isPair = room.type === ChatRoomType.DIRECT || room.type === ChatRoomType.MATCH;
+      const isPair = room.type === ChatRoomType.DIRECT || room.type === ChatRoomType.MATCH
+        || room.type === ChatRoomType.BUSINESS;
       return {
         ...room,
         participants,

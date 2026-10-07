@@ -1,12 +1,19 @@
 import { ChatRoomType } from '@domain/enums/chat-room-type.enum';
 import { MessageType } from '@domain/enums/message-type.enum';
 
+export type ChatSubjectType = 'VENUE' | 'TOURNAMENT' | 'BOOKING';
+
 export interface ChatRoom {
   roomId: string;
   type: ChatRoomType;
   name?: string;
   avatarUrl?: string;
   contextId?: string;
+  /** Chat BUSINESS: san / giai / ve nguoi choi dang hoi. */
+  subjectType?: ChatSubjectType;
+  subjectId?: string;
+  /** Hop thu SUPPORT (admin): tin cuoi do chu san gui, chua ai tra loi. */
+  awaitingReply?: boolean;
   lastMessageId?: string;
   participantIds: string[];
   participants: ChatParticipant[];

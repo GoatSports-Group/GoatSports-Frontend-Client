@@ -267,7 +267,8 @@ export class ChatHeadsComponent implements OnInit {
   }
 
   private counterpart(room: ChatRoom) {
-    const pair = (room.type === ChatRoomType.DIRECT || room.type === ChatRoomType.MATCH) && room.participants.length === 2;
+    const pair = (room.type === ChatRoomType.DIRECT || room.type === ChatRoomType.MATCH || room.type === ChatRoomType.BUSINESS)
+      && room.participants.length === 2;
     return pair ? room.participants.find(person => person.userId !== this.me) : undefined;
   }
 

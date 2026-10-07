@@ -301,7 +301,7 @@ export class VenueDetailComponent implements OnInit {
       this.authService.notifyAuthenticationRequired('Vui lòng đăng nhập để nhắn tin cho chủ sân.');
       return;
     }
-    this.chatDock.messageUser(this.venue.ownerId);
+    this.chatDock.messageBusiness(this.venue.ownerId, 'VENUE', this.venue.venueId ?? this.venueId);
   }
 
   goToBooking(court: VenueCourt, slot: TimeSlot): void {

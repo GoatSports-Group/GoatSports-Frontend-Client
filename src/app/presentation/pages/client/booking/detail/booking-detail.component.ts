@@ -340,7 +340,7 @@ export class BookingDetailComponent {
 
   messageOwner(): void {
     const ownerId = this.ownerId();
-    if (ownerId) this.chatDock.messageUser(ownerId);
+    if (ownerId) this.chatDock.messageBusiness(ownerId, 'BOOKING', this.bookingId());
   }
 
   private loadOwner(venueId: string | undefined): void {

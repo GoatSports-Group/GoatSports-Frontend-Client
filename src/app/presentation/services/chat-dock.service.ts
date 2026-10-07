@@ -17,6 +17,23 @@ export class ChatDockService {
   /** Nguoi dang duoc mo chat (khoa nut trong luc cho). */
   readonly pendingUserId = signal<string | null>(null);
 
+  /**
+   * Nut "Nhan tin" o san, giai, ve dat san: chat cong viec voi chu san / ban to chuc (hien trong hop thu cong viec
+   * cua ho ben admin), kem doi tuong dang hoi de ho biet khach hoi ve san / giai / ve nao.
+   */
+  messageBusiness(ownerId: string, subjectType: 'VENUE' | 'TOURNAMENT' | 'BOOKING', subjectId: string): void {
+    if (this.pendingUserId() || !subjectId) return;
+    this.pendingUserId.set(ownerId);
+    this.chatRepo.getOrCreateBusinessRoom({ ownerId, subjectType, subjectId }).pipe(
+      finalize(() => this.pendingUserId.set(null))
+    ).subscribe({
+      next: response => {
+        if (response.data) this.openRequest.set(response.data.roomId);
+      },
+      error: () => this.notify.error('Không mở được cuộc trò chuyện. Có thể một trong hai bạn đã chặn người kia.')
+    });
+  }
+
   messageUser(userId: string): void {
     if (this.pendingUserId()) return;
     this.pendingUserId.set(userId);

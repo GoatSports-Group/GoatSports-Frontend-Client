@@ -7,6 +7,7 @@ import {
   ChatMessage,
   ChatMessageWindow,
   ChatPresenceEvent,
+  CreateBusinessRoomRequest,
   CreateDirectRoomRequest,
   CreateGroupRoomRequest,
   SendMessageRequest
@@ -24,6 +25,9 @@ interface ConversationApiResponse {
   name?: string;
   avatarUrl?: string;
   contextId?: string;
+  subjectType?: ChatRoom['subjectType'];
+  subjectId?: string;
+  awaitingReply?: boolean;
   lastMessageId?: string;
   lastMessageContent?: string;
   lastMessageAt?: string;
@@ -93,6 +97,11 @@ export class ChatApi {
       null,
       { params }
     ).pipe(map(response => ({ ...response, data: this.toChatRoom(response.data) })));
+  }
+
+  getOrCreateBusinessRoom(request: CreateBusinessRoomRequest): Observable<BaseResponse<ChatRoom>> {
+    return this.http.post<BaseResponse<ConversationApiResponse>>(`${this.apiBase}/business`, request)
+      .pipe(map(response => ({ ...response, data: this.toChatRoom(response.data) })));
   }
 
   createGroupRoom(request: CreateGroupRoomRequest): Observable<BaseResponse<ChatRoom>> {
@@ -209,6 +218,9 @@ export class ChatApi {
       name: counterpart?.userName || item.name,
       avatarUrl: counterpart?.userAvatar || item.avatarUrl,
       contextId: item.contextId,
+      subjectType: item.subjectType,
+      subjectId: item.subjectId,
+      awaitingReply: !!item.awaitingReply,
       lastMessageId: item.lastMessageId,
       participantIds: participants.map(member => member.userId),
       participants,
