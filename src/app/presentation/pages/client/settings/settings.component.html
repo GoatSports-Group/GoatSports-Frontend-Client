@@ -2,13 +2,13 @@
   <div class="account-layout">
     <aside class="account-sidebar" aria-label="Khu vực cá nhân">
       <div class="account-user">
-        <button type="button" class="account-avatar" [class.is-busy]="isUploadingAvatar" (click)="avatarFileInput.click()"
-          [disabled]="isUploadingAvatar" aria-label="Thay đổi ảnh đại diện">
+        <button type="button" class="account-avatar" [class.is-busy]="isUploadingAvatar"
+          (click)="avatarFileInput.click()" [disabled]="isUploadingAvatar" aria-label="Thay đổi ảnh đại diện">
           @if (avatarUrl; as currentAvatarUrl) {
-            <img [src]="currentAvatarUrl" [alt]="'Ảnh đại diện của ' + (user?.fullName || user?.username || 'người dùng')"
-              (error)="onAvatarImgError()" />
+          <img [src]="currentAvatarUrl" [alt]="'Ảnh đại diện của ' + (user?.fullName || user?.username || 'người dùng')"
+            (error)="onAvatarImgError()" />
           } @else {
-            <span aria-hidden="true">{{ userInitials }}</span>
+          <span aria-hidden="true">{{ userInitials }}</span>
           }
           <span class="account-avatar__overlay">
             <lucide-icon [name]="isUploadingAvatar ? 'loader-2' : 'camera'" class="w-4 h-4"
@@ -26,10 +26,10 @@
       <!-- Thanh ben chi gom cac muc cai dat; trang khac (ve, san da luu, ban be, CLB) o menu tai khoan / thanh dieu huong. -->
       <nav class="account-nav" aria-label="Các mục cài đặt">
         @for (tab of tabs; track tab.key) {
-          <button type="button" class="account-nav__item" [class.is-active]="activeTab === tab.key"
-            [attr.aria-current]="activeTab === tab.key ? 'page' : null" (click)="setActiveTab(tab.key)">
-            <lucide-icon [name]="tab.icon" class="w-5 h-5"></lucide-icon><span>{{ tab.label }}</span>
-          </button>
+        <button type="button" class="account-nav__item" [class.is-active]="activeTab === tab.key"
+          [attr.aria-current]="activeTab === tab.key ? 'page' : null" (click)="setActiveTab(tab.key)">
+          <lucide-icon [name]="tab.icon" class="w-5 h-5"></lucide-icon><span>{{ tab.label }}</span>
+        </button>
         }
       </nav>
     </aside>
@@ -38,31 +38,31 @@
       <header class="account-head">
         <div>
           <h1 class="account-title">Cài đặt</h1>
-          <p class="account-subtitle">Hồ sơ, hồ sơ thể thao, tài khoản nhận tiền và bảo mật của bạn.</p>
+          <p class="account-subtitle">Hồ sơ, hồ sơ thể thao, tài khoản và bảo mật của bạn.</p>
         </div>
       </header>
 
       @if (profileLoadFailed) {
-        <div class="load-error" role="alert">
-          <lucide-icon name="alert-triangle" class="w-5 h-5"></lucide-icon>
-          <span><strong>Chưa thể tải hồ sơ.</strong> Kiểm tra kết nối rồi thử lại.</span>
-          <button type="button" (click)="loadProfile()">Thử lại</button>
-        </div>
+      <div class="load-error" role="alert">
+        <lucide-icon name="alert-triangle" class="w-5 h-5"></lucide-icon>
+        <span><strong>Chưa thể tải hồ sơ.</strong> Kiểm tra kết nối rồi thử lại.</span>
+        <button type="button" (click)="loadProfile()">Thử lại</button>
+      </div>
       }
 
 
       <section class="settings-content">
         @if (isLoadingProfile && !user) {
-          <app-loading-skeleton variant="info" [count]="4" label="Đang tải hồ sơ"></app-loading-skeleton>
+        <app-loading-skeleton variant="info" [count]="4" label="Đang tải hồ sơ"></app-loading-skeleton>
         } @else if (user) {
-          @switch (activeTab) {
-            @case ('personal') { <app-settings-personal-tab [user]="user" /> }
-            @case ('sports') { <app-settings-sports-tab /> }
-            @case ('banking') { <app-settings-banking-tab /> }
-            @case ('security') { <app-settings-security-tab [user]="user" /> }
-          }
+        @switch (activeTab) {
+        @case ('personal') { <app-settings-personal-tab [user]="user" /> }
+        @case ('sports') { <app-settings-sports-tab /> }
+        @case ('banking') { <app-settings-banking-tab /> }
+        @case ('security') { <app-settings-security-tab [user]="user" /> }
+        }
         } @else if (!profileLoadFailed) {
-          <div class="loading-line">Không tìm thấy thông tin tài khoản.</div>
+        <div class="loading-line">Không tìm thấy thông tin tài khoản.</div>
         }
       </section>
     </main>

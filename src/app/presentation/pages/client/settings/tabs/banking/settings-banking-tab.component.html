@@ -5,18 +5,19 @@
       <p>Tài khoản nhận hoàn tiền đặt sân và doanh thu khi bạn là chủ sân.</p>
     </div>
     @if (!loading()) {
-      <button type="button" class="btn btn--primary" (click)="showForm.set(true)">
-        <lucide-icon name="plus" class="w-4 h-4"></lucide-icon>Liên kết tài khoản
-      </button>
+    <button type="button" class="btn btn--primary" (click)="showForm.set(true)">
+      <lucide-icon name="plus" class="w-4 h-4"></lucide-icon>Liên kết tài khoản
+    </button>
     }
   </header>
 
   <div class="stack">
     @if (refundContext) {
-      <div class="note note--primary">
-        <lucide-icon name="rotate-cw" class="w-4 h-4"></lucide-icon>
-        <span><strong>Liên kết tài khoản để nhận hoàn tiền.</strong> Tiền vẫn được giữ an toàn; payOS xác minh tài khoản ngay khi chuyển hoàn.</span>
-      </div>
+    <div class="note note--primary">
+      <lucide-icon name="rotate-cw" class="w-4 h-4"></lucide-icon>
+      <span><strong>Liên kết tài khoản để nhận hoàn tiền.</strong> Tiền vẫn được giữ an toàn; payOS xác minh tài khoản
+        ngay khi chuyển hoàn.</span>
+    </div>
     }
 
     <div class="note">
@@ -25,147 +26,155 @@
     </div>
 
     @if (loading()) {
-      <app-loading-skeleton variant="rows" [count]="2" label="Đang tải tài khoản ngân hàng"></app-loading-skeleton>
+    <app-loading-skeleton variant="rows" [count]="2" label="Đang tải tài khoản ngân hàng"></app-loading-skeleton>
     } @else if (accounts().length) {
-      <div class="account-grid">
-        @for (account of accounts(); track account.bankAccountId) {
-          <div class="panel info-cell account-card" [class.is-default]="account.isDefault && account.status !== 'REJECTED'">
-            <span class="bank-logo">
-              @if (getBank(account.bankBin); as bank) {
-                <img [src]="bank.logo" [alt]="bank.shortName" />
-              } @else {
-                <lucide-icon name="building-2" class="w-5 h-5"></lucide-icon>
-              }
+    <div class="account-grid">
+      @for (account of accounts(); track account.bankAccountId) {
+      <div class="panel info-cell account-card" [class.is-default]="account.isDefault && account.status !== 'REJECTED'">
+        <span class="bank-logo">
+          @if (getBank(account.bankBin); as bank) {
+          <img [src]="bank.logo" [alt]="bank.shortName" />
+          } @else {
+          <lucide-icon name="building-2" class="w-5 h-5"></lucide-icon>
+          }
+        </span>
+        <div class="row__copy">
+          <div class="row__meta">
+            <p class="row__value">{{ getBank(account.bankBin)?.shortName || account.bankBin }}</p>
+            @if (account.isDefault && account.status !== 'REJECTED') {
+            <span class="badge badge--primary">Mặc định</span>
+            }
+            <span class="badge" [ngClass]="statusTone(account.status) ? 'badge--' + statusTone(account.status) : ''">
+              {{ statusLabel(account.status) }}
             </span>
-            <div class="row__copy">
-              <div class="row__meta">
-                <p class="row__value">{{ getBank(account.bankBin)?.shortName || account.bankBin }}</p>
-                @if (account.isDefault && account.status !== 'REJECTED') {
-                  <span class="badge badge--primary">Mặc định</span>
-                }
-                <span class="badge" [ngClass]="statusTone(account.status) ? 'badge--' + statusTone(account.status) : ''">
-                  {{ statusLabel(account.status) }}
-                </span>
-              </div>
-              <span class="row__label account-line">{{ account.accountName }} · <b>•••• {{ account.accountNumberLast4 }}</b></span>
-            </div>
-            <button type="button" class="icon-btn" [matMenuTriggerFor]="accountMenu"
-              [attr.aria-label]="'Tác vụ tài khoản •••• ' + account.accountNumberLast4">
-              <lucide-icon name="ellipsis" class="w-5 h-5"></lucide-icon>
-            </button>
-            <mat-menu #accountMenu="matMenu" xPosition="before" class="goat-action-menu">
-              @if (!account.isDefault && account.status !== 'REJECTED') {
-                <button mat-menu-item type="button" (click)="makeDefault(account)">
-                  <lucide-icon name="badge-check" class="w-4 h-4"></lucide-icon>Đặt làm mặc định
-                </button>
-              }
-              <button mat-menu-item type="button" class="is-danger" (click)="disable(account)">
-                <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon>Gỡ tài khoản
-              </button>
-            </mat-menu>
           </div>
-        }
+          <span class="row__label account-line">{{ account.accountName }} · <b>•••• {{ account.accountNumberLast4
+              }}</b></span>
+        </div>
+        <button type="button" class="icon-btn" [matMenuTriggerFor]="accountMenu"
+          [attr.aria-label]="'Tác vụ tài khoản •••• ' + account.accountNumberLast4">
+          <lucide-icon name="ellipsis" class="w-5 h-5"></lucide-icon>
+        </button>
+        <mat-menu #accountMenu="matMenu" xPosition="before" class="goat-action-menu">
+          @if (!account.isDefault && account.status !== 'REJECTED') {
+          <button mat-menu-item type="button" (click)="makeDefault(account)">
+            <lucide-icon name="badge-check" class="w-4 h-4"></lucide-icon>Đặt làm mặc định
+          </button>
+          }
+          <button mat-menu-item type="button" class="is-danger" (click)="disable(account)">
+            <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon>Gỡ tài khoản
+          </button>
+        </mat-menu>
       </div>
+      }
+    </div>
     } @else {
-      <div class="state">
-        <span class="state__icon"><lucide-icon name="credit-card" class="w-6 h-6"></lucide-icon></span>
-        <strong>Chưa có tài khoản nhận tiền</strong>
-        <p>Liên kết trước để hoàn tiền hoặc nhận doanh thu không bị gián đoạn.</p>
-        <button type="button" class="btn btn--primary" (click)="showForm.set(true)">Liên kết tài khoản</button>
-      </div>
+    <div class="state">
+      <span class="state__icon"><lucide-icon name="credit-card" class="w-6 h-6"></lucide-icon></span>
+      <strong>Chưa có tài khoản</strong>
+      <p>Liên kết trước để hoàn tiền hoặc nhận doanh thu không bị gián đoạn.</p>
+      <button type="button" class="btn btn--primary" (click)="showForm.set(true)">Liên kết tài khoản</button>
+    </div>
     }
 
     @if (!loading() && refunds().length) {
-      <section class="panel refunds" aria-labelledby="refunds-title">
-        <header class="refunds__head">
-          <h3 id="refunds-title">Khoản hoàn tiền</h3>
-          <p>Tiền hoàn chuyển về tài khoản mặc định ở trên. Lần chuyển lỗi có thể thử lại.</p>
-        </header>
-        <!-- Cuon trong khung rieng (toi da 440px), khong keo dai trang; render dan LIST_CHUNK dong khi cham day khung. -->
-        <ul class="refunds__list">
-          @for (refund of refunds() | slice:0:refundsShown(); track refund.refundId) {
-          <li class="refund">
-            <span class="refund__icon" aria-hidden="true">
-              <lucide-icon [name]="refund.purpose === 'TOURNAMENT_FEE' ? 'trophy' : 'calendar-check'" class="w-4 h-4"></lucide-icon>
-            </span>
-            <div class="refund__copy">
-              <strong>{{ refundTitle(refund) }}</strong>
-              <span>{{ refund.createdAt | date:'HH:mm dd/MM/yyyy' }}@if (refund.reason) { · {{ refund.reason }} }</span>
-              @if (refund.failureReason && refund.status !== 'SUCCEEDED') { <small class="refund__error">{{ refund.failureReason }}</small> }
-            </div>
-            <div class="refund__side">
-              <b>{{ formatVnd(refund.amount) }}</b>
-              <span class="badge" [ngClass]="refundTone(refund.status) ? 'badge--' + refundTone(refund.status) : ''">{{ refundLabel(refund.status) }}</span>
-              @if (refund.claimable) {
-              <button type="button" class="btn btn--primary btn--sm" [disabled]="claimingId() === refund.refundId" (click)="claim(refund)">
-                @if (claimingId() === refund.refundId) { <lucide-icon name="loader-2" class="w-4 h-4 animate-spin"></lucide-icon> }
-                {{ refund.status === 'FAILED' ? 'Thử lại' : 'Nhận hoàn tiền' }}
-              </button>
-              }
-            </div>
-          </li>
-          }
-          @if (refunds().length > refundsShown()) {
-          <li class="list-sentinel" appInfiniteScroll (reached)="refundsShown.update(count => count + listChunk)" aria-hidden="true"></li>
-          }
-        </ul>
-      </section>
+    <section class="panel refunds" aria-labelledby="refunds-title">
+      <header class="refunds__head">
+        <h3 id="refunds-title">Khoản hoàn tiền</h3>
+        <p>Tiền hoàn chuyển về tài khoản mặc định ở trên. Lần chuyển lỗi có thể thử lại.</p>
+      </header>
+      <!-- Cuon trong khung rieng (toi da 440px), khong keo dai trang; render dan LIST_CHUNK dong khi cham day khung. -->
+      <ul class="refunds__list">
+        @for (refund of refunds() | slice:0:refundsShown(); track refund.refundId) {
+        <li class="refund">
+          <span class="refund__icon" aria-hidden="true">
+            <lucide-icon [name]="refund.purpose === 'TOURNAMENT_FEE' ? 'trophy' : 'calendar-check'"
+              class="w-4 h-4"></lucide-icon>
+          </span>
+          <div class="refund__copy">
+            <strong>{{ refundTitle(refund) }}</strong>
+            <span>{{ refund.createdAt | date:'HH:mm dd/MM/yyyy' }}@if (refund.reason) { · {{ refund.reason }} }</span>
+            @if (refund.failureReason && refund.status !== 'SUCCEEDED') { <small class="refund__error">{{
+              refund.failureReason }}</small> }
+          </div>
+          <div class="refund__side">
+            <b>{{ formatVnd(refund.amount) }}</b>
+            <span class="badge" [ngClass]="refundTone(refund.status) ? 'badge--' + refundTone(refund.status) : ''">{{
+              refundLabel(refund.status) }}</span>
+            @if (refund.claimable) {
+            <button type="button" class="btn btn--primary btn--sm" [disabled]="claimingId() === refund.refundId"
+              (click)="claim(refund)">
+              @if (claimingId() === refund.refundId) { <lucide-icon name="loader-2"
+                class="w-4 h-4 animate-spin"></lucide-icon> }
+              {{ refund.status === 'FAILED' ? 'Thử lại' : 'Nhận hoàn tiền' }}
+            </button>
+            }
+          </div>
+        </li>
+        }
+        @if (refunds().length > refundsShown()) {
+        <li class="list-sentinel" appInfiniteScroll (reached)="refundsShown.update(count => count + listChunk)"
+          aria-hidden="true"></li>
+        }
+      </ul>
+    </section>
     }
 
     @if (returnUrl && accounts().length > 0) {
-      <button type="button" class="btn btn--secondary continue-btn" (click)="continueFlow()">
-        Quay lại nhận hoàn tiền<lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon>
-      </button>
+    <button type="button" class="btn btn--secondary continue-btn" (click)="continueFlow()">
+      Quay lại nhận hoàn tiền<lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon>
+    </button>
     }
   </div>
 </section>
 
 @if (showForm()) {
-  <div class="modal-backdrop" role="presentation" (click)="closeForm()">
-    <form class="modal" appAccessibleDialog aria-labelledby="link-bank-title" (dialogClosed)="closeForm()"
-      (click)="$event.stopPropagation()" (ngSubmit)="submit()">
-      <header class="modal__header">
-        <div>
-          <h2 id="link-bank-title">Liên kết tài khoản ngân hàng</h2>
-          <p>Tài khoản nhận hoàn tiền đặt sân và doanh thu khi bạn là chủ sân.</p>
-        </div>
-        <button type="button" class="icon-btn" aria-label="Đóng" [disabled]="saving()" (click)="closeForm()">
-          <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
-        </button>
-      </header>
-      <div class="modal__body">
-        <fieldset class="link-fields" [disabled]="saving()">
-          <div class="field">
-            <span class="field__label">Ngân hàng <b>*</b></span>
-            <app-select name="bankBin" [options]="bankOptions()" [(ngModel)]="bankBin" [searchable]="true"
-              leadingIcon="building-2" placeholder="Chọn ngân hàng" searchPlaceholder="Tìm ngân hàng..."
-              ariaLabel="Ngân hàng"></app-select>
-          </div>
-          <div class="form-grid">
-            <label class="field">
-              <span class="field__label">Số tài khoản <b>*</b></span>
-              <input id="account-number" class="field__control" name="accountNumber" inputmode="numeric" maxlength="19"
-                autocomplete="off" placeholder="Nhập số tài khoản" [(ngModel)]="accountNumber" />
-            </label>
-            <label class="field">
-              <span class="field__label">Tên chủ tài khoản <b>*</b></span>
-              <input id="account-name" class="field__control" name="accountName" maxlength="255" autocomplete="off"
-                placeholder="NGUYEN VAN A" [(ngModel)]="accountName" />
-            </label>
-          </div>
-          <p class="note">
-            <lucide-icon name="info" class="w-4 h-4"></lucide-icon>
-            <span>Không trừ tiền khi liên kết. payOS kiểm tra tài khoản ở lần chuyển tiền đầu tiên. Số tài khoản được mã hóa, chỉ hiện 4 số cuối.</span>
-          </p>
-        </fieldset>
+<div class="modal-backdrop" role="presentation" (click)="closeForm()">
+  <form class="modal" appAccessibleDialog aria-labelledby="link-bank-title" (dialogClosed)="closeForm()"
+    (click)="$event.stopPropagation()" (ngSubmit)="submit()">
+    <header class="modal__header">
+      <div>
+        <h2 id="link-bank-title">Liên kết tài khoản ngân hàng</h2>
+        <p>Tài khoản nhận hoàn tiền đặt sân và doanh thu khi bạn là chủ sân.</p>
       </div>
-      <footer class="modal__footer">
-        <button type="button" class="btn btn--secondary" [disabled]="saving()" (click)="closeForm()">Để sau</button>
-        <button type="submit" class="btn btn--primary" [disabled]="saving()" [attr.aria-busy]="saving()">
-          @if (saving()) { <lucide-icon name="loader-2" class="w-4 h-4 animate-spin"></lucide-icon> }
-          {{ saving() ? 'Đang liên kết...' : 'Xác nhận liên kết' }}
-        </button>
-      </footer>
-    </form>
-  </div>
+      <button type="button" class="icon-btn" aria-label="Đóng" [disabled]="saving()" (click)="closeForm()">
+        <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+      </button>
+    </header>
+    <div class="modal__body">
+      <fieldset class="link-fields" [disabled]="saving()">
+        <div class="field">
+          <span class="field__label">Ngân hàng <b>*</b></span>
+          <app-select name="bankBin" [options]="bankOptions()" [(ngModel)]="bankBin" [searchable]="true"
+            leadingIcon="building-2" placeholder="Chọn ngân hàng" searchPlaceholder="Tìm ngân hàng..."
+            ariaLabel="Ngân hàng"></app-select>
+        </div>
+        <div class="form-grid">
+          <label class="field">
+            <span class="field__label">Số tài khoản <b>*</b></span>
+            <input id="account-number" class="field__control" name="accountNumber" inputmode="numeric" maxlength="19"
+              autocomplete="off" placeholder="Nhập số tài khoản" [(ngModel)]="accountNumber" />
+          </label>
+          <label class="field">
+            <span class="field__label">Tên chủ tài khoản <b>*</b></span>
+            <input id="account-name" class="field__control" name="accountName" maxlength="255" autocomplete="off"
+              placeholder="NGUYEN VAN A" [(ngModel)]="accountName" />
+          </label>
+        </div>
+        <p class="note">
+          <lucide-icon name="info" class="w-4 h-4"></lucide-icon>
+          <span>Không trừ tiền khi liên kết. payOS kiểm tra tài khoản ở lần chuyển tiền đầu tiên. Số tài khoản được mã
+            hóa, chỉ hiện 4 số cuối.</span>
+        </p>
+      </fieldset>
+    </div>
+    <footer class="modal__footer">
+      <button type="button" class="btn btn--secondary" [disabled]="saving()" (click)="closeForm()">Để sau</button>
+      <button type="submit" class="btn btn--primary" [disabled]="saving()" [attr.aria-busy]="saving()">
+        @if (saving()) { <lucide-icon name="loader-2" class="w-4 h-4 animate-spin"></lucide-icon> }
+        {{ saving() ? 'Đang liên kết...' : 'Xác nhận liên kết' }}
+      </button>
+    </footer>
+  </form>
+</div>
 }
