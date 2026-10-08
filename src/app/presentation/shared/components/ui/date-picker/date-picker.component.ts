@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, HostBinding, Input, Output, forwardRef, inject } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, ElementRef, EventEmitter, HostBinding, Input, Output, ViewChild, forwardRef, inject } from '@angular/core';
 import { ConnectedPosition, OverlayModule } from '@angular/cdk/overlay';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
@@ -44,9 +44,15 @@ function parseIsoDate(value: string | null | undefined): Date | null {
   providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => DatePickerComponent), multi: true }],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DatePickerComponent implements ControlValueAccessor {
+export class DatePickerComponent implements ControlValueAccessor, AfterViewInit {
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly changeDetector = inject(ChangeDetectorRef);
+  private readonly destroyRef = inject(DestroyRef);
+  private static measureCanvas?: HTMLCanvasElement;
+
+  @ViewChild('labelEl') private labelEl?: ElementRef<HTMLElement>;
+  /** Chi so nhan dang hien trong labels(): 0 = day du, cang lon cang gon. */
+  private labelFit = 0;
 
   /** Ngay nho nhat / lon nhat duoc chon (yyyy-MM-dd). */
   @Input() min: string | null | undefined = null;
@@ -89,15 +95,21 @@ export class DatePickerComponent implements ControlValueAccessor {
     return date ? this.longLabel(date) : '';
   }
 
-  /** Nhan gon khi o hep (container query trong scss chon nhan): "T6, 09/10/2026" va "09/10/2026". */
-  get mediumLabel(): string {
+  /** Nhan thuc su hien tren trigger: ban dai nhat con vua o (do bang chu that, khong doan breakpoint). */
+  get displayLabel(): string {
     const date = parseIsoDate(this.value);
-    return date ? `${WEEKDAYS[(date.getDay() + 6) % 7].short}, ${this.shortLabel(date)}` : '';
+    if (!date) return '';
+    const options = this.labels(date);
+    return options[Math.min(this.labelFit, options.length - 1)];
   }
 
-  get compactLabel(): string {
-    const date = parseIsoDate(this.value);
-    return date ? this.shortLabel(date) : '';
+  ngAfterViewInit(): void {
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(() => {
+      if (this.fitLabel()) this.changeDetector.detectChanges();
+    });
+    observer.observe(this.elementRef.nativeElement);
+    this.destroyRef.onDestroy(() => observer.disconnect());
   }
 
   get monthTitle(): string {
@@ -257,6 +269,7 @@ export class DatePickerComponent implements ControlValueAccessor {
 
   writeValue(value: string | null | undefined): void {
     this.value = parseIsoDate(value) ? String(value).slice(0, 10) : '';
+    this.fitLabel();
     this.changeDetector.markForCheck();
   }
 
@@ -279,12 +292,39 @@ export class DatePickerComponent implements ControlValueAccessor {
     return `${WEEKDAYS[(date.getDay() + 6) % 7].full}, ${this.shortLabel(date)}`;
   }
 
+  /** "Thu Sau, 09/10/2026" → "T6, 09/10/2026" → "T6, 09/10/26" → "09/10/26". */
+  private labels(date: Date): string[] {
+    const day = WEEKDAYS[(date.getDay() + 6) % 7].short;
+    const short = this.shortLabel(date);
+    const twoDigitYear = short.slice(0, 6) + short.slice(8);
+    return [this.longLabel(date), `${day}, ${short}`, `${day}, ${twoDigitYear}`, twoDigitYear];
+  }
+
+  /** Do tung nhan bang canvas voi dung font cua trigger va chon nhan dai nhat vua cho trong. */
+  private fitLabel(): boolean {
+    const element = this.labelEl?.nativeElement;
+    const date = parseIsoDate(this.value);
+    if (!element || !date || !element.clientWidth) return false;
+    const context = (DatePickerComponent.measureCanvas ??= document.createElement('canvas')).getContext('2d');
+    if (!context) return false;
+    const style = getComputedStyle(element);
+    context.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+    const options = this.labels(date);
+    const fit = options.findIndex(text => context.measureText(text).width <= element.clientWidth);
+    const next = fit < 0 ? options.length - 1 : fit;
+    if (next === this.labelFit) return false;
+    this.labelFit = next;
+    this.changeDetector.markForCheck();
+    return true;
+  }
+
   private shortLabel(date: Date): string {
     return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
   }
 
   private commit(value: string): void {
     this.value = value;
+    this.fitLabel();
     this.onChange(value);
     this.dateChange.emit(value);
   }

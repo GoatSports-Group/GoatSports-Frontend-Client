@@ -1,7 +1,7 @@
 // GOAT-DESIGN.md §6 Inputs & Forms → Date picker. Trigger giong app-select (44px, radius 12, hairline, icon
 // primary-light 28px); lich nam trong CDK overlay: white, hairline, radius 16, shadow-lg, o ngay 44px.
-// container-type: nhan ngay tu rut gon theo be rong thuc cua o ("Thu Sau, 09/10/2026" → "T6, 09/10/2026" → "09/10/2026")
-// thay vi bi cat "Thu Sa..." o hang loc chat. min-width giu du cho nhan ngan nhat.
+// Nhan ngay tu rut gon theo cho trong that (component do chu bang canvas): "Thu Sau, 09/10/2026" → "T6, 09/10/2026"
+// → "T6, 09/10/26" → "09/10/26". O rat hep (< 180px) an chevron de nhuong cho cho nhan; min-width du cho nhan ngan nhat.
 :host {
   display: block;
   width: 100%;
@@ -10,22 +10,11 @@
 }
 
 :host(:not(.is-icon)) {
-  min-width: 164px;
+  min-width: 132px;
 }
 
-.date-picker__label-medium,
-.date-picker__label-short {
-  display: none;
-}
-
-@container (max-width: 235px) {
-  .date-picker__label-long { display: none; }
-  .date-picker__label-medium { display: inline; }
-}
-
-@container (max-width: 195px) {
-  .date-picker__label-medium { display: none; }
-  .date-picker__label-short { display: inline; }
+@container (max-width: 179px) {
+  .date-picker__chevron { display: none; }
 }
 
 .date-picker__trigger {
