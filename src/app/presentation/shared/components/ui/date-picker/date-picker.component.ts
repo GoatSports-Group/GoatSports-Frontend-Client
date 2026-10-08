@@ -89,6 +89,17 @@ export class DatePickerComponent implements ControlValueAccessor {
     return date ? this.longLabel(date) : '';
   }
 
+  /** Nhan gon khi o hep (container query trong scss chon nhan): "T6, 09/10/2026" va "09/10/2026". */
+  get mediumLabel(): string {
+    const date = parseIsoDate(this.value);
+    return date ? `${WEEKDAYS[(date.getDay() + 6) % 7].short}, ${this.shortLabel(date)}` : '';
+  }
+
+  get compactLabel(): string {
+    const date = parseIsoDate(this.value);
+    return date ? this.shortLabel(date) : '';
+  }
+
   get monthTitle(): string {
     return `Tháng ${this.cursor.getMonth() + 1}, ${this.cursor.getFullYear()}`;
   }
@@ -265,7 +276,11 @@ export class DatePickerComponent implements ControlValueAccessor {
 
   /** "Thứ Sáu, 02/10/2026" — ten thu viet day du (GOAT-DESIGN §4). */
   private longLabel(date: Date): string {
-    return `${WEEKDAYS[(date.getDay() + 6) % 7].full}, ${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+    return `${WEEKDAYS[(date.getDay() + 6) % 7].full}, ${this.shortLabel(date)}`;
+  }
+
+  private shortLabel(date: Date): string {
+    return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
   }
 
   private commit(value: string): void {

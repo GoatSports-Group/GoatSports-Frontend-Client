@@ -9,7 +9,12 @@
       </svg>
     </span>
     @if (variant === 'field') {
-    <span class="date-picker__label" [class.is-placeholder]="!label">{{ label || placeholder }}</span>
+    <span class="date-picker__label" [class.is-placeholder]="!label">
+      @if (label) {
+      <span class="date-picker__label-long">{{ label }}</span><span class="date-picker__label-medium">{{ mediumLabel }}</span><span
+        class="date-picker__label-short">{{ compactLabel }}</span>
+      } @else { {{ placeholder }} }
+    </span>
     <svg class="date-picker__chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
       <path stroke-linecap="round" stroke-linejoin="round" d="m6 8 4 4 4-4" />
     </svg>
