@@ -39,6 +39,11 @@
         @if (message.sender === 'AI') { <span class="mini-avatar">GS</span> }
         <div class="msg-bubble">
           <p>{{ message.text }}</p>
+          @if (message.sources?.length) {
+            <ol class="msg-sources" aria-label="Nguồn trích dẫn">
+              @for (source of message.sources; track source.n) { <li><b>[{{ source.n }}]</b> {{ source.label }}</li> }
+            </ol>
+          }
           @if (message.venues?.length) {
             <div class="venues-suggestions">
               @for (venue of message.venues; track venue.venueId) {

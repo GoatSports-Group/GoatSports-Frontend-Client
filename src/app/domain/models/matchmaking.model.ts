@@ -298,4 +298,11 @@ export interface ChatbotResponseModel {
   answer: string;
   suggestedActions: string[];
   recommendedVenues: VenueRecommendationModel[];
+  /** Đoạn tài liệu đã dùng, đúng thứ tự [Nguồn 1], [Nguồn 2]… trong câu trả lời. */
+  sources?: ChatbotSourceModel[];
+}
+
+export interface ChatbotSourceModel {
+  title: string;
+  heading?: string | null;
 }

@@ -2,14 +2,24 @@ import { AfterViewChecked, Component, ElementRef, HostListener, ViewChild } from
 import { Router } from '@angular/router';
 import { AiRepositoryPort } from '@application/ports/ai.repository.port';
 import { VenueRecommendation } from '@application/dto/matchmaking/matchmaking.dto';
+import { ChatbotSourceModel } from '@domain/models/matchmaking.model';
 
 interface ChatMessage {
   sender: 'AI' | 'USER';
   text: string;
   actions?: string[];
   venues?: VenueRecommendation[];
+  /** Chỉ các nguồn câu trả lời thật sự trích, giữ đúng số N của [Nguồn N]. */
+  sources?: { n: number; label: string }[];
 }
 
+
+/** API trả mọi đoạn đã lấy ra; chỉ hiện những đoạn có "[Nguồn N]" trong câu trả lời, giữ đúng số N. */
+export function citedSources(answer: string, sources: readonly ChatbotSourceModel[]): { n: number; label: string }[] {
+  return sources
+    .map((source, index) => ({ n: index + 1, label: source.heading ? `${source.title} › ${source.heading}` : source.title }))
+    .filter(source => answer.includes(`[Nguồn ${source.n}]`));
+}
 
 @Component({
   selector: 'app-ai-assistant-modal',
@@ -81,7 +91,8 @@ export class AiAssistantModalComponent implements AfterViewChecked {
           sender: 'AI',
           text: res.answer,
           actions: res.suggestedActions,
-          venues: res.recommendedVenues
+          venues: res.recommendedVenues,
+          sources: citedSources(res.answer, res.sources ?? [])
         });
         this.scrollPending = true;
       },
