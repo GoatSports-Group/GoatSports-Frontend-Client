@@ -338,23 +338,6 @@
   line-height: 1.7;
 }
 
-.policy-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 18px;
-}
-
-.policy-badges span {
-  padding: 8px 13px;
-  border: 1px solid var(--primary-light);
-  border-radius: 99px;
-  background: var(--primary-light);
-  color: var(--primary-hover);
-  font-size: 12px;
-  font-weight: 700;
-}
-
 // Lien he: form 3/5 | thong tin + ban do 2/5; hai cot cao bang nhau (§7 No dead space).
 .contact-grid {
   display: grid;
@@ -673,4 +656,15 @@
   .support-form__footer .btn {
     width: 100%;
   }
+}
+// Link nằm trong câu chữ phải gạch chân, không chỉ khác màu (WCAG 1.4.1, axe "link-in-text-block").
+.policy-alert a,
+.policy-section__intro a,
+.policy-step p a,
+.policy-highlight p a,
+.policy-list-card a {
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
