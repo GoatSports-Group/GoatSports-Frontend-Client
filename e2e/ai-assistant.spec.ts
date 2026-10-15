@@ -52,3 +52,30 @@ test('trợ lý hiện thẻ dữ liệu, chỉ nguồn được trích và gi�
   await card.click();
   await expect(page).toHaveURL(/\/tournaments\/t-1$/);
 });
+
+test('"Chưa hữu ích" gửi câu hỏi và câu trả lời để quản trị viên bổ sung kiến thức', async ({ page }) => {
+  await mockGoatSportsApi(page);
+  await page.route(url => url.pathname.endsWith('/ai-service/api/v1/ai/chatbot/query'), route => route.fulfill({
+    status: 200, contentType: 'application/json',
+    body: JSON.stringify({ answer: 'Mình chưa có thông tin về việc này.', suggestedActions: [], cards: [], sources: [], grounded: false })
+  }));
+  const reports: Array<{ question: string; answer: string; conversationId: string }> = [];
+  await page.route(url => url.pathname.endsWith('/ai-service/api/v1/ai/chatbot/feedback'), route => {
+    reports.push(route.request().postDataJSON());
+    return route.fulfill({ status: 202, contentType: 'application/json', body: '{"accepted":true}' });
+  });
+  await page.goto('/policy/booking-policy');
+
+  await page.getByRole('button', { name: 'Mở trợ lý GOAT AI' }).click();
+  // Lời chào không có nút báo: chỉ câu trả lời cho một câu hỏi mới báo được.
+  await expect(page.getByRole('button', { name: 'Báo câu trả lời này chưa hữu ích' })).toHaveCount(0);
+  await page.getByPlaceholder('Hỏi GOAT AI bất kỳ điều gì...').fill('Sân nào rẻ nhất?');
+  await page.getByRole('button', { name: 'Gửi tin nhắn' }).click();
+
+  await page.getByRole('button', { name: 'Báo câu trả lời này chưa hữu ích' }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Cảm ơn bạn' })).toBeVisible();
+  expect(reports).toHaveLength(1);
+  expect(reports[0].question).toBe('Sân nào rẻ nhất?');
+  expect(reports[0].answer).toBe('Mình chưa có thông tin về việc này.');
+  expect(reports[0].conversationId).toMatch(/^[0-9a-f-]{36}$/);
+});

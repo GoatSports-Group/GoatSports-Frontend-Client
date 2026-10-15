@@ -235,3 +235,22 @@ test('trang chủ: AI lỗi thì vẫn hiện sân gần nhất', async ({ page 
   await expect(strip.locator('app-venue-card').first()).toContainText('Sân Gần Nhà');
   await expect(strip.locator('.venue-pick__reason')).toHaveCount(0);
 });
+
+test('tiêu đề "Sân đấu nổi bật" không bị thanh công cụ đè lên ở màn rộng', async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.startsWith('desktop'), 'chỉ màn rộng mới đặt tiêu đề và công cụ cùng hàng');
+  await page.context().grantPermissions(['geolocation']);
+  await page.context().setGeolocation({ latitude: 12.2104, longitude: 109.1937 });
+  await page.route('**/venue-service/api/v1/venues?**', route => route.fulfill({
+    json: ok({ items: [near, favourite], total: 2, page: 0, pageSize: 8, totalPages: 1 })
+  }));
+  for (const width of [1440, 1536, 1700]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/home');
+    const title = await page.locator('#featured-venues-title').boundingBox();
+    const tools = await page.locator('.nearby-tools').boundingBox();
+    expect(title && tools).toBeTruthy();
+    // Cùng hàng thì công cụ phải bắt đầu sau mép phải tiêu đề.
+    expect(tools!.x, `rộng ${width}px`).toBeGreaterThanOrEqual(title!.x + title!.width);
+    await page.locator('.section-heading').first().screenshot({ path: testInfo.outputPath(`heading-${width}.png`) });
+  }
+});

@@ -160,9 +160,10 @@
   gap: 16px;
 }
 
+// Tiêu đề giữ đúng bề rộng của nó; thanh công cụ nhận phần còn lại và tự xuống dòng (không bao giờ đè lên tiêu đề).
 .section-heading {
   display: grid;
-  grid-template-columns: minmax(225px, 1fr) auto;
+  grid-template-columns: max-content minmax(0, 1fr);
   align-items: start;
   min-height: 0;
   margin: 0 0 14px;
@@ -170,6 +171,10 @@
 
 .section-heading__copy {
   min-width: 220px;
+}
+
+.section-heading__copy p {
+  max-width: 340px;
 }
 
 .section-heading h2,

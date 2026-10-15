@@ -11,6 +11,9 @@ interface ChatMessage {
   cards?: ChatbotCardModel[];
   /** Chỉ các nguồn câu trả lời thật sự trích, giữ đúng số N của [Nguồn N]. */
   sources?: { n: number; label: string }[];
+  /** Câu người dùng hỏi dẫn tới câu trả lời này; có thì mới báo "Chưa hữu ích" được. */
+  question?: string;
+  feedback?: 'sending' | 'sent';
 }
 
 
@@ -23,7 +26,7 @@ export function citedSources(answer: string, sources: readonly ChatbotSourceMode
 
 /** Icon theo loại thẻ dữ liệu. */
 export const CARD_ICON: Record<ChatbotCardModel['kind'], string> = {
-  VENUE: 'store', SLOTS: 'clock', TOURNAMENT: 'trophy', BOOKING: 'ticket'
+  VENUE: 'store', SLOTS: 'clock', TOURNAMENT: 'trophy', BOOKING: 'ticket', CLUB: 'users'
 };
 
 @Component({
@@ -47,7 +50,7 @@ export class AiAssistantModalComponent implements AfterViewChecked {
   messages: ChatMessage[] = [
     {
       sender: 'AI',
-      text: 'Xin chào! Mình là GOAT AI. Mình tìm được sân và giờ còn trống, giải đang mở đăng ký, tình trạng đơn đặt sân của bạn, và giải đáp chính sách đặt sân, hủy sân.',
+      text: 'Xin chào! Mình là GOAT AI. Mình tìm được sân, giá và giờ còn trống, giải đang mở đăng ký, CLB của bạn, tình trạng đơn đặt sân, và giải đáp chính sách đặt sân, hủy sân.',
       actions: ['Giải đang mở đăng ký', 'Đơn đặt sân của tôi', 'Chính sách hủy sân']
     }
   ];
@@ -100,7 +103,8 @@ export class AiAssistantModalComponent implements AfterViewChecked {
           text: res.answer,
           actions: res.suggestedActions,
           cards: res.cards ?? [],
-          sources: citedSources(res.answer, res.sources ?? [])
+          sources: citedSources(res.answer, res.sources ?? []),
+          question: query
         });
         this.scrollPending = true;
       },
@@ -112,6 +116,15 @@ export class AiAssistantModalComponent implements AfterViewChecked {
         });
         this.scrollPending = true;
       }
+    });
+  }
+
+  reportUnhelpful(message: ChatMessage): void {
+    if (!message.question || message.feedback) return;
+    message.feedback = 'sending';
+    this.aiRepo.reportUnhelpfulAnswer(message.question, message.text, this.conversationId).subscribe({
+      next: () => message.feedback = 'sent',
+      error: () => message.feedback = undefined
     });
   }
 

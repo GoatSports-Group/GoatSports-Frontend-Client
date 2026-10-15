@@ -59,6 +59,14 @@
               }
             </div>
           }
+          @if (message.question) {
+            @if (message.feedback === 'sent') {
+              <p class="msg-feedback msg-feedback--sent" role="status"><lucide-icon name="check" class="w-3.5 h-3.5"></lucide-icon>Cảm ơn bạn, câu này sẽ được bổ sung câu trả lời.</p>
+            } @else {
+              <button type="button" class="msg-feedback" [disabled]="message.feedback === 'sending'" (click)="reportUnhelpful(message)"
+                aria-label="Báo câu trả lời này chưa hữu ích"><lucide-icon name="thumbs-down" class="w-3.5 h-3.5"></lucide-icon>Chưa hữu ích</button>
+            }
+          }
           @if (message.actions?.length) {
             <div class="actions-chips">@for (action of message.actions; track action) { <button type="button" (click)="sendMessage(action)">{{ action }}</button> }</div>
           }

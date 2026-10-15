@@ -41,4 +41,6 @@ export abstract class AiRepositoryPort {
   abstract setPersonalization(enabled: boolean): Observable<boolean>;
   /** conversationId: cùng mã thì trợ lý nhớ vài lượt trước (hiểu câu hỏi nối tiếp). */
   abstract queryChatbot(message: string, conversationId: string): Observable<ChatbotResponseModel>;
+  /** "Chưa hữu ích": câu hỏi vào hàng chờ để quản trị viên bổ sung kiến thức cho trợ lý. */
+  abstract reportUnhelpfulAnswer(question: string, answer: string, conversationId: string): Observable<unknown>;
 }

@@ -141,6 +141,10 @@ export class AiRepository extends AiRepositoryPort {
     return this.http.put<{ enabled: boolean }>(`${this.baseUrl}/personalization/settings`, { enabled }).pipe(map(res => res.enabled));
   }
 
+  override reportUnhelpfulAnswer(question: string, answer: string, conversationId: string): Observable<unknown> {
+    return this.http.post(`${this.baseUrl}/chatbot/feedback`, { question, answer, conversationId });
+  }
+
   override queryChatbot(message: string, conversationId: string): Observable<ChatbotResponseModel> {
     return this.http.post<ChatbotResponseModel>(`${this.baseUrl}/chatbot/query`, { message, conversationId });
   }

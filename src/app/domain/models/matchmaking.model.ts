@@ -304,7 +304,7 @@ export interface ChatbotResponseModel {
 }
 
 export interface ChatbotCardModel {
-  kind: 'VENUE' | 'SLOTS' | 'TOURNAMENT' | 'BOOKING';
+  kind: 'VENUE' | 'SLOTS' | 'TOURNAMENT' | 'BOOKING' | 'CLUB';
   title: string;
   subtitle?: string | null;
   details: string[];
