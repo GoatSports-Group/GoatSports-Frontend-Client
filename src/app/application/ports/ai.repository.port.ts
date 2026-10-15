@@ -35,5 +35,6 @@ export abstract class AiRepositoryPort {
   abstract shareMatch(sessionId: string, title: string, content: string | null): Observable<string>;
   abstract submitOpponentFeedback(sessionId: string, rating: number, fairPlayRating: number, comment?: string): Observable<MatchmakingSessionModel>;
   abstract getVenueRecommendations(lat?: number, lng?: number, sport?: string): Observable<VenueRecommendationModel[]>;
-  abstract queryChatbot(message: string, lat?: number, lng?: number, sport?: string): Observable<ChatbotResponseModel>;
+  /** conversationId: cùng mã thì trợ lý nhớ vài lượt trước (hiểu câu hỏi nối tiếp). */
+  abstract queryChatbot(message: string, conversationId: string): Observable<ChatbotResponseModel>;
 }

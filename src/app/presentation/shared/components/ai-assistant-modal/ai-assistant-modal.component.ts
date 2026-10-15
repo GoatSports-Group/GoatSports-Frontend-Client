@@ -1,14 +1,14 @@
 import { AfterViewChecked, Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { AiRepositoryPort } from '@application/ports/ai.repository.port';
-import { VenueRecommendation } from '@application/dto/matchmaking/matchmaking.dto';
-import { ChatbotSourceModel } from '@domain/models/matchmaking.model';
+import { ChatbotCardModel, ChatbotSourceModel } from '@domain/models/matchmaking.model';
 
 interface ChatMessage {
   sender: 'AI' | 'USER';
   text: string;
   actions?: string[];
-  venues?: VenueRecommendation[];
+  /** Dữ liệu thật trợ lý đã tra (sân, giờ trống, giải, đơn). */
+  cards?: ChatbotCardModel[];
   /** Chỉ các nguồn câu trả lời thật sự trích, giữ đúng số N của [Nguồn N]. */
   sources?: { n: number; label: string }[];
 }
@@ -21,6 +21,11 @@ export function citedSources(answer: string, sources: readonly ChatbotSourceMode
     .filter(source => answer.includes(`[Nguồn ${source.n}]`));
 }
 
+/** Icon theo loại thẻ dữ liệu. */
+export const CARD_ICON: Record<ChatbotCardModel['kind'], string> = {
+  VENUE: 'store', SLOTS: 'clock', TOURNAMENT: 'trophy', BOOKING: 'ticket'
+};
+
 @Component({
   selector: 'app-ai-assistant-modal',
   templateUrl: './ai-assistant-modal.component.html',
@@ -32,6 +37,9 @@ export class AiAssistantModalComponent implements AfterViewChecked {
   isOpen = false;
   inputText = '';
   loading = false;
+  readonly cardIcon = CARD_ICON;
+  /** Cùng mã trong một phiên trang: trợ lý nhớ vài lượt trước để hiểu câu hỏi nối tiếp. */
+  private conversationId = crypto.randomUUID();
   private scrollPending = false;
 
   @ViewChild('messageList') private messageList?: ElementRef<HTMLDivElement>;
@@ -39,8 +47,8 @@ export class AiAssistantModalComponent implements AfterViewChecked {
   messages: ChatMessage[] = [
     {
       sender: 'AI',
-      text: 'Xin chào! Tôi là trợ lý AI GOAT Sports. Tôi có thể hỗ trợ bạn tìm sân bãi, gợi ý đối thủ ghép kèo hoặc hướng dẫn quy trình check-in.',
-      actions: ['Sân cầu lông gần tôi', 'Tìm đối thủ AI', 'Quy định hủy sân']
+      text: 'Xin chào! Mình là GOAT AI. Mình tìm được sân và giờ còn trống, giải đang mở đăng ký, tình trạng đơn đặt sân của bạn, và giải đáp chính sách đặt sân, hủy sân.',
+      actions: ['Giải đang mở đăng ký', 'Đơn đặt sân của tôi', 'Chính sách hủy sân']
     }
   ];
 
@@ -84,14 +92,14 @@ export class AiAssistantModalComponent implements AfterViewChecked {
     this.loading = true;
     this.scrollPending = true;
 
-    this.aiRepo.queryChatbot(query).subscribe({
+    this.aiRepo.queryChatbot(query, this.conversationId).subscribe({
       next: (res) => {
         this.loading = false;
         this.messages.push({
           sender: 'AI',
           text: res.answer,
           actions: res.suggestedActions,
-          venues: res.recommendedVenues,
+          cards: res.cards ?? [],
           sources: citedSources(res.answer, res.sources ?? [])
         });
         this.scrollPending = true;
@@ -107,9 +115,10 @@ export class AiAssistantModalComponent implements AfterViewChecked {
     });
   }
 
-  goToVenue(id: string): void {
+  openCard(card: ChatbotCardModel): void {
+    if (!card.link) return;
     this.isOpen = false;
-    this.router.navigate(['/venues', id]);
+    this.router.navigateByUrl(card.link);
   }
 
 }

@@ -44,10 +44,18 @@
               @for (source of message.sources; track source.n) { <li><b>[{{ source.n }}]</b> {{ source.label }}</li> }
             </ol>
           }
-          @if (message.venues?.length) {
-            <div class="venues-suggestions">
-              @for (venue of message.venues; track venue.venueId) {
-                <button type="button" class="sugg-card" (click)="goToVenue(venue.venueId)"><span><strong>{{ venue.venueName }}</strong><small>{{ venue.distanceKm }} km · {{ venue.rating }}/5 @if (venue.minPrice != null) { · từ {{ venue.minPrice | number:'1.0-0' }}đ/giờ }</small></span><lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon><p>{{ venue.matchReason }}</p></button>
+          @if (message.cards?.length) {
+            <div class="data-cards">
+              @for (card of message.cards; track $index) {
+                <button type="button" class="data-card" [disabled]="!card.link" (click)="openCard(card)">
+                  <span class="data-card__icon"><lucide-icon [name]="cardIcon[card.kind]" class="w-4 h-4"></lucide-icon></span>
+                  <span class="data-card__body">
+                    <strong>{{ card.title }}</strong>
+                    @if (card.subtitle) { <small>{{ card.subtitle }}</small> }
+                    @for (line of card.details; track $index) { <em>{{ line }}</em> }
+                  </span>
+                  @if (card.link) { <lucide-icon name="chevron-right" class="w-4 h-4 data-card__go"></lucide-icon> }
+                </button>
               }
             </div>
           }

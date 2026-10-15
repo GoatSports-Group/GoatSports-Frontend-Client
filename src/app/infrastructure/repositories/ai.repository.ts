@@ -131,12 +131,7 @@ export class AiRepository extends AiRepositoryPort {
     return this.http.get<VenueRecommendationModel[]>(`${this.baseUrl}/recommendations/venues`, { params });
   }
 
-  override queryChatbot(message: string, lat?: number, lng?: number, sport?: string): Observable<ChatbotResponseModel> {
-    return this.http.post<ChatbotResponseModel>(`${this.baseUrl}/chatbot/query`, {
-      message,
-      userLocationLat: lat,
-      userLocationLng: lng,
-      favoriteSport: sport
-    });
+  override queryChatbot(message: string, conversationId: string): Observable<ChatbotResponseModel> {
+    return this.http.post<ChatbotResponseModel>(`${this.baseUrl}/chatbot/query`, { message, conversationId });
   }
 }

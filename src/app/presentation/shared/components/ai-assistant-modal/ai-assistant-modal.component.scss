@@ -329,17 +329,19 @@ input {
   }
 }
 
-.venues-suggestions {
+// Thẻ dữ liệu thật (sân, giờ trống, giải, đơn) dưới câu trả lời; bấm mở đúng trang.
+.data-cards {
   display: grid;
   gap: 7px;
   margin-top: 10px;
 }
 
-.sugg-card {
+.data-card {
   width: 100%;
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 4px 8px;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 8px;
   padding: 9px;
   color: var(--assistant-text);
   text-align: left;
@@ -348,14 +350,32 @@ input {
   border-radius: 10px;
   cursor: pointer;
 
-  > span { display: grid; gap: 2px; }
-  strong { font-size: 11px; }
-  small { color: var(--assistant-green-dark); font-size: 9px; }
-  > p { grid-column: 1 / -1; margin: 2px 0 0; color: var(--assistant-muted); font-size: 9px; }
-
-  &:hover,
+  &:disabled { cursor: default; }
+  &:not(:disabled):hover,
   &:focus-visible { border-color: #8fcab7; }
 }
+
+.data-card__icon {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  color: var(--assistant-green-dark);
+  background: var(--assistant-mint);
+  border-radius: 8px;
+}
+
+.data-card__body {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+
+  strong { font-size: 13px; font-weight: 800; overflow-wrap: anywhere; }
+  small { color: var(--assistant-green-dark); font-size: 12px; font-weight: 700; }
+  em { color: var(--assistant-muted); font-size: 12px; font-style: normal; overflow-wrap: anywhere; }
+}
+
+.data-card__go { align-self: center; color: var(--assistant-muted); }
 
 .typing {
   display: flex;

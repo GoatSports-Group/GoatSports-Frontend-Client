@@ -297,9 +297,19 @@ export interface VenueRecommendationModel {
 export interface ChatbotResponseModel {
   answer: string;
   suggestedActions: string[];
-  recommendedVenues: VenueRecommendationModel[];
+  /** Dữ liệu thật trợ lý đã tra (sân, giờ trống, giải, đơn); bấm vào mở đúng trang. */
+  cards?: ChatbotCardModel[];
   /** Đoạn tài liệu đã dùng, đúng thứ tự [Nguồn 1], [Nguồn 2]… trong câu trả lời. */
   sources?: ChatbotSourceModel[];
+}
+
+export interface ChatbotCardModel {
+  kind: 'VENUE' | 'SLOTS' | 'TOURNAMENT' | 'BOOKING';
+  title: string;
+  subtitle?: string | null;
+  details: string[];
+  /** Đường dẫn trong ứng dụng, vd /venues/{id}. */
+  link?: string | null;
 }
 
 export interface ChatbotSourceModel {
