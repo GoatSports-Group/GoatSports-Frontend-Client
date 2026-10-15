@@ -1,4 +1,5 @@
-import { Component, Input, inject } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
+import { AiRepositoryPort } from '@application/ports/ai.repository.port';
 import { User, UpdatePasswordRequest, CreatePasswordRequest } from '@application/dto/user/user.dto';
 import { AuthService } from '@presentation/services/auth.service';
 import { UserService } from '@presentation/services/user.service';
@@ -12,13 +13,19 @@ import { finalize, map, switchMap } from 'rxjs/operators';
   styleUrls: ['./settings-security-tab.component.scss'],
   standalone: false
 })
-export class SettingsSecurityTabComponent {
+export class SettingsSecurityTabComponent implements OnInit {
   @Input() user: User | null = null;
 
   public authService = inject(AuthService);
   private userService = inject(UserService);
   private cryptoService = inject(CryptoService);
   private notifyService = inject(NotifyService);
+  private ai = inject(AiRepositoryPort);
+
+  /** null: đang tải hoặc tải lỗi (personalizationFailed). */
+  public personalization: boolean | null = null;
+  public personalizationFailed = false;
+  public personalizationSaving = false;
 
   public showPasswordModal = false;
   public isSaving = false;
@@ -33,6 +40,29 @@ export class SettingsSecurityTabComponent {
     newPassword: '',
     confirmPassword: ''
   };
+
+  ngOnInit(): void {
+    this.ai.getPersonalization().subscribe({
+      next: enabled => this.personalization = enabled,
+      error: () => this.personalizationFailed = true
+    });
+  }
+
+  togglePersonalization(enabled: boolean): void {
+    const previous = this.personalization;
+    this.personalization = enabled;
+    this.personalizationSaving = true;
+    this.ai.setPersonalization(enabled).pipe(finalize(() => this.personalizationSaving = false)).subscribe({
+      next: saved => {
+        this.personalization = saved;
+        this.notifyService.success(saved ? 'Đã bật gợi ý theo hoạt động.' : 'Đã tắt và xóa lịch sử hoạt động dùng cho gợi ý.');
+      },
+      error: () => {
+        this.personalization = previous;
+        this.notifyService.error('Chưa lưu được cài đặt. Vui lòng thử lại.');
+      }
+    });
+  }
 
   get hasPassword(): boolean {
     return this.user?.hasPassword === true;

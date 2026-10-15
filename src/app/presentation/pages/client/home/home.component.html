@@ -79,7 +79,9 @@
           <h2 id="featured-venues-title">
             <span>Sân</span><span>đấu</span><span>nổi</span><span>bật</span><span>gần</span><span>bạn</span>
           </h2>
-          <p>Khám phá các sân chất lượng, được cộng đồng yêu thích</p>
+          <p>{{ venueReasons.size
+            ? 'Xếp theo thói quen đặt và xem sân của bạn, khoảng cách và đánh giá'
+            : 'Khám phá các sân chất lượng, được cộng đồng yêu thích' }}</p>
         </div>
 
         <div class="nearby-tools">
@@ -101,6 +103,19 @@
             </span>
             <button type="submit" [disabled]="locationState === 'locating'">Áp dụng</button>
           </form>
+          @if (signedIn) {
+          <div class="venue-order" role="group" aria-label="Thứ tự sân">
+            <button type="button" [class.is-active]="venueOrder === 'forYou'" [attr.aria-pressed]="venueOrder === 'forYou'"
+              [disabled]="!canRecommend" [title]="canRecommend ? '' : 'Chọn một môn và bán kính tối đa 100 km để xem gợi ý'"
+              (click)="setVenueOrder('forYou')">
+              <lucide-icon name="sparkles" class="w-4 h-4"></lucide-icon>Dành cho bạn
+            </button>
+            <button type="button" [class.is-active]="venueOrder === 'nearest' || !canRecommend"
+              [attr.aria-pressed]="venueOrder === 'nearest' || !canRecommend" (click)="setVenueOrder('nearest')">
+              Gần nhất
+            </button>
+          </div>
+          }
           <button type="button" class="nearby-all" (click)="openVenueSearch()">
             Xem tất cả
             <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon>
@@ -125,7 +140,14 @@
       } @else if (featuredVenues.length) {
       <div class="venue-grid goat-stagger" role="region" aria-label="Sân nổi bật gần bạn, cuộn ngang để xem thêm">
         @for (venue of visibleFeaturedVenues; track venue.venueId) {
+        @if (venueReasons.get(venue.venueId); as reason) {
+        <div class="venue-pick">
+          <app-venue-card [venue]="venue" [homeStyle]="true"></app-venue-card>
+          <p class="venue-pick__reason"><lucide-icon name="sparkles" class="w-3.5 h-3.5"></lucide-icon>{{ reason }}</p>
+        </div>
+        } @else {
         <app-venue-card [venue]="venue" [homeStyle]="true"></app-venue-card>
+        }
         }
       </div>
       } @else if (!hasCurrentLocation) {

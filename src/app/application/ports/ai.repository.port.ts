@@ -34,7 +34,11 @@ export abstract class AiRepositoryPort {
   /** Khoe tran len Cong dong (gan the doi thu); tra id bai viet. */
   abstract shareMatch(sessionId: string, title: string, content: string | null): Observable<string>;
   abstract submitOpponentFeedback(sessionId: string, rating: number, fairPlayRating: number, comment?: string): Observable<MatchmakingSessionModel>;
-  abstract getVenueRecommendations(lat?: number, lng?: number, sport?: string): Observable<VenueRecommendationModel[]>;
+  /** Sân hợp thói quen (đặt, xem sân) quanh vị trí; chưa có thói quen thì xếp theo gần + đánh giá. */
+  abstract getVenueRecommendations(lat: number, lng: number, sport: string, radiusKm: number, maxResults: number): Observable<VenueRecommendationModel[]>;
+  /** Cho phép dùng hoạt động của mình để gợi ý (mặc định bật). Tắt thì hệ thống xóa lịch sử hoạt động đã lưu. */
+  abstract getPersonalization(): Observable<boolean>;
+  abstract setPersonalization(enabled: boolean): Observable<boolean>;
   /** conversationId: cùng mã thì trợ lý nhớ vài lượt trước (hiểu câu hỏi nối tiếp). */
   abstract queryChatbot(message: string, conversationId: string): Observable<ChatbotResponseModel>;
 }

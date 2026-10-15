@@ -174,3 +174,64 @@ test('Trang chủ khi đã đăng nhập: hôm nay, dành cho bạn và cộng �
 
   await page.screenshot({ path: testInfo.outputPath('home-personal.png'), fullPage: true });
 });
+
+function nhaTrangVenue(id: string, name: string, distanceKm: number) {
+  return {
+    venueId: id, name, description: '', openTime: '06:00:00', closeTime: '23:00:00', active: true,
+    minPrice: 200_000, maxPrice: 200_000, averageRating: 4.5, totalReviews: 3, phone: '', email: '',
+    address: 'Nha Trang', ward: '', district: '', city: 'Khánh Hòa', latitude: 12.21, longitude: 109.19,
+    imageUrls: [], amenities: [], sportTypes: ['FOOTBALL'], totalCourts: 2, distanceKm
+  };
+}
+
+const near = nhaTrangVenue('a1111111-1111-4111-8111-111111111111', 'Sân Gần Nhà', 0.4);
+const favourite = nhaTrangVenue('b2222222-2222-4222-8222-222222222222', 'Sân Quen Thuộc', 3.1);
+
+test('trang chủ: "Dành cho bạn" theo AI kèm lý do, đổi sang "Gần nhất" được', async ({ page }) => {
+  await page.context().grantPermissions(['geolocation']);
+  await page.context().setGeolocation({ latitude: 12.2104, longitude: 109.1937 });
+  const aiRequests: URL[] = [];
+  await page.route('**/ai-service/api/v1/ai/recommendations/venues**', route => {
+    aiRequests.push(new URL(route.request().url()));
+    return route.fulfill({ json: [
+      { venueId: favourite.venueId, venueName: favourite.name, sportTypes: ['FOOTBALL'], address: '', distanceKm: 3.1,
+        rating: 4.5, score: 91, matchReason: 'Tương đồng thói quen 92%, cách bạn 3.1 km và được đánh giá 4.5/5.',
+        suggestedCourts: [] },
+      { venueId: near.venueId, venueName: near.name, sportTypes: ['FOOTBALL'], address: '', distanceKm: 0.4,
+        rating: 4.5, score: 70, matchReason: 'Tương đồng thói quen 40%, cách bạn 0.4 km và được đánh giá 4.5/5.',
+        suggestedCourts: [] }
+    ] });
+  });
+  // Cả tra theo id lẫn danh sách gần nhất đều trả theo khoảng cách: thứ tự "Dành cho bạn" phải lấy theo AI.
+  await page.route('**/venue-service/api/v1/venues?**', route => route.fulfill({
+    json: ok({ items: [near, favourite], total: 2, page: 0, pageSize: 8, totalPages: 1 })
+  }));
+  await page.goto('/home');
+
+  const strip = page.locator('.venue-grid').first();
+  await expect(strip.locator('app-venue-card').first()).toContainText('Sân Quen Thuộc');
+  await expect(strip.locator('.venue-pick__reason').first()).toContainText('Tương đồng thói quen 92%');
+  await expect(page.locator('#featured-venues-title + p')).toContainText('thói quen đặt và xem sân');
+  expect(aiRequests[0].searchParams.get('sport_type')).toBe('FOOTBALL');
+  expect(aiRequests[0].searchParams.get('radius_km')).toBe('10');
+  await expect(page.getByRole('button', { name: 'Dành cho bạn' })).toHaveAttribute('aria-pressed', 'true');
+
+  await page.getByRole('button', { name: 'Gần nhất' }).click();
+  await expect(strip.locator('app-venue-card').first()).toContainText('Sân Gần Nhà');
+  await expect(strip.locator('.venue-pick__reason')).toHaveCount(0);
+});
+
+test('trang chủ: AI lỗi thì vẫn hiện sân gần nhất', async ({ page }) => {
+  await page.context().grantPermissions(['geolocation']);
+  await page.context().setGeolocation({ latitude: 12.2104, longitude: 109.1937 });
+  await page.route('**/ai-service/api/v1/ai/recommendations/venues**', route => route.fulfill({ status: 503, json: {} }));
+  await page.route('**/venue-service/api/v1/venues?**', route => route.fulfill({
+    json: ok({ items: [near, favourite], total: 2, page: 0, pageSize: 8, totalPages: 1 })
+  }));
+  await page.goto('/home');
+
+  const strip = page.locator('.venue-grid').first();
+  await expect(strip.locator('app-venue-card')).toHaveCount(2);
+  await expect(strip.locator('app-venue-card').first()).toContainText('Sân Gần Nhà');
+  await expect(strip.locator('.venue-pick__reason')).toHaveCount(0);
+});

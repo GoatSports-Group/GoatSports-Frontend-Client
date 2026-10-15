@@ -123,12 +123,22 @@ export class AiRepository extends AiRepositoryPort {
     });
   }
 
-  override getVenueRecommendations(lat?: number, lng?: number, sport?: string): Observable<VenueRecommendationModel[]> {
-    let params = new HttpParams();
-    if (lat != null) params = params.set('user_lat', String(lat));
-    if (lng != null) params = params.set('user_lng', String(lng));
-    if (sport) params = params.set('sport_type', sport);
+  override getVenueRecommendations(lat: number, lng: number, sport: string, radiusKm: number, maxResults: number): Observable<VenueRecommendationModel[]> {
+    const params = new HttpParams()
+      .set('user_lat', String(lat))
+      .set('user_lng', String(lng))
+      .set('sport_type', sport)
+      .set('radius_km', String(radiusKm))
+      .set('max_results', String(maxResults));
     return this.http.get<VenueRecommendationModel[]>(`${this.baseUrl}/recommendations/venues`, { params });
+  }
+
+  override getPersonalization(): Observable<boolean> {
+    return this.http.get<{ enabled: boolean }>(`${this.baseUrl}/personalization/settings`).pipe(map(res => res.enabled));
+  }
+
+  override setPersonalization(enabled: boolean): Observable<boolean> {
+    return this.http.put<{ enabled: boolean }>(`${this.baseUrl}/personalization/settings`, { enabled }).pipe(map(res => res.enabled));
   }
 
   override queryChatbot(message: string, conversationId: string): Observable<ChatbotResponseModel> {

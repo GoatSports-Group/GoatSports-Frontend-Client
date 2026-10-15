@@ -14,10 +14,11 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { catchError, firstValueFrom, map, of, switchMap } from 'rxjs';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import * as L from 'leaflet';
+import { AiRepositoryPort } from '@application/ports/ai.repository.port';
 import { VENUE_SEARCH_REPOSITORY_TOKEN } from '@application/ports/persistence/venue-search.repository';
 import { SOCIAL_FEED_REPOSITORY_TOKEN } from '@application/ports/persistence/social-feed.repository';
 import { SocialPost } from '@application/dto/social-feed/social-feed.dto';
@@ -37,6 +38,11 @@ interface LocationSuggestion {
 }
 
 const MAX_EARTH_SURFACE_DISTANCE_KM = 20_050;
+/** ai-service chỉ gợi ý trong bán kính này; xa hơn thì xếp theo khoảng cách như khách. */
+const MAX_RECOMMENDATION_RADIUS_KM = 100;
+
+/** Đã đăng nhập: "Dành cho bạn" (hợp thói quen đặt / xem sân) hoặc "Gần nhất". */
+export type VenueOrder = 'forYou' | 'nearest';
 
 @Component({
   selector: 'app-home',
@@ -56,6 +62,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private socialFeed = inject(SOCIAL_FEED_REPOSITORY_TOKEN);
   private communityStore = inject(CommunityStore);
   private auth = inject(AuthService);
+  private ai = inject(AiRepositoryPort);
   /** Keo ca nhan "Tim nguoi choi" con mo; null = dang tai. Khach chua dang nhap khong goi API (gateway yeu cau dang nhap). */
   readonly openCalls = signal<SocialPost[] | null>(null);
   readonly openCallsError = signal(false);
@@ -80,6 +87,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   ];
 
   featuredVenues: Venue[] = [];
+  venueOrder: VenueOrder = 'forYou';
+  /** Lý do gợi ý theo venueId, chỉ có khi danh sách là "Dành cho bạn". */
+  venueReasons = new Map<string, string>();
   loading = true;
   locationState: LocationState = 'locating';
   locationMessage = 'Đang xác định vị trí hiện tại...';
@@ -188,14 +198,63 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     );
   }
 
+  /** Gợi ý chỉ có khi đã đăng nhập, đã chọn một môn và bán kính trong tầm gợi ý. */
+  get canRecommend(): boolean {
+    return this.signedIn && this.selectedSport !== null && this.appliedRadiusKm <= MAX_RECOMMENDATION_RADIUS_KM;
+  }
+
+  setVenueOrder(order: VenueOrder): void {
+    if (this.venueOrder === order) return;
+    this.venueOrder = order;
+    this.loadNearbyVenues();
+  }
+
   loadNearbyVenues(): void {
     const searchVersion = ++this.nearbySearchVersion;
+    this.venueReasons = new Map();
     if (!this.hasCurrentLocation) {
       this.featuredVenues = [];
       this.loading = false;
       return;
     }
+    if (this.venueOrder === 'forYou' && this.canRecommend) {
+      this.loadRecommendedVenues(searchVersion);
+      return;
+    }
+    this.loadNearestVenues(searchVersion);
+  }
 
+  /**
+   * ai-service xếp hạng (thói quen + khoảng cách + đánh giá) rồi lấy thẻ sân đầy đủ từ venue-service theo đúng thứ tự
+   * đó. AI lỗi thì quay về danh sách gần nhất, không để trống mục này.
+   */
+  private loadRecommendedVenues(searchVersion: number): void {
+    this.loading = true;
+    this.ai.getVenueRecommendations(this.latitude!, this.longitude!, this.selectedSport!, this.appliedRadiusKm, 8).pipe(
+      switchMap(picks => !Array.isArray(picks) || !picks.length ? of(null) : this.venueSearchRepo.searchVenues({
+        ids: picks.map(pick => pick.venueId),
+        page: 0,
+        size: picks.length
+      }).pipe(map(res => ({ picks, venues: res?.data?.items ?? [] })))),
+      catchError(() => of(null)),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(result => {
+      if (searchVersion !== this.nearbySearchVersion) return;
+      // AI lỗi hoặc không có gợi ý nào: vẫn hiện sân gần nhất thay vì để trống.
+      if (!result?.venues.length) {
+        this.loadNearestVenues(searchVersion);
+        return;
+      }
+      const byId = new Map(result.venues.map(venue => [venue.venueId, venue] as const));
+      this.featuredVenues = result.picks
+        .filter(pick => byId.has(pick.venueId))
+        .map(pick => ({ ...byId.get(pick.venueId)!, distanceKm: pick.distanceKm }));
+      this.venueReasons = new Map(result.picks.map(pick => [pick.venueId, pick.matchReason] as const));
+      this.loading = false;
+    });
+  }
+
+  private loadNearestVenues(searchVersion: number): void {
     const worldwideSearch = this.appliedRadiusKm >= MAX_EARTH_SURFACE_DISTANCE_KM;
     this.loading = true;
     this.venueSearchRepo.searchVenues({

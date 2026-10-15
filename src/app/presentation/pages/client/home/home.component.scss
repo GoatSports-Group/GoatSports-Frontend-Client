@@ -207,6 +207,7 @@
 .nearby-tools {
   min-width: 0;
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: flex-end;
   gap: 9px;
@@ -257,6 +258,70 @@
 
 .change-location:hover {
   color: var(--primary-hover);
+}
+
+// "Dành cho bạn" / "Gần nhất": hai nút dính nhau, nút đang chọn tô nền.
+.venue-order {
+  flex: 0 0 auto;
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid var(--hairline);
+  border-radius: 9999px;
+  background: var(--surface);
+}
+
+.venue-order button {
+  min-height: 31px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--body);
+  font: inherit;
+  font-size: .71rem;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.venue-order button.is-active {
+  background: var(--primary-fill);
+  color: #fff;
+}
+
+.venue-order button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.venue-order button:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+
+// Thẻ sân kèm lý do gợi ý (vì sao sân này hợp với bạn).
+.venue-pick {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+}
+
+.venue-pick__reason {
+  display: flex;
+  gap: 5px;
+  margin: 0;
+  color: var(--body);
+  font-size: .72rem;
+  line-height: 1.4;
+}
+
+.venue-pick__reason lucide-icon {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--primary);
 }
 
 .nearby-all {

@@ -2,7 +2,7 @@
   <header class="tab-head">
     <div>
       <h2 id="security-tab-title">Đăng nhập &amp; bảo mật</h2>
-      <p>Mật khẩu, phương thức đăng nhập và phiên đang dùng.</p>
+      <p>Mật khẩu, phương thức đăng nhập, phiên đang dùng và quyền riêng tư.</p>
     </div>
   </header>
 
@@ -62,6 +62,36 @@
             </div>
           </div>
           <span class="row__locked" title="Do hệ thống quản lý"><lucide-icon name="lock" class="w-4 h-4"></lucide-icon></span>
+        </div>
+      </div>
+    </section>
+
+    <section class="info-group">
+      <h3 class="info-group__title">Quyền riêng tư</h3>
+      <div class="info-grid">
+        <div class="info-cell info-cell--wide">
+          <span class="row__icon"><lucide-icon name="sparkles" class="w-5 h-5"></lucide-icon></span>
+          <div class="row__copy">
+            <span class="row__label" id="personalization-label">Gợi ý theo hoạt động của bạn</span>
+            <p class="row__hint" id="personalization-help" aria-live="polite">
+              @if (personalization === null) {
+                {{ personalizationFailed ? 'Chưa tải được cài đặt này. Tải lại trang để thử lại.' : 'Đang tải…' }}
+              } @else if (personalization) {
+                Dùng lượt đặt sân, sân bạn đã xem và bài bạn thích, lưu, bình luận, chia sẻ để gợi ý sân ở trang chủ
+                và sắp xếp tab Khám phá. Hoạt động quá 180 ngày tự xóa.
+              } @else {
+                Đã tắt: lịch sử hoạt động dùng cho gợi ý đã được xóa và không ghi thêm. Gợi ý chỉ dựa vào khoảng cách,
+                đánh giá và độ mới.
+              }
+            </p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" [checked]="personalization === true"
+              [disabled]="personalization === null || personalizationSaving"
+              (change)="togglePersonalization($any($event.target).checked)"
+              aria-labelledby="personalization-label" aria-describedby="personalization-help" />
+            <span></span>
+          </label>
         </div>
       </div>
     </section>
