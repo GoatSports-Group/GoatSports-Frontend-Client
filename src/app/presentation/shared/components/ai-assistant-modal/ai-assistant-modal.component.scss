@@ -89,6 +89,14 @@ input {
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 14%);
 }
 
+// Logo GOAT Sports (huy hiệu, nền trong suốt) thay cho icon lấp lánh và chữ "GS".
+.assistant-logo {
+  display: block;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
 .chat-head-presence {
   position: absolute;
   right: 1px;

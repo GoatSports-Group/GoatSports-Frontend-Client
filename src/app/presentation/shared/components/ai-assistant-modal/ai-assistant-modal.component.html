@@ -7,7 +7,7 @@
   aria-controls="ai-assistant-dialog"
   (click)="toggleChat()"
 >
-  <span class="chat-head-mark"><lucide-icon name="sparkles" class="w-6 h-6"></lucide-icon></span>
+  <span class="chat-head-mark"><img src="assets/images/goat-mark.webp" alt="" width="46" height="46" class="assistant-logo"></span>
   <span class="chat-head-presence" aria-hidden="true"></span>
   <span class="sr-only">GOAT AI đang trực tuyến</span>
 </button>
@@ -22,7 +22,7 @@
 >
   <header class="chat-header">
     <div class="bot-profile">
-      <span class="bot-avatar"><lucide-icon name="sparkles" class="w-5 h-5"></lucide-icon></span>
+      <span class="bot-avatar"><img src="assets/images/goat-mark.webp" alt="" width="32" height="32" class="assistant-logo"></span>
       <span><strong id="ai-assistant-title">GOAT AI</strong><small><i></i> Trực tuyến</small></span>
     </div>
     <div class="window-actions">
@@ -36,7 +36,7 @@
   <div class="chat-messages" #messageList role="log" aria-live="polite" aria-label="Cuộc trò chuyện với GOAT AI">
     @for (message of messages; track $index) {
       <article class="msg-row" [class.user]="message.sender === 'USER'">
-        @if (message.sender === 'AI') { <span class="mini-avatar">GS</span> }
+        @if (message.sender === 'AI') { <span class="mini-avatar"><img src="assets/images/goat-mark.webp" alt="" width="22" height="22" class="assistant-logo"></span> }
         <div class="msg-bubble">
           <p>{{ message.text }}</p>
           @if (message.sources?.length) {
@@ -65,7 +65,7 @@
         </div>
       </article>
     }
-    @if (loading) { <div class="msg-row"><span class="mini-avatar">GS</span><div class="msg-bubble typing"><span></span><span></span><span></span><em>Đang tìm câu trả lời...</em></div></div> }
+    @if (loading) { <div class="msg-row"><span class="mini-avatar"><img src="assets/images/goat-mark.webp" alt="" width="22" height="22" class="assistant-logo"></span><div class="msg-bubble typing"><span></span><span></span><span></span><em>Đang tìm câu trả lời...</em></div></div> }
   </div>
 
   <footer class="chat-footer">
