@@ -301,10 +301,13 @@ export interface ChatbotResponseModel {
   cards?: ChatbotCardModel[];
   /** Đoạn tài liệu đã dùng, đúng thứ tự [Nguồn 1], [Nguồn 2]… trong câu trả lời. */
   sources?: ChatbotSourceModel[];
+  /** Câu hỏi đã viết lại đầy đủ (hiểu cả câu nối tiếp); gửi kèm khi báo "Chưa hữu ích". */
+  question?: string;
 }
 
 export interface ChatbotCardModel {
-  kind: 'VENUE' | 'SLOTS' | 'TOURNAMENT' | 'BOOKING' | 'CLUB';
+  /** WEB: bài Wikipedia (kiến thức thể thao chung), link ngoài. */
+  kind: 'VENUE' | 'SLOTS' | 'TOURNAMENT' | 'BOOKING' | 'CLUB' | 'WEB';
   title: string;
   subtitle?: string | null;
   details: string[];

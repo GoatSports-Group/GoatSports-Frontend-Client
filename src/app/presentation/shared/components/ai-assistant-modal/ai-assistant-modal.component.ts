@@ -26,7 +26,7 @@ export function citedSources(answer: string, sources: readonly ChatbotSourceMode
 
 /** Icon theo loại thẻ dữ liệu. */
 export const CARD_ICON: Record<ChatbotCardModel['kind'], string> = {
-  VENUE: 'store', SLOTS: 'clock', TOURNAMENT: 'trophy', BOOKING: 'ticket', CLUB: 'users'
+  VENUE: 'store', SLOTS: 'clock', TOURNAMENT: 'trophy', BOOKING: 'ticket', CLUB: 'users', WEB: 'globe'
 };
 
 @Component({
@@ -104,7 +104,7 @@ export class AiAssistantModalComponent implements AfterViewChecked {
           actions: res.suggestedActions,
           cards: res.cards ?? [],
           sources: citedSources(res.answer, res.sources ?? []),
-          question: query
+          question: res.question || query
         });
         this.scrollPending = true;
       },
@@ -130,6 +130,11 @@ export class AiAssistantModalComponent implements AfterViewChecked {
 
   openCard(card: ChatbotCardModel): void {
     if (!card.link) return;
+    // Nguồn ngoài (Wikipedia) mở tab mới, giữ nguyên cuộc trò chuyện; thẻ của GoatSports mở trang trong ứng dụng.
+    if (/^https?:\/\//.test(card.link)) {
+      window.open(card.link, '_blank', 'noopener');
+      return;
+    }
     this.isOpen = false;
     this.router.navigateByUrl(card.link);
   }

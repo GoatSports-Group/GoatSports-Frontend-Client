@@ -57,7 +57,8 @@ test('"Chưa hữu ích" gửi câu hỏi và câu trả lời để quản tr�
   await mockGoatSportsApi(page);
   await page.route(url => url.pathname.endsWith('/ai-service/api/v1/ai/chatbot/query'), route => route.fulfill({
     status: 200, contentType: 'application/json',
-    body: JSON.stringify({ answer: 'Mình chưa có thông tin về việc này.', suggestedActions: [], cards: [], sources: [], grounded: false })
+    body: JSON.stringify({ answer: 'Mình chưa có thông tin về việc này.', suggestedActions: [], cards: [], sources: [], grounded: false,
+      question: 'Sân nào rẻ nhất ở Khánh Hòa?' })
   }));
   const reports: Array<{ question: string; answer: string; conversationId: string }> = [];
   await page.route(url => url.pathname.endsWith('/ai-service/api/v1/ai/chatbot/feedback'), route => {
@@ -75,7 +76,31 @@ test('"Chưa hữu ích" gửi câu hỏi và câu trả lời để quản tr�
   await page.getByRole('button', { name: 'Báo câu trả lời này chưa hữu ích' }).click();
   await expect(page.getByRole('status').filter({ hasText: 'Cảm ơn bạn' })).toBeVisible();
   expect(reports).toHaveLength(1);
-  expect(reports[0].question).toBe('Sân nào rẻ nhất?');
+  // Gửi câu hỏi đầy đủ server đã viết lại, không phải câu người dùng gõ (có thể là câu nối tiếp cụt).
+  expect(reports[0].question).toBe('Sân nào rẻ nhất ở Khánh Hòa?');
   expect(reports[0].answer).toBe('Mình chưa có thông tin về việc này.');
   expect(reports[0].conversationId).toMatch(/^[0-9a-f-]{36}$/);
+});
+
+test('thẻ Wikipedia mở tab mới và giữ nguyên cuộc trò chuyện', async ({ page, context }) => {
+  await mockGoatSportsApi(page);
+  await page.route(url => url.pathname.endsWith('/ai-service/api/v1/ai/chatbot/query'), route => route.fulfill({
+    status: 200, contentType: 'application/json',
+    body: JSON.stringify({ answer: 'Theo Wikipedia, việt vị là luật XI.', suggestedActions: [], sources: [], grounded: true,
+      cards: [{ kind: 'WEB', title: 'Luật việt vị (bóng đá)', subtitle: 'Wikipedia tiếng Việt', details: ['Luật việt vị là luật XI…'],
+        link: 'https://vi.wikipedia.org/wiki/Lu%E1%BA%ADt_vi%E1%BB%87t_v%E1%BB%8B' }] })
+  }));
+  await context.route('https://vi.wikipedia.org/**', route => route.fulfill({ status: 200, contentType: 'text/html', body: '<h1>Wiki</h1>' }));
+  await page.goto('/policy/booking-policy');
+  await page.getByRole('button', { name: 'Mở trợ lý GOAT AI' }).click();
+  await page.getByPlaceholder('Hỏi GOAT AI bất kỳ điều gì...').fill('Luật việt vị là gì?');
+  await page.getByRole('button', { name: 'Gửi tin nhắn' }).click();
+
+  const [popup] = await Promise.all([
+    context.waitForEvent('page'),
+    page.getByRole('button', { name: /Luật việt vị \(bóng đá\)/ }).click()
+  ]);
+  expect(popup.url()).toContain('vi.wikipedia.org');
+  await expect(page).toHaveURL(/\/policy\/booking-policy$/);
+  await expect(page.getByRole('log', { name: 'Cuộc trò chuyện với GOAT AI' })).toContainText('Theo Wikipedia');
 });

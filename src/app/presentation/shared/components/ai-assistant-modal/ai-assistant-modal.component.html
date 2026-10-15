@@ -54,7 +54,7 @@
                     @if (card.subtitle) { <small>{{ card.subtitle }}</small> }
                     @for (line of card.details; track $index) { <em>{{ line }}</em> }
                   </span>
-                  @if (card.link) { <lucide-icon name="chevron-right" class="w-4 h-4 data-card__go"></lucide-icon> }
+                  @if (card.link) { <lucide-icon [name]="card.kind === 'WEB' ? 'external-link' : 'chevron-right'" class="w-4 h-4 data-card__go"></lucide-icon> }
                 </button>
               }
             </div>
