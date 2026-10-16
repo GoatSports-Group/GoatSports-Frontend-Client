@@ -416,13 +416,21 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  private async resolveCurrentLocationName(latitude: number, longitude: number): Promise<void> {
+  private async resolveCurrentLocationName(latitude: number, longitude: number, retry = true): Promise<void> {
+    let address: string | undefined;
     try {
       const response = await firstValueFrom(this.venueSearchRepo.reverseGeocode(latitude, longitude));
-      this.zone.run(() => this.locationMessage = response?.data?.address || 'Vị trí hiện tại của bạn');
+      address = response?.data?.address;
     } catch (error) {
       console.warn('Unable to resolve the current location name.', error);
-      this.zone.run(() => this.locationMessage = 'Vị trí hiện tại của bạn');
+    }
+    // Bản đồ địa chỉ đôi khi đang khởi động lại: thử lại một lần, nếu người dùng chưa đổi sang vị trí khác.
+    const stillHere = () => this.latitude === latitude && this.longitude === longitude;
+    if (!address && retry) {
+      setTimeout(() => { if (stillHere()) void this.resolveCurrentLocationName(latitude, longitude, false); }, 4000);
+    }
+    if (stillHere()) {
+      this.zone.run(() => this.locationMessage = address || 'Vị trí hiện tại của bạn');
     }
   }
 
