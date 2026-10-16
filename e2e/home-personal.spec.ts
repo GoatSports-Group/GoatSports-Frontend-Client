@@ -254,3 +254,40 @@ test('tiêu đề "Sân đấu nổi bật" không bị thanh công cụ đè l�
     await page.locator('.section-heading').first().screenshot({ path: testInfo.outputPath(`heading-${width}.png`) });
   }
 });
+
+test('trang chủ: vị trí đoán theo mạng (sai số lớn) được nói rõ, vị trí tự chọn được nhớ cho lần sau', async ({ page }) => {
+  // Máy không GPS: trình duyệt trả tâm Hà Nội với sai số ~50 km dù người dùng đang ở Nha Trang.
+  await page.context().grantPermissions(['geolocation']);
+  await page.context().setGeolocation({ latitude: 21.0285, longitude: 105.8542, accuracy: 50_000 });
+  await page.route('**/venues/geocoding/reverse**', route => {
+    const latitude = Number(new URL(route.request().url()).searchParams.get('latitude') ?? 0);
+    const address = latitude > 20 ? 'Hoàn Kiếm, Hà Nội' : 'Lộc Thọ, Nha Trang, Khánh Hòa';
+    return route.fulfill({ json: ok({ latitude, longitude: 0, title: address, address }) });
+  });
+  const venueRequests: URL[] = [];
+  await page.route('**/venue-service/api/v1/venues?**', route => {
+    venueRequests.push(new URL(route.request().url()));
+    return route.fulfill({ json: ok({ items: [], total: 0, page: 0, pageSize: 8, totalPages: 0 }) });
+  });
+  await page.goto('/home');
+
+  await expect(page.locator('.location-approx')).toContainText('sai số ~50 km');
+  await page.getByRole('button', { name: 'Đổi vị trí' }).click();
+  await expect(page.locator('.location-picker__approx')).toContainText('ước lượng vị trí theo mạng');
+
+  // Đặt ghim bằng tay: vị trí chính xác, hết cảnh báo, được nhớ.
+  await page.locator('.location-picker__map').click({ position: { x: 120, y: 120 } });
+  await expect(page.locator('.location-picker__approx')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Xác nhận vị trí' }).click();
+  await expect(page.locator('.location-approx')).toHaveCount(0);
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('goat.home.location') || 'null'));
+  expect(saved?.latitude).toBeGreaterThan(20);
+
+  // Lần sau: dùng vị trí đã chọn, không hiện cảnh báo ước lượng.
+  venueRequests.length = 0;
+  await page.reload();
+  await expect(page.locator('.current-location')).toContainText(saved.label);
+  await expect(page.locator('.location-approx')).toHaveCount(0);
+  await expect.poll(() => venueRequests.length).toBeGreaterThan(0);
+  expect(Number(venueRequests[0].searchParams.get('latitude'))).toBeCloseTo(saved.latitude, 5);
+});

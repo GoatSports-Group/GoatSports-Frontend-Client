@@ -40,6 +40,15 @@ interface LocationSuggestion {
 const MAX_EARTH_SURFACE_DISTANCE_KM = 20_050;
 /** ai-service chỉ gợi ý trong bán kính này; xa hơn thì xếp theo khoảng cách như khách. */
 const MAX_RECOMMENDATION_RADIUS_KM = 100;
+/**
+ * Máy tính không có GPS: trình duyệt đoán vị trí theo IP / mạng, thường ra tâm Hà Nội hay TP.HCM với sai số hàng chục km.
+ * Trên ngưỡng này thì coi là ước lượng: vẫn dùng tạm nhưng nói rõ và mời chọn lại.
+ */
+const COARSE_ACCURACY_METERS = 1500;
+/** Vị trí người dùng tự chọn trên bản đồ, dùng lại ở lần mở sau (chỉ trên trình duyệt này). */
+const SAVED_LOCATION_KEY = 'goat.home.location';
+
+interface SavedLocation { latitude: number; longitude: number; label: string }
 
 /** Đã đăng nhập: "Dành cho bạn" (hợp thói quen đặt / xem sân) hoặc "Gần nhất". */
 export type VenueOrder = 'forYou' | 'nearest';
@@ -93,6 +102,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   loading = true;
   locationState: LocationState = 'locating';
   locationMessage = 'Đang xác định vị trí hiện tại...';
+  /** Sai số (km) khi vị trí chỉ là ước lượng theo mạng; null khi chính xác hoặc do người dùng tự chọn. */
+  locationAccuracyKm: number | null = null;
+  /** Như trên, cho nút "Vị trí của tôi" trong hộp chọn vị trí. */
+  pickerAccuracyKm: number | null = null;
   locationPickerOpen = false;
   locationSearchQuery = '';
   locationSearchLoading = false;
@@ -119,7 +132,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.requestCurrentLocation();
+    if (!this.restoreSavedLocation()) this.requestCurrentLocation();
     if (this.signedIn) this.loadOpenCalls();
   }
 
@@ -181,6 +194,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       position => {
         this.latitude = Number(position.coords.latitude.toFixed(6));
         this.longitude = Number(position.coords.longitude.toFixed(6));
+        this.locationAccuracyKm = coarseAccuracyKm(position.coords.accuracy);
         this.locationState = 'ready';
         this.locationMessage = 'Đang xác định địa chỉ...';
         void this.resolveCurrentLocationName(this.latitude, this.longitude);
@@ -310,6 +324,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.pickerReverseGeocodeVersion++;
     if (this.pickerReverseGeocodeTimer) clearTimeout(this.pickerReverseGeocodeTimer);
     this.locationSuggestions = [];
+    this.pickerAccuracyKm = this.locationAccuracyKm;
     this.locationPickerOpen = true;
     setTimeout(() => this.initializeLocationMap());
   }
@@ -332,12 +347,11 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   useDeviceLocationInPicker(): void {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(position => {
-      this.zone.run(() => this.updatePickerLocation(
-        position.coords.latitude,
-        position.coords.longitude,
-        true
-      ));
-    });
+      this.zone.run(() => {
+        this.pickerAccuracyKm = coarseAccuracyKm(position.coords.accuracy);
+        this.updatePickerLocation(position.coords.latitude, position.coords.longitude, true);
+      });
+    }, undefined, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
   }
 
   async searchPickerLocation(): Promise<void> {
@@ -382,6 +396,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.locationSearchQuery = suggestion.title;
     this.pendingLocationMessage = suggestion.displayName;
     this.locationAddressLoading = false;
+    this.markPickerExact();
     this.updatePickerLocation(suggestion.latitude, suggestion.longitude, false);
   }
 
@@ -391,6 +406,11 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.longitude = Number(this.pendingLongitude.toFixed(6));
     this.locationMessage = this.pendingLocationMessage || 'Vị trí đã chọn';
     this.locationState = 'ready';
+    this.locationAccuracyKm = this.pickerAccuracyKm;
+    // Chỉ nhớ vị trí người dùng thật sự đặt (ghim / tìm kiếm), không nhớ vị trí ước lượng theo mạng.
+    if (this.pickerAccuracyKm == null) {
+      this.saveLocation({ latitude: this.latitude, longitude: this.longitude, label: this.locationMessage });
+    }
     this.closeLocationPicker();
     this.loadNearbyVenues();
   }
@@ -450,12 +470,43 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(this.map);
     this.map.on('click', event => this.zone.run(() => {
+      this.markPickerExact();
       this.updatePickerLocation(event.latlng.lat, event.latlng.lng, true);
     }));
     this.mapResizeObserver = new ResizeObserver(() => this.map?.invalidateSize({ pan: false }));
     this.mapResizeObserver.observe(element);
     this.updateMapMarker();
     requestAnimationFrame(() => this.map?.invalidateSize({ pan: false }));
+  }
+
+  /** Đặt ghim bằng tay hay chọn kết quả tìm kiếm: vị trí chính xác, bỏ cảnh báo ước lượng. */
+  private markPickerExact(): void {
+    this.pickerAccuracyKm = null;
+  }
+
+  private restoreSavedLocation(): boolean {
+    let saved: SavedLocation | null = null;
+    try {
+      saved = JSON.parse(localStorage.getItem(SAVED_LOCATION_KEY) || 'null');
+    } catch {
+      return false;
+    }
+    if (!saved || !Number.isFinite(saved.latitude) || !Number.isFinite(saved.longitude)) return false;
+    this.latitude = saved.latitude;
+    this.longitude = saved.longitude;
+    this.locationMessage = saved.label || 'Vị trí đã chọn';
+    this.locationAccuracyKm = null;
+    this.locationState = 'ready';
+    this.loadNearbyVenues();
+    return true;
+  }
+
+  private saveLocation(location: SavedLocation): void {
+    try {
+      localStorage.setItem(SAVED_LOCATION_KEY, JSON.stringify(location));
+    } catch {
+      // Trình duyệt chặn bộ nhớ (vd. chế độ riêng tư): chỉ không nhớ được cho lần sau.
+    }
   }
 
   private updatePickerLocation(latitude: number, longitude: number, resolveName: boolean): void {
@@ -515,4 +566,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
 function coordinateFallback(latitude: number, longitude: number): string {
   return `Vị trí đã chọn (${latitude.toFixed(6)}, ${longitude.toFixed(6)})`;
+}
+
+function coarseAccuracyKm(accuracyMeters: number | null | undefined): number | null {
+  return accuracyMeters != null && accuracyMeters > COARSE_ACCURACY_METERS
+    ? Math.max(2, Math.round(accuracyMeters / 1000))
+    : null;
 }

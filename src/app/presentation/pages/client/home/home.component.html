@@ -90,6 +90,11 @@
             <lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>
             <span>{{ locationMessage }}</span>
           </span>
+          @if (locationAccuracyKm) {
+            <span class="location-approx" title="Máy tính không có GPS nên trình duyệt chỉ đoán vị trí theo mạng. Bấm Đổi vị trí để chọn đúng nơi bạn ở.">
+              ≈ ước lượng theo mạng, sai số ~{{ locationAccuracyKm }} km
+            </span>
+          }
           <button type="button" class="change-location" (click)="openLocationPicker()"
             [attr.aria-expanded]="locationPickerOpen">
             Đổi vị trí
@@ -257,6 +262,13 @@
         </button>
         <span class="location-picker__hint">Nhấn vào bản đồ để đặt ghim</span>
       </div>
+      @if (pickerAccuracyKm) {
+        <p class="location-picker__approx" role="status">
+          <lucide-icon name="triangle-alert" class="w-4 h-4"></lucide-icon>
+          Trình duyệt chỉ ước lượng vị trí theo mạng (sai số ~{{ pickerAccuracyKm }} km). Hãy tìm địa chỉ hoặc nhấn vào
+          bản đồ để đặt đúng nơi bạn ở; vị trí bạn chọn sẽ được nhớ cho lần sau.
+        </p>
+      }
 
       <footer>
         <div>

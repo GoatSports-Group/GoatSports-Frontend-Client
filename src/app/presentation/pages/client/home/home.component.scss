@@ -265,6 +265,34 @@
   color: var(--primary-hover);
 }
 
+// Vị trí chỉ ước lượng theo mạng (máy không GPS): nói rõ, kèm sai số, để người dùng bấm "Đổi vị trí".
+.location-approx {
+  flex: 0 0 auto;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  background: var(--warning-soft);
+  color: var(--warning);
+  font-size: .68rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.location-picker__approx {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 10px 18px 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--warning-soft);
+  color: var(--warning);
+  font-size: .8rem;
+  font-weight: 600;
+  line-height: 1.45;
+
+  lucide-icon { flex: none; margin-top: 1px; }
+}
+
 // "Dành cho bạn" / "Gần nhất": hai nút dính nhau, nút đang chọn tô nền.
 .venue-order {
   flex: 0 0 auto;
