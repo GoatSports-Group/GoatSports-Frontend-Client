@@ -306,8 +306,8 @@ export interface ChatbotResponseModel {
 }
 
 export interface ChatbotCardModel {
-  /** WEB: bài Wikipedia (kiến thức thể thao chung), link ngoài. */
-  kind: 'VENUE' | 'SLOTS' | 'TOURNAMENT' | 'BOOKING' | 'CLUB' | 'WEB';
+  /** WEB: bài Wikipedia (kiến thức thể thao chung), link ngoài. PLAN: lịch tập nhiều tuần; SESSION: một buổi tập. */
+  kind: 'VENUE' | 'SLOTS' | 'TOURNAMENT' | 'BOOKING' | 'CLUB' | 'WEB' | 'PLAN' | 'SESSION';
   title: string;
   subtitle?: string | null;
   details: string[];

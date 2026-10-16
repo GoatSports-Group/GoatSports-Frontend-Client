@@ -82,6 +82,39 @@ test('"Chưa hữu ích" gửi câu hỏi và câu trả lời để quản tr�
   expect(reports[0].conversationId).toMatch(/^[0-9a-f-]{36}$/);
 });
 
+test('gợi ý "Lập lịch tập cho mình" trả lịch nhiều tuần và từng buổi, bấm buổi tập mở tìm sân đúng môn', async ({ page }) => {
+  await mockGoatSportsApi(page);
+  const bodies: Array<{ message: string }> = [];
+  await page.route(url => url.pathname.endsWith('/ai-service/api/v1/ai/chatbot/query'), route => {
+    bodies.push(route.request().postDataJSON());
+    const link = '/venues?sportType=BADMINTON&city=H%E1%BB%93+Ch%C3%AD+Minh';
+    return route.fulfill({
+      status: 200, contentType: 'application/json',
+      body: JSON.stringify({
+        answer: 'Mình lập lịch cầu lông 3 buổi/tuần cho bạn.', suggestedActions: [], sources: [], grounded: true,
+        cards: [
+          { kind: 'PLAN', title: 'Lịch tập cầu lông · 3 buổi/tuần', subtitle: 'Nâng kỹ thuật · trình độ trung bình · 4 tuần',
+            details: ['Tuần 1: 3 buổi · 100% khối lượng', 'Tuần 4: 3 buổi · 80% khối lượng'], link },
+          { kind: 'SESSION', title: 'Thứ Ba 18:00–19:15 · Kỹ thuật', subtitle: 'Cường độ vừa · 75 phút',
+            details: ['Khởi động 15′: Nhảy dây nhẹ', 'Phần chính 50′: Đánh cầu cao sâu (clear) cuối sân 3 × 20 quả',
+              'Thả lỏng 10′: Giãn cơ tĩnh'], link }
+        ]
+      })
+    });
+  });
+  await page.goto('/policy/booking-policy');
+  await page.getByRole('button', { name: 'Mở trợ lý GOAT AI' }).click();
+  await page.getByRole('button', { name: 'Lập lịch tập cho mình' }).click();
+
+  await expect(page.getByRole('button', { name: /Lịch tập cầu lông · 3 buổi\/tuần/ })).toContainText('Tuần 4: 3 buổi · 80% khối lượng');
+  const session = page.getByRole('button', { name: /Thứ Ba 18:00–19:15 · Kỹ thuật/ });
+  await expect(session).toContainText('Phần chính 50′: Đánh cầu cao sâu (clear)');
+  expect(bodies[0].message).toBe('Lập lịch tập cho mình');
+
+  await session.click();
+  await expect(page).toHaveURL(/\/venues\?sportType=BADMINTON&city=H/);
+});
+
 test('thẻ Wikipedia mở tab mới và giữ nguyên cuộc trò chuyện', async ({ page, context }) => {
   await mockGoatSportsApi(page);
   await page.route(url => url.pathname.endsWith('/ai-service/api/v1/ai/chatbot/query'), route => route.fulfill({

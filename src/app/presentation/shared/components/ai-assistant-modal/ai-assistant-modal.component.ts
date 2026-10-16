@@ -26,7 +26,8 @@ export function citedSources(answer: string, sources: readonly ChatbotSourceMode
 
 /** Icon theo loại thẻ dữ liệu. */
 export const CARD_ICON: Record<ChatbotCardModel['kind'], string> = {
-  VENUE: 'store', SLOTS: 'clock', TOURNAMENT: 'trophy', BOOKING: 'ticket', CLUB: 'users', WEB: 'globe'
+  VENUE: 'store', SLOTS: 'clock', TOURNAMENT: 'trophy', BOOKING: 'ticket', CLUB: 'users', WEB: 'globe',
+  PLAN: 'calendar-check', SESSION: 'activity'
 };
 
 @Component({
@@ -51,7 +52,7 @@ export class AiAssistantModalComponent implements AfterViewChecked {
     {
       sender: 'AI',
       text: 'Xin chào! Mình là GOAT AI. Mình tìm được sân, giá và giờ còn trống, giải đang mở đăng ký, CLB của bạn, tình trạng đơn đặt sân, và giải đáp chính sách đặt sân, hủy sân.',
-      actions: ['Giải đang mở đăng ký', 'Đơn đặt sân của tôi', 'Chính sách hủy sân']
+      actions: ['Lập lịch tập cho mình', 'Giải đang mở đăng ký', 'Đơn đặt sân của tôi', 'Chính sách hủy sân']
     }
   ];
 
