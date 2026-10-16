@@ -22,7 +22,8 @@
         </button>
         <button type="button" role="tab" class="account-tab" [class.is-active]="activeFilter() === 'UNREAD'"
           [attr.aria-selected]="activeFilter() === 'UNREAD'" (click)="setFilter('UNREAD')">
-          Chưa đọc<span class="account-tab__count account-tab__count--alert">{{ (unreadCount$ | async) ?? 0 }}</span>
+          @let unread = (unreadCount$ | async) ?? 0;
+          Chưa đọc<span class="account-tab__count account-tab__count--alert">{{ unread > 99 ? '99+' : unread }}</span>
         </button>
       </nav>
 
