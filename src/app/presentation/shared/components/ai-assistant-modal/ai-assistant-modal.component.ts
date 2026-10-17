@@ -1,7 +1,7 @@
 import { AfterViewChecked, Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { AiRepositoryPort } from '@application/ports/ai.repository.port';
-import { ChatbotCardModel, ChatbotSourceModel } from '@domain/models/matchmaking.model';
+import { ChatbotCardModel, ChatbotSourceModel } from '@application/dto/chat/chat.dto';
 
 interface ChatMessage {
   sender: 'AI' | 'USER';
@@ -59,7 +59,7 @@ export class AiAssistantModalComponent implements AfterViewChecked {
   constructor(
     private readonly aiRepo: AiRepositoryPort,
     private readonly router: Router
-  ) {}
+  ) { }
 
   ngAfterViewChecked(): void {
     if (!this.scrollPending || !this.messageList) return;

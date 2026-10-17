@@ -2,6 +2,7 @@ import { ChatMessage, ChatParticipant } from '@domain/entities/chat';
 export { ChatRoom, ChatMessage, ChatParticipant, ChatMessageAttachment, ChatMessageReceipt, ChatSubjectType } from '@domain/entities/chat';
 export { ChatRoomType } from '@domain/enums/chat-room-type.enum';
 export { MessageType } from '@domain/enums/message-type.enum';
+import { ChatbotCardModel, ChatbotSourceModel } from '@domain/models/matchmaking.model';
 
 export interface CreateDirectRoomRequest {
   targetUserId: string;
@@ -49,3 +50,5 @@ export interface ChatPresenceEvent {
   online: boolean;
   lastSeenAt?: string;
 }
+
+export { ChatbotCardModel, ChatbotSourceModel };
