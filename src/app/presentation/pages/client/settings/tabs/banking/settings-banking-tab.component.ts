@@ -10,6 +10,8 @@ import { BANK_ACCOUNT_REPOSITORY_TOKEN, BankAccountRepository } from '@applicati
 import { NotifyService } from '@shared/components/notify/notify.service';
 import { SelectOption } from '@shared/components/ui/select/select.component';
 import { CryptoService } from '@presentation/services/crypto.service';
+import { NotificationService } from '@presentation/services/notification.service';
+import { NotificationType } from '@domain/enums/notification-type.enum';
 
 @Component({ selector: 'app-settings-banking-tab', templateUrl: './settings-banking-tab.component.html', styleUrls: ['./settings-banking-tab.component.scss'], changeDetection: ChangeDetectionStrategy.OnPush, standalone: false })
 export class SettingsBankingTabComponent {
@@ -19,6 +21,7 @@ export class SettingsBankingTabComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly notifications = inject(NotificationService);
   readonly banks = signal<BankDirectoryEntry[]>([]);
   readonly accounts = signal<BankAccount[]>([]);
   /** Khoản hoàn tiền (lệ phí giải, cọc đặt sân...) của người chơi. */
@@ -37,7 +40,17 @@ export class SettingsBankingTabComponent {
   readonly refundContext = this.route.snapshot.queryParamMap.get('reason') === 'refund';
   readonly returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
 
-  constructor() { this.load(); }
+  constructor() {
+    this.load();
+    // Khoản hoàn đổi trạng thái ở phía payOS (chuyển xong, tài khoản nhận bị từ chối...) mà người chơi đang mở trang:
+    // toast đã do NotificationService hiện, ở đây tải lại để danh sách khoản hoàn và tài khoản khớp ngay.
+    this.notifications.realtimeNotifications$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(notification => {
+      if (notification.type !== NotificationType.REFUND) return;
+      this.reloadRefunds();
+      this.repository.getMyAccounts().pipe(catchError(() => of(null)), takeUntilDestroyed(this.destroyRef))
+        .subscribe(accounts => { if (accounts) this.accounts.set(accounts); });
+    });
+  }
 
   /** Searchable bank picker: app-select filters on the label, so it carries short name + full name. */
   readonly bankOptions = computed<SelectOption[]>(() =>
