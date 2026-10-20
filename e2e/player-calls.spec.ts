@@ -79,6 +79,14 @@ test.describe('Tìm người chơi', () => {
       created.push(route.request().postDataJSON());
       return route.fulfill(ok(saved));
     });
+    // "Kèo của tôi" tải lại theo authorId sau khi đăng; trước khi đăng thì chưa có kèo nào.
+    await page.route('**/social-service/api/v1/social/posts?**', route => {
+      const url = new URL(route.request().url());
+      if (route.request().method() !== 'GET' || url.searchParams.get('authorId') !== me) return route.fallback();
+      const content = created.length ? [saved] : [];
+      return route.fulfill(ok({ content, totalElements: content.length, totalPages: 1, number: 0, size: 20,
+        numberOfElements: content.length, first: true, last: true, empty: !content.length }));
+    });
     let filled: unknown = null;
     await page.route(`**/social-service/api/v1/social/posts/${saved.postId}/player-call`, route => {
       filled = route.request().postDataJSON();
@@ -100,7 +108,11 @@ test.describe('Tìm người chơi', () => {
       visibility: 'PUBLIC', sport: 'BADMINTON',
       playerCall: { sport: 'BADMINTON', playFormat: 'BADMINTON_DOUBLES', location: 'Nhà thi đấu Phú Thọ', slots: 1, clubId: null }
     });
-    const card = page.locator('app-player-call').first();
+    // Kèo của chính mình không nằm trong danh sách "Kèo đang tìm người" (chỉ kèo người khác) mà ở "Kèo của tôi".
+    const mine = page.locator(`a[href="/feed?post=${saved.postId}"]:visible`).first();
+    await expect(mine).toBeVisible();
+    await mine.click();
+    const card = page.getByRole('dialog').locator('app-player-call');
     await expect(card.getByText('Còn thiếu 1 người')).toBeVisible();
     // Bài của mình: không có Nhắn tin, chỉ có Đã đủ người.
     await expect(card.getByRole('button', { name: /Nhắn tin/ })).toHaveCount(0);
