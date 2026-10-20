@@ -11,7 +11,7 @@ import { NotifyService } from '@shared/components/notify/notify.service';
 import { SelectOption } from '@shared/components/ui/select/select.component';
 import { CryptoService } from '@presentation/services/crypto.service';
 import { NotificationService } from '@presentation/services/notification.service';
-import { NotificationType } from '@domain/enums/notification-type.enum';
+import { NotificationType } from '@application/dto/notification/notification.dto';
 
 @Component({ selector: 'app-settings-banking-tab', templateUrl: './settings-banking-tab.component.html', styleUrls: ['./settings-banking-tab.component.scss'], changeDetection: ChangeDetectionStrategy.OnPush, standalone: false })
 export class SettingsBankingTabComponent {
