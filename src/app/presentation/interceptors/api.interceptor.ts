@@ -36,6 +36,11 @@ export class ApiInterceptor implements HttpInterceptor {
     return next.handle(credentialRequest).pipe(
       catchError((error: HttpErrorResponse) => {
         if (error.status !== 401) return throwError(() => error);
+        // Gateway: tài khoản vừa bị admin khóa. Refresh chắc chắn thất bại, đăng xuất và báo lý do luôn.
+        if (error.error?.error === 'ACCOUNT_BLOCKED') {
+          this.injector.get(AuthService).performLogout('blocked');
+          return throwError(() => error);
+        }
         return this.refreshAndRetry(credentialRequest, next);
       })
     );

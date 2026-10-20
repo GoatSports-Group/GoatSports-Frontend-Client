@@ -97,7 +97,7 @@ export class AuthService {
     this.notify.warning(message, 'Yêu cầu đăng nhập');
   }
 
-  public performLogout() {
+  public performLogout(reason?: 'blocked') {
     if (this.isLoggingOut) {
       console.log('Already logging out...');
       return;
@@ -107,6 +107,12 @@ export class AuthService {
     this.isLoggingOut = true;
     console.log('Performing logout...');
     this.clearSession();
+    if (reason === 'blocked' && shouldRedirectHome) {
+      this.notify.warning(
+        'Quản trị viên đã khóa tài khoản của bạn. Đăng nhập lại để gửi khiếu nại tới ban quản trị.',
+        'Tài khoản đã bị khóa'
+      );
+    }
 
     // Anonymous session probes can fail with 401. Preserve the requested
     // public route instead of treating that as an explicit logout.
