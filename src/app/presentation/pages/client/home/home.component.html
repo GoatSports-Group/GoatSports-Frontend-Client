@@ -1,5 +1,5 @@
 <main class="home-page-container">
-  @if (signedIn) {
+  @if (signedIn()) {
   <app-home-personal></app-home-personal>
   } @else {
   <app-home-landing></app-home-landing>
@@ -108,7 +108,7 @@
             </span>
             <button type="submit" [disabled]="locationState === 'locating'">Áp dụng</button>
           </form>
-          @if (signedIn) {
+          @if (signedIn()) {
           <div class="venue-order" role="group" aria-label="Thứ tự sân">
             <button type="button" [class.is-active]="venueOrder === 'forYou'" [attr.aria-pressed]="venueOrder === 'forYou'"
               [disabled]="!canRecommend" [title]="canRecommend ? '' : 'Chọn một môn và bán kính tối đa 100 km để xem gợi ý'"
@@ -183,7 +183,7 @@
         </div>
       </header>
 
-      @if (!signedIn) {
+      @if (!signedIn()) {
       <div class="open-calls__state">
         <lucide-icon name="log-in" class="w-6 h-6"></lucide-icon>
         <p>Đăng nhập để xem kèo đang tìm người và nhắn tin cho người đăng.</p>
@@ -212,7 +212,7 @@
     </aside>
   </section>
 
-  @if (signedIn) {
+  @if (signedIn()) {
   <app-home-community></app-home-community>
   } @else {
   <app-home-landing-outro></app-home-landing-outro>

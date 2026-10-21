@@ -259,7 +259,7 @@ export class NotificationService implements OnDestroy {
     // Bị khóa / vừa yêu cầu xóa tài khoản ở thiết bị khác: đăng xuất ngay cả khi tab đang ngồi yên.
     this.wsSubscription.add(this.wsService.sessionRevoked$.subscribe(reason => {
       this.ngZone.run(() => this.authService.performLogout(
-        reason === 'ACCOUNT_DELETION_PENDING' ? 'deletion' : 'blocked'));
+        reason === 'ACCOUNT_DELETION_PENDING' ? 'deletion' : reason === 'ACCOUNT_INACTIVE' ? 'inactive' : 'blocked'));
     }));
   }
 

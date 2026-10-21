@@ -12,7 +12,7 @@ import {
   inject,
   signal
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { catchError, firstValueFrom, map, of, switchMap } from 'rxjs';
 import gsap from 'gsap';
@@ -75,7 +75,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Keo ca nhan "Tim nguoi choi" con mo; null = dang tai. Khach chua dang nhap khong goi API (gateway yeu cau dang nhap). */
   readonly openCalls = signal<SocialPost[] | null>(null);
   readonly openCallsError = signal(false);
-  readonly signedIn = this.auth.isAuthenticated;
+  /** Theo dõi phiên: bị đăng xuất khi đang ở trang chủ (khóa / chờ xóa / hết phiên) thì đổi ngay sang trang khách. */
+  readonly signedIn = toSignal(this.auth.isAuthenticated$, { requireSync: true });
   private animationContext?: ReturnType<typeof gsap.context>;
   private locationSearchVersion = 0;
   private pickerReverseGeocodeVersion = 0;
@@ -133,7 +134,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     if (!this.restoreSavedLocation()) this.requestCurrentLocation();
-    if (this.signedIn) this.loadOpenCalls();
+    if (this.signedIn()) this.loadOpenCalls();
   }
 
   loadOpenCalls(): void {
@@ -214,7 +215,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** Gợi ý chỉ có khi đã đăng nhập, đã chọn một môn và bán kính trong tầm gợi ý. */
   get canRecommend(): boolean {
-    return this.signedIn && this.selectedSport !== null && this.appliedRadiusKm <= MAX_RECOMMENDATION_RADIUS_KM;
+    return this.signedIn() && this.selectedSport !== null && this.appliedRadiusKm <= MAX_RECOMMENDATION_RADIUS_KM;
   }
 
   setVenueOrder(order: VenueOrder): void {

@@ -97,7 +97,7 @@ export class AuthService {
     this.notify.warning(message, 'Yêu cầu đăng nhập');
   }
 
-  public performLogout(reason?: 'blocked' | 'deletion') {
+  public performLogout(reason?: 'blocked' | 'deletion' | 'inactive') {
     if (this.isLoggingOut) {
       console.log('Already logging out...');
       return;
@@ -111,6 +111,12 @@ export class AuthService {
       this.notify.warning(
         'Quản trị viên đã khóa tài khoản của bạn. Đăng nhập lại để gửi khiếu nại tới ban quản trị.',
         'Tài khoản đã bị khóa'
+      );
+    }
+    if (reason === 'inactive' && shouldRedirectHome) {
+      this.notify.warning(
+        'Tài khoản cần được xác thực lại. Đăng nhập để nhận mã xác thực qua email.',
+        'Tài khoản chưa được kích hoạt'
       );
     }
     if (reason === 'deletion' && shouldRedirectHome) {

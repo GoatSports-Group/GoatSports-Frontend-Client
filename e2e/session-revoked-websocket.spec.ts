@@ -37,6 +37,22 @@ test('admin khóa tài khoản khi tab đang ngồi yên: đăng xuất ngay qua
   await expect(page).toHaveURL(/\/home/);
 });
 
+test('admin bỏ xác thực khi đang ở trang chủ: đăng xuất và trang chủ đổi ngay sang trang khách, không cần tải lại', async ({ page }) => {
+  await mockGoatSportsApi(page);
+  const send = await pushSessionRevoked(page, 'ACCOUNT_INACTIVE');
+  await page.goto('/home');
+  await expect(page.getByRole('heading', { name: /Chào buổi/i })).toBeVisible();
+  let reloads = 0;
+  page.on('framenavigated', frame => { if (frame === page.mainFrame()) reloads++; });
+
+  await send();
+
+  await expect(page.getByText('Tài khoản chưa được kích hoạt')).toBeVisible();
+  await expect(page.getByRole('link', { name: /Tạo tài khoản miễn phí/i }).first()).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Chào buổi/i })).toHaveCount(0);
+  expect(reloads).toBeLessThanOrEqual(1); // chỉ đổi URL trong SPA, không tải lại trang
+});
+
 test('yêu cầu xóa tài khoản ở thiết bị khác: tab này đăng xuất và báo cách giữ tài khoản', async ({ page }) => {
   await mockGoatSportsApi(page);
   const send = await pushSessionRevoked(page, 'ACCOUNT_DELETION_PENDING');

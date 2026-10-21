@@ -46,6 +46,11 @@ export class ApiInterceptor implements HttpInterceptor {
           this.injector.get(AuthService).performLogout('deletion');
           return throwError(() => error);
         }
+        // Gateway: admin vừa bỏ xác thực tài khoản; đăng nhập lại sẽ nhận OTP kích hoạt.
+        if (error.error?.error === 'ACCOUNT_INACTIVE') {
+          this.injector.get(AuthService).performLogout('inactive');
+          return throwError(() => error);
+        }
         return this.refreshAndRetry(credentialRequest, next);
       })
     );
