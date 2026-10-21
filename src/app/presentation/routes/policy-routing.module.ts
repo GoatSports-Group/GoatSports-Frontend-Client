@@ -4,12 +4,14 @@ import { BookingPolicyComponent } from '@presentation/pages/policy/booking-polic
 import { CancellationPolicyComponent } from '@presentation/pages/policy/cancellation-policy/cancellation-policy.component';
 import { CourtStandardsComponent } from '@presentation/pages/policy/court-standards/court-standards.component';
 import { ContactSupportComponent } from '@presentation/pages/policy/contact-support/contact-support.component';
+import { PrivacyPolicyComponent } from '@presentation/pages/policy/privacy-policy/privacy-policy.component';
 
 const routes: Routes = [
   { path: 'booking-policy', component: BookingPolicyComponent, title: 'Chính sách đặt sân | GOAT Sports' },
   { path: 'cancellation-policy', component: CancellationPolicyComponent, title: 'Chính sách hủy sân | GOAT Sports' },
   { path: 'court-standards', component: CourtStandardsComponent, title: 'Tiêu chuẩn sân đấu | GOAT Sports' },
-  { path: 'contact-support', component: ContactSupportComponent, title: 'Liên hệ hỗ trợ | GOAT Sports' }
+  { path: 'contact-support', component: ContactSupportComponent, title: 'Liên hệ hỗ trợ | GOAT Sports' },
+  { path: 'privacy-policy', component: PrivacyPolicyComponent, title: 'Quyền riêng tư | GOAT Sports' }
 ];
 
 @NgModule({

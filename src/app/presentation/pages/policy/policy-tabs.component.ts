@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 
-/** Tab gach chan chung cho khu Tro giup & chinh sach: chuyen qua lai giua 4 trang. */
+/** Tab gach chan chung cho khu Tro giup & chinh sach: chuyen qua lai giua 5 trang. */
 @Component({
   selector: 'app-policy-tabs',
   template: `
@@ -54,6 +54,7 @@ export class PolicyTabsComponent {
     { path: 'contact-support', label: 'Liên hệ hỗ trợ', icon: 'message-circle' },
     { path: 'booking-policy', label: 'Chính sách đặt sân', icon: 'calendar-check' },
     { path: 'cancellation-policy', label: 'Hủy sân & hoàn tiền', icon: 'calendar-x' },
-    { path: 'court-standards', label: 'Tiêu chuẩn sân đấu', icon: 'shield-check' }
+    { path: 'court-standards', label: 'Tiêu chuẩn sân đấu', icon: 'shield-check' },
+    { path: 'privacy-policy', label: 'Quyền riêng tư', icon: 'lock' }
   ];
 }

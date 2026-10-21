@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { mockGoatSportsApi } from './fixtures/api.fixture';
 
-// Tro giup & chinh sach nam trong layout client (header, footer chuan), co tab giua 4 trang;
+// Tro giup & chinh sach nam trong layout client (header, footer chuan), co tab giua 5 trang;
 // form lien he gui that toi auth-service, kem chu de, roi hien trang thai "Da gui".
 
 test('trang Liên hệ hỗ trợ dùng header chuẩn, có tab chính sách và gửi yêu cầu thật', async ({ page }) => {
@@ -18,7 +18,7 @@ test('trang Liên hệ hỗ trợ dùng header chuẩn, có tab chính sách và
   await expect(page.getByRole('button', { name: 'Mở menu tài khoản' })).toBeVisible();
   await expect(page.getByText('Về trang chủ', { exact: true })).toHaveCount(0);
   const tabs = page.getByRole('navigation', { name: 'Trợ giúp & chính sách' });
-  await expect(tabs.getByRole('link')).toHaveText(['Liên hệ hỗ trợ', 'Chính sách đặt sân', 'Hủy sân & hoàn tiền', 'Tiêu chuẩn sân đấu']);
+  await expect(tabs.getByRole('link')).toHaveText(['Liên hệ hỗ trợ', 'Chính sách đặt sân', 'Hủy sân & hoàn tiền', 'Tiêu chuẩn sân đấu', 'Quyền riêng tư']);
   await expect(tabs.getByRole('link', { name: 'Liên hệ hỗ trợ' })).toHaveAttribute('aria-current', 'page');
   await expect(page.getByRole('link', { name: 'goatsports1312@gmail.com' })).toHaveAttribute('href', 'mailto:goatsports1312@gmail.com');
 
@@ -49,3 +49,21 @@ test('các trang chính sách khác cũng trong layout client và chuyển tab �
   await expect(page).toHaveURL(/\/policy\/cancellation-policy$/);
   await expect(page.getByRole('button', { name: 'Mở menu tài khoản' })).toBeVisible();
 });
+
+test('trang Quyền riêng tư: mở từ footer, đủ 7 mục và nói rõ ai thấy email/SĐT', async ({ page }) => {
+  await mockGoatSportsApi(page);
+  await page.goto('/policy/booking-policy');
+  await page.locator('footer').getByRole('link', { name: 'Quyền riêng tư' }).click();
+
+  await expect(page).toHaveURL(/\/policy\/privacy-policy$/);
+  await expect(page.getByRole('heading', { name: 'Quyền riêng tư', level: 1 })).toBeVisible();
+  const tabs = page.getByRole('navigation', { name: 'Trợ giúp & chính sách' });
+  await expect(tabs.getByRole('link', { name: 'Quyền riêng tư' })).toHaveAttribute('aria-current', 'page');
+  await expect(page.locator('.policy-page').getByRole('heading', { level: 2 })).toHaveText([
+    'Dữ liệu chúng tôi thu thập', 'Dùng dữ liệu vào việc gì', 'Ai được xem dữ liệu của bạn',
+    'Dịch vụ bên ngoài chúng tôi dùng', 'Lưu trong bao lâu', 'Cách chúng tôi bảo vệ dữ liệu', 'Quyền của bạn'
+  ]);
+  await expect(page.getByRole('cell', { name: 'Chỉ bạn và quản trị viên có quyền quản lý người dùng' })).toBeVisible();
+  await expect(page.getByText('hiện chưa có chức năng tự xóa')).toBeVisible();
+});
+

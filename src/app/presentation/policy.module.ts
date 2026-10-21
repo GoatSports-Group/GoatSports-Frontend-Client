@@ -7,6 +7,7 @@ import { BookingPolicyComponent } from '@presentation/pages/policy/booking-polic
 import { CancellationPolicyComponent } from '@presentation/pages/policy/cancellation-policy/cancellation-policy.component';
 import { CourtStandardsComponent } from '@presentation/pages/policy/court-standards/court-standards.component';
 import { ContactSupportComponent } from '@presentation/pages/policy/contact-support/contact-support.component';
+import { PrivacyPolicyComponent } from '@presentation/pages/policy/privacy-policy/privacy-policy.component';
 import { PolicyTabsComponent } from '@presentation/pages/policy/policy-tabs.component';
 
 @NgModule({
@@ -15,6 +16,7 @@ import { PolicyTabsComponent } from '@presentation/pages/policy/policy-tabs.comp
     CancellationPolicyComponent,
     CourtStandardsComponent,
     ContactSupportComponent,
+    PrivacyPolicyComponent,
     PolicyTabsComponent
   ],
   imports: [
