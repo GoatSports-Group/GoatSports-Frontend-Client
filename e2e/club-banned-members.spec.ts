@@ -50,7 +50,49 @@ test('chủ CLB xem người bị cấm và gỡ cấm ngay trên dòng', async 
   await expect(row.getByText('Gỡ cấm Lê Văn Tài?')).toBeVisible();
   await row.locator('.unban-confirm').getByRole('button', { name: 'Gỡ cấm' }).click();
 
-  expect(unbans).toEqual(['m-banned']);
+  // Request gỡ cấm gửi bất đồng bộ sau cú bấm: chờ nó tới thay vì kiểm ngay (từng chập chờn trên mobile).
+  await expect.poll(() => unbans).toEqual(['m-banned']);
   await expect(page.getByText('Không có ai bị cấm')).toBeVisible();
   await expect(bannedChip).toContainText('0');
+});
+
+// Phuong an B (21/10): quan ly khong xu ly quan ly ngang cap, khong go lenh cam do chu CLB dat.
+test('quản lý: không có tác vụ với quản lý khác, không gỡ được lệnh cấm của chủ CLB', async ({ page }) => {
+  const owner = '22222222-2222-4222-8222-222222222222';
+  const otherAdmin = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+  const plainMember = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
+  const bannedByAdmin = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
+  const active = [
+    { membershipId: 'm-owner', clubId, userId: owner, role: 'OWNER', status: 'ACTIVE' },
+    { membershipId: 'm-me', clubId, userId: me, role: 'ADMIN', status: 'ACTIVE' },
+    { membershipId: 'm-admin', clubId, userId: otherAdmin, role: 'ADMIN', status: 'ACTIVE' },
+    { membershipId: 'm-member', clubId, userId: plainMember, role: 'MEMBER', status: 'ACTIVE' }
+  ];
+  const banned = [
+    { membershipId: 'm-by-owner', clubId, userId: bannedUser.userId, role: 'MEMBER', status: 'BANNED',
+      respondedBy: owner, respondedAt: '2026-09-20T09:00:00' },
+    { membershipId: 'm-by-admin', clubId, userId: bannedByAdmin, role: 'MEMBER', status: 'BANNED',
+      respondedBy: otherAdmin, respondedAt: '2026-09-21T09:00:00' }
+  ];
+  await mockGoatSportsApi(page);
+  await page.route(`**/club-service/api/v1/clubs/${clubId}`, route => route.fulfill(ok({ ...club, ownerId: owner })));
+  await page.route(`**/club-service/api/v1/clubs/${clubId}/membership/me`, route =>
+    route.fulfill(ok({ membershipId: 'm-me', clubId, userId: me, role: 'ADMIN', status: 'ACTIVE' })));
+  await page.route(`**/club-service/api/v1/clubs/${clubId}/members/page**`, route => {
+    const status = new URL(route.request().url()).searchParams.get('status');
+    return route.fulfill(ok(page0(status === 'BANNED' ? banned : status === 'PENDING' ? [] : active)));
+  });
+
+  await page.goto(`/clubs/${clubId}`);
+  await page.getByRole('tab', { name: /Thành viên/ }).click();
+  // Chi the thanh vien thuong co menu tac vu: khong co cho chu CLB, chinh minh, hay quan ly khac.
+  await expect(page.locator('.member-card__menu')).toHaveCount(1);
+
+  await page.getByRole('tab', { name: 'Yêu cầu tham gia' }).click();
+  await page.getByRole('button', { name: /Bị cấm/ }).click();
+  const rows = page.locator('.request-card--banned');
+  await expect(rows).toHaveCount(2);
+  await expect(rows.nth(0)).toContainText('Chủ CLB đặt lệnh cấm này');
+  await expect(rows.nth(0).getByRole('button', { name: 'Gỡ cấm' })).toHaveCount(0);
+  await expect(rows.nth(1).getByRole('button', { name: 'Gỡ cấm' })).toBeVisible();
 });

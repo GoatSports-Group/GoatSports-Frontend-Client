@@ -2327,6 +2327,14 @@ a {
   white-space: nowrap;
 }
 
+/* Lenh cam do chu CLB dat: quan ly khong go duoc, hien ly do thay cho nut. */
+.request-card__note {
+  justify-self: end;
+  color: var(--body);
+  font-size: 13px;
+  font-weight: 600;
+}
+
 /* Xac nhan go cam ngay tren dong (GOAT-DESIGN List cards: mot hanh dong -> inline confirm). */
 .unban-confirm {
   display: flex;
@@ -2342,6 +2350,7 @@ a {
   .request-card--banned { grid-template-columns: 50px minmax(0, 1fr); }
   .request-card--banned .row-actions,
   .request-card--banned .unban-confirm { grid-column: 1 / -1; justify-content: flex-start; }
+  .request-card--banned .request-card__note { grid-column: 1 / -1; justify-self: start; }
   .unban-confirm span { flex: 1 1 100%; }
   .unban-confirm .button { flex: 1 1 0; }
 }

@@ -696,7 +696,7 @@
               member.role === 'ADMIN' ? 'Quản lý' : 'Thành viên' }}</span>@if (member.joinedAt) {<small>Từ {{
               member.joinedAt | date:'MM/yyyy' }}</small>}</p>
         </div>
-        @if (isManager() && member.role !== 'OWNER' && !isSelf(member)) {
+        @if (canManageMember(member)) {
         <button type="button" class="member-card__menu" [matMenuTriggerFor]="memberActions"
           [attr.aria-label]="'Tác vụ với ' + displayName(member.userId)"><lucide-icon name="ellipsis"
             class="w-5 h-5"></lucide-icon></button>
@@ -798,7 +798,9 @@
           <h3>{{ displayName(member.userId) }}</h3>
           <span>Bị cấm {{ member.respondedAt ? 'từ ' + (member.respondedAt | date:'dd/MM/yyyy') : '' }}@if (member.respondedBy) { · bởi {{ bannedBy(member.respondedBy) }} }</span>
         </div>
-        @if (confirmUnbanId() !== member.membershipId) {
+        @if (!canLiftBan(member)) {
+        <span class="request-card__note">Chủ CLB đặt lệnh cấm này</span>
+        } @else if (confirmUnbanId() !== member.membershipId) {
         <div class="row-actions"><button type="button" class="button button--secondary" [disabled]="mutating()"
             (click)="confirmUnbanId.set(member.membershipId)"><lucide-icon name="undo-2" class="w-4 h-4"></lucide-icon>Gỡ cấm</button></div>
         } @else {

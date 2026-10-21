@@ -124,6 +124,17 @@ export class ClubDetailComponent implements OnDestroy {
     && this.disbandConfirmText().trim().length > 0);
   readonly isManager = computed(() => this.isOwner() || (this.membership()?.status === 'ACTIVE' && this.membership()?.role === 'ADMIN'));
   readonly isActiveMember = computed(() => this.isOwner() || this.membership()?.status === 'ACTIVE');
+
+  /** Khop ClubAccessPolicy.canDiscipline: quan ly chi xu ly thanh vien thuong, xu ly quan ly khac la viec cua chu CLB. */
+  canManageMember(member: ClubMemberModel): boolean {
+    return this.isManager() && member.role !== 'OWNER' && !this.isSelf(member)
+      && (this.isOwner() || member.role !== 'ADMIN');
+  }
+
+  /** Khop ClubAccessPolicy.canLiftBan: lenh cam do chu CLB dat thi chi chu CLB go. */
+  canLiftBan(member: ClubMemberModel): boolean {
+    return this.isOwner() || member.respondedBy !== this.club()?.ownerId;
+  }
   readonly viewerState = computed<ClubViewerState>(() => {
     if (this.isManager()) return 'MANAGER';
     if (this.isActiveMember()) return 'MEMBER';
