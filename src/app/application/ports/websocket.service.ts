@@ -10,6 +10,8 @@ export interface WebSocketService {
   inboxMessages$: Observable<ChatMessage>;
   typingEvents$: Observable<ChatTypingEvent>;
   presenceEvents$: Observable<ChatPresenceEvent>;
+  /** Phiên vừa bị thu hồi ở máy chủ (bị khóa / yêu cầu xóa tài khoản): mã lý do, trùng mã lỗi gateway. */
+  sessionRevoked$: Observable<string>;
   connect(): void;
   disconnect(): void;
   subscribeToRoom(roomId: string): void;

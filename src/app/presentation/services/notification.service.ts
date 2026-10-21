@@ -256,6 +256,11 @@ export class NotificationService implements OnDestroy {
     this.wsSubscription = this.wsService.notifications$.subscribe(notification => {
       this.ngZone.run(() => this.handleRealTimeNotification(notification));
     });
+    // Bị khóa / vừa yêu cầu xóa tài khoản ở thiết bị khác: đăng xuất ngay cả khi tab đang ngồi yên.
+    this.wsSubscription.add(this.wsService.sessionRevoked$.subscribe(reason => {
+      this.ngZone.run(() => this.authService.performLogout(
+        reason === 'ACCOUNT_DELETION_PENDING' ? 'deletion' : 'blocked'));
+    }));
   }
 
   private disconnectWebSocket(): void {

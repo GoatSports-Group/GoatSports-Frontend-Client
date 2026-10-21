@@ -80,6 +80,7 @@ export class StompWebSocketService implements WebSocketService {
   private shouldReconnect = false;
   private apiBase = environment.apiUrl;
   private notificationSubscriptionId = 'sub-user-notifications';
+  private sessionSubscriptionId = 'sub-user-session';
   private activeRoomSubscriptions = new Set<string>();
   private currentUserProvider = inject<CurrentUserProvider>(CURRENT_USER_PROVIDER_TOKEN);
   private http = inject(HttpClient);
@@ -94,6 +95,8 @@ export class StompWebSocketService implements WebSocketService {
   public typingEvents$: Observable<ChatTypingEvent> = this.typingEventSubject.asObservable();
   private presenceEventSubject = new Subject<ChatPresenceEvent>();
   public presenceEvents$: Observable<ChatPresenceEvent> = this.presenceEventSubject.asObservable();
+  private sessionRevokedSubject = new Subject<string>();
+  public sessionRevoked$: Observable<string> = this.sessionRevokedSubject.asObservable();
 
   constructor() { }
 
@@ -285,6 +288,7 @@ export class StompWebSocketService implements WebSocketService {
     }
 
     this.subscribe(this.notificationSubscriptionId, `/topic/user/notifications/${currentUserId}`);
+    this.subscribe(this.sessionSubscriptionId, `/topic/user/session/${currentUserId}`);
   }
 
   private sendUnsubscribeFrame(): void {
@@ -292,6 +296,7 @@ export class StompWebSocketService implements WebSocketService {
 
     try {
       this.unsubscribe(this.notificationSubscriptionId);
+      this.unsubscribe(this.sessionSubscriptionId);
       console.log('STOMP UNSUBSCRIBE sent');
     } catch (e) {
       console.error('Error sending unsubscribe frame:', e);
@@ -324,6 +329,13 @@ export class StompWebSocketService implements WebSocketService {
               this.notificationSubject.next(notification);
             } catch (jsonErr) {
               console.error('Failed to parse STOMP notification:', jsonErr);
+            }
+          } else if (destination === `/topic/user/session/${currentUserId}`) {
+            try {
+              const event: { type?: string; reason?: string } = JSON.parse(frame.body);
+              if (event.type === 'SESSION_REVOKED' && event.reason) this.sessionRevokedSubject.next(event.reason);
+            } catch (jsonErr) {
+              console.error('Failed to parse STOMP session event:', jsonErr);
             }
           }
           break;
