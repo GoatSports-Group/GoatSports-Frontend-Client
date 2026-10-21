@@ -41,6 +41,11 @@ export class ApiInterceptor implements HttpInterceptor {
           this.injector.get(AuthService).performLogout('blocked');
           return throwError(() => error);
         }
+        // Gateway: tài khoản vừa được yêu cầu xóa (ở thiết bị này hoặc thiết bị khác).
+        if (error.error?.error === 'ACCOUNT_DELETION_PENDING') {
+          this.injector.get(AuthService).performLogout('deletion');
+          return throwError(() => error);
+        }
         return this.refreshAndRetry(credentialRequest, next);
       })
     );

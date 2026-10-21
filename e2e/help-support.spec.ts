@@ -64,6 +64,6 @@ test('trang Quyền riêng tư: mở từ footer, đủ 7 mục và nói rõ ai 
     'Dịch vụ bên ngoài chúng tôi dùng', 'Lưu trong bao lâu', 'Cách chúng tôi bảo vệ dữ liệu', 'Quyền của bạn'
   ]);
   await expect(page.getByRole('cell', { name: 'Chỉ bạn và quản trị viên có quyền quản lý người dùng' })).toBeVisible();
-  await expect(page.getByText('hiện chưa có chức năng tự xóa')).toBeVisible();
+  await expect(page.getByText('Cài đặt › Đăng nhập & bảo mật › Xóa tài khoản')).toBeVisible();
 });
 

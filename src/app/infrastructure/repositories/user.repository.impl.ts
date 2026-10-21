@@ -41,6 +41,18 @@ export class UserRepositoryImpl implements UserRepository {
     );
   }
 
+  getDeletionBlockers(): Observable<string[]> {
+    return this.userApi.getDeletionBlockers().pipe(map(response => response.data?.blockers ?? []));
+  }
+
+  sendDeletionCode(): Observable<void> {
+    return this.userApi.sendDeletionCode().pipe(map(() => void 0));
+  }
+
+  requestDeletion(code: string): Observable<string> {
+    return this.userApi.requestDeletion(code).pipe(map(response => response.data.purgeAt));
+  }
+
   searchPlayers(query: string): Observable<PlayerSummary[]> {
     return this.userApi.searchPlayers(query).pipe(
       map(response => response.data || [])

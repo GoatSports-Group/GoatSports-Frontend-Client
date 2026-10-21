@@ -1,11 +1,53 @@
 import { Component, Input, OnInit, inject } from '@angular/core';
 import { AiRepositoryPort } from '@application/ports/ai.repository.port';
+import { USER_REPOSITORY_TOKEN, UserRepository } from '@application/ports/persistence/user.repository';
 import { User, UpdatePasswordRequest, CreatePasswordRequest } from '@application/dto/user/user.dto';
 import { AuthService } from '@presentation/services/auth.service';
 import { UserService } from '@presentation/services/user.service';
 import { CryptoService } from '@presentation/services/crypto.service';
 import { NotifyService } from '@shared/components/notify/notify.service';
 import { finalize, map, switchMap } from 'rxjs/operators';
+
+/** Việc còn dang dở chặn xóa tài khoản: lời giải thích và chỗ để xử lý (mã do backend trả về). */
+interface DeletionBlocker {
+  icon: string;
+  text: string;
+  link?: string;
+  queryParams?: Record<string, string>;
+  linkLabel?: string;
+}
+
+const DELETION_BLOCKERS: Record<string, DeletionBlocker> = {
+  OPEN_BOOKINGS: {
+    icon: 'ticket', text: 'Bạn còn vé đặt sân chưa diễn ra hoặc đang chờ thanh toán.',
+    link: '/booking/history', linkLabel: 'Xem vé'
+  },
+  OPEN_CANCELLATIONS: {
+    icon: 'calendar-x', text: 'Bạn còn yêu cầu hủy sân đang xử lý hoặc tiền hoàn chưa nhận.',
+    link: '/booking/history', linkLabel: 'Xem vé'
+  },
+  REFUND_IN_PROGRESS: {
+    icon: 'wallet', text: 'Bạn còn khoản hoàn tiền chưa về tài khoản ngân hàng.',
+    link: '/settings', queryParams: { tab: 'banking' }, linkLabel: 'Xem khoản hoàn'
+  },
+  CLUB_OWNER: {
+    icon: 'users', text: 'Bạn đang là chủ câu lạc bộ. Hãy chuyển quyền chủ cho thành viên khác trước.',
+    link: '/clubs/my', linkLabel: 'CLB của tôi'
+  },
+  TOURNAMENT_IN_PROGRESS: {
+    icon: 'trophy', text: 'Bạn đang tham gia một giải đấu chưa kết thúc.',
+    link: '/tournaments', queryParams: { tab: 'joined' }, linkLabel: 'Giải của tôi'
+  },
+  OWNS_VENUES: {
+    icon: 'building-2', text: 'Tài khoản đang sở hữu cơ sở thể thao. Liên hệ hỗ trợ để đóng cơ sở trước.',
+    link: '/policy/contact-support', linkLabel: 'Liên hệ hỗ trợ'
+  },
+  OWNER_APPLICATION_PENDING: {
+    icon: 'building-2', text: 'Hồ sơ đăng ký chủ sân của bạn đang chờ duyệt.',
+    link: '/policy/contact-support', linkLabel: 'Liên hệ hỗ trợ'
+  },
+  ADMIN_ACCOUNT: { icon: 'shield-alert', text: 'Tài khoản quản trị viên không thể tự xóa.' }
+};
 
 @Component({
   selector: 'app-settings-security-tab',
@@ -21,6 +63,15 @@ export class SettingsSecurityTabComponent implements OnInit {
   private cryptoService = inject(CryptoService);
   private notifyService = inject(NotifyService);
   private ai = inject(AiRepositoryPort);
+  private users = inject<UserRepository>(USER_REPOSITORY_TOKEN);
+
+  /** Xóa tài khoản: kiểm tra việc dang dở → giải thích → nhập mã email + gõ XÓA. */
+  public deletionStep: 'closed' | 'checking' | 'blocked' | 'confirm' | 'code' = 'closed';
+  public deletionBlockers: DeletionBlocker[] = [];
+  public deletionCode = '';
+  public deletionConfirmText = '';
+  public deletionBusy = false;
+  public deletionError = '';
 
   /** null: đang tải hoặc tải lỗi (personalizationFailed). */
   public personalization: boolean | null = null;
@@ -188,6 +239,68 @@ export class SettingsSecurityTabComponent implements OnInit {
       },
       error: err => this.notifyService.error(this.getPasswordErrorMessage(err))
     });
+  }
+
+  openDeletion(): void {
+    if (this.deletionStep !== 'closed') return;
+    this.deletionStep = 'checking';
+    this.deletionError = '';
+    this.deletionCode = '';
+    this.deletionConfirmText = '';
+    this.users.getDeletionBlockers().subscribe({
+      next: codes => {
+        this.deletionBlockers = codes.map(code => DELETION_BLOCKERS[code]
+          ?? { icon: 'circle-alert', text: 'Tài khoản còn việc chưa xử lý xong. Vui lòng liên hệ hỗ trợ.' });
+        this.deletionStep = codes.length ? 'blocked' : 'confirm';
+      },
+      error: err => {
+        this.deletionStep = 'closed';
+        this.notifyService.error(this.serverMessage(err, 'Chưa kiểm tra được tài khoản. Vui lòng thử lại.'));
+      }
+    });
+  }
+
+  closeDeletion(): void {
+    if (this.deletionBusy) return;
+    this.deletionStep = 'closed';
+  }
+
+  sendDeletionCode(): void {
+    if (this.deletionBusy) return;
+    this.deletionBusy = true;
+    this.deletionError = '';
+    this.users.sendDeletionCode().pipe(finalize(() => this.deletionBusy = false)).subscribe({
+      next: () => this.deletionStep = 'code',
+      error: err => this.deletionError = this.serverMessage(err, 'Chưa gửi được mã. Vui lòng thử lại.')
+    });
+  }
+
+  get canConfirmDeletion(): boolean {
+    return /^\d{6}$/.test(this.deletionCode.trim())
+      && this.deletionConfirmText.normalize('NFC').trim().toUpperCase() === 'XÓA';
+  }
+
+  confirmDeletion(): void {
+    if (!this.canConfirmDeletion || this.deletionBusy) return;
+    this.deletionBusy = true;
+    this.deletionError = '';
+    this.users.requestDeletion(this.deletionCode.trim()).pipe(finalize(() => this.deletionBusy = false)).subscribe({
+      next: purgeAt => {
+        this.deletionStep = 'closed';
+        const date = new Date(purgeAt).toLocaleDateString('vi-VN');
+        this.notifyService.success(
+          `Tài khoản sẽ bị xóa vĩnh viễn vào ngày ${date}. Đăng nhập lại trước ngày đó nếu bạn đổi ý.`,
+          'Đã nhận yêu cầu xóa tài khoản'
+        );
+        this.authService.logout().subscribe({ error: () => undefined });
+      },
+      error: err => this.deletionError = this.serverMessage(err, 'Chưa xóa được tài khoản. Vui lòng thử lại.')
+    });
+  }
+
+  private serverMessage(error: unknown, fallback: string): string {
+    const message = (error as { error?: { message?: unknown } })?.error?.message;
+    return typeof message === 'string' && message.trim() ? message : fallback;
   }
 
   logoutCurrentSession(): void {

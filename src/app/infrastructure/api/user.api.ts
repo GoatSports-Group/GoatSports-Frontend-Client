@@ -38,6 +38,18 @@ export class UserApi {
     return this.http.post<BaseResponse<void>>(`${this.apiBase}/auth-service/api/v1/users/password`, payload);
   }
 
+  getDeletionBlockers(): Observable<BaseResponse<{ blockers: string[] }>> {
+    return this.http.get<BaseResponse<{ blockers: string[] }>>(`${this.apiBase}/auth-service/api/v1/users/me/deletion`);
+  }
+
+  sendDeletionCode(): Observable<BaseResponse<void>> {
+    return this.http.post<BaseResponse<void>>(`${this.apiBase}/auth-service/api/v1/users/me/deletion/code`, null);
+  }
+
+  requestDeletion(code: string): Observable<BaseResponse<{ purgeAt: string }>> {
+    return this.http.post<BaseResponse<{ purgeAt: string }>>(`${this.apiBase}/auth-service/api/v1/users/me/deletion`, { code });
+  }
+
   searchPlayers(query: string): Observable<BaseResponse<PlayerSummary[]>> {
     const currentUserId = this.currentUser.getCurrentUserId();
     if (!currentUserId) {

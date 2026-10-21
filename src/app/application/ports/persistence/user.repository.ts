@@ -9,6 +9,11 @@ export interface UserRepository {
   updatePassword(payload: UpdatePasswordRequest): Observable<void>;
   createPassword(payload: CreatePasswordRequest): Observable<void>;
   searchPlayers(query: string): Observable<PlayerSummary[]>;
+  /** Mã các việc còn dang dở chặn xóa tài khoản (rỗng: xóa được). */
+  getDeletionBlockers(): Observable<string[]>;
+  sendDeletionCode(): Observable<void>;
+  /** Trả về thời điểm tài khoản bị xóa thật (ISO). */
+  requestDeletion(code: string): Observable<string>;
 }
 
 export const USER_REPOSITORY_TOKEN = new InjectionToken<UserRepository>('UserRepository');

@@ -95,6 +95,24 @@
         </div>
       </div>
     </section>
+
+    <section class="info-group">
+      <h3 class="info-group__title">Xóa tài khoản</h3>
+      <div class="info-grid">
+        <div class="info-cell info-cell--wide">
+          <span class="row__icon row__icon--danger"><lucide-icon name="trash-2" class="w-5 h-5"></lucide-icon></span>
+          <div class="row__copy">
+            <span class="row__label">Xóa tài khoản GOAT Sports</span>
+            <p class="row__hint">Sau 30 ngày, tài khoản không đăng nhập được nữa; bài viết, bình luận, bạn bè và tài khoản
+              ngân hàng đã liên kết bị xóa vĩnh viễn. Đăng nhập lại trong 30 ngày đó để hủy.</p>
+          </div>
+          <button type="button" class="btn btn--ghost btn--danger-ghost" [disabled]="deletionStep === 'checking'"
+            [attr.aria-busy]="deletionStep === 'checking'" (click)="openDeletion()">
+            {{ deletionStep === 'checking' ? 'Đang kiểm tra...' : 'Xóa tài khoản' }}
+          </button>
+        </div>
+      </div>
+    </section>
   </div>
 </section>
 
@@ -157,6 +175,103 @@
         <button type="submit" class="btn btn--primary" [disabled]="isSaving" [attr.aria-busy]="isSaving">
           {{ isSaving ? 'Đang lưu...' : (hasPassword ? 'Lưu mật khẩu' : 'Tạo mật khẩu') }}
         </button>
+      </footer>
+    </form>
+  </div>
+}
+
+@if (deletionStep === 'blocked' || deletionStep === 'confirm' || deletionStep === 'code') {
+  <div class="modal-backdrop" (click)="closeDeletion()">
+    <form class="modal" appAccessibleDialog aria-labelledby="deletion-modal-title" (dialogClosed)="closeDeletion()"
+      (click)="$event.stopPropagation()" (ngSubmit)="deletionStep === 'code' ? confirmDeletion() : sendDeletionCode()">
+      <header class="modal__header">
+        <div>
+          <h2 id="deletion-modal-title">{{ deletionStep === 'blocked' ? 'Chưa thể xóa tài khoản' : 'Xóa tài khoản' }}</h2>
+          <p>
+            @if (deletionStep === 'blocked') {
+              Xử lý xong các mục dưới đây rồi quay lại.
+            } @else if (deletionStep === 'confirm') {
+              Tài khoản được giữ 30 ngày trước khi xóa vĩnh viễn.
+            } @else {
+              Chúng tôi đã gửi mã 6 số tới {{ user?.email }}.
+            }
+          </p>
+        </div>
+        <button type="button" class="icon-btn" aria-label="Đóng" [disabled]="deletionBusy" (click)="closeDeletion()">
+          <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+        </button>
+      </header>
+
+      <div class="modal__body">
+        @if (deletionStep === 'blocked') {
+          <ul class="deletion-list" aria-label="Mục cần xử lý trước khi xóa">
+            @for (blocker of deletionBlockers; track blocker.text) {
+              <li class="deletion-item">
+                <span class="deletion-item__icon"><lucide-icon [name]="blocker.icon" class="w-4 h-4"></lucide-icon></span>
+                <span class="deletion-item__text">{{ blocker.text }}</span>
+                @if (blocker.link) {
+                  <a class="deletion-item__link" [routerLink]="blocker.link" [queryParams]="blocker.queryParams"
+                    (click)="closeDeletion()">{{ blocker.linkLabel }}</a>
+                }
+              </li>
+            }
+          </ul>
+        } @else {
+          <div class="deletion-facts">
+            <section>
+              <h3>Sẽ bị xóa</h3>
+              <ul>
+                <li>Bài viết, bình luận, lượt thích, bạn bè, theo dõi</li>
+                <li>Hồ sơ thể thao, ngày sinh, giới tính, mật khẩu</li>
+                <li>Tài khoản ngân hàng đã liên kết, thông báo, lịch sử dùng cho gợi ý</li>
+              </ul>
+            </section>
+            <section>
+              <h3>Được giữ làm chứng từ</h3>
+              <ul>
+                <li>Đơn đặt sân, giao dịch, khoản hoàn, đánh giá sân, kết quả trận và tin nhắn chat 1-1</li>
+                <li>Họ tên, ảnh đại diện, email, SĐT của bạn đi kèm các mục trên; email và SĐT chỉ quản trị viên xem được</li>
+              </ul>
+            </section>
+          </div>
+          <p class="deletion-note">
+            <lucide-icon name="circle-alert" class="w-4 h-4"></lucide-icon>
+            <span>Bạn sẽ bị đăng xuất trên mọi thiết bị. Đăng nhập lại trong 30 ngày là hủy yêu cầu xóa.</span>
+          </p>
+          @if (deletionStep === 'code') {
+            <label class="field">
+              <span class="field__label">Mã xác nhận <b>*</b></span>
+              <input class="field__control" name="deletionCode" inputmode="numeric" autocomplete="one-time-code"
+                maxlength="6" placeholder="6 chữ số" [(ngModel)]="deletionCode" />
+            </label>
+            <label class="field">
+              <span class="field__label">Gõ <strong>XÓA</strong> để xác nhận <b>*</b></span>
+              <input class="field__control" name="deletionConfirmText" autocomplete="off" placeholder="XÓA"
+                [(ngModel)]="deletionConfirmText" />
+            </label>
+          }
+          @if (deletionError) {
+            <p class="deletion-error" role="alert">{{ deletionError }}</p>
+          }
+        }
+      </div>
+
+      <footer class="modal__footer">
+        @if (deletionStep === 'blocked') {
+          <button type="button" class="btn btn--secondary" (click)="closeDeletion()">Đóng</button>
+        } @else {
+          <button type="button" class="btn btn--secondary" [disabled]="deletionBusy" (click)="closeDeletion()">Hủy</button>
+          @if (deletionStep === 'confirm') {
+            <button type="submit" class="btn btn--danger" [disabled]="deletionBusy" [attr.aria-busy]="deletionBusy">
+              {{ deletionBusy ? 'Đang gửi...' : 'Gửi mã xác nhận' }}
+            </button>
+          } @else {
+            <button type="submit" class="btn btn--danger" [disabled]="deletionBusy || !canConfirmDeletion"
+              [attr.aria-busy]="deletionBusy">
+              {{ deletionBusy ? 'Đang xóa...' : 'Xóa tài khoản' }}
+            </button>
+          }
+        }
       </footer>
     </form>
   </div>

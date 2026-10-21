@@ -97,7 +97,7 @@ export class AuthService {
     this.notify.warning(message, 'Yêu cầu đăng nhập');
   }
 
-  public performLogout(reason?: 'blocked') {
+  public performLogout(reason?: 'blocked' | 'deletion') {
     if (this.isLoggingOut) {
       console.log('Already logging out...');
       return;
@@ -111,6 +111,12 @@ export class AuthService {
       this.notify.warning(
         'Quản trị viên đã khóa tài khoản của bạn. Đăng nhập lại để gửi khiếu nại tới ban quản trị.',
         'Tài khoản đã bị khóa'
+      );
+    }
+    if (reason === 'deletion' && shouldRedirectHome) {
+      this.notify.info(
+        'Tài khoản sẽ bị xóa sau 30 ngày. Đăng nhập lại trước thời hạn đó nếu bạn muốn giữ tài khoản.',
+        'Tài khoản đang chờ xóa'
       );
     }
 
