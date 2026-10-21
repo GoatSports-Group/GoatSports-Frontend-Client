@@ -85,7 +85,8 @@ export class ApiInterceptor implements HttpInterceptor {
       '/auth-service/api/v1/auth/register',
       '/auth-service/api/v1/auth/verify',
       '/auth-service/api/v1/auth/resend',
-      '/auth-service/api/v1/auth/forgot-password'
+      '/auth-service/api/v1/auth/forgot-password',
+      '/auth-service/api/v1/auth/logout'
     ].some(endpoint => request.url.includes(endpoint));
   }
 }

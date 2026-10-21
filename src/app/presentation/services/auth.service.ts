@@ -105,6 +105,19 @@ export class AuthService {
 
     const shouldRedirectHome = this.isAuthenticated;
     this.isLoggingOut = true;
+    if (reason) {
+      // Phiên bị máy chủ thu hồi: cookie HttpOnly cũ vẫn còn và gateway trả 401 cho mọi request mang nó, kể cả API
+      // công khai của trang khách. Gọi logout để máy chủ xóa cookie rồi mới chuyển sang trang khách.
+      this.logoutUseCase.execute().subscribe({
+        next: () => this.finishLogout(shouldRedirectHome, reason),
+        error: () => this.finishLogout(shouldRedirectHome, reason)
+      });
+      return;
+    }
+    this.finishLogout(shouldRedirectHome);
+  }
+
+  private finishLogout(shouldRedirectHome: boolean, reason?: 'blocked' | 'deletion' | 'inactive') {
     console.log('Performing logout...');
     this.clearSession();
     if (reason === 'blocked' && shouldRedirectHome) {
