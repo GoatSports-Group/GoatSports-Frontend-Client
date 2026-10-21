@@ -50,7 +50,7 @@ test('các trang chính sách khác cũng trong layout client và chuyển tab �
   await expect(page.getByRole('button', { name: 'Mở menu tài khoản' })).toBeVisible();
 });
 
-test('trang Quyền riêng tư: mở từ footer, đủ 7 mục và nói rõ ai thấy email/SĐT', async ({ page }) => {
+test('trang Quyền riêng tư: mở từ footer, đủ 6 mục và nói rõ ai thấy email/SĐT', async ({ page }) => {
   await mockGoatSportsApi(page);
   await page.goto('/policy/booking-policy');
   await page.locator('footer').getByRole('link', { name: 'Quyền riêng tư' }).click();
@@ -61,7 +61,7 @@ test('trang Quyền riêng tư: mở từ footer, đủ 7 mục và nói rõ ai 
   await expect(tabs.getByRole('link', { name: 'Quyền riêng tư' })).toHaveAttribute('aria-current', 'page');
   await expect(page.locator('.policy-page').getByRole('heading', { level: 2 })).toHaveText([
     'Dữ liệu chúng tôi thu thập', 'Dùng dữ liệu vào việc gì', 'Ai được xem dữ liệu của bạn',
-    'Dịch vụ bên ngoài chúng tôi dùng', 'Lưu trong bao lâu', 'Cách chúng tôi bảo vệ dữ liệu', 'Quyền của bạn'
+    'Lưu trong bao lâu', 'Cách chúng tôi bảo vệ dữ liệu', 'Quyền của bạn'
   ]);
   await expect(page.getByRole('cell', { name: 'Chỉ bạn và quản trị viên có quyền quản lý người dùng' })).toBeVisible();
   await expect(page.getByText('Cài đặt › Đăng nhập & bảo mật › Xóa tài khoản')).toBeVisible();
