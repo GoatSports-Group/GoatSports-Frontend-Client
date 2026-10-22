@@ -12,6 +12,8 @@ export interface WebSocketService {
   presenceEvents$: Observable<ChatPresenceEvent>;
   /** Phiên vừa bị thu hồi ở máy chủ (bị khóa / yêu cầu xóa tài khoản): mã lý do, trùng mã lỗi gateway. */
   sessionRevoked$: Observable<string>;
+  /** Kênh thông báo vừa kết nối (lại): thông báo đẩy trong lúc mất kết nối đã lỡ, cần lấy bù qua REST. */
+  notificationsConnected$: Observable<void>;
   connect(): void;
   disconnect(): void;
   subscribeToRoom(roomId: string): void;

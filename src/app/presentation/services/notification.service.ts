@@ -8,6 +8,7 @@ import {
   NotificationStatus
 } from '@application/dto/notification/notification.dto';
 import { GetNotificationsUseCase } from '@application/usecase/notification/get-notifications.usecase';
+import { GetNotificationsSinceUseCase } from '@application/usecase/notification/get-notifications-since.usecase';
 import { CountUnreadNotificationsUseCase } from '@application/usecase/notification/count-unread-notifications.usecase';
 import { MarkNotificationReadUseCase } from '@application/usecase/notification/mark-notification-read.usecase';
 import { MarkAllNotificationsReadUseCase } from '@application/usecase/notification/mark-all-notifications-read.usecase';
@@ -38,6 +39,7 @@ const EMPTY_PAGE_STATE: NotificationPageState = {
 })
 export class NotificationService implements OnDestroy {
   private readonly getNotificationsUseCase = inject(GetNotificationsUseCase);
+  private readonly getNotificationsSinceUseCase = inject(GetNotificationsSinceUseCase);
   private readonly countUnreadUseCase = inject(CountUnreadNotificationsUseCase);
   private readonly markReadUseCase = inject(MarkNotificationReadUseCase);
   private readonly markAllReadUseCase = inject(MarkAllNotificationsReadUseCase);
@@ -71,6 +73,8 @@ export class NotificationService implements OnDestroy {
   private activeStatus: NotificationStatus | null = null;
   private activeUserId: string | null = null;
   private notificationRequestSequence = 0;
+  /** Danh sách đầu đã tải xong: trước đó chưa có mốc để lấy bù, mà lần tải đầu cũng đã gồm mọi thứ. */
+  private recentLoaded = false;
 
   constructor() {
     this.monitorUserSession();
@@ -257,6 +261,9 @@ export class NotificationService implements OnDestroy {
       this.ngZone.run(() => this.handleRealTimeNotification(notification));
     });
     // Bị khóa / vừa yêu cầu xóa tài khoản ở thiết bị khác: đăng xuất ngay cả khi tab đang ngồi yên.
+    this.wsSubscription.add(this.wsService.notificationsConnected$.subscribe(() => {
+      this.ngZone.run(() => this.catchUp());
+    }));
     this.wsSubscription.add(this.wsService.sessionRevoked$.subscribe(reason => {
       this.ngZone.run(() => this.authService.performLogout(
         reason === 'ACCOUNT_DELETION_PENDING' ? 'deletion' : reason === 'ACCOUNT_INACTIVE' ? 'inactive' : 'blocked'));
@@ -269,7 +276,36 @@ export class NotificationService implements OnDestroy {
     this.wsService.disconnect();
   }
 
+  /** Lấy bù thông báo đẩy trong lúc WebSocket mất kết nối (máy ngủ, đổi mạng, server khởi động lại). */
+  private catchUp(): void {
+    if (!this.recentLoaded || !this.activeUserId) return;
+    const newest = this.sortNotifications([
+      ...this.recentNotificationsSubject.value,
+      ...this.notificationsSubject.value
+    ])[0];
+    this.catchUpFrom(newest?.createdAt ?? '1970-01-01T00:00:00', undefined, this.activeUserId);
+  }
+
+  private catchUpFrom(after: string, afterId: string | undefined, userId: string): void {
+    this.getNotificationsSinceUseCase.execute(after, afterId).subscribe({
+      next: page => {
+        if (userId !== this.activeUserId) return;
+        page.items.forEach(notification => this.handleRealTimeNotification(notification, false));
+        const last = page.items[page.items.length - 1];
+        if (page.hasMore && last) {
+          this.catchUpFrom(last.createdAt, last.notificationId, userId);
+          return;
+        }
+        // Lần gọi đầu lùi vài giây nên có thể gặp lại bản đã đếm ngoài 5 thông báo gần nhất: lấy số đúng từ server.
+        this.fetchUnreadCount().subscribe({ error: () => undefined });
+        this.loadRecentNotifications(userId);
+      },
+      error: () => undefined
+    });
+  }
+
   private clearNotifications(): void {
+    this.recentLoaded = false;
     this.notificationRequestSequence++;
     this.activeStatus = null;
     this.notificationsSubject.next([]);
@@ -279,7 +315,7 @@ export class NotificationService implements OnDestroy {
     this.pageStateSubject.next(EMPTY_PAGE_STATE);
   }
 
-  private handleRealTimeNotification(notification: Notification): void {
+  private handleRealTimeNotification(notification: Notification, toast = true): void {
     const currentUserId = this.sessionStateService.getCurrentUserId();
     if (!currentUserId || notification.receiverId !== currentUserId) return;
     if (this.findNotification(notification.notificationId)) return;
@@ -310,7 +346,7 @@ export class NotificationService implements OnDestroy {
     if (isUnread) {
       this.unreadCountSubject.next(this.unreadCountSubject.value + 1);
     }
-    this.notify.info(notification.content, notification.title);
+    if (toast) this.notify.info(notification.content, notification.title);
   }
 
   private decreaseVisibleTotal(): void {
@@ -329,6 +365,7 @@ export class NotificationService implements OnDestroy {
         if (requestedUserId !== this.activeUserId) return;
         this.recentNotificationsSubject.next(this.sortNotifications(page.items).slice(0, 5));
         this.allCountSubject.next(page.total);
+        this.recentLoaded = true;
       },
       error: () => undefined
     });

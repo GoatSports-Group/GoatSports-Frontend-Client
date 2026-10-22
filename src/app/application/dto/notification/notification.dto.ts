@@ -18,3 +18,9 @@ export interface NotificationPage {
   pageSize: number;
   totalPages: number;
 }
+
+/** Thông báo sau một mốc, cũ nhất trước; `hasMore` thì gọi tiếp với mốc là phần tử cuối. */
+export interface NotificationCatchUpPage {
+  items: Notification[];
+  hasMore: boolean;
+}

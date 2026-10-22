@@ -4,7 +4,7 @@ import { map } from 'rxjs/operators';
 import { NotificationRepository } from '@application/ports/persistence/notification.repository';
 import { Notification } from '@domain/entities/notification';
 import { NotificationApi } from '@infrastructure/api/notification.api';
-import { NotificationPage, NotificationQuery } from '@application/dto/notification/notification.dto';
+import { NotificationCatchUpPage, NotificationPage, NotificationQuery } from '@application/dto/notification/notification.dto';
 
 @Injectable({
   providedIn: 'root'
@@ -20,6 +20,15 @@ export class NotificationRepositoryImpl implements NotificationRepository {
         page: response.data?.meta?.page ?? query.page,
         pageSize: response.data?.meta?.pageSize ?? query.pageSize,
         totalPages: response.data?.meta?.pages ?? 0
+      }))
+    );
+  }
+
+  getNotificationsSince(after: string, afterId?: string): Observable<NotificationCatchUpPage> {
+    return this.notificationApi.getNotificationsSince(after, afterId).pipe(
+      map(response => ({
+        items: response.data?.items ?? [],
+        hasMore: response.data?.hasMore ?? false
       }))
     );
   }

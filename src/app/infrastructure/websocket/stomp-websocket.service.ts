@@ -97,6 +97,8 @@ export class StompWebSocketService implements WebSocketService {
   public presenceEvents$: Observable<ChatPresenceEvent> = this.presenceEventSubject.asObservable();
   private sessionRevokedSubject = new Subject<string>();
   public sessionRevoked$: Observable<string> = this.sessionRevokedSubject.asObservable();
+  private notificationsConnectedSubject = new Subject<void>();
+  public notificationsConnected$: Observable<void> = this.notificationsConnectedSubject.asObservable();
 
   constructor() { }
 
@@ -319,6 +321,7 @@ export class StompWebSocketService implements WebSocketService {
           this.reconnectAttempts = 0;
           this.sendSubscribeFrame();
           this.startNotificationHeartbeat(frame.headers['heart-beat']);
+          this.notificationsConnectedSubject.next();
           break;
         case 'MESSAGE':
           const currentUserId = this.currentUserProvider.getCurrentUserId();

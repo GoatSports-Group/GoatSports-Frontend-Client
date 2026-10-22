@@ -1,10 +1,11 @@
 import { InjectionToken } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Notification } from '@domain/entities/notification';
-import { NotificationPage, NotificationQuery } from '@application/dto/notification/notification.dto';
+import { NotificationCatchUpPage, NotificationPage, NotificationQuery } from '@application/dto/notification/notification.dto';
 
 export interface NotificationRepository {
   getNotifications(query: NotificationQuery): Observable<NotificationPage>;
+  getNotificationsSince(after: string, afterId?: string): Observable<NotificationCatchUpPage>;
   getUnreadCount(): Observable<number>;
   markAsRead(id: string): Observable<Notification>;
   markAllRead(): Observable<void>;

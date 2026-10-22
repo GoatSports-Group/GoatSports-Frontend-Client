@@ -39,6 +39,15 @@ export class NotificationApi {
     );
   }
 
+  getNotificationsSince(after: string, afterId?: string): Observable<BaseResponse<{ items: Notification[]; hasMore: boolean }>> {
+    let params = new HttpParams().set('after', after);
+    if (afterId) params = params.set('afterId', afterId);
+    return this.http.get<BaseResponse<{ items: Notification[]; hasMore: boolean }>>(
+      `${this.apiBase}/notification-service/api/v1/notifications/since`,
+      { params }
+    );
+  }
+
   getUnreadCount(): Observable<BaseResponse<number>> {
     return this.http.get<BaseResponse<number>>(
       `${this.apiBase}/notification-service/api/v1/notifications/unread-count`
