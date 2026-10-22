@@ -149,9 +149,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
       })
     ).subscribe({
       next: (refreshedUser) => {
-        this.revokeAvatarPreview();
-        this.authService.updateCurrentUser(refreshedUser);
         this.notifyService.success('Đã cập nhật ảnh đại diện.');
+        this.showAvatarWhenReady(refreshedUser);
       },
       error: () => {
         if (avatarPersisted) {
@@ -163,6 +162,28 @@ export class SettingsComponent implements OnInit, OnDestroy {
         this.notifyService.error('Không thể cập nhật ảnh đại diện. Vui lòng thử lại.');
       }
     });
+  }
+
+  /**
+   * Link ảnh mới được lưu ngay nhưng file chỉ được chuyển khỏi temp/ ở nền (vài giây), nên tải sớm sẽ 404. Giữ ảnh
+   * xem trước, thử link thật vài lần; tải được (hoặc hết lượt) mới đổi sang link thật và báo cho thanh trên cùng.
+   */
+  private showAvatarWhenReady(refreshedUser: User, attempt = 1): void {
+    const swap = () => {
+      this.revokeAvatarPreview();
+      this.avatarLoadFailed = false;
+      this.authService.updateCurrentUser(refreshedUser);
+    };
+    if (!refreshedUser.avatarUrl) {
+      swap();
+      return;
+    }
+    const probe = new Image();
+    probe.onload = swap;
+    probe.onerror = () => attempt < 6
+      ? setTimeout(() => this.showAvatarWhenReady(refreshedUser, attempt + 1), 1500)
+      : swap();
+    probe.src = refreshedUser.avatarUrl;
   }
 
   private revokeAvatarPreview(): void {
