@@ -15,9 +15,10 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as L from 'leaflet';
-import { catchError, of, take } from 'rxjs';
+import { Observable, catchError, map, of, take } from 'rxjs';
 import { ExternalVenue, ExternalVenueDemand, Venue, VenueSearchFilter } from '@application/dto/venue/venue.dto';
 import { AuthService } from '@presentation/services/auth.service';
+import { decodePlusCode, parsePlusCode, recoverPlusCode } from '@presentation/shared/utils/plus-code';
 import { VENUE_SEARCH_REPOSITORY_TOKEN } from '@application/ports/persistence/venue-search.repository';
 import { GetStorageFileUrlUseCase } from '@application/usecase/storage/get-storage-file-url.usecase';
 import {
@@ -50,8 +51,6 @@ export class VenueSearchComponent implements OnInit, AfterViewInit, OnDestroy {
   private suggestMarker?: L.CircleMarker;
   private suggestGeocodeTimer?: ReturnType<typeof setTimeout>;
   private suggestGeocodeVersion = 0;
-  /** Ghim do người chơi chạm trên bản đồ: chính xác hơn vị trí đoán từ địa chỉ, nên sửa địa chỉ không dời ghim. */
-  private suggestPointFromMap = false;
 
   private map?: L.Map;
   private markerLayer?: L.LayerGroup;
@@ -364,7 +363,6 @@ export class VenueSearchComponent implements OnInit, AfterViewInit, OnDestroy {
     this.suggestAddress = '';
     this.suggestNote = '';
     this.suggestError = '';
-    this.suggestPointFromMap = false;
     this.suggestLocating = false;
     this.suggestAddressNotFound = false;
     clearTimeout(this.suggestGeocodeTimer);
@@ -373,12 +371,18 @@ export class VenueSearchComponent implements OnInit, AfterViewInit, OnDestroy {
     this.suggestMarker = undefined;
   }
 
-  /** Nhập địa chỉ thay cho chạm bản đồ: dừng gõ 700 ms thì tìm toạ độ và đặt ghim (trừ khi ghim đã do người chơi chạm). */
+  /**
+   * Người chơi gõ địa chỉ thật của sân: thao tác sau cùng thắng, nên bỏ ghim cũ (kể cả ghim tự chạm) và dừng gõ 700 ms
+   * thì tìm toạ độ của địa chỉ để đặt ghim mới. Địa chỉ tự điền sau khi chạm bản đồ không đi qua đây.
+   */
   onSuggestAddressChange(value: string): void {
     this.suggestAddress = value;
     this.suggestAddressNotFound = false;
     clearTimeout(this.suggestGeocodeTimer);
-    if (this.suggestPointFromMap) return;
+    this.suggestGeocodeVersion++;
+    this.suggestPoint = null;
+    this.suggestMarker?.remove();
+    this.suggestMarker = undefined;
     const query = value.trim();
     if (query.length < 5) {
       this.suggestLocating = false;
@@ -434,7 +438,6 @@ export class VenueSearchComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private placeSuggestPoint(latlng: L.LatLng): void {
     if (!this.suggesting || !this.map) return;
-    this.suggestPointFromMap = true;
     this.suggestLocating = false;
     this.suggestAddressNotFound = false;
     clearTimeout(this.suggestGeocodeTimer);
@@ -452,21 +455,41 @@ export class VenueSearchComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private locateSuggestAddress(query: string): void {
     const version = ++this.suggestGeocodeVersion;
-    this.venueSearchRepo.searchLocations(query).pipe(
+    this.geocodeSuggestAddress(query).pipe(
       take(1),
       takeUntilDestroyed(this.destroyRef),
       catchError(() => of(null))
-    ).subscribe(response => {
-      if (version !== this.suggestGeocodeVersion || !this.suggesting || this.suggestPointFromMap) return;
+    ).subscribe(point => {
+      if (version !== this.suggestGeocodeVersion || !this.suggesting) return;
       this.suggestLocating = false;
-      const place = response?.data?.[0];
-      if (!place) {
+      if (!point) {
         this.suggestAddressNotFound = true;
         return;
       }
-      this.markSuggestPoint(place.latitude, place.longitude);
-      this.map?.setView([place.latitude, place.longitude], Math.max(this.map.getZoom(), 16), { animate: true });
+      this.markSuggestPoint(point.latitude, point.longitude);
+      this.map?.setView([point.latitude, point.longitude], Math.max(this.map.getZoom(), 17), { animate: true });
     });
+  }
+
+  /**
+   * Toạ độ của địa chỉ người chơi nhập. Plus Code của Google ("65R8+V65, Nam Nha Trang") thì tự giải mã, vì geocoding
+   * không hiểu dạng này: mã rút gọn lấy phần địa danh phía sau (hoặc tâm bản đồ) làm điểm tham chiếu.
+   */
+  private geocodeSuggestAddress(query: string): Observable<{ latitude: number; longitude: number } | null> {
+    const plusCode = parsePlusCode(query);
+    if (!plusCode) {
+      return this.venueSearchRepo.searchLocations(query).pipe(map(response => response?.data?.[0] ?? null));
+    }
+    if (plusCode.full) return of(decodePlusCode(plusCode.code));
+    const center = this.map?.getCenter();
+    const fallback = center ? recoverPlusCode(plusCode.code, center.lat, center.lng) : null;
+    if (plusCode.locality.length < 3) return of(fallback);
+    return this.venueSearchRepo.searchLocations(plusCode.locality).pipe(
+      map(response => {
+        const reference = response?.data?.[0];
+        return reference ? recoverPlusCode(plusCode.code, reference.latitude, reference.longitude) : fallback;
+      })
+    );
   }
 
   private markSuggestPoint(latitude: number, longitude: number): void {

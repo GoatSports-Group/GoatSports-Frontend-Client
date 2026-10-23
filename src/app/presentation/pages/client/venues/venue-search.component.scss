@@ -655,12 +655,27 @@ app-pagination {
 
 .map-selection__actions {
   display: flex;
-  flex-wrap: wrap;
   gap: .5rem;
 }
 
 .map-selection__actions .map-selection__book {
   flex: 1 1 140px;
+}
+
+/* Thẻ sân ngoài: một nút chính + ⋯ (Chỉ đường, Gọi sân, Website) để hàng nút không rớt dòng. */
+.map-selection__more {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: .8rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--primary-strong);
+  cursor: pointer;
 }
 
 .map-selection__secondary {

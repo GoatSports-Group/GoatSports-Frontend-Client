@@ -263,22 +263,25 @@
             <lucide-icon name="users" class="w-5 h-5"></lucide-icon>
             Tìm người chơi ở sân này
           </a>
-          <a class="map-selection__secondary" [href]="directionsUrl(place)" target="_blank" rel="noopener">
-            <lucide-icon name="navigation" class="w-4 h-4"></lucide-icon>
-            Chỉ đường
-          </a>
-          @if (place.phone) {
-          <a class="map-selection__secondary" [href]="'tel:' + place.phone">
-            <lucide-icon name="phone" class="w-4 h-4"></lucide-icon>
-            Gọi sân
-          </a>
-          }
-          @if (place.website) {
-          <a class="map-selection__secondary" [href]="websiteUrl(place)" target="_blank" rel="noopener nofollow">
-            <lucide-icon name="globe" class="w-4 h-4"></lucide-icon>
-            Website
-          </a>
-          }
+          <button type="button" class="map-selection__more" [matMenuTriggerFor]="externalMenu"
+            aria-label="Thêm thao tác với sân">
+            <lucide-icon name="ellipsis" class="w-5 h-5"></lucide-icon>
+          </button>
+          <mat-menu #externalMenu="matMenu" xPosition="before" class="goat-action-menu">
+            <a mat-menu-item [href]="directionsUrl(place)" target="_blank" rel="noopener">
+              <lucide-icon name="navigation" class="w-4 h-4"></lucide-icon>Chỉ đường
+            </a>
+            @if (place.phone) {
+            <a mat-menu-item [href]="'tel:' + place.phone">
+              <lucide-icon name="phone" class="w-4 h-4"></lucide-icon>Gọi sân
+            </a>
+            }
+            @if (place.website) {
+            <a mat-menu-item [href]="websiteUrl(place)" target="_blank" rel="noopener nofollow">
+              <lucide-icon name="globe" class="w-4 h-4"></lucide-icon>Website
+            </a>
+            }
+          </mat-menu>
         </div>
         @if (place.address || place.openingHours || place.phone) {
         <dl class="map-selection__details">
