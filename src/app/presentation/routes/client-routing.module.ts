@@ -7,6 +7,7 @@ import { NotificationsComponent } from '@presentation/pages/client/notifications
 import { VenueSearchComponent } from '@presentation/pages/client/venues/venue-search.component';
 import { VenueDetailComponent } from '@presentation/pages/client/venues/venue-detail/venue-detail.component';
 import { SavedVenuesComponent } from '@presentation/pages/client/venues/saved-venues/saved-venues.component';
+import { VenueClaimComponent } from '@presentation/pages/client/venues/venue-claim/venue-claim.component';
 import { BookingCreateComponent } from '@presentation/pages/client/booking/booking-create.component';
 import { BookingHistoryComponent } from '@presentation/pages/client/booking/history/booking-history.component';
 import { BookingDetailComponent } from '@presentation/pages/client/booking/detail/booking-detail.component';
@@ -33,6 +34,8 @@ const routes: Routes = [
       { path: 'venues', component: VenueSearchComponent, title: 'Tìm sân đấu | GOAT Sports' },
       { path: 'venues/saved', component: SavedVenuesComponent, canActivate: [AuthGuard], title: 'Sân đã lưu | GOAT Sports' },
       { path: 'venues/:id', component: VenueDetailComponent, title: 'Chi tiết sân | GOAT Sports' },
+      // Trang đích của lời mời admin gửi cho chủ sân ngoài hệ thống: công khai, chủ sân chưa có tài khoản.
+      { path: 'claim/:externalVenueId', component: VenueClaimComponent, title: 'Nhận quản lý sân | GOAT Sports' },
       { path: 'booking/create', component: BookingCreateComponent, canActivate: [AuthGuard], title: 'Đặt sân | GOAT Sports' },
       { path: 'booking/history', component: BookingHistoryComponent, canActivate: [AuthGuard], title: 'Lịch sử đặt sân | GOAT Sports' },
       { path: 'booking/detail/:id', component: BookingDetailComponent, canActivate: [AuthGuard], title: 'Chi tiết đặt sân | GOAT Sports' },

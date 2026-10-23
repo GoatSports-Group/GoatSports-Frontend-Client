@@ -53,6 +53,8 @@ export interface ExternalVenue {
 export interface ExternalVenueDemand {
   wantCount: number;
   wanted: boolean;
+  /** Kèo ghép trận đã hoàn tất ở sân (trang lời mời cho chủ sân xem). */
+  matchCount: number;
 }
 
 /** Người chơi gợi ý một sân còn thiếu trên bản đồ; admin duyệt rồi sân mới hiện. */

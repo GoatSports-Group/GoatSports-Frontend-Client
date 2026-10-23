@@ -20,6 +20,7 @@ import { SettingsSecurityTabComponent } from '@presentation/pages/client/setting
 import { SettingsSportsTabComponent } from '@presentation/pages/client/settings/tabs/sports/settings-sports-tab.component';
 import { SettingsBankingTabComponent } from '@presentation/pages/client/settings/tabs/banking/settings-banking-tab.component';
 import { VenueSearchComponent } from '@presentation/pages/client/venues/venue-search.component';
+import { VenueClaimComponent } from '@presentation/pages/client/venues/venue-claim/venue-claim.component';
 import { VenueCardComponent } from '@presentation/pages/client/venues/venue-card/venue-card.component';
 import { VenueDetailComponent } from '@presentation/pages/client/venues/venue-detail/venue-detail.component';
 import { VenueFacilityLayoutViewComponent } from '@presentation/pages/client/venues/venue-detail/venue-facility-layout-view.component';
@@ -79,6 +80,7 @@ import { AiAssistantModalComponent } from '@presentation/shared/components/ai-as
     SettingsSportsTabComponent,
     SettingsBankingTabComponent,
     VenueSearchComponent,
+    VenueClaimComponent,
     VenueCardComponent,
     VenueDetailComponent,
     BookingCreateComponent,

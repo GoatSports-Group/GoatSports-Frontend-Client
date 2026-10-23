@@ -1,0 +1,50 @@
+<main class="claim">
+  @if (loading) {
+  <section class="claim__card claim__card--loading" aria-busy="true">
+    <span class="claim__shimmer claim__shimmer--title"></span>
+    <span class="claim__shimmer"></span>
+    <span class="claim__shimmer"></span>
+  </section>
+  } @else if (notFound || !venue) {
+  <section class="claim__card claim__empty">
+    <lucide-icon name="map-pin" class="w-8 h-8"></lucide-icon>
+    <h1>Không tìm thấy sân</h1>
+    <p>Link mời có thể đã cũ. Liên hệ GOAT Sports để được gửi lại.</p>
+    <a class="claim__secondary" routerLink="/venues">Xem bản đồ sân</a>
+  </section>
+  } @else {
+  <section class="claim__card">
+    <span class="claim__eyebrow">Lời mời từ GOAT Sports</span>
+    <h1>{{ venue.name }}</h1>
+    <p class="claim__meta">{{ sportsOf(venue) }}@if (venue.address) { · {{ venue.address }} }</p>
+
+    <div class="claim__stats">
+      <div>
+        <strong>{{ demand?.wantCount ?? 0 }}</strong>
+        <span>người chơi muốn đặt sân này online</span>
+      </div>
+      <div>
+        <strong>{{ demand?.matchCount ?? 0 }}</strong>
+        <span>trận đã được hẹn chơi tại sân</span>
+      </div>
+    </div>
+
+    <h2>Nhận quản lý sân miễn phí</h2>
+    <ul class="claim__benefits">
+      <li><lucide-icon name="calendar-check" class="w-5 h-5"></lucide-icon>Nhận đặt sân online theo khung giờ trống</li>
+      <li><lucide-icon name="wallet" class="w-5 h-5"></lucide-icon>Thu cọc qua PayOS, tiền về tài khoản của bạn</li>
+      <li><lucide-icon name="qr-code" class="w-5 h-5"></lucide-icon>Khách check-in bằng mã QR, không lo đặt trùng</li>
+      <li><lucide-icon name="users" class="w-5 h-5"></lucide-icon>Người chơi gần sân thấy sân của bạn khi tìm sân và ghép trận</li>
+    </ul>
+
+    <div class="claim__actions">
+      <a class="claim__primary" [href]="registerUrl">
+        <lucide-icon name="store" class="w-5 h-5"></lucide-icon>Đăng ký làm chủ sân
+      </a>
+      <a class="claim__secondary" [href]="loginUrl">Đã có tài khoản chủ sân? Đăng nhập</a>
+    </div>
+    <p class="claim__note">Sau khi đăng ký, bạn gửi hồ sơ chủ sân (CCCD, giấy phép kinh doanh, ảnh sân). GOAT Sports
+      duyệt xong thì sân lên bản đồ với nút đặt sân online.</p>
+  </section>
+  }
+</main>
