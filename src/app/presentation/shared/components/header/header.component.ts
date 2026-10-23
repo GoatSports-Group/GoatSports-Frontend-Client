@@ -145,6 +145,9 @@ export class HeaderComponent implements OnInit {
       case 'MESSAGE':
         void this.router.navigate(['/chat']);
         break;
+      case 'VENUE':
+        void this.router.navigate(referenceId ? ['/venues', referenceId] : ['/venues']);
+        break;
       case 'CLUB':
       case 'CLUB_ACTIVITY':
         void this.router.navigate(referenceId ? ['/clubs', referenceId] : ['/clubs/my']);

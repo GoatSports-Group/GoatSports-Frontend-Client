@@ -12,6 +12,13 @@
     <p>Link mời có thể đã cũ. Liên hệ GOAT Sports để được gửi lại.</p>
     <a class="claim__secondary" routerLink="/venues">Xem bản đồ sân</a>
   </section>
+  } @else if (venue.claimedVenueId) {
+  <section class="claim__card claim__empty">
+    <lucide-icon name="circle-check" class="w-8 h-8"></lucide-icon>
+    <h1>{{ venue.name }} đã nhận đặt online</h1>
+    <p>Sân đã có chủ quản lý trên GOAT Sports.</p>
+    <a class="claim__primary" [routerLink]="['/venues', venue.claimedVenueId]">Xem sân và đặt lịch</a>
+  </section>
   } @else {
   <section class="claim__card">
     <span class="claim__eyebrow">Lời mời từ GOAT Sports</span>
@@ -39,12 +46,13 @@
 
     <div class="claim__actions">
       <a class="claim__primary" [href]="registerUrl">
-        <lucide-icon name="store" class="w-5 h-5"></lucide-icon>Đăng ký làm chủ sân
+        <lucide-icon name="store" class="w-5 h-5"></lucide-icon>Nhận quản lý sân này
       </a>
       <a class="claim__secondary" [href]="loginUrl">Đã có tài khoản chủ sân? Đăng nhập</a>
     </div>
-    <p class="claim__note">Sau khi đăng ký, bạn gửi hồ sơ chủ sân (CCCD, giấy phép kinh doanh, ảnh sân). GOAT Sports
-      duyệt xong thì sân lên bản đồ với nút đặt sân online.</p>
+    <p class="claim__note">Tạo tài khoản chủ sân, rồi gửi hồ sơ đã điền sẵn thông tin của sân này kèm CCCD, giấy phép
+      kinh doanh và ảnh sân. GOAT Sports duyệt xong thì sân thành cơ sở của bạn; khi bạn mở đặt sân online, những người
+      chơi đang chờ nhận được thông báo.</p>
   </section>
   }
 </main>

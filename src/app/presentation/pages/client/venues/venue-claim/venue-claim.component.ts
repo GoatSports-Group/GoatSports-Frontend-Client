@@ -13,8 +13,9 @@ const SPORT_LABELS: Record<string, string> = {
 
 /**
  * Trang đích của lời mời admin gửi cho chủ sân ngoài hệ thống (`/claim/{externalVenueId}`, công khai): sân nào, bao nhiêu
- * người chơi đang chờ đặt online, bao nhiêu kèo đã chơi ở đó, và nút đăng ký tài khoản chủ sân. Gắn hồ sơ chủ sân với
- * đúng sân này ("nhận quản lý sân") là bước sau; hiện nút dẫn vào đăng ký chủ sân thường.
+ * người chơi đang chờ đặt online, bao nhiêu kèo đã chơi ở đó, và nút "Nhận quản lý sân này". Nút dẫn qua đăng ký
+ * (hoặc đăng nhập) chủ sân rồi về `/admin/applications?claim={id}`: hồ sơ chủ sân điền sẵn từ sân này, duyệt xong sân
+ * chuyển thành cơ sở của họ.
  */
 @Component({
   selector: 'app-venue-claim',
@@ -27,8 +28,8 @@ export class VenueClaimComponent implements OnInit {
   private readonly venueSearchRepo = inject(VENUE_SEARCH_REPOSITORY_TOKEN);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly registerUrl = `${environment.authApiUrl}/register?accountType=VENUE_OWNER`;
-  readonly loginUrl = `${environment.authApiUrl}/login`;
+  registerUrl = '';
+  loginUrl = '';
 
   venue: ExternalVenue | null = null;
   demand: ExternalVenueDemand | null = null;
@@ -37,6 +38,10 @@ export class VenueClaimComponent implements OnInit {
 
   ngOnInit(): void {
     const venueId = this.route.snapshot.paramMap.get('externalVenueId') ?? '';
+    // Đăng ký / đăng nhập xong thì app auth đưa chủ sân về đúng form hồ sơ nhận sân này (auth chỉ nhận đích trong admin).
+    const claimUrl = encodeURIComponent(`${environment.adminApiUrl}/admin/applications?claim=${venueId}`);
+    this.registerUrl = `${environment.authApiUrl}/register?accountType=VENUE_OWNER&redirect=${claimUrl}`;
+    this.loginUrl = `${environment.authApiUrl}/login?redirect=${claimUrl}`;
     forkJoin({
       venue: this.venueSearchRepo.getExternalVenue(venueId).pipe(catchError(() => of(null))),
       demand: this.venueSearchRepo.getExternalVenueDemand(venueId).pipe(catchError(() => of(null)))

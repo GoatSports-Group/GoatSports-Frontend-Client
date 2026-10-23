@@ -309,6 +309,8 @@ export class NotificationsComponent implements OnInit {
     const id = notification.referenceId;
     switch ((notification.referenceType || '').toUpperCase()) {
       case 'BOOKING': return id ? ['/booking/detail', id] : ['/booking/history'];
+      // Sân ngoài người chơi muốn đặt online đã có chủ nhận quản lý: mở cơ sở mới.
+      case 'VENUE': return id ? ['/venues', id] : ['/venues'];
       case 'MESSAGE': return ['/chat'];
       case 'CLUB': return id ? ['/clubs', id] : ['/clubs'];
       case 'CLUB_DISBANDED': return ['/clubs'];

@@ -47,6 +47,8 @@ export interface ExternalVenue {
   website?: string | null;
   openingHours?: string | null;
   source: string;
+  /** Chủ sân đã nhận quản lý: cơ sở đối tác thay cho sân ngoài này (link cũ chuyển sang đây). */
+  claimedVenueId?: string | null;
 }
 
 /** Bao nhiêu người chơi muốn đặt sân ngoài này online; `wanted` false khi chưa đăng nhập. */
