@@ -6,7 +6,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, Subscription, finalize, timeout } from 'rxjs';
+import { Observable, Subscription, finalize, map, take, timeout } from 'rxjs';
 import { SpringPageResponse } from '@application/dto/base/base-response';
 import { FollowSuggestion, PostSport, SocialPost, TrendingTag } from '@application/dto/social-feed/social-feed.dto';
 import { PlayerSportProfile } from '@application/dto/player-sport-profile/player-sport-profile.dto';
@@ -18,6 +18,8 @@ import { skillLabel } from '@presentation/pages/client/clubs/scouting-view.model
 import { CommunityStore } from './community.store';
 import { FEED_TABS, FeedTab, POST_SPORTS, sportLabel } from './community-view';
 import { PlayerCallPrefill } from './post-composer.component';
+import { PlayerCallVenue } from '@application/dto/social-feed/social-feed.dto';
+import { VENUE_SEARCH_REPOSITORY_TOKEN } from '@application/ports/persistence/venue-search.repository';
 
 const FEED_PAGE = PAGE_SIZE.stream;
 /** So keo trong cac the "Keo cua toi" / "Keo hop voi ban". */
@@ -56,6 +58,7 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly postDialog = inject(PostDialogService);
+  private readonly venues = inject(VENUE_SEARCH_REPOSITORY_TOKEN);
   readonly auth = inject(AuthService);
   readonly store = inject(CommunityStore);
 
@@ -172,6 +175,7 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
       if (params.get('compose') === 'find-players') {
         this.callPrefill.set({ sport: this.sport(), format: params.get('format') });
         this.composerKind.set('CALL');
+        this.prefillVenue(params.get('venue'));
       }
       // Chi tai lai khi bo loc doi; bo `?compose=` sau khi dang khong duoc xoa bai vua chen vao dau danh sach.
       const key = [this.tab(), this.sport(), this.mineOnly(), this.authorId(), this.tag()].join('|');
@@ -248,6 +252,31 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
   }
 
   /** "Tao keo" tu the Keo cua toi: mo hop thoai soan keo ngay tai cho. */
+  /**
+   * "Tim nguoi choi o san nay" tu ban do: `?venue=external:<id>` hoac `partner:<id>`. Lay ten / toa do tu venue-service
+   * chu khong tin gia tri tren URL.
+   */
+  private prefillVenue(param: string | null): void {
+    const [kind, id] = (param ?? '').split(':');
+    if (!id || (kind !== 'external' && kind !== 'partner')) return;
+    const request = kind === 'external'
+      ? this.venues.getExternalVenue(id).pipe(map(response => response.data && {
+        kind: 'EXTERNAL', venueId: response.data.externalVenueId, name: response.data.name,
+        latitude: response.data.latitude, longitude: response.data.longitude
+      } as PlayerCallVenue))
+      : this.venues.getVenueDetails(id).pipe(map(response => response.data && response.data.latitude != null
+        && response.data.longitude != null ? {
+          kind: 'PARTNER', venueId: response.data.venueId, name: response.data.name,
+          latitude: Number(response.data.latitude), longitude: Number(response.data.longitude)
+        } as PlayerCallVenue : null));
+    request.pipe(take(1), takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: venue => {
+        if (venue) this.callPrefill.update(current => ({ sport: current?.sport ?? null, format: current?.format ?? null, venue }));
+      },
+      error: () => undefined
+    });
+  }
+
   composeCall(): void {
     this.composerKind.set('CALL');
   }

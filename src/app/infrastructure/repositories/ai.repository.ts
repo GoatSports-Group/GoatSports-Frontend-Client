@@ -76,7 +76,7 @@ export class AiRepository extends AiRepositoryPort {
     );
   }
 
-  override selectMatchVenue(sessionId: string, venueId: string, venueCourtId: string): Observable<MatchmakingSessionModel> {
+  override selectMatchVenue(sessionId: string, venueId: string, venueCourtId?: string): Observable<MatchmakingSessionModel> {
     return this.http.post<MatchmakingSessionModel>(`${this.baseUrl}/matchmaking/sessions/${sessionId}/venue`, {
       venueId,
       venueCourtId

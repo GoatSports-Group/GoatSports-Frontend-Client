@@ -133,6 +133,51 @@
   grid-column: 1 / -1;
 }
 
+/* San da chon tren ban do (hoac link de chon). */
+.call-venue {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 6px;
+  padding: 4px 6px 4px 10px;
+  border-radius: 999px;
+  background: var(--primary-light);
+  color: var(--primary-strong);
+  font-size: 12.5px;
+  font-weight: 700;
+
+  > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.call-venue__clear {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+
+  &:hover { background: color-mix(in srgb, currentColor 12%, transparent); }
+}
+
+.call-venue__pick {
+  width: fit-content;
+  margin-top: 6px;
+  color: var(--primary);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
 .call-field--time {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;

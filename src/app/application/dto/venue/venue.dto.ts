@@ -34,3 +34,26 @@ export interface GeocodingResult {
   title: string;
   address: string;
 }
+
+/** Sân ngoài thực tế (OpenStreetMap) chưa tham gia GOAT Sports: tìm, chỉ đường, rủ nhau chơi; không đặt online. */
+export interface ExternalVenue {
+  externalVenueId: string;
+  name: string;
+  sportTypes: string[];
+  latitude: number;
+  longitude: number;
+  address?: string | null;
+  phone?: string | null;
+  website?: string | null;
+  openingHours?: string | null;
+  source: string;
+}
+
+export interface ExternalVenueQuery {
+  south: number;
+  west: number;
+  north: number;
+  east: number;
+  sportType?: string;
+  keyword?: string;
+}

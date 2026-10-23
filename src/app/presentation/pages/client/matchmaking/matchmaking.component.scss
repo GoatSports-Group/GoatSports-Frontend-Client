@@ -2356,3 +2356,23 @@ button:focus-visible {
   .ai-insight__line { animation: none; }
 }
 
+
+// Sân ngoài hệ thống (OpenStreetMap): xám như pin trên bản đồ, liên hệ qua điện thoại / chỉ đường.
+.venue-options article .venue-external-badge { color: #475569; font-weight: 800; }
+.venue-options article .venue-external-links,
+.venue-proposal .venue-external-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  grid-column: 1 / -1;
+}
+.venue-external-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.venue-proposal--offline { cursor: default; }

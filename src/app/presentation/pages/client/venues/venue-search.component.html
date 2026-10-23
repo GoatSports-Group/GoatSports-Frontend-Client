@@ -136,7 +136,12 @@
         <lucide-icon name="search" class="w-10 h-10"></lucide-icon>
         <div>
           <h2>Không tìm thấy sân phù hợp</h2>
+          @if (externalVenues.length) {
+          <p>Chưa có cơ sở nhận đặt online ở đây, nhưng bản đồ có {{ externalVenues.length }} sân ngoài hệ thống (ghim
+            xám). Rủ bạn chơi trên GOAT Sports rồi liên hệ sân để đặt.</p>
+          } @else {
           <p>Hãy thay đổi khu vực, khoảng giá hoặc mở rộng bán kính tìm kiếm.</p>
+          }
         </div>
         <button type="button" (click)="resetFilters()">Đặt lại bộ lọc</button>
       </section>
@@ -149,8 +154,74 @@
         <lucide-icon name="circle-check" class="w-4 h-4"></lucide-icon>
         Tìm kiếm trong vùng hiển thị
       </button>
+      <button type="button" class="map-external-toggle" [class.active]="showExternal" [attr.aria-pressed]="showExternal"
+        (click)="toggleExternal()">
+        <span class="map-external-toggle__dot" aria-hidden="true"></span>
+        @if (!showExternal) { Hiện sân ngoài hệ thống }
+        @else if (externalTooFar) { Phóng to để xem sân ngoài hệ thống }
+        @else { Sân ngoài hệ thống ({{ externalVenues.length }}) }
+      </button>
 
-      @if (selectedVenue; as venue) {
+      @if (selectedExternal; as place) {
+      <article class="map-selection map-selection--external" aria-label="Sân ngoài hệ thống">
+        <button type="button" class="map-selection__close" aria-label="Đóng thông tin sân"
+          (click)="clearExternalSelection()">
+          <lucide-icon name="x" class="w-4 h-4"></lucide-icon>
+        </button>
+        <span class="map-selection__badge">Chưa tham gia GOAT Sports</span>
+        <h2>{{ place.name }}</h2>
+        <div class="map-selection__tags">
+          @for (label of externalSportLabels(place); track label) { <span>{{ label }}</span> }
+        </div>
+        <p class="map-selection__note">Sân chưa nhận đặt online. Rủ bạn chơi trên GOAT Sports rồi liên hệ sân để đặt.</p>
+        <div class="map-selection__actions">
+          <a class="map-selection__book" routerLink="/feed"
+            [queryParams]="{ tab: 'calls', compose: 'find-players', venue: 'external:' + place.externalVenueId, sport: place.sportTypes[0] }">
+            <lucide-icon name="users" class="w-5 h-5"></lucide-icon>
+            Tìm người chơi ở sân này
+          </a>
+          <a class="map-selection__secondary" [href]="directionsUrl(place)" target="_blank" rel="noopener">
+            <lucide-icon name="navigation" class="w-4 h-4"></lucide-icon>
+            Chỉ đường
+          </a>
+          @if (place.phone) {
+          <a class="map-selection__secondary" [href]="'tel:' + place.phone">
+            <lucide-icon name="phone" class="w-4 h-4"></lucide-icon>
+            Gọi sân
+          </a>
+          }
+          @if (place.website) {
+          <a class="map-selection__secondary" [href]="websiteUrl(place)" target="_blank" rel="noopener nofollow">
+            <lucide-icon name="globe" class="w-4 h-4"></lucide-icon>
+            Website
+          </a>
+          }
+        </div>
+        @if (place.address || place.openingHours || place.phone) {
+        <dl class="map-selection__details">
+          @if (place.address) {
+          <div>
+            <dt><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon></dt>
+            <dd>{{ place.address }}</dd>
+          </div>
+          }
+          @if (place.openingHours) {
+          <div>
+            <dt><lucide-icon name="clock-3" class="w-4 h-4"></lucide-icon></dt>
+            <dd>Giờ mở cửa: {{ place.openingHours }}</dd>
+          </div>
+          }
+          @if (place.phone) {
+          <div>
+            <dt><lucide-icon name="phone" class="w-4 h-4"></lucide-icon></dt>
+            <dd>{{ place.phone }}</dd>
+          </div>
+          }
+        </dl>
+        }
+        <small class="map-selection__source">Dữ liệu sân: © OpenStreetMap contributors</small>
+      </article>
+      } @else if (selectedVenue; as venue) {
       <article class="map-selection">
         <button type="button" class="map-selection__close" aria-label="Đóng thông tin sân"
           (click)="clearVenueSelection()">
@@ -194,7 +265,7 @@
           </div>
         </dl>
       </article>
-      } @else if (!loading && venues.length) {
+      } @else if (!loading && (venues.length || externalVenues.length)) {
       <div class="map-empty map-empty--floating">
         <lucide-icon name="map-pin" class="w-6 h-6"></lucide-icon>
         <span>Chọn một sân để xem thông tin.</span>

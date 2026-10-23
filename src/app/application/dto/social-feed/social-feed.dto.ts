@@ -38,6 +38,16 @@ export interface PlayerCall {
   clubId: string | null;
   clubName: string | null;
   filled: boolean;
+  /** San cu the chon tren ban do: co so doi tac (dat online) hoac san ngoai he thong (OpenStreetMap). */
+  venue: PlayerCallVenue | null;
+}
+
+export interface PlayerCallVenue {
+  kind: 'PARTNER' | 'EXTERNAL';
+  venueId: string;
+  name: string;
+  latitude: number;
+  longitude: number;
 }
 
 export type SavePlayerCallRequest = Omit<PlayerCall, 'clubName' | 'filled'>;

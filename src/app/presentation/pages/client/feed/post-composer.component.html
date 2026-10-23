@@ -41,6 +41,17 @@
       <label class="call-field call-field--wide">
         <span>Khu vực / sân</span>
         <input type="text" maxlength="200" placeholder="Sân Chảo Lửa, Tân Bình" [ngModel]="callLocation()" (ngModelChange)="callLocation.set($event)" />
+        @if (callVenue(); as venue) {
+        <span class="call-venue">
+          <lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>
+          <span>{{ venue.name }} · {{ venue.kind === 'PARTNER' ? 'đặt online được' : 'sân ngoài hệ thống' }}</span>
+          <button type="button" class="call-venue__clear" aria-label="Bỏ sân đã chọn" (click)="clearVenue()">
+            <lucide-icon name="x" class="w-3 h-3"></lucide-icon>
+          </button>
+        </span>
+        } @else {
+        <a class="call-venue__pick" routerLink="/venues">Chọn sân trên bản đồ</a>
+        }
       </label>
       <label class="call-field">
         <span>Còn thiếu (người)</span>

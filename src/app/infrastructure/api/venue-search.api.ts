@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { GeocodingResult, Venue, VenueSearchFilter } from '@application/dto/venue/venue.dto';
+import { ExternalVenue, ExternalVenueQuery, GeocodingResult, Venue, VenueSearchFilter } from '@application/dto/venue/venue.dto';
 import { BaseResponse, PageResult } from '@application/dto/base/base-response';
 import { TimeSlot } from '@application/dto/booking/booking.dto';
 import { API_ENDPOINTS } from '@infrastructure/config/api-endpoints';
@@ -69,5 +69,20 @@ export class VenueSearchApi {
       `${this.apiBase}/venues/geocoding/reverse`,
       { params }
     );
+  }
+
+  searchExternalVenues(query: ExternalVenueQuery): Observable<BaseResponse<ExternalVenue[]>> {
+    let params = new HttpParams()
+      .set('south', query.south.toString())
+      .set('west', query.west.toString())
+      .set('north', query.north.toString())
+      .set('east', query.east.toString());
+    if (query.sportType && query.sportType !== 'all') params = params.set('sportType', query.sportType);
+    if (query.keyword?.trim()) params = params.set('keyword', query.keyword.trim());
+    return this.http.get<BaseResponse<ExternalVenue[]>>(`${this.apiBase}/venues/external`, { params });
+  }
+
+  getExternalVenue(externalVenueId: string): Observable<BaseResponse<ExternalVenue>> {
+    return this.http.get<BaseResponse<ExternalVenue>>(`${this.apiBase}/venues/external/${externalVenueId}`);
   }
 }

@@ -733,6 +733,27 @@
           đặt cọc' }}</span>
       </header>
       @for (venue of match.proposal!.venueOptions; track venue.venueId) {
+      @if (venue.external) {
+      <article class="venue-option--external">
+        <div><strong>{{ venue.venueName }}</strong><small>{{ venue.address || 'Chưa có địa chỉ' }}</small></div>
+        <span><b class="venue-external-badge">Sân ngoài hệ thống</b> · {{ venue.distanceKm | number:'1.0-1' }} km</span>
+        <p>{{ venue.matchReason }}</p>
+        <div class="venue-external-links">
+          @if (venue.phone) {
+          <a [href]="'tel:' + venue.phone"><lucide-icon name="phone" class="w-4 h-4"></lucide-icon>{{ venue.phone }}</a>
+          }
+          @if (directionsUrl(venue); as url) {
+          <a [href]="url" target="_blank" rel="noopener"><lucide-icon name="navigation" class="w-4 h-4"></lucide-icon>Chỉ
+            đường</a>
+          }
+        </div>
+        <button type="button" class="button button-secondary"
+          [disabled]="isHistory(match) || !isDesignatedBooker(match) || actionLoading()"
+          (click)="chooseVenue(venue)">
+          {{ isDesignatedBooker(match) ? 'Đã gọi đặt được · Chốt sân này' : 'Chờ người đặt chốt sân' }}
+        </button>
+      </article>
+      } @else {
       <article>
         <div><strong>{{ venue.venueName }}</strong><small>{{ venue.address }}</small></div>
         <span>@if (venue.slotStart && venue.slotEnd) {<b class="venue-slot">Thi đấu {{ hhmm(venue.slotStart) }}–{{
@@ -741,10 +762,11 @@
         <p>{{ venue.matchReason }}</p>
         <button type="button" class="button button-secondary"
           [disabled]="isHistory(match) || !isDesignatedBooker(match) || !venue.venueCourtId || actionLoading()"
-          (click)="chooseVenue(venue.venueId, venue.venueCourtId)">
+          (click)="chooseVenue(venue)">
           {{ isDesignatedBooker(match) ? 'Chọn sân' : 'Chờ người đặt cọc chọn' }}
         </button>
       </article>
+      }
       }
     </section>
     } @else if (match.status === 'ACCEPTED' && match.proposal) {
@@ -788,7 +810,25 @@
     </section>
     }
 
-    @if (match.proposal?.venueId) {
+    @if (offlineVenue(match); as venue) {
+    <div class="venue-proposal venue-proposal--offline">
+      <lucide-icon name="badge-check" class="w-6 h-6"></lucide-icon>
+      <span>
+        <strong>{{ venue.venueName }}</strong>
+        <small>Sân ngoài hệ thống · {{ venue.address || 'liên hệ sân để biết địa chỉ' }}. Không cần cọc hay check-in;
+          sau trận cả hai bên nhập cùng tỷ số để tính ELO.</small>
+        <span class="venue-external-links">
+          @if (venue.phone) {
+          <a [href]="'tel:' + venue.phone"><lucide-icon name="phone" class="w-4 h-4"></lucide-icon>{{ venue.phone }}</a>
+          }
+          @if (directionsUrl(venue); as url) {
+          <a [href]="url" target="_blank" rel="noopener"><lucide-icon name="navigation" class="w-4 h-4"></lucide-icon>Chỉ
+            đường</a>
+          }
+        </span>
+      </span>
+    </div>
+    } @else if (match.proposal?.venueId) {
     <button type="button" class="venue-proposal" (click)="openVenue(match)">
       <lucide-icon [name]="match.status === 'CONFIRMED' ? 'badge-check' : 'map-pinned'" class="w-6 h-6"></lucide-icon>
       <span>
@@ -824,8 +864,23 @@
         Chấp nhận kèo
       </button>
     </div>
+    } @else if (match.status === 'CONFIRMED' && isOffline(match) && !canEnterResult(match)) {
+    <p class="result-deadline-note" data-state="WAITING_OPPONENT">
+      <lucide-icon name="clock-3" class="w-4 h-4"></lucide-icon>
+      {{ matchInProgressLabel(match) }}
+    </p>
+    <div class="decision-actions">
+      <button type="button" class="button button-danger" [disabled]="isHistory(match) || actionLoading()"
+        (click)="cancelMatch()">
+        Hủy kèo
+      </button>
+      <button type="button" class="button button-primary" [disabled]="!canOpenChat(match)" (click)="openChat(match)">
+        <lucide-icon name="message-circle" class="w-5 h-5"></lucide-icon>
+        Mở trò chuyện
+      </button>
+    </div>
     } @else if (match.status === 'ACCEPTED' || match.status === 'VENUE_SELECTED' || match.status ===
-    'BOOKING_PENDING' || match.status === 'CONFIRMED') {
+    'BOOKING_PENDING' || (match.status === 'CONFIRMED' && !isOffline(match))) {
     <div class="decision-actions">
       <button type="button" class="button button-secondary"
         [disabled]="match.status === 'ACCEPTED' ? (isHistory(match) || actionLoading()) : !match.proposal?.venueId"
@@ -855,7 +910,7 @@
       <lucide-icon name="message-circle" class="w-5 h-5"></lucide-icon>
       Mở trò chuyện
     </button>
-    } @else if (match.status === 'CHECKED_IN' || match.status === 'RESULT_PENDING' || match.status === 'DISPUTED') {
+    } @else if (inResultPhase(match)) {
     <section class="result-entry">
       <header><strong>{{ match.status === 'DISPUTED' ? 'Kết quả chưa trùng khớp' : 'Nhập kết quả trận đấu'
           }}</strong><span>Mỗi người nhập độc lập; hệ thống chỉ chốt khi hai kết quả giống nhau.</span></header>

@@ -16,7 +16,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as L from 'leaflet';
 import { catchError, of, take } from 'rxjs';
-import { Venue, VenueSearchFilter } from '@application/dto/venue/venue.dto';
+import { ExternalVenue, Venue, VenueSearchFilter } from '@application/dto/venue/venue.dto';
 import { VENUE_SEARCH_REPOSITORY_TOKEN } from '@application/ports/persistence/venue-search.repository';
 import { GetStorageFileUrlUseCase } from '@application/usecase/storage/get-storage-file-url.usecase';
 import {
@@ -26,6 +26,8 @@ import {
 
 type VenueSort = 'distance' | 'rating' | 'price';
 const MAX_EARTH_SURFACE_DISTANCE_KM = 20_050;
+/** Trùng giới hạn của venue-service: bản đồ rộng hơn thì không tải sân ngoài hệ thống. */
+const MAX_EXTERNAL_SPAN_DEGREES = 3;
 
 @Component({
   selector: 'app-venue-search',
@@ -47,6 +49,10 @@ export class VenueSearchComponent implements OnInit, AfterViewInit, OnDestroy {
   private map?: L.Map;
   private markerLayer?: L.LayerGroup;
   private readonly venueMarkers = new Map<string, L.CircleMarker>();
+  private externalLayer?: L.LayerGroup;
+  private readonly externalMarkers = new Map<string, L.CircleMarker>();
+  private externalLoadTimer?: ReturnType<typeof setTimeout>;
+  private externalSearchVersion = 0;
   private mapResizeObserver?: ResizeObserver;
   private selectedImageKey = '';
   private venueSearchVersion = 0;
@@ -76,6 +82,12 @@ export class VenueSearchComponent implements OnInit, AfterViewInit, OnDestroy {
   paging = false;
   sortBy: VenueSort = 'distance';
   filter: VenueSearchFilter = this.emptyFilter();
+
+  /** Sân ngoài hệ thống (OpenStreetMap) trong khung bản đồ: chưa đặt online được, nhưng chỉ đường / rủ chơi được. */
+  externalVenues: ExternalVenue[] = [];
+  selectedExternal: ExternalVenue | null = null;
+  showExternal = true;
+  externalTooFar = false;
 
   ngOnInit(): void {
     this.route.queryParamMap
@@ -110,6 +122,7 @@ export class VenueSearchComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    clearTimeout(this.externalLoadTimer);
     this.mapResizeObserver?.disconnect();
     this.map?.remove();
   }
@@ -126,6 +139,7 @@ export class VenueSearchComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   loadVenues(): void {
+    this.scheduleExternalLoad();
     const searchVersion = ++this.venueSearchVersion;
     this.loading = !this.paging;
     this.errorMessage = '';
@@ -235,6 +249,10 @@ export class VenueSearchComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   selectVenue(venue: Venue, focusMap = true): void {
+    if (this.selectedExternal) {
+      this.selectedExternal = null;
+      this.renderExternalMarkers();
+    }
     if (this.selectedVenue?.venueId === venue.venueId) return;
     this.selectedVenue = venue;
     this.resolveSelectedVenueImage(venue);
@@ -250,6 +268,41 @@ export class VenueSearchComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedVenue = null;
     this.selectedVenueImage = VENUE_PLACEHOLDER_IMAGE;
     this.renderMapMarkers(false);
+  }
+
+  toggleExternal(): void {
+    this.showExternal = !this.showExternal;
+    if (this.showExternal) {
+      this.scheduleExternalLoad();
+      return;
+    }
+    this.externalVenues = [];
+    this.selectedExternal = null;
+    this.renderExternalMarkers();
+  }
+
+  selectExternal(venue: ExternalVenue): void {
+    this.selectedExternal = venue;
+    this.renderExternalMarkers();
+  }
+
+  clearExternalSelection(): void {
+    this.selectedExternal = null;
+    this.renderExternalMarkers();
+  }
+
+  directionsUrl(venue: ExternalVenue): string {
+    return `https://www.google.com/maps/dir/?api=1&destination=${venue.latitude},${venue.longitude}`;
+  }
+
+  /** OSM hay ghi website thiếu giao thức (vd "facebook.com/sanabc"). */
+  websiteUrl(venue: ExternalVenue): string {
+    const website = venue.website?.trim() || '';
+    return /^https?:\/\//i.test(website) ? website : `https://${website}`;
+  }
+
+  externalSportLabels(venue: ExternalVenue): string[] {
+    return venue.sportTypes.map(sport => this.sportOptions.find(option => option.value === sport)?.label || sport);
   }
 
   onSelectedImageError(): void {
@@ -315,13 +368,89 @@ export class VenueSearchComponent implements OnInit, AfterViewInit, OnDestroy {
       keepBuffer: 2,
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(this.map);
+    // Ghim sân ngoài nằm dưới ghim cơ sở đối tác.
+    this.externalLayer = L.layerGroup().addTo(this.map);
     this.markerLayer = L.layerGroup().addTo(this.map);
+    this.map.on('moveend', () => this.zone.run(() => this.scheduleExternalLoad()));
     this.mapResizeObserver = new ResizeObserver(() => this.map?.invalidateSize({ pan: false }));
     this.mapResizeObserver.observe(element);
     const viewportBounds = this.getViewportBounds();
     if (viewportBounds) this.map.fitBounds(viewportBounds, { animate: false });
     this.renderMapMarkers(true);
+    this.scheduleExternalLoad();
     requestAnimationFrame(() => this.map?.invalidateSize({ pan: false }));
+  }
+
+  /** Kéo / phóng bản đồ liên tục chỉ gọi một lần khi dừng. */
+  private scheduleExternalLoad(): void {
+    clearTimeout(this.externalLoadTimer);
+    this.externalLoadTimer = setTimeout(() => this.loadExternalVenues(), 350);
+  }
+
+  private loadExternalVenues(): void {
+    if (!this.map || !this.showExternal) return;
+    const bounds = this.map.getBounds();
+    this.externalTooFar = bounds.getNorth() - bounds.getSouth() > MAX_EXTERNAL_SPAN_DEGREES
+      || bounds.getEast() - bounds.getWest() > MAX_EXTERNAL_SPAN_DEGREES;
+    if (this.externalTooFar) {
+      this.externalVenues = [];
+      this.renderExternalMarkers();
+      return;
+    }
+    const searchVersion = ++this.externalSearchVersion;
+    this.venueSearchRepo.searchExternalVenues({
+      south: this.roundCoordinate(bounds.getSouth()),
+      west: this.roundCoordinate(bounds.getWest()),
+      north: this.roundCoordinate(bounds.getNorth()),
+      east: this.roundCoordinate(bounds.getEast()),
+      sportType: this.filter.sportType,
+      keyword: this.filter.keyword
+    }).pipe(
+      take(1),
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => of(null))
+    ).subscribe(response => {
+      if (searchVersion !== this.externalSearchVersion) return;
+      this.externalVenues = response?.data ?? [];
+      this.renderExternalMarkers();
+    });
+  }
+
+  private renderExternalMarkers(): void {
+    if (!this.externalLayer) return;
+    const visible = new Set<string>();
+    this.externalVenues.forEach(venue => {
+      visible.add(venue.externalVenueId);
+      const selected = venue.externalVenueId === this.selectedExternal?.externalVenueId;
+      let marker = this.externalMarkers.get(venue.externalVenueId);
+      if (!marker) {
+        marker = L.circleMarker([venue.latitude, venue.longitude], { className: 'venue-map-marker venue-map-marker--external' })
+          .addTo(this.externalLayer!);
+        marker.bindTooltip(venue.name, {
+          className: 'venue-map-tooltip',
+          direction: 'top',
+          offset: L.point(0, -6),
+          opacity: 1
+        });
+        this.externalMarkers.set(venue.externalVenueId, marker);
+      }
+      marker.setRadius(selected ? 10 : 6);
+      marker.setStyle({
+        color: '#ffffff',
+        weight: selected ? 4 : 2,
+        fillColor: selected ? '#475569' : '#94a3b8',
+        fillOpacity: 1
+      });
+      marker.off('click');
+      marker.on('click', () => this.zone.run(() => this.selectExternal(venue)));
+      if (selected) marker.openTooltip();
+      else marker.closeTooltip();
+    });
+    this.externalMarkers.forEach((marker, venueId) => {
+      if (visible.has(venueId)) return;
+      this.externalLayer!.removeLayer(marker);
+      this.externalMarkers.delete(venueId);
+    });
   }
 
   private renderMapMarkers(fitBounds: boolean): void {

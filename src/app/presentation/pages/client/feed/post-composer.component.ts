@@ -6,7 +6,8 @@ import { HashtagPicker } from './hashtag-picker';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize, map, of, switchMap } from 'rxjs';
 import {
-  AttachmentType, PostSport, PostVisibility, SavePlayerCallRequest, SaveSocialPostRequest, SocialPost, SocialPostAttachment
+  AttachmentType, PlayerCallVenue, PostSport, PostVisibility, SavePlayerCallRequest, SaveSocialPostRequest, SocialPost,
+  SocialPostAttachment
 } from '@application/dto/social-feed/social-feed.dto';
 import { MyClubMembership } from '@application/dto/club/club.dto';
 import { ClubRepositoryPort } from '@application/ports/club.repository.port';
@@ -34,6 +35,8 @@ const MAX_CONTENT = 5000;
 export interface PlayerCallPrefill {
   sport: PostSport | null;
   format: string | null;
+  /** Mo tu ban do tim san ("Tim nguoi choi o san nay"). */
+  venue?: PlayerCallVenue | null;
 }
 
 function localDate(offsetDays = 0): string {
@@ -67,6 +70,7 @@ export class PostComposerComponent implements OnInit, OnDestroy {
     this.kind.set('CALL');
     if (value.sport) this.selectCallSport(value.sport);
     if (value.format && this.callFormats().some(item => item.value === value.format)) this.callFormat.set(value.format);
+    if (value.venue) this.chooseVenue(value.venue);
   }
   /** Loai bai khi mo o soan moi (bang tin mo o soan tu thanh rut gon). */
   @Input() initialKind: 'CALL' | 'POST' | null = null;
@@ -101,6 +105,7 @@ export class PostComposerComponent implements OnInit, OnDestroy {
   readonly callSlots = signal(1);
   readonly callSkill = signal('');
   readonly callClubId = signal<string | null>(null);
+  readonly callVenue = signal<PlayerCallVenue | null>(null);
   readonly memberships = signal<MyClubMembership[] | null>(null);
   readonly today = localDate();
   readonly callFormats = computed(() => this.callSport() ? PLAY_FORMATS[this.callSport()!] : []);
@@ -168,12 +173,23 @@ export class PostComposerComponent implements OnInit, OnDestroy {
         this.callSlots.set(call.slots);
         this.callSkill.set(call.skillNote ?? '');
         this.callClubId.set(call.clubId);
+        this.callVenue.set(call.venue ?? null);
       }
     } else {
       this.sport.set(this.defaultSport);
       if (!this.callSport()) this.selectCallSport(this.defaultSport);
       if (this.initialKind && this.kind() !== this.initialKind) this.setKind(this.initialKind);
     }
+  }
+
+  /** Gan san da chon; o khu vuc trong thi dien ten san de bai van doc duoc. */
+  chooseVenue(venue: PlayerCallVenue): void {
+    this.callVenue.set(venue);
+    if (!this.callLocation().trim()) this.callLocation.set(venue.name);
+  }
+
+  clearVenue(): void {
+    this.callVenue.set(null);
   }
 
   setKind(kind: 'CALL' | 'POST'): void {
@@ -209,7 +225,8 @@ export class PostComposerComponent implements OnInit, OnDestroy {
       location: this.callLocation().trim(),
       slots: this.callSlots(),
       skillNote: this.callSkill().trim() || null,
-      clubId: this.callClubId()
+      clubId: this.callClubId(),
+      venue: this.callVenue()
     };
   }
 

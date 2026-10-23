@@ -29,6 +29,7 @@ import {
   MatchmakingPlayer,
   MatchResultClaim,
   MatchSelectionMode,
+  MatchVenueOption,
   MatchmakingModelStatus,
   MatchmakingSearchInfo,
   MatchmakingSession,
@@ -355,7 +356,10 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     if (status === 'ACCEPTED') return 'Hai bên đã xác nhận kèo';
     if (status === 'VENUE_SELECTED') return 'Đã chọn sân, chờ người đặt cọc';
     if (status === 'BOOKING_PENDING') return 'Đang chờ thanh toán tiền cọc';
-    if (status === 'CONFIRMED') return 'Trận đấu đã được xác nhận';
+    if (status === 'CONFIRMED') {
+      if (!this.isOffline(m)) return 'Trận đấu đã được xác nhận';
+      return this.canEnterResult(m) ? 'Hai bên nhập tỷ số để tính ELO' : 'Đã chốt sân ngoài hệ thống';
+    }
     if (status === 'CHECKED_IN') {
       return this.canEnterResult(m)
         ? 'Hai người chơi có thể nhập kết quả'
@@ -371,6 +375,9 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     if (status === 'EXPIRED') {
       if (m.proposal?.cancelReason === 'NO_CHECK_IN') return 'Không ai check-in nhận sân nên trận không được ghi nhận';
       if (m.proposal?.cancelReason === 'NOT_BOOKED') return 'Đã qua giờ chơi mà chưa đặt được sân nên kèo đã đóng';
+      if (m.proposal?.cancelReason === 'RESULT_NOT_CONFIRMED') {
+        return 'Hai bên chưa nhập cùng một tỷ số nên trận không được tính ELO';
+      }
       return 'Kèo đã hết thời gian xác nhận';
     }
     if (status === 'CANCELLED') return this.cancelReasonMessage(m);
@@ -380,6 +387,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   cancelReasonMessage(m: MatchmakingSession): string {
     switch (m.proposal?.cancelReason) {
       case 'PLAYER_CANCELLED':
+        if (this.isOffline(m)) return 'Một bên đã hủy kèo';
         return this.isDesignatedBooker(m)
           ? 'Bạn đã hủy đặt sân cho kèo này'
           : 'Người đặt cọc đã hủy đặt sân cho kèo này';
@@ -398,8 +406,30 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     return this.sessionStatusLabel(m.status);
   }
 
+  /** Kèo đã chốt ở sân ngoài hệ thống: không có vé, QR hay check-in. */
+  isOffline(m: MatchmakingSession): boolean {
+    return Boolean(m.proposal?.offlineBooking);
+  }
+
+  /** Sân ngoài đã chốt; lấy lại từ danh sách gợi ý vì proposal chỉ giữ venueId. */
+  offlineVenue(m: MatchmakingSession): MatchVenueOption | null {
+    if (!this.isOffline(m)) return null;
+    return m.proposal?.venueOptions.find(option => option.venueId === m.proposal?.venueId) ?? null;
+  }
+
+  /** Sân ngoài hệ thống đã chốt và đã hết giờ chơi: mở nhập tỷ số như trận đã check-in. */
+  inResultPhase(m: MatchmakingSession): boolean {
+    return ['CHECKED_IN', 'RESULT_PENDING', 'DISPUTED'].includes(m.status)
+      || (m.status === 'CONFIRMED' && this.isOffline(m) && this.canEnterResult(m));
+  }
+
+  directionsUrl(venue: MatchVenueOption): string | null {
+    if (venue.latitude == null || venue.longitude == null) return null;
+    return `https://www.google.com/maps/dir/?api=1&destination=${venue.latitude},${venue.longitude}`;
+  }
+
   checkInWindowState(m: MatchmakingSession): 'BEFORE' | 'ACTIVE' | 'MISSED' | null {
-    if (m.status !== 'CONFIRMED') return null;
+    if (m.status !== 'CONFIRMED' || this.isOffline(m)) return null;
     const start = this.localDateTime(m.playDate, m.startTime);
     const end = this.localDateTime(m.playDate, m.endTime);
     if (!start || !end) return null;
@@ -440,7 +470,7 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
 
   resultDeadlineState(m: MatchmakingSession): 'OPEN' | 'WAITING_OPPONENT' | null {
     if (!m.resultDeadlineAt) return null;
-    if (m.status !== 'CHECKED_IN' && m.status !== 'RESULT_PENDING' && m.status !== 'DISPUTED') return null;
+    if (!this.inResultPhase(m)) return null;
     return this.hasSubmittedResult(m) ? 'WAITING_OPPONENT' : 'OPEN';
   }
 
@@ -453,6 +483,11 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
       : remaining < 3_600_000
         ? `Còn ${Math.max(1, Math.ceil(remaining / 60_000))} phút để nhập kết quả`
         : `Còn ${Math.ceil(remaining / 3_600_000)} giờ để nhập kết quả`;
+    if (this.isOffline(m)) {
+      return state === 'WAITING_OPPONENT'
+        ? `${countdown} · đang chờ đối thủ nhập. Sân ngoài hệ thống chỉ tính ELO khi hai bên nhập cùng tỷ số`
+        : `${countdown}. Sân ngoài hệ thống chỉ tính ELO khi hai bên nhập cùng tỷ số; quá hạn thì trận không được ghi nhận`;
+    }
     return state === 'WAITING_OPPONENT'
       ? `${countdown} · đang chờ đối thủ nhập. Quá hạn, bạn được xử thắng`
       : `${countdown}. Quá hạn mà bạn không nhập, đối thủ được xử thắng; cả hai không nhập thì tính hòa`;
@@ -979,12 +1014,13 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
     });
   }
 
-  chooseVenue(venueId: string, venueCourtId?: string): void {
+  chooseVenue(venue: MatchVenueOption): void {
     const match = this.session();
-    if (!match || !venueCourtId || !this.isDesignatedBooker(match) || this.actionLoading()) return;
+    if (!match || (!venue.external && !venue.venueCourtId) || !this.isDesignatedBooker(match)
+      || this.actionLoading()) return;
     this.actionLoading.set(true);
     this.errorMessage.set('');
-    this.aiRepository.selectMatchVenue(match.sessionId, venueId, venueCourtId).pipe(
+    this.aiRepository.selectMatchVenue(match.sessionId, venue.venueId, venue.venueCourtId).pipe(
       takeUntilDestroyed(this.destroyRef),
       finalize(() => this.actionLoading.set(false))
     ).subscribe({

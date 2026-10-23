@@ -3,7 +3,7 @@ import { PostDialogService } from './post-dialog.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
-import { SocialPost } from '@application/dto/social-feed/social-feed.dto';
+import { PlayerCallVenue, SocialPost } from '@application/dto/social-feed/social-feed.dto';
 import { CHAT_REPOSITORY_TOKEN } from '@application/ports/persistence/chat.repository';
 import { SOCIAL_FEED_REPOSITORY_TOKEN } from '@application/ports/persistence/social-feed.repository';
 import { playFormatLabel } from '@application/dto/matchmaking/matchmaking.dto';
@@ -50,6 +50,10 @@ export class PlayerCallComponent {
     const format = playFormatLabel(call.playFormat);
     return format ? `${sportLabel(call.sport)} · ${format}` : sportLabel(call.sport);
   });
+  directionsUrl(venue: PlayerCallVenue): string {
+    return `https://www.google.com/maps/dir/?api=1&destination=${venue.latitude},${venue.longitude}`;
+  }
+
   readonly when = computed(() => {
     const call = this.call();
     if (!call) return '';

@@ -16,7 +16,18 @@
   </header>
   <ul class="call__facts">
     <li><lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon>{{ when() }}</li>
-    <li><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>{{ c.location }}</li>
+    <li><lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>
+      <span class="call__place">
+        {{ c.location }}
+        @if (c.venue; as venue) {
+        <span class="call__venue-links">
+          <a [href]="directionsUrl(venue)" target="_blank" rel="noopener">Chỉ đường</a>
+          @if (venue.kind === 'PARTNER') { <a [routerLink]="['/venues', venue.venueId]">Đặt sân</a> }
+          @else { <span class="call__venue-note">sân ngoài hệ thống, liên hệ sân để đặt</span> }
+        </span>
+        }
+      </span>
+    </li>
     @if (c.skillNote) { <li><lucide-icon name="gauge" class="w-4 h-4"></lucide-icon>{{ c.skillNote }}</li> }
     @if (c.clubName && !compact) { <li><lucide-icon name="shield" class="w-4 h-4"></lucide-icon>Kèo của CLB {{ c.clubName }}</li> }
   </ul>

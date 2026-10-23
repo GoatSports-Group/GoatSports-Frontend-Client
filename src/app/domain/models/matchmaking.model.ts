@@ -88,6 +88,11 @@ export interface MatchVenueOption {
   /** Giờ thi đấu: slot trống sớm nhất của sân nằm trong khung rảnh chung. */
   slotStart?: string;
   slotEnd?: string;
+  /** Sân ngoài hệ thống (OpenStreetMap): không đặt online, người đặt gọi sân để chốt giờ. */
+  external?: boolean;
+  phone?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface MatchmakingPlayer {
@@ -149,6 +154,8 @@ export interface MatchProposal {
   bookedAt?: string;
   checkedInAt?: string;
   cancelReason?: string;
+  /** Đã chốt sân ngoài hệ thống: không cọc, không check-in; ELO chỉ tính khi hai bên nhập cùng tỷ số. */
+  offlineBooking?: boolean;
 }
 
 export interface MatchResultClaim {
