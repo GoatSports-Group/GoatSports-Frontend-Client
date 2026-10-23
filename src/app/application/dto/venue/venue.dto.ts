@@ -49,6 +49,23 @@ export interface ExternalVenue {
   source: string;
 }
 
+/** Bao nhiêu người chơi muốn đặt sân ngoài này online; `wanted` false khi chưa đăng nhập. */
+export interface ExternalVenueDemand {
+  wantCount: number;
+  wanted: boolean;
+}
+
+/** Người chơi gợi ý một sân còn thiếu trên bản đồ; admin duyệt rồi sân mới hiện. */
+export interface ExternalVenueSuggestionRequest {
+  name: string;
+  sportTypes: string[];
+  latitude: number;
+  longitude: number;
+  address?: string | null;
+  phone?: string | null;
+  note?: string | null;
+}
+
 export interface ExternalVenueQuery {
   south: number;
   west: number;

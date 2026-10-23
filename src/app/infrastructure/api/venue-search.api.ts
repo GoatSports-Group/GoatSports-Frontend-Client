@@ -1,7 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { ExternalVenue, ExternalVenueQuery, GeocodingResult, Venue, VenueSearchFilter } from '@application/dto/venue/venue.dto';
+import {
+  ExternalVenue, ExternalVenueDemand, ExternalVenueQuery, ExternalVenueSuggestionRequest, GeocodingResult, Venue,
+  VenueSearchFilter
+} from '@application/dto/venue/venue.dto';
 import { BaseResponse, PageResult } from '@application/dto/base/base-response';
 import { TimeSlot } from '@application/dto/booking/booking.dto';
 import { API_ENDPOINTS } from '@infrastructure/config/api-endpoints';
@@ -84,5 +87,20 @@ export class VenueSearchApi {
 
   getExternalVenue(externalVenueId: string): Observable<BaseResponse<ExternalVenue>> {
     return this.http.get<BaseResponse<ExternalVenue>>(`${this.apiBase}/venues/external/${externalVenueId}`);
+  }
+
+  getExternalVenueDemand(externalVenueId: string): Observable<BaseResponse<ExternalVenueDemand>> {
+    return this.http.get<BaseResponse<ExternalVenueDemand>>(`${this.apiBase}/venues/external/${externalVenueId}/demand`);
+  }
+
+  setExternalVenueWanted(externalVenueId: string, wanted: boolean): Observable<BaseResponse<ExternalVenueDemand>> {
+    const url = `${this.apiBase}/venues/external/${externalVenueId}/want`;
+    return wanted
+      ? this.http.put<BaseResponse<ExternalVenueDemand>>(url, null)
+      : this.http.delete<BaseResponse<ExternalVenueDemand>>(url);
+  }
+
+  suggestExternalVenue(request: ExternalVenueSuggestionRequest): Observable<BaseResponse<{ suggestionId: string }>> {
+    return this.http.post<BaseResponse<{ suggestionId: string }>>(`${this.apiBase}/venues/external/suggestions`, request);
   }
 }

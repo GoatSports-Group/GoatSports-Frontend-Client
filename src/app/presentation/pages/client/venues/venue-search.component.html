@@ -149,7 +149,8 @@
     </section>
 
     <aside class="map-rail" aria-label="Bản đồ sân thể thao">
-      <div #venueMap class="map-canvas" aria-label="Vị trí các sân trong kết quả tìm kiếm"></div>
+      <div #venueMap class="map-canvas" [class.map-canvas--picking]="suggesting"
+        aria-label="Vị trí các sân trong kết quả tìm kiếm"></div>
       <button type="button" class="map-location" (click)="searchVisibleArea()">
         <lucide-icon name="circle-check" class="w-4 h-4"></lucide-icon>
         Tìm kiếm trong vùng hiển thị
@@ -161,8 +162,74 @@
         @else if (externalTooFar) { Phóng to để xem sân ngoài hệ thống }
         @else { Sân ngoài hệ thống ({{ externalVenues.length }}) }
       </button>
+      @if (!suggesting) {
+      <button type="button" class="map-suggest-toggle" (click)="startSuggest()">
+        <lucide-icon name="plus" class="w-4 h-4"></lucide-icon>
+        Gợi ý thêm sân
+      </button>
+      }
+      @if (suggestNotice && !suggesting && !selectedExternal && !selectedVenue) {
+      <p class="map-suggest-notice" role="status">
+        <lucide-icon name="circle-check" class="w-4 h-4"></lucide-icon>
+        <span>{{ suggestNotice }}</span>
+        <button type="button" aria-label="Ẩn thông báo" (click)="suggestNotice = ''">
+          <lucide-icon name="x" class="w-4 h-4"></lucide-icon>
+        </button>
+      </p>
+      }
 
-      @if (selectedExternal; as place) {
+      @if (suggesting) {
+      <article class="map-selection map-suggest" aria-label="Gợi ý thêm sân">
+        <button type="button" class="map-selection__close" aria-label="Hủy gợi ý sân" (click)="cancelSuggest()">
+          <lucide-icon name="x" class="w-4 h-4"></lucide-icon>
+        </button>
+        <h2>Gợi ý thêm sân</h2>
+        <p class="map-selection__note">
+          @if (suggestPoint) { Đã đánh dấu vị trí. Chạm chỗ khác trên bản đồ để đổi. }
+          @else { Chạm vào bản đồ đúng vị trí sân còn thiếu. }
+        </p>
+        <div class="map-suggest__fields">
+          <label class="map-suggest__field map-suggest__field--wide">
+            <span>Tên sân</span>
+            <input type="text" name="suggestName" maxlength="200" placeholder="Ví dụ: Sân cầu lông Phường 7"
+              [(ngModel)]="suggestName" />
+          </label>
+          <div class="map-suggest__field map-suggest__field--wide" role="group" aria-label="Môn chơi ở sân">
+            <span>Môn</span>
+            <div class="map-suggest__sports">
+              @for (sport of sportOptions.slice(1); track sport.value) {
+              <button type="button" [class.active]="suggestSports.has(sport.value)"
+                [attr.aria-pressed]="suggestSports.has(sport.value)" (click)="toggleSuggestSport(sport.value)">
+                {{ sport.label }}</button>
+              }
+            </div>
+          </div>
+          <label class="map-suggest__field">
+            <span>Số điện thoại sân (nếu biết)</span>
+            <input type="tel" name="suggestPhone" maxlength="60" [(ngModel)]="suggestPhone" />
+          </label>
+          <label class="map-suggest__field">
+            <span>Địa chỉ</span>
+            <input type="text" name="suggestAddress" maxlength="500" [(ngModel)]="suggestAddress" />
+          </label>
+          <label class="map-suggest__field map-suggest__field--wide">
+            <span>Ghi chú cho admin</span>
+            <input type="text" name="suggestNote" maxlength="500" placeholder="Ví dụ: sân trong nhà, 4 sân"
+              [(ngModel)]="suggestNote" />
+          </label>
+        </div>
+        @if (suggestError) { <p class="map-suggest__error" role="alert">{{ suggestError }}</p> }
+        <div class="map-selection__actions">
+          <button type="button" class="map-selection__book" [disabled]="!!suggestProblem || suggestSending"
+            (click)="submitSuggestion()">
+            <lucide-icon [name]="suggestSending ? 'loader-2' : 'send'" class="w-4 h-4"
+              [class.animate-spin]="suggestSending"></lucide-icon>
+            Gửi gợi ý
+          </button>
+        </div>
+        @if (suggestProblem) { <small class="map-selection__source">{{ suggestProblem }}</small> }
+      </article>
+      } @else if (selectedExternal; as place) {
       <article class="map-selection map-selection--external" aria-label="Sân ngoài hệ thống">
         <button type="button" class="map-selection__close" aria-label="Đóng thông tin sân"
           (click)="clearExternalSelection()">
@@ -174,6 +241,18 @@
           @for (label of externalSportLabels(place); track label) { <span>{{ label }}</span> }
         </div>
         <p class="map-selection__note">Sân chưa nhận đặt online. Rủ bạn chơi trên GOAT Sports rồi liên hệ sân để đặt.</p>
+        <div class="map-selection__demand">
+          <p>
+            @if (externalDemand?.wantCount) { <b>{{ externalDemand!.wantCount }} người chơi</b> muốn đặt sân này trên GOAT
+            Sports. }
+            @else { Muốn đặt sân này online? Bấm để GOAT Sports mời sân tham gia. }
+          </p>
+          <button type="button" class="map-selection__want" [class.active]="externalDemand?.wanted"
+            [attr.aria-pressed]="!!externalDemand?.wanted" [disabled]="demandSaving" (click)="toggleWanted()">
+            <lucide-icon name="heart" class="w-4 h-4"></lucide-icon>
+            {{ externalDemand?.wanted ? 'Bạn muốn đặt online' : 'Muốn đặt online' }}
+          </button>
+        </div>
         <div class="map-selection__actions">
           <a class="map-selection__book" routerLink="/feed"
             [queryParams]="{ tab: 'calls', compose: 'find-players', venue: 'external:' + place.externalVenueId, sport: place.sportTypes[0] }">

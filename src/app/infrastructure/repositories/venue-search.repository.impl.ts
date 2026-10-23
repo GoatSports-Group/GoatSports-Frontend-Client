@@ -2,7 +2,10 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { VenueSearchRepository } from '@application/ports/persistence/venue-search.repository';
 import { VenueSearchApi } from '@infrastructure/api/venue-search.api';
-import { ExternalVenue, ExternalVenueQuery, GeocodingResult, Venue, VenueSearchFilter } from '@application/dto/venue/venue.dto';
+import {
+  ExternalVenue, ExternalVenueDemand, ExternalVenueQuery, ExternalVenueSuggestionRequest, GeocodingResult, Venue,
+  VenueSearchFilter
+} from '@application/dto/venue/venue.dto';
 import { BaseResponse, PageResult } from '@application/dto/base/base-response';
 import { TimeSlot } from '@application/dto/booking/booking.dto';
 
@@ -42,6 +45,18 @@ export class VenueSearchRepositoryImpl implements VenueSearchRepository {
 
   getExternalVenue(externalVenueId: string): Observable<BaseResponse<ExternalVenue>> {
     return this.api.getExternalVenue(externalVenueId);
+  }
+
+  getExternalVenueDemand(externalVenueId: string): Observable<BaseResponse<ExternalVenueDemand>> {
+    return this.api.getExternalVenueDemand(externalVenueId);
+  }
+
+  setExternalVenueWanted(externalVenueId: string, wanted: boolean): Observable<BaseResponse<ExternalVenueDemand>> {
+    return this.api.setExternalVenueWanted(externalVenueId, wanted);
+  }
+
+  suggestExternalVenue(request: ExternalVenueSuggestionRequest): Observable<BaseResponse<{ suggestionId: string }>> {
+    return this.api.suggestExternalVenue(request);
   }
 }
 

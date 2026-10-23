@@ -16,7 +16,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as L from 'leaflet';
 import { catchError, of, take } from 'rxjs';
-import { ExternalVenue, Venue, VenueSearchFilter } from '@application/dto/venue/venue.dto';
+import { ExternalVenue, ExternalVenueDemand, Venue, VenueSearchFilter } from '@application/dto/venue/venue.dto';
+import { AuthService } from '@presentation/services/auth.service';
 import { VENUE_SEARCH_REPOSITORY_TOKEN } from '@application/ports/persistence/venue-search.repository';
 import { GetStorageFileUrlUseCase } from '@application/usecase/storage/get-storage-file-url.usecase';
 import {
@@ -45,6 +46,8 @@ export class VenueSearchComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly destroyRef = inject(DestroyRef);
   private readonly zone = inject(NgZone);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly auth = inject(AuthService);
+  private suggestMarker?: L.CircleMarker;
 
   private map?: L.Map;
   private markerLayer?: L.LayerGroup;
@@ -86,6 +89,21 @@ export class VenueSearchComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Sân ngoài hệ thống (OpenStreetMap) trong khung bản đồ: chưa đặt online được, nhưng chỉ đường / rủ chơi được. */
   externalVenues: ExternalVenue[] = [];
   selectedExternal: ExternalVenue | null = null;
+  /** Lượt "muốn đặt online" của sân ngoài đang xem; null khi chưa tải xong. */
+  externalDemand: ExternalVenueDemand | null = null;
+  demandSaving = false;
+
+  /** "Gợi ý thêm sân": người chơi chạm bản đồ đúng chỗ sân rồi điền tên, môn. */
+  suggesting = false;
+  suggestPoint: { latitude: number; longitude: number } | null = null;
+  suggestName = '';
+  suggestSports = new Set<string>();
+  suggestPhone = '';
+  suggestAddress = '';
+  suggestNote = '';
+  suggestSending = false;
+  suggestError = '';
+  suggestNotice = '';
   showExternal = true;
   externalTooFar = false;
 
@@ -282,8 +300,122 @@ export class VenueSearchComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   selectExternal(venue: ExternalVenue): void {
+    if (this.suggesting) return;
     this.selectedExternal = venue;
     this.renderExternalMarkers();
+    this.externalDemand = null;
+    this.venueSearchRepo.getExternalVenueDemand(venue.externalVenueId).pipe(
+      take(1),
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => of(null))
+    ).subscribe(response => {
+      if (this.selectedExternal?.externalVenueId === venue.externalVenueId) this.externalDemand = response?.data ?? null;
+    });
+  }
+
+  /** Bật / tắt "muốn đặt sân này online"; khách chưa đăng nhập thì sang trang đăng nhập rồi quay lại. */
+  toggleWanted(): void {
+    const venue = this.selectedExternal;
+    if (!venue || this.demandSaving) return;
+    if (!this.auth.isAuthenticated) {
+      this.auth.redirectToLogin(window.location.href);
+      return;
+    }
+    this.demandSaving = true;
+    this.venueSearchRepo.setExternalVenueWanted(venue.externalVenueId, !this.externalDemand?.wanted).pipe(
+      take(1),
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => of(null))
+    ).subscribe(response => {
+      this.demandSaving = false;
+      if (response?.data && this.selectedExternal?.externalVenueId === venue.externalVenueId) {
+        this.externalDemand = response.data;
+      }
+    });
+  }
+
+  startSuggest(): void {
+    if (!this.auth.isAuthenticated) {
+      this.auth.redirectToLogin(window.location.href);
+      return;
+    }
+    this.clearVenueSelection();
+    this.selectedExternal = null;
+    this.renderExternalMarkers();
+    this.suggesting = true;
+    this.suggestError = '';
+    this.suggestNotice = '';
+    if (this.filter.sportType && this.filter.sportType !== 'all') this.suggestSports = new Set([this.filter.sportType]);
+  }
+
+  cancelSuggest(): void {
+    this.suggesting = false;
+    this.suggestPoint = null;
+    this.suggestName = '';
+    this.suggestSports = new Set();
+    this.suggestPhone = '';
+    this.suggestAddress = '';
+    this.suggestNote = '';
+    this.suggestError = '';
+    this.suggestMarker?.remove();
+    this.suggestMarker = undefined;
+  }
+
+  toggleSuggestSport(sport: string): void {
+    const next = new Set(this.suggestSports);
+    if (next.has(sport)) next.delete(sport); else next.add(sport);
+    this.suggestSports = next;
+  }
+
+  get suggestProblem(): string {
+    if (!this.suggestPoint) return 'Chạm vào bản đồ đúng vị trí sân.';
+    if (this.suggestName.trim().length < 3) return 'Nhập tên sân (ít nhất 3 ký tự).';
+    if (!this.suggestSports.size) return 'Chọn ít nhất một môn chơi ở sân.';
+    return '';
+  }
+
+  submitSuggestion(): void {
+    const point = this.suggestPoint;
+    if (!point || this.suggestProblem || this.suggestSending) return;
+    this.suggestSending = true;
+    this.suggestError = '';
+    this.venueSearchRepo.suggestExternalVenue({
+      name: this.suggestName.trim(),
+      sportTypes: [...this.suggestSports],
+      latitude: point.latitude,
+      longitude: point.longitude,
+      address: this.suggestAddress.trim() || null,
+      phone: this.suggestPhone.trim() || null,
+      note: this.suggestNote.trim() || null
+    }).pipe(take(1), takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.suggestSending = false;
+        const name = this.suggestName.trim();
+        this.cancelSuggest();
+        this.suggestNotice = `Đã gửi gợi ý "${name}". Admin duyệt xong, sân sẽ hiện trên bản đồ và bạn nhận được thông báo.`;
+      },
+      error: error => {
+        this.suggestSending = false;
+        this.suggestError = error?.error?.message || 'Chưa gửi được gợi ý, thử lại sau.';
+      }
+    });
+  }
+
+  private placeSuggestPoint(latlng: L.LatLng): void {
+    if (!this.suggesting || !this.map) return;
+    this.suggestPoint = { latitude: this.roundCoordinate(latlng.lat), longitude: this.roundCoordinate(latlng.lng) };
+    this.suggestMarker?.remove();
+    this.suggestMarker = L.circleMarker(latlng, {
+      radius: 10, color: '#047857', weight: 3, dashArray: '4 3', fillColor: '#10b981', fillOpacity: 0.35
+    }).addTo(this.map);
+    if (this.suggestAddress.trim()) return;
+    this.venueSearchRepo.reverseGeocode(latlng.lat, latlng.lng).pipe(
+      take(1),
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => of(null))
+    ).subscribe(response => {
+      if (this.suggesting && !this.suggestAddress.trim()) this.suggestAddress = response?.data?.address ?? '';
+    });
   }
 
   clearExternalSelection(): void {
@@ -372,6 +504,7 @@ export class VenueSearchComponent implements OnInit, AfterViewInit, OnDestroy {
     this.externalLayer = L.layerGroup().addTo(this.map);
     this.markerLayer = L.layerGroup().addTo(this.map);
     this.map.on('moveend', () => this.zone.run(() => this.scheduleExternalLoad()));
+    this.map.on('click', event => this.zone.run(() => this.placeSuggestPoint(event.latlng)));
     this.mapResizeObserver = new ResizeObserver(() => this.map?.invalidateSize({ pan: false }));
     this.mapResizeObserver.observe(element);
     const viewportBounds = this.getViewportBounds();

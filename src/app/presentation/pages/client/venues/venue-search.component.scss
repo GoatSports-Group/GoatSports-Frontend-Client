@@ -678,6 +678,223 @@ app-pagination {
   font-weight: 800;
 }
 
+/* "Muốn đặt online": nhu cầu thật để mời sân tham gia (GOAT-DESIGN › Venue map). */
+.map-selection__demand {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem .75rem;
+  margin-top: .7rem;
+  padding: .6rem .7rem;
+  border-radius: 10px;
+  background: var(--surface-subtle, var(--primary-light));
+}
+
+.map-selection__demand p {
+  flex: 1 1 180px;
+  margin: 0;
+  color: var(--body);
+  font-size: .75rem;
+  line-height: 1.45;
+}
+
+.map-selection__demand b {
+  color: var(--ink, var(--primary-strong));
+}
+
+.map-selection__want {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: 0 .8rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--primary-strong);
+  font: inherit;
+  font-size: .76rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.map-selection__want.active {
+  border-color: var(--danger, #c2410c);
+  color: var(--danger, #c2410c);
+}
+
+.map-selection__want.active lucide-icon {
+  fill: currentColor;
+}
+
+.map-selection__want:disabled {
+  opacity: .6;
+  cursor: default;
+}
+
+/* Gợi ý thêm sân: nút dưới công tắc sân ngoài, bảng điền thông tin thay cho thẻ sân. */
+.map-suggest-toggle {
+  position: absolute;
+  top: calc(.8rem + 90px);
+  left: .8rem;
+  z-index: 500;
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: 0 .7rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 95%, transparent);
+  color: var(--primary-strong);
+  font: inherit;
+  font-size: .72rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 8px 20px var(--hairline);
+  backdrop-filter: blur(8px);
+}
+
+.map-canvas--picking {
+  cursor: crosshair;
+}
+
+.map-suggest-notice {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  left: 14px;
+  z-index: 600;
+  display: flex;
+  align-items: flex-start;
+  gap: .5rem;
+  margin: 0;
+  padding: .7rem .8rem;
+  border: 1px solid var(--primary-light);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  color: var(--primary-strong);
+  font-size: .76rem;
+  line-height: 1.45;
+  box-shadow: 0 12px 30px rgb(22 58 45 / 16%);
+}
+
+.map-suggest-notice span {
+  flex: 1;
+}
+
+.map-suggest-notice button {
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--body);
+  cursor: pointer;
+}
+
+.map-suggest {
+  max-height: calc(100% - 28px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 48px;
+}
+
+.map-suggest h2 {
+  margin: 0;
+  color: var(--ink, var(--primary-strong));
+  font-size: 1rem;
+  font-weight: 850;
+}
+
+.map-suggest__fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .55rem .7rem;
+  margin-top: .7rem;
+}
+
+.map-suggest__field {
+  display: grid;
+  gap: .25rem;
+  min-width: 0;
+}
+
+.map-suggest__field--wide {
+  grid-column: 1 / -1;
+}
+
+.map-suggest__field > span {
+  color: var(--body);
+  font-size: .7rem;
+  font-weight: 750;
+}
+
+.map-suggest__field input {
+  min-height: 40px;
+  width: 100%;
+  padding: 0 .7rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink, inherit);
+  font: inherit;
+  font-size: .8rem;
+}
+
+.map-suggest__sports {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+}
+
+.map-suggest__sports button {
+  min-height: 32px;
+  padding: 0 .7rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--body);
+  font: inherit;
+  font-size: .74rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.map-suggest__sports button.active {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.map-suggest__error {
+  margin: .6rem 0 0;
+  color: var(--danger, #b42318);
+  font-size: .75rem;
+  font-weight: 700;
+}
+
+.map-suggest button.map-selection__book {
+  width: 100%;
+  border: 0;
+  font: inherit;
+  font-size: .84rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.map-suggest .map-selection__book:disabled {
+  opacity: .55;
+  cursor: default;
+  transform: none;
+}
+
+@media (max-width: 520px) {
+  .map-suggest__fields {
+    grid-template-columns: 1fr;
+  }
+}
+
 .map-selection__source {
   display: block;
   margin-top: .7rem;
