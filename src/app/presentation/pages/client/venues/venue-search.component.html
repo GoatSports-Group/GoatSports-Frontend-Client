@@ -111,7 +111,8 @@
       </header>
 
       @if (loading) {
-      <app-loading-skeleton variant="cards" [count]="6" minWidth="260px" label="Đang tải danh sách sân"></app-loading-skeleton>
+      <app-loading-skeleton variant="cards" [count]="6" minWidth="260px"
+        label="Đang tải danh sách sân"></app-loading-skeleton>
       } @else if (errorMessage) {
       <section class="empty-state error-state" role="alert">
         <lucide-icon name="wifi-off" class="w-10 h-10"></lucide-icon>
@@ -186,7 +187,7 @@
         <h2>Gợi ý thêm sân</h2>
         <p class="map-selection__note">
           @if (suggestPoint) { Đã đánh dấu vị trí. Chạm chỗ khác trên bản đồ để đổi. }
-          @else { Chạm vào bản đồ đúng vị trí sân còn thiếu. }
+          @else { Nhập địa chỉ sân, hoặc chạm vào bản đồ đúng vị trí sân. Chỉ cần một trong hai. }
         </p>
         <div class="map-suggest__fields">
           <label class="map-suggest__field map-suggest__field--wide">
@@ -210,7 +211,8 @@
           </label>
           <label class="map-suggest__field">
             <span>Địa chỉ</span>
-            <input type="text" name="suggestAddress" maxlength="500" [(ngModel)]="suggestAddress" />
+            <input type="text" name="suggestAddress" maxlength="500" placeholder="Số nhà, đường, phường"
+              [ngModel]="suggestAddress" (ngModelChange)="onSuggestAddressChange($event)" />
           </label>
           <label class="map-suggest__field map-suggest__field--wide">
             <span>Ghi chú cho admin</span>
@@ -240,10 +242,12 @@
         <div class="map-selection__tags">
           @for (label of externalSportLabels(place); track label) { <span>{{ label }}</span> }
         </div>
-        <p class="map-selection__note">Sân chưa nhận đặt online. Rủ bạn chơi trên GOAT Sports rồi liên hệ sân để đặt.</p>
+        <p class="map-selection__note">Sân chưa nhận đặt online. Rủ bạn chơi trên GOAT Sports rồi liên hệ sân để đặt.
+        </p>
         <div class="map-selection__demand">
           <p>
-            @if (externalDemand?.wantCount) { <b>{{ externalDemand!.wantCount }} người chơi</b> muốn đặt sân này trên GOAT
+            @if (externalDemand?.wantCount) { <b>{{ externalDemand!.wantCount }} người chơi</b> muốn đặt sân này trên
+            GOAT
             Sports. }
             @else { Muốn đặt sân này online? Bấm để GOAT Sports mời sân tham gia. }
           </p>
@@ -298,7 +302,6 @@
           }
         </dl>
         }
-        <small class="map-selection__source">Dữ liệu sân: © OpenStreetMap contributors</small>
       </article>
       } @else if (selectedVenue; as venue) {
       <article class="map-selection">

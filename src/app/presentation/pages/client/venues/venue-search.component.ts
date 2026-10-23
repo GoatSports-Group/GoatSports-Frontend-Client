@@ -48,6 +48,10 @@ export class VenueSearchComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly auth = inject(AuthService);
   private suggestMarker?: L.CircleMarker;
+  private suggestGeocodeTimer?: ReturnType<typeof setTimeout>;
+  private suggestGeocodeVersion = 0;
+  /** Ghim do người chơi chạm trên bản đồ: chính xác hơn vị trí đoán từ địa chỉ, nên sửa địa chỉ không dời ghim. */
+  private suggestPointFromMap = false;
 
   private map?: L.Map;
   private markerLayer?: L.LayerGroup;
@@ -102,6 +106,9 @@ export class VenueSearchComponent implements OnInit, AfterViewInit, OnDestroy {
   suggestAddress = '';
   suggestNote = '';
   suggestSending = false;
+  /** Đang tìm toạ độ theo địa chỉ người chơi nhập / không tìm thấy. */
+  suggestLocating = false;
+  suggestAddressNotFound = false;
   suggestError = '';
   suggestNotice = '';
   showExternal = true;
@@ -357,8 +364,28 @@ export class VenueSearchComponent implements OnInit, AfterViewInit, OnDestroy {
     this.suggestAddress = '';
     this.suggestNote = '';
     this.suggestError = '';
+    this.suggestPointFromMap = false;
+    this.suggestLocating = false;
+    this.suggestAddressNotFound = false;
+    clearTimeout(this.suggestGeocodeTimer);
+    this.suggestGeocodeVersion++;
     this.suggestMarker?.remove();
     this.suggestMarker = undefined;
+  }
+
+  /** Nhập địa chỉ thay cho chạm bản đồ: dừng gõ 700 ms thì tìm toạ độ và đặt ghim (trừ khi ghim đã do người chơi chạm). */
+  onSuggestAddressChange(value: string): void {
+    this.suggestAddress = value;
+    this.suggestAddressNotFound = false;
+    clearTimeout(this.suggestGeocodeTimer);
+    if (this.suggestPointFromMap) return;
+    const query = value.trim();
+    if (query.length < 5) {
+      this.suggestLocating = false;
+      return;
+    }
+    this.suggestLocating = true;
+    this.suggestGeocodeTimer = setTimeout(() => this.locateSuggestAddress(query), 700);
   }
 
   toggleSuggestSport(sport: string): void {
@@ -368,7 +395,11 @@ export class VenueSearchComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get suggestProblem(): string {
-    if (!this.suggestPoint) return 'Chạm vào bản đồ đúng vị trí sân.';
+    if (!this.suggestPoint) {
+      if (this.suggestLocating) return 'Đang tìm vị trí theo địa chỉ…';
+      if (this.suggestAddressNotFound) return 'Không tìm thấy địa chỉ này. Chạm vào bản đồ đúng vị trí sân.';
+      return 'Nhập địa chỉ sân hoặc chạm vào bản đồ đúng vị trí sân.';
+    }
     if (this.suggestName.trim().length < 3) return 'Nhập tên sân (ít nhất 3 ký tự).';
     if (!this.suggestSports.size) return 'Chọn ít nhất một môn chơi ở sân.';
     return '';
@@ -403,11 +434,12 @@ export class VenueSearchComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private placeSuggestPoint(latlng: L.LatLng): void {
     if (!this.suggesting || !this.map) return;
-    this.suggestPoint = { latitude: this.roundCoordinate(latlng.lat), longitude: this.roundCoordinate(latlng.lng) };
-    this.suggestMarker?.remove();
-    this.suggestMarker = L.circleMarker(latlng, {
-      radius: 10, color: '#047857', weight: 3, dashArray: '4 3', fillColor: '#10b981', fillOpacity: 0.35
-    }).addTo(this.map);
+    this.suggestPointFromMap = true;
+    this.suggestLocating = false;
+    this.suggestAddressNotFound = false;
+    clearTimeout(this.suggestGeocodeTimer);
+    this.suggestGeocodeVersion++;
+    this.markSuggestPoint(latlng.lat, latlng.lng);
     if (this.suggestAddress.trim()) return;
     this.venueSearchRepo.reverseGeocode(latlng.lat, latlng.lng).pipe(
       take(1),
@@ -416,6 +448,34 @@ export class VenueSearchComponent implements OnInit, AfterViewInit, OnDestroy {
     ).subscribe(response => {
       if (this.suggesting && !this.suggestAddress.trim()) this.suggestAddress = response?.data?.address ?? '';
     });
+  }
+
+  private locateSuggestAddress(query: string): void {
+    const version = ++this.suggestGeocodeVersion;
+    this.venueSearchRepo.searchLocations(query).pipe(
+      take(1),
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => of(null))
+    ).subscribe(response => {
+      if (version !== this.suggestGeocodeVersion || !this.suggesting || this.suggestPointFromMap) return;
+      this.suggestLocating = false;
+      const place = response?.data?.[0];
+      if (!place) {
+        this.suggestAddressNotFound = true;
+        return;
+      }
+      this.markSuggestPoint(place.latitude, place.longitude);
+      this.map?.setView([place.latitude, place.longitude], Math.max(this.map.getZoom(), 16), { animate: true });
+    });
+  }
+
+  private markSuggestPoint(latitude: number, longitude: number): void {
+    if (!this.map) return;
+    this.suggestPoint = { latitude: this.roundCoordinate(latitude), longitude: this.roundCoordinate(longitude) };
+    this.suggestMarker?.remove();
+    this.suggestMarker = L.circleMarker([latitude, longitude], {
+      radius: 10, color: '#047857', weight: 3, dashArray: '4 3', fillColor: '#10b981', fillOpacity: 0.35
+    }).addTo(this.map);
   }
 
   clearExternalSelection(): void {
