@@ -706,21 +706,14 @@
     </section>
     }
 
-    <div class="match-progress-wrap" [style.--progress]="progressPercent(match)">
+    <div class="match-progress-wrap" [style.--progress]="progressPercent(match)"
+      [style.--steps]="progressSteps(match).length">
       <div class="match-progress__track" aria-hidden="true"><span class="match-progress__fill"></span></div>
       <ol class="match-progress" aria-label="Tiến trình ghép trận">
-        <li [class.done]="progressItemState(match, 0).done" [class.current]="progressItemState(match, 0).current">Ghép
-          đối thủ</li>
-        <li [class.done]="progressItemState(match, 1).done" [class.current]="progressItemState(match, 1).current">Xác
-          nhận</li>
-        <li [class.done]="progressItemState(match, 2).done" [class.current]="progressItemState(match, 2).current">Chọn
-          sân</li>
-        <li [class.done]="progressItemState(match, 3).done" [class.current]="progressItemState(match, 3).current">Đặt
-          cọc</li>
-        <li [class.done]="progressItemState(match, 4).done" [class.current]="progressItemState(match, 4).current">
-          Check-in</li>
-        <li [class.done]="progressItemState(match, 5).done" [class.current]="progressItemState(match, 5).current">Kết
-          quả</li>
+        @for (step of progressSteps(match); track step; let index = $index) {
+        <li [class.done]="progressItemState(match, index).done" [class.current]="progressItemState(match, index).current">
+          {{ step }}</li>
+        }
       </ol>
     </div>
 

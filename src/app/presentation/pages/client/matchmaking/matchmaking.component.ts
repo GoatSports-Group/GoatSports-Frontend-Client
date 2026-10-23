@@ -89,6 +89,9 @@ const SHAREABLE_STATUSES: ReadonlySet<string> = new Set([
   'ACCEPTED', 'VENUE_SELECTED', 'BOOKING_PENDING', 'CONFIRMED', 'CHECKED_IN', 'RESULT_PENDING', 'COMPLETED'
 ]);
 
+const PROGRESS_STEPS = ['Ghép đối thủ', 'Xác nhận', 'Chọn sân', 'Đặt cọc', 'Check-in', 'Kết quả'] as const;
+const OFFLINE_PROGRESS_STEPS = ['Ghép đối thủ', 'Xác nhận', 'Chọn sân', 'Chốt sân', 'Kết quả'] as const;
+
 @Component({
   selector: 'app-matchmaking',
   templateUrl: './matchmaking.component.html',
@@ -493,8 +496,13 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
       : `${countdown}. Quá hạn mà bạn không nhập, đối thủ được xử thắng; cả hai không nhập thì tính hòa`;
   }
 
+  /** Sân ngoài hệ thống không có cọc và check-in: "Đặt cọc" thành "Chốt sân", bỏ bước Check-in. */
+  progressSteps(m: MatchmakingSession): readonly string[] {
+    return this.isOffline(m) ? OFFLINE_PROGRESS_STEPS : PROGRESS_STEPS;
+  }
+
   progressPercent(m: MatchmakingSession): string {
-    return `${this.matchProgressStep(m.status) * 20}%`;
+    return `${this.progressStep(m) * 100 / (this.progressSteps(m).length - 1)}%`;
   }
   readonly scheduleConflict = computed<ScheduleConflict | null>(() => {
     const requestStart = this.localDateTime(this.playDate(), this.startTime());
@@ -1253,13 +1261,19 @@ export class MatchmakingComponent implements OnInit, AfterViewInit {
   }
 
   progressItemState(m: MatchmakingSession, index: number): { done: boolean; current: boolean } {
-    const current = this.matchProgressStep(m.status);
-    if (m.status === 'CONFIRMED') {
-      // Deposit step is fully done; the pulsing "current" indicator moves
-      // ahead to Check-in so CONFIRMED doesn't look identical to BOOKING_PENDING.
+    const current = this.progressStep(m);
+    if (m.status === 'CONFIRMED' || (this.isOffline(m) && ['RESULT_PENDING', 'DISPUTED'].includes(m.status))) {
+      // Deposit (or, at an external venue, "Chốt sân") is fully done; the pulsing "current" indicator moves
+      // ahead to the next step so CONFIRMED doesn't look identical to BOOKING_PENDING.
       return { done: index <= current, current: index === current + 1 };
     }
     return { done: index <= current, current: index === current };
+  }
+
+  private progressStep(m: MatchmakingSession): number {
+    const step = this.matchProgressStep(m.status);
+    // Không có bước Check-in: kết quả đứng ngay sau "Chốt sân".
+    return this.isOffline(m) && step >= 4 ? step - 1 : step;
   }
 
   conflictAllowedAfter(conflict: ScheduleConflict): string {

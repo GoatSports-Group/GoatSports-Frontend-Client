@@ -92,6 +92,7 @@
 
 .match-progress-wrap {
   --progress: 0%;
+  --steps: 6; // sân ngoài hệ thống: 5 bước (không có Check-in)
   position: relative;
   margin: 18px 0;
   padding-top: 2px;
@@ -101,8 +102,8 @@
   position: absolute;
   z-index: 0;
   top: 5px;
-  right: calc(100% / 12);
-  left: calc(100% / 12);
+  right: calc(100% / (2 * var(--steps)));
+  left: calc(100% / (2 * var(--steps)));
   height: 4px;
   overflow: hidden;
   border-radius: 999px;
@@ -125,7 +126,7 @@
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(var(--steps), 1fr);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -249,7 +250,7 @@
   .candidate-card { grid-template-columns: 42px 1fr auto; }
   .candidate-card .button { grid-column: 2 / -1; }
   .score-reasons { grid-template-columns: 1fr; }
-  .match-progress { overflow-x: auto; grid-template-columns: repeat(6, minmax(80px, 1fr)); }
+  .match-progress { overflow-x: auto; grid-template-columns: repeat(var(--steps), minmax(80px, 1fr)); }
   .result-entry > div { grid-template-columns: 1fr; }
 }
 
