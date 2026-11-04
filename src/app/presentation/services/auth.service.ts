@@ -97,7 +97,7 @@ export class AuthService {
     this.notify.warning(message, 'Yêu cầu đăng nhập');
   }
 
-  public performLogout(reason?: 'blocked' | 'deletion' | 'inactive') {
+  public performLogout(reason?: 'blocked' | 'deletion' | 'inactive' | 'replaced') {
     if (this.isLoggingOut) {
       console.log('Already logging out...');
       return;
@@ -117,7 +117,7 @@ export class AuthService {
     this.finishLogout(shouldRedirectHome);
   }
 
-  private finishLogout(shouldRedirectHome: boolean, reason?: 'blocked' | 'deletion' | 'inactive') {
+  private finishLogout(shouldRedirectHome: boolean, reason?: 'blocked' | 'deletion' | 'inactive' | 'replaced') {
     console.log('Performing logout...');
     this.clearSession();
     if (reason === 'blocked' && shouldRedirectHome) {
@@ -130,6 +130,12 @@ export class AuthService {
       this.notify.warning(
         'Tài khoản cần được xác thực lại. Đăng nhập để nhận mã xác thực qua email.',
         'Tài khoản chưa được kích hoạt'
+      );
+    }
+    if (reason === 'replaced' && shouldRedirectHome) {
+      this.notify.warning(
+        'Tài khoản của bạn vừa đăng nhập ở thiết bị hoặc trình duyệt khác. Đăng nhập lại để tiếp tục tại đây.',
+        'Phiên đăng nhập đã kết thúc'
       );
     }
     if (reason === 'deletion' && shouldRedirectHome) {

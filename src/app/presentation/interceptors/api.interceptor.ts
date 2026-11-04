@@ -46,6 +46,11 @@ export class ApiInterceptor implements HttpInterceptor {
           this.injector.get(AuthService).performLogout('deletion');
           return throwError(() => error);
         }
+        // Gateway: tài khoản vừa đăng nhập ở nơi khác; refresh token của phiên này đã bị thay nên không làm mới được.
+        if (error.error?.error === 'SESSION_REPLACED') {
+          this.injector.get(AuthService).performLogout('replaced');
+          return throwError(() => error);
+        }
         // Gateway: admin vừa bỏ xác thực tài khoản; đăng nhập lại sẽ nhận OTP kích hoạt.
         if (error.error?.error === 'ACCOUNT_INACTIVE') {
           this.injector.get(AuthService).performLogout('inactive');

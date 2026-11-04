@@ -265,6 +265,12 @@ export class NotificationService implements OnDestroy {
       this.ngZone.run(() => this.catchUp());
     }));
     this.wsSubscription.add(this.wsService.sessionRevoked$.subscribe(reason => {
+      // Đăng nhập ở nơi khác: chỉ phiên cũ mới bị gateway chặn. Tab cùng trình duyệt dùng chung cookie mới thì gọi
+      // /me vẫn thành công và ở lại; phiên cũ nhận 401 SESSION_REPLACED và interceptor đăng xuất kèm thông báo.
+      if (reason === 'SESSION_REPLACED') {
+        this.authService.getCurrentUser().subscribe({ error: () => undefined });
+        return;
+      }
       this.ngZone.run(() => this.authService.performLogout(
         reason === 'ACCOUNT_DELETION_PENDING' ? 'deletion' : reason === 'ACCOUNT_INACTIVE' ? 'inactive' : 'blocked'));
     }));
