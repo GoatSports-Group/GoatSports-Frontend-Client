@@ -135,8 +135,6 @@ export interface FeedFilter {
   sports?: readonly PostSport[] | null;
   /** Voi followingOnly: kem ca ban be (khoi "Ban be dang hoat dong" o Trang chu). */
   withFriends?: boolean;
-  /** Tu khoa tim trong noi dung bai (khong phan biet hoa thuong). */
-  q?: string | null;
 }
 
 export interface AuthorStats {

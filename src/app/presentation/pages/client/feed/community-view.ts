@@ -3,14 +3,16 @@ import { PostSport, PostVisibility } from '@application/dto/social-feed/social-f
 import { SPORT_LABEL } from '@presentation/pages/client/tournaments/tournament-view';
 
 /** Nhan va bo loc dung chung cho bang tin, the bai viet va trang chi tiet bai viet. */
-export type FeedTab = 'calls' | 'explore' | 'saved' | 'mine' | 'friends';
+export type FeedTab = 'calls' | 'explore' | 'saved' | 'mine' | 'friends' | 'moderation';
 
 export const FEED_TABS: ReadonlyArray<{ value: FeedTab; label: string; icon: string }> = [
   { value: 'calls', label: 'Tìm người chơi', icon: 'megaphone' },
   { value: 'explore', label: 'Khám phá', icon: 'compass' },
   { value: 'saved', label: 'Đã lưu', icon: 'bookmark' },
   { value: 'mine', label: 'Bài của tôi', icon: 'pencil' },
-  { value: 'friends', label: 'Bạn bè', icon: 'users' }
+  { value: 'friends', label: 'Bạn bè', icon: 'users' },
+  /** Quyet dinh kiem duyet ve noi dung cua minh va khieu nai. */
+  { value: 'moderation', label: 'Kiểm duyệt', icon: 'shield-alert' }
 ];
 
 export const POST_SPORTS: readonly PostSport[] = Object.keys(SPORT_LABEL) as PostSport[];

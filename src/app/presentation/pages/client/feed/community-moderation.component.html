@@ -1,9 +1,7 @@
 <section aria-labelledby="moderation-tab-title">
-  <header class="tab-head">
-    <div>
-      <h2 id="moderation-tab-title">Kiểm duyệt nội dung</h2>
-      <p>Quyết định của quản trị viên về bài viết, bình luận hoặc tài khoản của bạn. Thấy chưa đúng thì gửi khiếu nại.</p>
-    </div>
+  <header class="moderation-head">
+    <h2 id="moderation-tab-title">Kiểm duyệt nội dung của bạn</h2>
+    <p>Quyết định của quản trị viên về bài viết, bình luận hoặc tài khoản của bạn. Thấy chưa đúng thì gửi khiếu nại.</p>
   </header>
 
   <div class="stack">
@@ -38,7 +36,7 @@
         <div class="decision__body">
           <div class="row__meta">
             <p class="row__value">{{ title(decision) }}</p>
-            @if (contentStatus(decision.contentStatus); as status) { <span class="badge">{{ status }}</span> }
+            @if (contentStatus(decision); as status) { <span class="badge">{{ status }}</span> }
             @if (decision.appeal) { <span class="badge" [ngClass]="appealTone(decision)">{{ appealLabel(decision) }}</span> }
           </div>
           <span class="row__label">{{ decision.actionAt | date:'HH:mm dd/MM/yyyy' }}</span>

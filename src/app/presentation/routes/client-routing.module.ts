@@ -64,7 +64,7 @@ const routes: Routes = [
       { path: 'tournaments', component: TournamentListComponent, title: 'Giải đấu | GOAT Sports' },
       { path: 'tournaments/:id', component: TournamentDetailComponent, title: 'Chi tiết giải đấu | GOAT Sports' },
       { path: 'matchmaking', component: MatchmakingComponent, canActivate: [AuthGuard], title: 'AI ghép trận | GOAT Sports' },
-      // Khach xem va tim bai cong khai; dang bai, thich, binh luan... moi can dang nhap.
+      // Khach xem bai cong khai; dang bai, thich, binh luan... moi can dang nhap.
       { path: 'feed', component: SocialFeedComponent, title: 'Cộng đồng | GOAT Sports' },
       // Bai viet luon mo trong popup tren bang tin; link cu (thong bao, link da chia se) chuyen ve /feed?post=:id.
       { path: 'feed/posts/:postId', redirectTo: ({ params }) => inject(Router).createUrlTree(['/feed'], { queryParams: { post: params['postId'] } }) },

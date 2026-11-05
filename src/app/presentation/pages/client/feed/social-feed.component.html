@@ -26,27 +26,6 @@
         </nav>
       }
 
-      @if (!authorId() && !isFriendsTab() && tab() !== 'saved') {
-        <form class="feed-search" role="search" (submit)="$event.preventDefault(); search()">
-          <lucide-icon name="search" class="w-4 h-4" aria-hidden="true"></lucide-icon>
-          <label class="sr-only" for="feed-search">Tìm bài viết</label>
-          <input id="feed-search" type="search" name="q" maxlength="100" autocomplete="off" enterkeyhint="search"
-            placeholder="Tìm bài viết, kèo, chủ đề…" [ngModel]="queryDraft()" (ngModelChange)="queryDraft.set($event)" />
-          @if (queryDraft()) {
-            <button type="button" class="icon-btn" (click)="clearSearch()" aria-label="Xóa từ khóa"><lucide-icon name="x" class="w-4 h-4"></lucide-icon></button>
-          }
-          <button type="submit" class="btn btn--primary">Tìm</button>
-        </form>
-      }
-
-      @if (query(); as activeQuery) {
-        <div class="tag-banner">
-          <span class="tag-banner__icon" aria-hidden="true"><lucide-icon name="search" class="w-5 h-5"></lucide-icon></span>
-          <div><strong>“{{ activeQuery }}”</strong><span>Bài viết có từ khóa này</span></div>
-          <button type="button" class="icon-btn" (click)="clearSearch()" aria-label="Bỏ tìm kiếm"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button>
-        </div>
-      }
-
       @if (isCallsView()) {
         <div class="tag-banner">
           <span class="tag-banner__icon" aria-hidden="true"><lucide-icon name="megaphone" class="w-5 h-5"></lucide-icon></span>
@@ -136,6 +115,8 @@
 
       @if (isFriendsTab()) {
         <app-community-friends></app-community-friends>
+      } @else if (isModerationTab()) {
+        <app-community-moderation></app-community-moderation>
       } @else if (loading()) {
         <app-loading-skeleton variant="cards" [count]="2" minWidth="100%" label="Đang tải bảng tin"></app-loading-skeleton>
       } @else if (loadError()) {
@@ -153,10 +134,6 @@
           @if (authorId()) {
             <strong>{{ isMyAuthorView() ? 'Bạn chưa đăng bài nào' : 'Chưa có bài viết để hiển thị' }}</strong>
             <p>{{ isMyAuthorView() ? 'Đăng kèo tìm người hoặc kể về trận gần nhất ở ô phía trên.' : 'Người này chưa đăng bài công khai, hoặc bài chỉ dành cho bạn bè của họ.' }}</p>
-          } @else if (query()) {
-            <strong>Không tìm thấy bài viết nào với “{{ query() }}”</strong>
-            <p>Thử từ khóa ngắn hơn, bỏ dấu, hoặc tìm theo chủ đề đang nổi.</p>
-            <button type="button" class="btn btn--secondary" (click)="clearSearch()">Bỏ tìm kiếm</button>
           } @else if (tag()) {
             <strong>Chưa có bài nào gắn #{{ tag() }}</strong>
             <p>Đăng bài đầu tiên với chủ đề này, hoặc xem các chủ đề đang nổi.</p>

@@ -19,7 +19,6 @@ import { SettingsPersonalTabComponent } from '@presentation/pages/client/setting
 import { SettingsSecurityTabComponent } from '@presentation/pages/client/settings/tabs/security/settings-security-tab.component';
 import { SettingsSportsTabComponent } from '@presentation/pages/client/settings/tabs/sports/settings-sports-tab.component';
 import { SettingsBankingTabComponent } from '@presentation/pages/client/settings/tabs/banking/settings-banking-tab.component';
-import { SettingsModerationTabComponent } from '@presentation/pages/client/settings/tabs/moderation/settings-moderation-tab.component';
 import { VenueSearchComponent } from '@presentation/pages/client/venues/venue-search.component';
 import { VenueClaimComponent } from '@presentation/pages/client/venues/venue-claim/venue-claim.component';
 import { VenueCardComponent } from '@presentation/pages/client/venues/venue-card/venue-card.component';
@@ -61,6 +60,7 @@ import { PlayerCallComponent } from '@presentation/pages/client/feed/player-call
 import { PostComposerComponent } from '@presentation/pages/client/feed/post-composer.component';
 import { PostDialogComponent } from '@presentation/pages/client/feed/post-dialog.component';
 import { CommunityFriendsComponent } from '@presentation/pages/client/feed/community-friends.component';
+import { CommunityModerationComponent } from '@presentation/pages/client/feed/community-moderation.component';
 import { MediaLightboxComponent } from '@presentation/pages/client/feed/media-lightbox.component';
 import { MentionMenuComponent } from '@presentation/pages/client/feed/mention-menu.component';
 import { CameraCaptureComponent } from '@presentation/pages/client/chat/camera-capture.component';
@@ -80,7 +80,6 @@ import { AiAssistantModalComponent } from '@presentation/shared/components/ai-as
     SettingsSecurityTabComponent,
     SettingsSportsTabComponent,
     SettingsBankingTabComponent,
-    SettingsModerationTabComponent,
     VenueSearchComponent,
     VenueClaimComponent,
     VenueCardComponent,
@@ -125,6 +124,7 @@ import { AiAssistantModalComponent } from '@presentation/shared/components/ai-as
     PostComposerComponent,
     PostDialogComponent,
     CommunityFriendsComponent,
+    CommunityModerationComponent,
     MediaLightboxComponent,
     MentionMenuComponent,
     CameraCaptureComponent,

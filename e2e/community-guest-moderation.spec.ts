@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { mockGoatSportsApi } from './fixtures/api.fixture';
 
-// Khách xem và tìm bài công khai trên Cộng đồng; người bị xử lý xem quyết định kiểm duyệt và khiếu nại.
+// Khách xem bài công khai trên Cộng đồng; người bị xử lý xem quyết định kiểm duyệt và khiếu nại.
 const ok = (data: unknown) => ({ json: { statusCode: 200, message: 'OK', data } });
 const author = '33333333-3333-4333-8333-333333333333';
 
@@ -26,11 +26,8 @@ async function openAsGuest(page: Page, path: string) {
   const feed: URLSearchParams[] = [];
   const authOnly: string[] = [];
   await page.route(url => url.pathname.endsWith('/social/posts'), route => {
-    const params = new URL(route.request().url()).searchParams;
-    feed.push(params);
-    const q = params.get('q');
-    return route.fulfill(ok(page0(q ? [post('p2', 'Tìm kèo cầu lông tối nay')]
-      : [post('p1', 'Sáng nay đánh đôi rất vui'), post('p2', 'Tìm kèo cầu lông tối nay')])));
+    feed.push(new URL(route.request().url()).searchParams);
+    return route.fulfill(ok(page0([post('p1', 'Sáng nay đánh đôi rất vui'), post('p2', 'Tìm kèo cầu lông tối nay')])));
   });
   // Các API chỉ dành cho người đăng nhập: khách không được gọi tới.
   await page.route(/social\/(friends|follows\/users\/suggestions|blocks)|users\/me\/sport-profiles/, route => {
@@ -42,7 +39,7 @@ async function openAsGuest(page: Page, path: string) {
   return { feed, authOnly };
 }
 
-test('khách xem bảng tin công khai, tìm bài theo từ khóa mà không bị bắt đăng nhập', async ({ page }) => {
+test('khách xem bảng tin công khai mà không bị bắt đăng nhập', async ({ page }) => {
   const { feed, authOnly } = await openAsGuest(page, '/feed');
 
   await expect(page).toHaveURL(/\/feed/);
@@ -50,15 +47,8 @@ test('khách xem bảng tin công khai, tìm bài theo từ khóa mà không b�
   await expect(page.getByRole('region', { name: 'Tham gia cộng đồng' })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Đăng bài mới' })).toHaveCount(0);
   await expect(page.getByRole('navigation', { name: 'Phạm vi bảng tin' }).getByRole('button')).toHaveText([/Khám phá/]);
-
-  await page.getByRole('searchbox', { name: 'Tìm bài viết' }).fill('kèo cầu lông');
-  await page.getByRole('button', { name: 'Tìm', exact: true }).click();
-
-  await expect(page).toHaveURL(/q=k%C3%A8o/);
-  await expect(page.getByText('“kèo cầu lông”')).toBeVisible();
-  await expect(page.getByText('Sáng nay đánh đôi rất vui')).toHaveCount(0);
-  await expect(page.getByText('Tìm kèo cầu lông tối nay')).toBeVisible();
-  expect(feed.at(-1)?.get('q')).toBe('kèo cầu lông');
+  await expect(page.getByRole('searchbox')).toHaveCount(0);
+  expect(feed.length).toBeGreaterThan(0);
   expect(authOnly).toEqual([]);
 });
 
@@ -78,7 +68,7 @@ test('khách bấm Thích thì được đưa tới đăng nhập, không gọi 
   expect(likes).toEqual([]);
 });
 
-test('người bị xử lý xem lý do trong Cài đặt và gửi khiếu nại', async ({ page }) => {
+test('người bị xử lý xem lý do ở Cộng đồng › Kiểm duyệt và gửi khiếu nại', async ({ page }) => {
   await mockGoatSportsApi(page);
   const decisions = [{
     actionId: 'a1', actionType: 'HIDE_CONTENT', reason: 'Quảng cáo lặp lại nhiều lần',
@@ -96,9 +86,10 @@ test('người bị xử lý xem lý do trong Cài đặt và gửi khiếu nạ
     return route.fulfill({ status: 201, json: { statusCode: 201, message: 'OK', data: {} } });
   });
 
-  await page.goto('/settings?tab=moderation');
+  await page.goto('/feed?tab=moderation');
 
-  await expect(page.getByRole('heading', { name: 'Kiểm duyệt nội dung' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Kiểm duyệt nội dung của bạn' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Tìm người chơi' })).toHaveCount(0);
   await expect(page.getByText('Bài viết đã bị ẩn')).toBeVisible();
   await expect(page.getByText('Quảng cáo lặp lại nhiều lần')).toBeVisible();
 

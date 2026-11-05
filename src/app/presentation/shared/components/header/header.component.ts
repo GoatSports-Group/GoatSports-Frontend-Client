@@ -138,7 +138,7 @@ export class HeaderComponent implements OnInit {
         break;
       case 'CONTENT_REPORT':
       case 'CONTENT_APPEAL':
-        void this.router.navigate(['/settings'], { queryParams: { tab: 'moderation' } });
+        void this.router.navigate(['/feed'], { queryParams: { tab: 'moderation' } });
         break;
       case 'MESSAGE':
         void this.router.navigate(['/chat']);

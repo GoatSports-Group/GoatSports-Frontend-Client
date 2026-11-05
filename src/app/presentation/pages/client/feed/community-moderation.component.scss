@@ -1,7 +1,35 @@
-@use '../../settings-ui' as ui;
+@use '../settings/settings-ui' as ui;
 
 @include ui.settings-ui;
 @include ui.modal-ui;
+
+:host {
+  display: block;
+}
+
+.moderation-head {
+  display: grid;
+  gap: 4px;
+  padding-top: 8px;
+
+  h2 {
+    margin: 0;
+    color: var(--ink);
+    font-size: 18px;
+    font-weight: 800;
+  }
+
+  p {
+    margin: 0;
+    color: var(--body);
+    font-size: 14px;
+  }
+}
+
+section {
+  display: grid;
+  gap: 16px;
+}
 
 .stack {
   display: grid;

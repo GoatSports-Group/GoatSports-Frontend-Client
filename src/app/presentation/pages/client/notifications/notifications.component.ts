@@ -288,9 +288,9 @@ export class NotificationsComponent implements OnInit {
       void this.router.navigate(['/settings'], { queryParams: { tab: 'banking' } });
       return;
     }
-    // Quyet dinh kiem duyet / ket qua khieu nai: mo Cai dat › Kiem duyet noi dung.
+    // Quyet dinh kiem duyet / ket qua khieu nai: mo Cong dong › Kiem duyet.
     if (['CONTENT_REPORT', 'CONTENT_APPEAL'].includes((notification.referenceType || '').toUpperCase())) {
-      void this.router.navigate(['/settings'], { queryParams: { tab: 'moderation' } });
+      void this.router.navigate(['/feed'], { queryParams: { tab: 'moderation' } });
       return;
     }
     if ((notification.referenceType || '').toUpperCase() === 'FRIENDSHIP') {

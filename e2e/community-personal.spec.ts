@@ -71,7 +71,7 @@ test('chỉ những gì phục vụ tìm người chơi và chia sẻ; không c�
 
   const tabs = page.getByRole('navigation', { name: 'Phạm vi bảng tin' });
   // "Tim nguoi choi" khong con la tab; Cong dong chi co ket ban, khong co theo doi.
-  await expect(tabs.getByRole('button')).toHaveText([/Khám phá/, /Đã lưu/, /Bạn bè/]);
+  await expect(tabs.getByRole('button')).toHaveText([/Khám phá/, /Đã lưu/, /Bạn bè/, /Kiểm duyệt/]);
   await expect(community.getByText(/theo dõi/i)).toHaveCount(0);
   await expect(page.locator('.profile .stats')).toHaveCount(0);
 });

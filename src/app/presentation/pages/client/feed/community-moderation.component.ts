@@ -12,17 +12,17 @@ const MIN_REASON = 10;
 const MAX_REASON = 2000;
 
 /**
- * Quyet dinh kiem duyet ve noi dung / tai khoan cua minh: ly do, trang thai hien tai va khieu nai.
+ * Tab "Kiem duyet" cua Cong dong: quyet dinh kiem duyet ve noi dung / tai khoan cua minh, ly do va khieu nai.
  * Quyet dinh moi den realtime (thong bao CONTENT_MODERATION) thi tai lai danh sach.
  */
 @Component({
-  selector: 'app-settings-moderation-tab',
-  templateUrl: './settings-moderation-tab.component.html',
-  styleUrls: ['./settings-moderation-tab.component.scss'],
+  selector: 'app-community-moderation',
+  templateUrl: './community-moderation.component.html',
+  styleUrls: ['./community-moderation.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false
 })
-export class SettingsModerationTabComponent {
+export class CommunityModerationComponent {
   private readonly repository = inject(SOCIAL_FEED_REPOSITORY_TOKEN);
   private readonly notify = inject(NotifyService);
   private readonly notifications = inject(NotificationService);
@@ -43,6 +43,22 @@ export class SettingsModerationTabComponent {
   readonly submitting = signal(false);
   readonly reasonLength = computed(() => this.appealReason().trim().length);
   readonly reasonValid = computed(() => this.reasonLength() >= MIN_REASON && this.reasonLength() <= MAX_REASON);
+  /**
+   * Quyet dinh moi nhat cua moi noi dung (danh sach moi nhat truoc): chi dong nay mang nhan trang thai hien tai,
+   * de quyet dinh cu ("da hien thi lai") khong mang nhan "Dang bi an" cua hien tai.
+   */
+  readonly latestIds = computed(() => {
+    const seen = new Set<string>();
+    const latest = new Set<string>();
+    for (const decision of this.decisions()) {
+      const key = `${decision.targetType}:${decision.targetId}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        latest.add(decision.actionId);
+      }
+    }
+    return latest;
+  });
 
   constructor() {
     this.load();
@@ -157,11 +173,13 @@ export class SettingsModerationTabComponent {
     return 'Quyết định này đã được thay bằng quyết định mới hơn.';
   }
 
-  contentStatus(status: string | null): string | null {
-    switch (status) {
-      case 'PUBLISHED': return 'Đang hiển thị';
-      case 'HIDDEN': return 'Đang bị ẩn';
-      case 'REMOVED': return 'Đã bị gỡ';
+  /** Nhan trang thai hien tai, chi voi quyet dinh moi nhat cua noi dung. */
+  contentStatus(decision: ModerationDecision): string | null {
+    if (!this.latestIds().has(decision.actionId)) return null;
+    switch (decision.contentStatus) {
+      case 'PUBLISHED': return 'Hiện tại: đang hiển thị';
+      case 'HIDDEN': return 'Hiện tại: đang bị ẩn';
+      case 'REMOVED': return 'Hiện tại: đã bị gỡ';
       default: return null;
     }
   }

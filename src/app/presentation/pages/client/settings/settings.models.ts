@@ -1,4 +1,4 @@
-export type SettingsTabKey = 'personal' | 'sports' | 'banking' | 'moderation' | 'security';
+export type SettingsTabKey = 'personal' | 'sports' | 'banking' | 'security';
 
 export interface SettingsTabItem {
   key: SettingsTabKey;
@@ -10,6 +10,5 @@ export const SETTINGS_TABS: SettingsTabItem[] = [
   { key: 'personal', label: 'Hồ sơ cá nhân', icon: 'user' },
   { key: 'sports', label: 'Hồ sơ thể thao', icon: 'activity' },
   { key: 'banking', label: 'Ngân hàng & hoàn tiền', icon: 'credit-card' },
-  { key: 'moderation', label: 'Kiểm duyệt nội dung', icon: 'shield-alert' },
   { key: 'security', label: 'Đăng nhập & bảo mật', icon: 'shield-check' }
 ];
