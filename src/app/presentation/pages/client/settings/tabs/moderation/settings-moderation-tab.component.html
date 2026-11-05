@@ -1,0 +1,102 @@
+<section aria-labelledby="moderation-tab-title">
+  <header class="tab-head">
+    <div>
+      <h2 id="moderation-tab-title">Kiểm duyệt nội dung</h2>
+      <p>Quyết định của quản trị viên về bài viết, bình luận hoặc tài khoản của bạn. Thấy chưa đúng thì gửi khiếu nại.</p>
+    </div>
+  </header>
+
+  <div class="stack">
+    <div class="note">
+      <lucide-icon name="shield-check" class="w-4 h-4"></lucide-icon>
+      <span>Danh tính người báo cáo luôn được giữ kín. Mỗi quyết định được khiếu nại một lần; kết quả sẽ báo cho bạn
+        ngay khi có.</span>
+    </div>
+
+    @if (loading()) {
+    <app-loading-skeleton variant="rows" [count]="2" label="Đang tải quyết định kiểm duyệt"></app-loading-skeleton>
+    } @else if (error()) {
+    <div class="state state--error">
+      <span class="state__icon"><lucide-icon name="wifi-off" class="w-6 h-6"></lucide-icon></span>
+      <strong>Không tải được quyết định kiểm duyệt</strong>
+      <p>Kiểm tra kết nối mạng rồi thử lại.</p>
+      <button type="button" class="btn btn--primary" (click)="load()"><lucide-icon name="refresh-cw" class="w-4 h-4"></lucide-icon>Thử lại</button>
+    </div>
+    } @else if (!decisions().length) {
+    <div class="state">
+      <span class="state__icon"><lucide-icon name="shield-check" class="w-6 h-6"></lucide-icon></span>
+      <strong>Chưa có quyết định nào</strong>
+      <p>Nội dung của bạn chưa bị ẩn, gỡ hay cảnh cáo. Cảm ơn bạn đã giữ cộng đồng văn minh.</p>
+    </div>
+    } @else {
+    <ul class="decision-list">
+      @for (decision of decisions(); track decision.actionId) {
+      <li class="panel decision">
+        <span class="decision__icon" [ngClass]="'decision__icon--' + tone(decision)" aria-hidden="true">
+          <lucide-icon [name]="icon(decision)" class="w-5 h-5"></lucide-icon>
+        </span>
+        <div class="decision__body">
+          <div class="row__meta">
+            <p class="row__value">{{ title(decision) }}</p>
+            @if (contentStatus(decision.contentStatus); as status) { <span class="badge">{{ status }}</span> }
+            @if (decision.appeal) { <span class="badge" [ngClass]="appealTone(decision)">{{ appealLabel(decision) }}</span> }
+          </div>
+          <span class="row__label">{{ decision.actionAt | date:'HH:mm dd/MM/yyyy' }}</span>
+          @if (decision.contentSnippet) { <blockquote class="decision__quote">{{ decision.contentSnippet }}</blockquote> }
+          <p class="decision__reason"><strong>Lý do:</strong> {{ decision.reason }}</p>
+          @if (decision.appeal; as appeal) {
+          <p class="decision__appeal"><strong>Khiếu nại của bạn:</strong> {{ appeal.reason }}</p>
+          } @else if (closedNote(decision); as note) {
+          <p class="row__label">{{ note }}</p>
+          }
+        </div>
+        @if (decision.appealable) {
+        <button type="button" class="btn btn--secondary" (click)="openAppeal(decision)">
+          <lucide-icon name="gavel" class="w-4 h-4"></lucide-icon>Khiếu nại
+        </button>
+        }
+      </li>
+      }
+    </ul>
+    @if (hasMore()) {
+    <button type="button" class="btn btn--ghost load-more" [disabled]="loadingMore()" (click)="loadMore()">
+      {{ loadingMore() ? 'Đang tải...' : 'Xem thêm' }}
+    </button>
+    }
+    }
+  </div>
+</section>
+
+@if (appealing(); as decision) {
+<div class="modal-backdrop" role="presentation" (click)="closeAppeal()">
+  <form class="modal" appAccessibleDialog aria-labelledby="appeal-title" (dialogClosed)="closeAppeal()"
+    (click)="$event.stopPropagation()" (ngSubmit)="submitAppeal()">
+    <header class="modal__header">
+      <div>
+        <h2 id="appeal-title">Khiếu nại quyết định</h2>
+        <p>{{ title(decision) }} · {{ decision.actionAt | date:'HH:mm dd/MM/yyyy' }}</p>
+      </div>
+      <button type="button" class="icon-btn" aria-label="Đóng" [disabled]="submitting()" (click)="closeAppeal()">
+        <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+      </button>
+    </header>
+    <div class="modal__body">
+      <p class="decision__reason"><strong>Lý do của quản trị viên:</strong> {{ decision.reason }}</p>
+      <label class="field" [class.is-invalid]="reasonLength() > 0 && !reasonValid()">
+        <span class="field__label">Vì sao bạn cho là chưa đúng? <b>*</b></span>
+        <textarea class="field__control appeal-input" name="reason" rows="5" [maxlength]="maxReason"
+          [disabled]="submitting()" placeholder="Ví dụ: Bài viết là lịch thi đấu của CLB, không phải quảng cáo."
+          [ngModel]="appealReason()" (ngModelChange)="appealReason.set($event)"></textarea>
+        <span class="field__hint">{{ reasonLength() }}/{{ maxReason }} ký tự, tối thiểu {{ minReason }}.</span>
+      </label>
+    </div>
+    <footer class="modal__footer">
+      <button type="button" class="btn btn--secondary" [disabled]="submitting()" (click)="closeAppeal()">Hủy</button>
+      <button type="submit" class="btn btn--primary" [disabled]="!reasonValid() || submitting()" [attr.aria-busy]="submitting()">
+        @if (submitting()) { <lucide-icon name="loader-2" class="w-4 h-4 animate-spin"></lucide-icon> }
+        {{ submitting() ? 'Đang gửi...' : 'Gửi khiếu nại' }}
+      </button>
+    </footer>
+  </form>
+</div>
+}

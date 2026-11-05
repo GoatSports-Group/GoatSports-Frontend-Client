@@ -12,6 +12,7 @@ import {
   SocialPost,
   AuthorStats,
   FeedFilter,
+  ModerationDecision,
   FollowEntry,
   FollowSuggestion,
   Mention,
@@ -36,6 +37,7 @@ export class SocialFeedApi {
     if (filter.playerCallsOnly) params = params.set('playerCallsOnly', true);
     if (filter.sports?.length) params = params.set('sports', filter.sports.join(','));
     if (filter.withFriends) params = params.set('withFriends', true);
+    if (filter.q?.trim()) params = params.set('q', filter.q.trim());
     return this.http.get<BaseResponse<SpringPageResponse<SocialPost>>>(this.postUrl, { params });
   }
 
@@ -149,6 +151,16 @@ export class SocialFeedApi {
 
   reportContent(request: CreateContentReportRequest): Observable<BaseResponse<ContentReport>> {
     return this.http.post<BaseResponse<ContentReport>>(this.reportUrl, request);
+  }
+
+  getMyModerationDecisions(page: number, size: number): Observable<BaseResponse<SpringPageResponse<ModerationDecision>>> {
+    return this.http.get<BaseResponse<SpringPageResponse<ModerationDecision>>>(`${this.reportUrl}/decisions/me`, {
+      params: this.pageParams(page, size)
+    });
+  }
+
+  appealDecision(actionId: string, reason: string): Observable<BaseResponse<unknown>> {
+    return this.http.post<BaseResponse<unknown>>(`${this.reportUrl}/appeals`, { actionId, reason });
   }
 
   getFollowList(userId: string, kind: 'followers' | 'following', page: number, size: number)

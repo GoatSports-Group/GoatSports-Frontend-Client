@@ -26,6 +26,27 @@
         </nav>
       }
 
+      @if (!authorId() && !isFriendsTab() && tab() !== 'saved') {
+        <form class="feed-search" role="search" (submit)="$event.preventDefault(); search()">
+          <lucide-icon name="search" class="w-4 h-4" aria-hidden="true"></lucide-icon>
+          <label class="sr-only" for="feed-search">Tìm bài viết</label>
+          <input id="feed-search" type="search" name="q" maxlength="100" autocomplete="off" enterkeyhint="search"
+            placeholder="Tìm bài viết, kèo, chủ đề…" [ngModel]="queryDraft()" (ngModelChange)="queryDraft.set($event)" />
+          @if (queryDraft()) {
+            <button type="button" class="icon-btn" (click)="clearSearch()" aria-label="Xóa từ khóa"><lucide-icon name="x" class="w-4 h-4"></lucide-icon></button>
+          }
+          <button type="submit" class="btn btn--primary">Tìm</button>
+        </form>
+      }
+
+      @if (query(); as activeQuery) {
+        <div class="tag-banner">
+          <span class="tag-banner__icon" aria-hidden="true"><lucide-icon name="search" class="w-5 h-5"></lucide-icon></span>
+          <div><strong>“{{ activeQuery }}”</strong><span>Bài viết có từ khóa này</span></div>
+          <button type="button" class="icon-btn" (click)="clearSearch()" aria-label="Bỏ tìm kiếm"><lucide-icon name="x" class="w-5 h-5"></lucide-icon></button>
+        </div>
+      }
+
       @if (isCallsView()) {
         <div class="tag-banner">
           <span class="tag-banner__icon" aria-hidden="true"><lucide-icon name="megaphone" class="w-5 h-5"></lucide-icon></span>
@@ -73,8 +94,21 @@
                 {{ isMyAuthorView() ? 'Trang cá nhân của bạn: bài viết và kèo bạn đã đăng' : 'Bài viết bạn được phép xem' }}@if (authorPostCount() !== null) { · {{ authorPostCount() }} bài viết }
               </span>
             </div>
-            <ng-container [ngTemplateOutlet]="friendButton" [ngTemplateOutletContext]="{ $implicit: viewedId }"></ng-container>
+            @if (!isGuest) {
+              <ng-container [ngTemplateOutlet]="friendButton" [ngTemplateOutletContext]="{ $implicit: viewedId }"></ng-container>
+            }
           </div>
+        </section>
+      }
+
+      @if (isGuest && !authorId()) {
+        <section class="card guest-cta" aria-label="Tham gia cộng đồng">
+          <span class="guest-cta__icon" aria-hidden="true"><lucide-icon name="users" class="w-5 h-5"></lucide-icon></span>
+          <div>
+            <strong>Tham gia cộng đồng GOAT Sports</strong>
+            <span>Đăng nhập để đăng bài, tìm người chơi, thích, bình luận và kết bạn.</span>
+          </div>
+          <button type="button" class="btn btn--primary" (click)="login()">Đăng nhập</button>
         </section>
       }
 
@@ -119,6 +153,10 @@
           @if (authorId()) {
             <strong>{{ isMyAuthorView() ? 'Bạn chưa đăng bài nào' : 'Chưa có bài viết để hiển thị' }}</strong>
             <p>{{ isMyAuthorView() ? 'Đăng kèo tìm người hoặc kể về trận gần nhất ở ô phía trên.' : 'Người này chưa đăng bài công khai, hoặc bài chỉ dành cho bạn bè của họ.' }}</p>
+          } @else if (query()) {
+            <strong>Không tìm thấy bài viết nào với “{{ query() }}”</strong>
+            <p>Thử từ khóa ngắn hơn, bỏ dấu, hoặc tìm theo chủ đề đang nổi.</p>
+            <button type="button" class="btn btn--secondary" (click)="clearSearch()">Bỏ tìm kiếm</button>
           } @else if (tag()) {
             <strong>Chưa có bài nào gắn #{{ tag() }}</strong>
             <p>Đăng bài đầu tiên với chủ đề này, hoặc xem các chủ đề đang nổi.</p>
@@ -178,7 +216,7 @@
       @if (tab() !== 'calls' || authorId()) {
         <section class="card rail-card">
           <header class="card__head">
-            <h3>Kèo hợp với bạn</h3>
+            <h3>{{ isGuest ? 'Kèo đang tìm người' : 'Kèo hợp với bạn' }}</h3>
             <button type="button" class="btn btn--ghost" (click)="selectTab('calls')">Xem tất cả</button>
           </header>
           @if (matchingCalls().loading) {
@@ -193,6 +231,7 @@
         </section>
       }
 
+      @if (!isGuest) {
       <section class="card rail-card">
         <header class="card__head">
           <h3>Gợi ý kết bạn</h3>
@@ -227,6 +266,7 @@
           </ul>
         }
       </section>
+      }
 
       <!-- Chua co chu de nao thi an han the, khong de mot cau trong chiem cho. -->
       @if (trending().loading || trending().error || trending().data.length) {
@@ -254,6 +294,7 @@
     </section>
   }
 
+  @if (!isGuest) {
   <section class="card rail-card">
     <header class="card__head">
       <h3>Môn của bạn</h3>
@@ -292,6 +333,13 @@
       <ng-container [ngTemplateOutlet]="callRows" [ngTemplateOutletContext]="{ $implicit: myCalls().data }"></ng-container>
     }
   </section>
+  } @else {
+  <section class="card rail-card">
+    <header class="card__head"><h3>Bạn chưa đăng nhập</h3></header>
+    <p class="rail-card__state">Bạn vẫn xem và tìm được bài công khai. Đăng nhập để có bảng tin theo môn của bạn và kèo hợp trình độ.</p>
+    <div class="rail-card__state"><button type="button" class="btn btn--primary" (click)="login()">Đăng nhập</button></div>
+  </section>
+  }
 </ng-template>
 
 <!-- Mot dong keo: o ngay, mon · hinh thuc, gio · noi choi · so nguoi con thieu. -->

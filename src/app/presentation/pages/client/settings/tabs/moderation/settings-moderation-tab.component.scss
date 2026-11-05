@@ -1,0 +1,86 @@
+@use '../../settings-ui' as ui;
+
+@include ui.settings-ui;
+@include ui.modal-ui;
+
+.stack {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+.decision-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.decision {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 14px;
+  padding: 16px;
+
+  @media (max-width: 560px) {
+    grid-template-columns: 40px minmax(0, 1fr);
+
+    > .btn {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+.decision__icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 12px;
+
+  &--danger { background: var(--danger-soft); color: var(--danger); }
+  &--warning { background: var(--warning-soft); color: var(--warning); }
+  &--success { background: var(--success-soft); color: var(--success); }
+}
+
+.decision__body {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+}
+
+.decision__quote {
+  margin: 4px 0 0;
+  padding: 8px 12px;
+  border-left: 3px solid var(--border-strong);
+  border-radius: 0 8px 8px 0;
+  background: var(--surface-subtle);
+  color: var(--text-dark);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.decision__reason,
+.decision__appeal {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+
+  strong {
+    color: var(--text-dark);
+  }
+}
+
+.appeal-input {
+  min-height: 120px;
+  padding: 10px 14px;
+  resize: vertical;
+}
+
+.load-more {
+  justify-self: center;
+}

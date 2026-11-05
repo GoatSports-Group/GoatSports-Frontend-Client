@@ -12,6 +12,7 @@ import {
   PostVisibility,
   AuthorStats,
   FeedFilter,
+  ModerationDecision,
   FollowEntry,
   FollowSuggestion,
   Mention,
@@ -50,6 +51,10 @@ export interface SocialFeedRepository {
   /** Tra ve bai chia se moi (bai goc nam trong sharedPost). */
   sharePost(postId: string, caption: string, visibility: PostVisibility): Observable<SocialPost>;
   reportContent(request: CreateContentReportRequest): Observable<ContentReport>;
+  /** Quyet dinh kiem duyet ve noi dung / tai khoan cua minh, moi nhat truoc. */
+  getMyModerationDecisions(page: number, size: number): Observable<SpringPageResponse<ModerationDecision>>;
+  /** Khieu nai mot quyet dinh (ly do 10 - 2000 ky tu). */
+  appealDecision(actionId: string, reason: string): Observable<void>;
   /** Keo "Tim nguoi choi" con mo, moi nhat truoc: ca nhan (Trang chu) hoac CLB (trang Cau lac bo). */
   getOpenPlayerCalls(club: boolean, limit: number, sport?: PostSport | null): Observable<SocialPost[]>;
   setPlayerCallFilled(postId: string, filled: boolean): Observable<SocialPost>;

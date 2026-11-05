@@ -198,13 +198,26 @@ export class PostCardComponent implements OnInit {
 
   // ---- post actions --------------------------------------------------------------------------
 
+  /** Khach bam thich, luu, chia se, binh luan: dua toi trang dang nhap roi quay lai day. */
+  login(): void {
+    this.auth.redirectToLogin(window.location.href);
+  }
+
+  private guestBlocked(): boolean {
+    if (this.auth.currentUser) return false;
+    this.login();
+    return true;
+  }
+
   toggleLike(): void {
+    if (this.guestBlocked()) return;
     const post = this.post;
     this.run(post.likedByCurrentUser ? this.repository.unlikePost(post.postId) : this.repository.likePost(post.postId),
       updated => this.replace(updated), 'Không thể cập nhật lượt thích.');
   }
 
   toggleSave(): void {
+    if (this.guestBlocked()) return;
     const post = this.post;
     this.run(post.savedByCurrentUser ? this.repository.unsavePost(post.postId) : this.repository.savePost(post.postId),
       updated => {
@@ -249,6 +262,7 @@ export class PostCardComponent implements OnInit {
   // ---- share & report ------------------------------------------------------------------------
 
   openShare(): void {
+    if (this.guestBlocked()) return;
     this.shareCaption.set('');
     this.shareVisibility.set('PUBLIC');
     this.shareOpen.set(true);

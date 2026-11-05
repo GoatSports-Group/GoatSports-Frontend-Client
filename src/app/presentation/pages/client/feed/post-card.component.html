@@ -63,7 +63,7 @@
           <button mat-menu-item type="button" class="is-danger" (click)="confirm.set({ kind: 'delete-post' })">
             <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon>Xóa bài viết
           </button>
-        } @else {
+        } @else if (auth.currentUser) {
           <button mat-menu-item type="button" (click)="openReport('POST', post.postId)">
             <lucide-icon name="flag" class="w-4 h-4"></lucide-icon>Báo cáo bài viết
           </button>
@@ -233,6 +233,8 @@
             @else { <lucide-icon name="send" class="w-4 h-4"></lucide-icon> }
           </button>
         </div>
+      } @else {
+        <p class="comments__empty"><button type="button" class="link-btn" (click)="login()">Đăng nhập</button> để bình luận.</p>
       }
     </section>
   }

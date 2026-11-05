@@ -33,7 +33,6 @@ export class HeaderComponent implements OnInit {
 
   @Output() menuToggle = new EventEmitter<void>();
 
-  searchQuery: string = '';
   adminUrl = environment.adminApiUrl;
   isNotifOpen = false;
 
@@ -41,11 +40,6 @@ export class HeaderComponent implements OnInit {
     this.authService.isAuthenticated$;
   }
 
-  onSearch() {
-    this.router.navigate(['/venues'], {
-      queryParams: { keyword: this.searchQuery.trim() || null }
-    });
-  }
 
   private authApiBase = environment.authApiUrl;
 
@@ -141,6 +135,10 @@ export class HeaderComponent implements OnInit {
         break;
       case 'FRIENDSHIP':
         void this.router.navigate(['/feed'], { queryParams: { tab: 'friends' } });
+        break;
+      case 'CONTENT_REPORT':
+      case 'CONTENT_APPEAL':
+        void this.router.navigate(['/settings'], { queryParams: { tab: 'moderation' } });
         break;
       case 'MESSAGE':
         void this.router.navigate(['/chat']);

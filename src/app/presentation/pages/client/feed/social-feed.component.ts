@@ -62,7 +62,6 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
   readonly auth = inject(AuthService);
   readonly store = inject(CommunityStore);
 
-  readonly tabs = BAR_TABS;
   readonly sportLabel = sportLabel;
 
   readonly tab = signal<FeedTab>('explore');
@@ -72,6 +71,9 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
   readonly mineOnly = signal(false);
   readonly authorId = signal<string | null>(null);
   readonly tag = signal<string | null>(null);
+  /** Tu khoa tim bai (`?q=`); o tim kiem giu ban nhap rieng, Enter moi tim. */
+  readonly query = signal<string | null>(null);
+  readonly queryDraft = signal('');
   /** Tu trang ghep tran ("Chua co ban cap? Dang tim nguoi choi"): mo o soan o che do keo, dien san mon/hinh thuc. */
   readonly callPrefill = signal<PlayerCallPrefill | null>(null);
   /** O soan thu gon thanh mot dong; mo ra khi bam, dong lai sau khi dang. */
@@ -110,12 +112,16 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
   /** Mon mac dinh khi soan: mon dang loc, khong thi mon dau tien trong ho so. */
   readonly composerSport = computed(() => this.sport() ?? this.mySports().data[0]?.sport ?? null);
 
+  /** Khach: chi Kham pha (xem, tim bai); cac phan rieng cua nguoi dang nhap an di. */
+  readonly isGuest = !this.auth.currentUser;
+  readonly tabs = this.isGuest ? BAR_TABS.filter(item => item.value === 'explore') : BAR_TABS;
+
   readonly isAuthorView = computed(() => !!this.authorId());
   readonly isMyAuthorView = computed(() => this.authorId() === this.me);
   readonly isFriendsTab = computed(() => this.tab() === 'friends' && !this.isAuthorView());
   readonly isCallsView = computed(() => this.tab() === 'calls' && !this.isAuthorView());
   readonly showComposer = computed(() =>
-    this.tab() !== 'saved' && !this.isFriendsTab() && (!this.isAuthorView() || this.isMyAuthorView()));
+    !this.isGuest && this.tab() !== 'saved' && !this.isFriendsTab() && (!this.isAuthorView() || this.isMyAuthorView()));
   readonly showSportFilter = computed(() => this.tab() !== 'saved' && !this.isFriendsTab());
   readonly pendingRequests = computed(() => this.store.connections().received.length);
 
@@ -127,7 +133,7 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.store.loadConnections();
+    if (!this.isGuest) this.store.loadConnections();
     this.loadMyCalls();
     // Thich, binh luan, sua, xoa trong popup bai viet: cap nhat the tuong ung tren bang tin.
     this.postDialog.changes.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(post => {
@@ -137,7 +143,11 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
     this.postDialog.removals.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(postId => this.onRemoved(postId));
 
     // Bo loc mac dinh can biet mon cua nguoi xem, nen doc ho so the thao truoc roi moi theo doi URL.
-    // Ho so cham / loi thi van mo bang tin (khong ca nhan hoa) thay vi de trang trong.
+    // Ho so cham / loi thi van mo bang tin (khong ca nhan hoa) thay vi de trang trong. Khach khong co ho so.
+    if (this.isGuest) {
+      this.startFeed([], false);
+      return;
+    }
     this.profiles.getMyProfiles().pipe(timeout({ first: 5000 }), takeUntilDestroyed(this.destroyRef)).subscribe({
       next: profiles => this.startFeed(profiles, false),
       error: () => this.startFeed([], true)
@@ -153,7 +163,7 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
       .filter(item => POST_SPORTS.includes(item.sportType as PostSport))
       .map(item => ({ sport: item.sportType as PostSport, level: skillLabel(item.skillLevel as unknown as Parameters<typeof skillLabel>[0]) }));
     this.mySports.set({ loading: false, error: failed, data: sports });
-    this.loadSuggestions();
+    if (!this.isGuest) this.loadSuggestions();
     this.loadMatchingCalls();
 
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
@@ -164,7 +174,9 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
         return;
       }
       const sport = params.get('sport');
-      this.tab.set(FEED_TABS.some(item => item.value === tab) ? tab! : 'explore');
+      this.tab.set(this.tabs.some(item => item.value === tab) || tab === 'calls' ? tab! : 'explore');
+      this.query.set(params.get('q')?.trim().slice(0, 100) || null);
+      this.queryDraft.set(this.query() ?? '');
       this.authorId.set(params.get('author'));
       this.tag.set(params.get('tag')?.replace(/^#/, '').toLowerCase() || null);
       this.sport.set(sport && POST_SPORTS.includes(sport as PostSport) ? sport as PostSport : null);
@@ -178,7 +190,7 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
         this.prefillVenue(params.get('venue'));
       }
       // Chi tai lai khi bo loc doi; bo `?compose=` sau khi dang khong duoc xoa bai vua chen vao dau danh sach.
-      const key = [this.tab(), this.sport(), this.mineOnly(), this.authorId(), this.tag()].join('|');
+      const key = [this.tab(), this.sport(), this.mineOnly(), this.authorId(), this.tag(), this.query()].join('|');
       const trendingKey = `${this.sport()}|${this.mineOnly()}`;
       if (trendingKey !== this.trendingKey) {
         this.trendingKey = trendingKey;
@@ -192,9 +204,9 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
     });
   }
 
-  /** Ca nhan hoa: Tim nguoi choi va Kham pha mo san o "Mon cua ban". */
+  /** Ca nhan hoa: Tim nguoi choi va Kham pha mo san o "Mon cua ban". Dang tim bai thi tim moi mon. */
   private defaultsToMine(): boolean {
-    return !this.authorId() && !this.tag() && (this.tab() === 'calls' || this.tab() === 'explore');
+    return !this.authorId() && !this.tag() && !this.query() && (this.tab() === 'calls' || this.tab() === 'explore');
   }
 
   // ---- navigation (state lives in the URL so back/forward and shared links work) --------------
@@ -236,6 +248,25 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
   /** "Xem tat ca" goi y ket ban: tab Ban be, muc Goi y (cuon vo han). */
   showAllSuggestions(): void {
     void this.router.navigate([], { queryParams: { tab: 'friends', list: 'suggestions', author: null, tag: null } , queryParamsHandling: 'merge' });
+  }
+
+  /** Tim bai theo noi dung: ve Khám phá, mọi môn; o trong = bo tim. */
+  search(): void {
+    const q = this.queryDraft().trim().slice(0, 100);
+    void this.router.navigate([], {
+      queryParams: { q: q || null, tab: null, author: null, sport: q ? 'all' : null },
+      queryParamsHandling: 'merge'
+    });
+  }
+
+  clearSearch(): void {
+    this.queryDraft.set('');
+    void this.router.navigate([], { queryParams: { q: null }, queryParamsHandling: 'merge' });
+  }
+
+  /** Nut can dang nhap (ket ban...) ma nguoi xem la khach. */
+  login(): void {
+    this.auth.redirectToLogin(window.location.href);
   }
 
   clearTag(): void {
@@ -340,6 +371,7 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
       sport: this.sport(),
       sports: this.mineOnly() ? [...this.mySportSet()] : null,
       tag: this.tag(),
+      q: this.query(),
       authorId
     });
   }
@@ -458,6 +490,7 @@ export class SocialFeedComponent implements OnInit, OnDestroy {
     if (this.authorId() && this.authorId() !== post.authorId) return false;
     // Chu de so khop khong dau, nhu server ("#bóngđá" = "#bongda").
     if (this.tag() && !post.tags?.some(tag => foldText(tag) === foldText(this.tag()!))) return false;
+    if (this.query() && !post.content?.toLowerCase().includes(this.query()!.toLowerCase())) return false;
     // Danh sach keo dang tim nguoi chi co keo cua nguoi khac; keo vua dang nam o "Keo cua toi".
     if (this.tab() === 'calls' && !this.authorId()) return false;
     if (this.mineOnly() && (!post.sport || !this.mySportSet().has(post.sport))) return false;

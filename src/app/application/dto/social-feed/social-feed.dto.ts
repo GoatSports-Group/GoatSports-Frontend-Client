@@ -135,6 +135,8 @@ export interface FeedFilter {
   sports?: readonly PostSport[] | null;
   /** Voi followingOnly: kem ca ban be (khoi "Ban be dang hoat dong" o Trang chu). */
   withFriends?: boolean;
+  /** Tu khoa tim trong noi dung bai (khong phan biet hoa thuong). */
+  q?: string | null;
 }
 
 export interface AuthorStats {
@@ -189,4 +191,29 @@ export interface UserFollowStatus {
   followed: boolean;
   followerCount: number;
   followingCount: number;
+}
+
+/** Quyet dinh kiem duyet nham vao noi dung / tai khoan cua minh (khong lo nguoi bao cao). */
+export type ModerationDecisionType = 'HIDE_CONTENT' | 'REMOVE_CONTENT' | 'RESTORE_CONTENT' | 'WARNING';
+export type ContentAppealStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
+export interface ModerationDecision {
+  actionId: string;
+  actionType: ModerationDecisionType;
+  reason: string;
+  actionAt: string;
+  targetType: ReportTargetType | null;
+  targetId: string | null;
+  /** Doan dau noi dung (khong co voi tai khoan, hoac noi dung da bi xoa han). */
+  contentSnippet: string | null;
+  contentStatus: string | null;
+  /** Con khieu nai duoc: dung loai, la quyet dinh moi nhat, chua khieu nai. */
+  appealable: boolean;
+  appeal: {
+    appealId: string;
+    status: ContentAppealStatus;
+    reason: string;
+    createdAt: string;
+    reviewedAt: string | null;
+  } | null;
 }

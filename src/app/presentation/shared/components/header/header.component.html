@@ -28,22 +28,6 @@
     </nav>
 
 
-    <!-- Search Bar (Desktop) -->
-    <div class="search-container">
-      <form (submit)="onSearch()" class="search-form">
-        <mat-form-field class="search-field">
-          <lucide-icon matPrefix name="search" class="search-icon w-4 h-4 mr-2"></lucide-icon>
-          <input matInput type="text" aria-label="Tìm sân, câu lạc bộ hoặc giải đấu"
-            placeholder="Tìm sân, câu lạc bộ, giải đấu..." [(ngModel)]="searchQuery" name="searchQuery">
-          @if (searchQuery) {
-          <button mat-icon-button matSuffix (click)="searchQuery = ''" type="button" aria-label="Clear">
-            <lucide-icon name="x" class="w-4 h-4"></lucide-icon>
-          </button>
-          }
-        </mat-form-field>
-      </form>
-    </div>
-
     <!-- Actions (Bookings & User Profile) -->
     <div class="actions-container">
       <app-theme-toggle size="sm"></app-theme-toggle>

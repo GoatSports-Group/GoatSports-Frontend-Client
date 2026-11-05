@@ -11,6 +11,7 @@ import {
   SocialPost,
   AuthorStats,
   FeedFilter,
+  ModerationDecision,
   FollowEntry,
   FollowSuggestion,
   Mention,
@@ -131,5 +132,13 @@ export class SocialFeedRepositoryImpl implements SocialFeedRepository {
 
   reportContent(request: CreateContentReportRequest): Observable<ContentReport> {
     return this.api.reportContent(request).pipe(map(response => response.data));
+  }
+
+  getMyModerationDecisions(page: number, size: number): Observable<SpringPageResponse<ModerationDecision>> {
+    return this.api.getMyModerationDecisions(page, size).pipe(map(response => response.data));
+  }
+
+  appealDecision(actionId: string, reason: string): Observable<void> {
+    return this.api.appealDecision(actionId, reason).pipe(map(() => undefined));
   }
 }

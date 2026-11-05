@@ -111,6 +111,11 @@ export class CommunityStore {
 
   /** Gui loi moi, hoac chap nhan loi moi nguoi kia da gui; xong thi tai lai ban be de moi nut cap nhat. */
   addFriend(userId: string): void {
+    // Khach xem Cong dong: ket ban can dang nhap.
+    if (!this.auth.currentUser) {
+      this.auth.redirectToLogin(window.location.href);
+      return;
+    }
     if (this.pendingFriendIds().has(userId)) return;
     const received = this.connections().received.find(item => item.requesterId === userId);
     const request$: Observable<unknown> = received

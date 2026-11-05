@@ -35,8 +35,11 @@ export class SettingsComponent implements OnInit, OnDestroy {
   public avatarLoadFailed = false;
 
   ngOnInit(): void {
-    const requestedTab = this.route.snapshot.queryParamMap.get('tab') as SettingsTabKey | null;
-    if (requestedTab && this.tabs.some(tab => tab.key === requestedTab)) this.activeTab = requestedTab;
+    // Theo doi URL (khong chi luc mo trang): bam thong bao khi dang o Cai dat cung chuyen dung tab.
+    this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
+      const requestedTab = params.get('tab') as SettingsTabKey | null;
+      if (requestedTab && this.tabs.some(tab => tab.key === requestedTab)) this.activeTab = requestedTab;
+    });
     this.user = this.authService.currentUser;
     this.authService.currentUser$
       .pipe(takeUntil(this.destroy$))

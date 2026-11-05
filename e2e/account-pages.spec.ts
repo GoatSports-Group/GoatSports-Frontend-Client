@@ -10,7 +10,7 @@ test('Cài đặt: thanh bên là danh sách mục cài đặt, đổi mục c�
   await expect(page.getByRole('heading', { name: 'Cài đặt', level: 1 })).toBeVisible();
 
   const nav = page.getByRole('navigation', { name: 'Các mục cài đặt' });
-  await expect(nav.getByRole('button')).toHaveText(['Hồ sơ cá nhân', 'Hồ sơ thể thao', 'Ngân hàng & hoàn tiền', 'Đăng nhập & bảo mật']);
+  await expect(nav.getByRole('button')).toHaveText(['Hồ sơ cá nhân', 'Hồ sơ thể thao', 'Ngân hàng & hoàn tiền', 'Kiểm duyệt nội dung', 'Đăng nhập & bảo mật']);
   for (const gone of ['Lịch đặt sân', 'Sân đã lưu', 'Bạn bè', 'Thi đấu nhóm', 'Thông báo']) {
     await expect(page.locator('.account-sidebar').getByText(gone, { exact: true })).toHaveCount(0);
   }
