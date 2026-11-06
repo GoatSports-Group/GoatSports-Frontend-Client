@@ -241,7 +241,7 @@
             <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon>
           </a>
           @if (isDuplicateRefund) {
-          <a mat-button class="payment-result-secondary" [routerLink]="bookingDetailUrl">{{ paymentSuccessActionLabel
+          <a mat-button class="payment-result-secondary" [routerLink]="bookingDetailUrl" (click)="closeDialog()">{{ paymentSuccessActionLabel
             }}</a>
           } @else {
           <a mat-button class="payment-result-secondary"
@@ -265,7 +265,7 @@
               }}</strong> sẽ được hoàn toàn bộ và bạn nhận thông báo.</p>
           <button mat-flat-button color="primary" class="checkout-button" type="button"
             (click)="recheckPaymentOutcome()">Kiểm tra lại</button>
-          <a mat-button class="payment-result-secondary" [routerLink]="bookingDetailUrl">{{ paymentSuccessActionLabel
+          <a mat-button class="payment-result-secondary" [routerLink]="bookingDetailUrl" (click)="closeDialog()">{{ paymentSuccessActionLabel
             }}</a>
           } @else {
           <p>Khoản cọc <strong>{{ formatPrice(depositAmount) }}</strong> đã về, đang ghi nhận vào lượt đặt sân.</p>
@@ -285,7 +285,7 @@
             <strong>{{ createdBooking?.bookingCode }}</strong>
           </div>
           }
-          <a mat-flat-button color="primary" class="checkout-button" [routerLink]="bookingDetailUrl">
+          <a mat-flat-button color="primary" class="checkout-button" [routerLink]="bookingDetailUrl" (click)="closeDialog()">
             {{ paymentSuccessActionLabel }}
             <lucide-icon name="arrow-right" class="w-4 h-4"></lucide-icon>
           </a>

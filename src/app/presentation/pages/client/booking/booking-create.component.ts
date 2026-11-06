@@ -2,7 +2,7 @@ import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { catchError, finalize, forkJoin, of, switchMap, take, takeWhile, timer } from 'rxjs';
+import { catchError, finalize, forkJoin, map, of, switchMap, take, takeWhile, timer } from 'rxjs';
 import { Booking, BookingStatus, TimeSlot, TimeSlotStatus } from '@application/dto/booking/booking.dto';
 import { Payment, PaymentAttempt, PaymentStatus } from '@application/dto/payment/payment.dto';
 import { SPORT_TYPE_OPTIONS, Venue, VenueCourt } from '@application/dto/venue/venue.dto';
@@ -31,6 +31,11 @@ export interface BookingCreateDialogData {
   matchmakingSessionId?: string;
 }
 
+/** Mở lại màn thanh toán cho đơn đang chờ cọc (từ trang chi tiết vé). */
+export interface BookingResumeDialogData {
+  resumeBookingId: string;
+}
+
 @Component({
   selector: 'app-booking-create',
   templateUrl: './booking-create.component.html',
@@ -49,10 +54,12 @@ export class BookingCreateComponent implements OnInit {
   private readonly notifyService = inject(NotifyService);
   private readonly aiRepository = inject(AiRepositoryPort);
   private readonly destroyRef = inject(DestroyRef);
-  private readonly dialogData = inject<BookingCreateDialogData | null>(MAT_DIALOG_DATA, { optional: true });
+  private readonly dialogData = inject<BookingCreateDialogData | BookingResumeDialogData | null>(MAT_DIALOG_DATA, { optional: true });
   private readonly dialogRef = inject(MatDialogRef<BookingCreateComponent>, { optional: true });
 
   readonly isDialog = Boolean(this.dialogData);
+  /** Mở lại từ trang vé: đóng lúc nào cũng được, đơn vẫn giữ chỗ tới hết hạn. */
+  readonly isResume = Boolean(this.dialogData && 'resumeBookingId' in this.dialogData);
 
   venueId = '';
   courtId = '';
@@ -86,6 +93,10 @@ export class BookingCreateComponent implements OnInit {
   private matchmakingBookingRegistered = false;
 
   ngOnInit(): void {
+    if (this.dialogData && 'resumeBookingId' in this.dialogData) {
+      this.resumeBooking(this.dialogData.resumeBookingId);
+      return;
+    }
     if (this.dialogData) {
       this.venueId = this.dialogData.venueId;
       this.courtId = this.dialogData.courtId;
@@ -167,6 +178,50 @@ export class BookingCreateComponent implements OnInit {
     });
   }
 
+  /**
+   * Đơn đã tạo và đang giữ chỗ: khung giờ không còn AVAILABLE nên không qua loadSelection.
+   * Payment dùng idempotency key theo booking và trả lại attempt payOS đang mở, nên mã QR giữ nguyên.
+   */
+  private resumeBooking(bookingId: string): void {
+    this.loading = true;
+    this.bookingRepository.getBookingById(bookingId).pipe(
+      switchMap(response => this.venueSearchRepository.getVenueDetails(response.data.venueId ?? '').pipe(
+        map(venueResponse => ({ booking: response.data, venue: venueResponse?.data ?? null }))
+      )),
+      take(1),
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.loading = false)
+    ).subscribe({
+      next: ({ booking, venue }) => {
+        const court = venue?.courts?.find(item => item.venueCourtId === booking.venueCourtId) ?? null;
+        if (booking.status !== BookingStatus.PENDING_PAYMENT || !venue || !court) {
+          this.loadError = 'Đơn này không còn chờ thanh toán. Vui lòng tải lại vé.';
+          return;
+        }
+        this.venueId = venue.venueId;
+        this.courtId = court.venueCourtId;
+        this.date = booking.playDate;
+        this.startTime = booking.startTime;
+        this.endTime = booking.endTime;
+        this.venue = venue;
+        this.court = court;
+        this.selectedSlot = {
+          timeSlotId: '', venueCourtId: court.venueCourtId, date: booking.playDate,
+          startTime: booking.startTime, endTime: booking.endTime,
+          pricePerHour: this.durationHours ? booking.totalPrice / this.durationHours : booking.totalPrice,
+          status: TimeSlotStatus.LOCKED
+        };
+        this.createdBooking = booking;
+        this.matchmakingBookingRegistered = true;
+        this.submitting = true;
+        this.startDepositCheckout(booking);
+      },
+      error: error => {
+        this.loadError = this.userMessage(error, 'Không thể tải đơn đặt sân. Vui lòng thử lại.');
+      }
+    });
+  }
+
   get durationHours(): number {
     const start = this.minutes(this.startTime);
     const end = this.minutes(this.endTime);
@@ -229,7 +284,8 @@ export class BookingCreateComponent implements OnInit {
   }
 
   get canCloseDialog(): boolean {
-    return this.cancellationCompleted
+    return this.isResume
+      || this.cancellationCompleted
       || this.paymentStatus === 'SUCCEEDED'
       || this.paymentStatus === 'CANCELLED'
       || this.paymentStatus === 'EXPIRED'

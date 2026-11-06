@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
 import { EMPTY, timer } from 'rxjs';
 import { catchError, distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators';
 import { BOOKING_REPOSITORY_TOKEN } from '@application/ports/persistence/booking.repository';
@@ -25,6 +26,7 @@ import { QrCodeComponent } from '@shared/components/qr-code/qr-code.component';
 import { BANK_ACCOUNT_REPOSITORY_TOKEN } from '@application/ports/persistence/bank-account.repository';
 import { VENUE_SEARCH_REPOSITORY_TOKEN } from '@application/ports/persistence/venue-search.repository';
 import { ChatDockService } from '@presentation/services/chat-dock.service';
+import { BookingCreateComponent, BookingResumeDialogData } from '../booking-create.component';
 import {
   BOOKING_TONE, CANCELLATION_TONE, Tone, countdownLabel, durationLabel, formatPrice, playDay, startsAt, weekdayLabel
 } from '../booking-view';
@@ -53,6 +55,7 @@ export class BookingDetailComponent {
   private readonly notifyService = inject(NotifyService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly venues = inject(VENUE_SEARCH_REPOSITORY_TOKEN);
+  private readonly dialog = inject(MatDialog);
   readonly chatDock = inject(ChatDockService);
 
   @ViewChild('ticketQr') private ticketQr?: QrCodeComponent;
@@ -99,6 +102,14 @@ export class BookingDetailComponent {
     return Number.isFinite(createdAt)
       && Date.now() >= createdAt
       && Date.now() <= createdAt + 60 * 60 * 1000;
+  });
+
+  /** Đơn còn giữ chỗ mà chưa trả cọc: mở lại mã VietQR của đơn. */
+  readonly canResumePayment = computed(() => {
+    const booking = this.booking();
+    return booking?.status === BookingStatus.PENDING_PAYMENT
+      && !booking.cancellation
+      && (!booking.holdExpiresAt || new Date(booking.holdExpiresAt).getTime() > Date.now());
   });
 
   readonly canReview = computed(() => {
@@ -324,6 +335,22 @@ export class BookingDetailComponent {
         this.notifyService.error(error?.error?.message || 'Không thể gửi đánh giá lúc này.');
       }
     });
+  }
+
+  resumePayment(): void {
+    const data: BookingResumeDialogData = { resumeBookingId: this.bookingId() };
+    this.dialog.open(BookingCreateComponent, {
+      data,
+      width: '1080px',
+      maxWidth: 'calc(100vw - 32px)',
+      maxHeight: 'calc(100dvh - 32px)',
+      autoFocus: 'dialog',
+      restoreFocus: true,
+      closeOnNavigation: true,
+      disableClose: true,
+      panelClass: 'booking-checkout-dialog',
+      backdropClass: 'booking-checkout-backdrop'
+    }).afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.loadBooking());
   }
 
   async downloadQr(): Promise<void> {

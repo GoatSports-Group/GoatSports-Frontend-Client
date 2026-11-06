@@ -67,6 +67,11 @@
                 <span class="pass__note-icon"><lucide-icon [name]="note.icon" class="w-6 h-6"></lucide-icon></span>
                 <strong>{{ note.title }}</strong>
                 <p>{{ note.text }}</p>
+                @if (canResumePayment()) {
+                  <button type="button" class="btn btn--primary" (click)="resumePayment()">
+                    <lucide-icon name="qr-code" class="w-4 h-4"></lucide-icon>Tiếp tục thanh toán
+                  </button>
+                }
               </div>
             }
           </div>
